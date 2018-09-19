@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from fileLoader import FileLoader
+from .fileLoader import FileLoader
 class DataFrameLoader:
     def __init__(self, fileName):
         self.fileName = fileName
