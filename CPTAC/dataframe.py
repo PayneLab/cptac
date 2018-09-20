@@ -4,13 +4,6 @@ from .fileLoader import FileLoader
 class DataFrameLoader:
     def __init__(self, fileName):
         self.fileName = fileName
-    def compareGene(self, df1, df2, gene):
-        common = df1.index.intersection(df2)
-        df1Matched = df1.loc[common]
-        df2Matched = df2.loc[common]
-        #dict = {df1.name:df1Matched[gene], df2.name:df2Matched[gene]}
-        #df = pd.DataFrame(d=dict)
-        return None
     def createDataFrame(self):
         file = FileLoader(self.fileName).readFile()
         if self.fileName.endswith('.csv'):
@@ -37,6 +30,8 @@ class DataFrameLoader:
                 dict.update({line[0]:floats})
                 line = file.readline()
             df = pd.DataFrame(dict, rows)
+            f = self.fileName.split("\\")[2]
+            df.name = f.split(".")[0]
                     #print(df.head())
             return df
         else:

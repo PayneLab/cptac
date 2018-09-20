@@ -54,6 +54,8 @@ def get_gene_mapping():
     return Utilities().get_gene_mapping()
 def convert(snp_or_sap):
     return Utilities().convert(snp_or_sap)
+def compare_gene(df1, df2, gene):
+    return Utilities().compare_gene(df1, df2, gene)
 
 
 def start():
