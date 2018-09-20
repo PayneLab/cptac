@@ -5,12 +5,12 @@ class DataFrameLoader:
     def __init__(self, fileName):
         self.fileName = fileName
     def compareGene(self, df1, df2, gene):
-        comb = pd.merge(df1, df2, left_index=True, right_index=True)
-        df1Matched = df1.loc[comb.index.values]
-        df2Matched = df2.loc[comb.index.values]
-        dict = {df1.name:df1Matched[gene], df2.name:df2Matched[gene]}
-        df = pd.DataFrame(d=dict)
-        return df
+        common = df1.index.intersection(df2)
+        df1Matched = df1.loc[common]
+        df2Matched = df2.loc[common]
+        #dict = {df1.name:df1Matched[gene], df2.name:df2Matched[gene]}
+        #df = pd.DataFrame(d=dict)
+        return None
     def createDataFrame(self):
         file = FileLoader(self.fileName).readFile()
         if self.fileName.endswith('.csv'):
