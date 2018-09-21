@@ -1,4 +1,5 @@
 import os
+import webbrowser
 from .dataframe import DataFrameLoader
 from .meta import MetaData
 from .molecular import MolecularData
@@ -57,6 +58,9 @@ def convert(snp_or_sap):
 def compare_gene(df1, df2, gene):
     return Utilities().compare_gene(df1, df2, gene)
 
+def help():
+    print("Opening help.txt...")
+    webbrowser.open("help.txt")
 
 def start():
 
