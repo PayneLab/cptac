@@ -30,6 +30,7 @@ class DataFrameLoader:
                 dict.update({line[0]:floats})
                 line = file.readline()
             df = pd.DataFrame(dict, rows)
+            df = df.sort_index()
             f = self.fileName.split("\\")[2]
             df.name = f.split(".")[0]
                     #print(df.head())
