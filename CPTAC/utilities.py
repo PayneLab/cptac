@@ -10,7 +10,6 @@ class Utilities:
         common = df1.index.intersection(df2.index)
         df1Matched = df1.loc[common]
         df1Matched.sort_index()
-        print(df1Matched)
         df2Matched = df2.loc[common]
         df2Matched.sort_index()
         #TODO how to check if df1.name without crashing?
