@@ -7,11 +7,16 @@ from .utilities import Utilities
 from .queries import Queries
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
+print("Loading Clinical Data...")
 clinical = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "clinical.csv").createDataFrame()
 clinical_meta = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "meta_clinical.csv").createDataFrame() #TODO isn't finished yet
+print("Loading Proteomics Data...")
 proteomics = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "proteomics.txt").createDataFrame()
+print("Loading Transcriptome Data...")
 transcriptome = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "transcriptome.txt").createDataFrame()
+print("Loading CNA Data...")
 cna = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "CNA.txt").createDataFrame()
+print("Loading Phosphoproteomics Data...")
 phosphoproteomics = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "phosphoproteomics.txt").createDataFrame()
 
 metaData = MetaData(clinical, clinical_meta)
