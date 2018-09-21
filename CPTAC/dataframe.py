@@ -32,7 +32,8 @@ class DataFrameLoader:
                 line = file.readline()
             df = pd.DataFrame(dict, rows)
             df = df.sort_index()
-            f = self.fileName.split(os.sep)[2]
+            f = self.fileName.split(os.sep)
+            f = f[len(f) - 1]
             df.name = f.split(".")[0]
                     #print(df.head())
             return df
