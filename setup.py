@@ -8,4 +8,6 @@ setup(name='CPTAC',
 	author_email='sam_payne@byu.edu',
 	license='MIT',
 	packages=['CPTAC'],
-	zip_safe=False)
+	zip_safe=False,
+	include_package_data=True
+	)
