@@ -8,11 +8,11 @@ from .queries import Queries
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 clinical = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "clinical.csv").createDataFrame()
-clinical_meta = DataFrameLoader("CPTAC" + os.sep + "Data" + os.sep + "meta_clinical.csv").createDataFrame() #TODO isn't finished yet
-proteomics = DataFrameLoader("CPTAC" + os.sep + "Data" + os.sep + "proteomics.txt").createDataFrame()
-transcriptome = DataFrameLoader("CPTAC" + os.sep + "Data" + os.sep + "transcriptome.txt").createDataFrame()
-cna = DataFrameLoader("CPTAC" + os.sep + "Data" + os.sep + "CNA.txt").createDataFrame()
-phosphoproteomics = DataFrameLoader("CPTAC" + os.sep + "Data" + os.sep + "phosphoproteomics.txt").createDataFrame()
+clinical_meta = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "meta_clinical.csv").createDataFrame() #TODO isn't finished yet
+proteomics = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "proteomics.txt").createDataFrame()
+transcriptome = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "transcriptome.txt").createDataFrame()
+cna = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "CNA.txt").createDataFrame()
+phosphoproteomics = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "phosphoproteomics.txt").createDataFrame()
 
 metaData = MetaData(clinical, clinical_meta)
 molecularData = MolecularData(proteomics, transcriptome, cna, phosphoproteomics)
