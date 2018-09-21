@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os
 from .fileLoader import FileLoader
 class DataFrameLoader:
     def __init__(self, fileName):
@@ -31,7 +32,7 @@ class DataFrameLoader:
                 line = file.readline()
             df = pd.DataFrame(dict, rows)
             df = df.sort_index()
-            f = self.fileName.split("\\")[2]
+            f = self.fileName.split(os.sep)[2]
             df.name = f.split(".")[0]
                     #print(df.head())
             return df
