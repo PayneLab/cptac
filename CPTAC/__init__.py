@@ -6,7 +6,8 @@ from .molecular import MolecularData
 from .utilities import Utilities
 from .queries import Queries
 
-clinical = DataFrameLoader("CPTAC" + os.sep + "Data" + os.sep + "clinical.csv").createDataFrame()
+dir_path = os.path.dirname(os.path.realpath(__file__))
+clinical = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "clinical.csv").createDataFrame()
 clinical_meta = DataFrameLoader("CPTAC" + os.sep + "Data" + os.sep + "meta_clinical.csv").createDataFrame() #TODO isn't finished yet
 proteomics = DataFrameLoader("CPTAC" + os.sep + "Data" + os.sep + "proteomics.txt").createDataFrame()
 transcriptome = DataFrameLoader("CPTAC" + os.sep + "Data" + os.sep + "transcriptome.txt").createDataFrame()
