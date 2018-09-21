@@ -45,12 +45,14 @@ def get_cohort_cna(cols):
 def get_cohort_phosphoproteomics(cols):
     return phosphoproteomics[cols]
 
-def get_tumor_ids(spec, type, value):
-    """spec is the type of tumor query, e.g. by SNP, mutated gene, outlier
-    type is the tumor type, e.g. colon
-    value corresponds with the type of tumor query, e.g. TP53 for mutated gene or EGFR for outlier"""
+def get_tumor_ids(tumor_type, query_type, value):
+    """
+    tumor_type is the tumor type, e.g. colon
+    query_type is the type of tumor query, e.g. by SNP, mutated gene, outlier
+    value corresponds with the query type, e.g. TP53 for mutated gene or EGFR for outlier
+    """
     dataframe = None #TODO what should the dataframe be?
-    return Queries(dataframe).query(spec, type, value)
+    return Queries(dataframe).query(tumor_type, query_type, value)
 def get_gene_mapping():
     return Utilities().get_gene_mapping()
 def convert(snp_or_sap):
@@ -60,7 +62,7 @@ def compare_gene(df1, df2, gene):
 
 def help():
     print("Opening help.txt...")
-    webbrowser.open("help.txt")
+    webbrowser.open("https://github.com/PayneLab/CPTAC/blob/master/doc/help.txt")
 
 def start():
 

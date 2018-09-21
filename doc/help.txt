@@ -2,30 +2,46 @@ CPTAC help:
 
 get functions:
   get_meta_completeness():
-    returns clinical.csv as a data frame
+    Returns clinical.csv as a data frame.
   get_proteomics():
-    returns proteomics.txt as a data frame
+    Returns proteomics.txt as a data frame.
   get_transcriptome():
-    returns transcriptome.txt as a data frame
+    Returns transcriptome.txt as a data frame.
   get_cna():
-    returns CNA.txt as a data frame
+    Returns CNA.txt as a data frame.
   get_phosphoproteomics():
-    returns phosphoproteomics.txt as a data frame
+    Returns phosphoproteomics.txt as a data frame.
   get_meta_cols():
-    returns column names of clinical data frame
+    Returns column names of clinical data frame.
   get_cohort_meta(cols):
-    returns specified columns of clinical data frame
+    Returns specified columns of clinical data frame.
   get_proteomics_quant(colon_ids):
-    returns specified indices of proteomics data frame
+    Returns specified indices of proteomics data frame.
   get_proteomics_cols():
-    returns column names of proteomics data frame
+    Returns column names of proteomics data frame.
   get_transcriptome_cols():
-    returns column names of transcriptome data frame
+    Returns column names of transcriptome data frame.
   get_cohort_proteomics(cols):
-    returns specified columns of proteomics data frame
+    Returns specified columns of proteomics data frame.
   get_cohort_transcriptome(cols):
-    returns specified columns of transcriptome data frame
+    Returns specified columns of transcriptome data frame.
   get_cohort_cna(cols):
-    returns specified columns of CNA data frame
+    Returns specified columns of CNA data frame.
   get_cohort_phosphoproteomics(cols):
-    returns specified columns of phosphoproteomics data frame
+    Returns specified columns of phosphoproteomics data frame.
+
+Utilities:
+  get_gene_mapping():
+    Returns gene mapping.
+  convert(snp_or_sap):
+    Converts provided SNP to SAP or vice versa.
+  compare_gene(df1, df2, gene):
+    Selects for specified gene from two provided data frames. Returns data frame
+    with two columns for intersection of indices between both data frames.
+
+Queries:
+  query(tumor_type, query_type, value):
+    Queries data based on 'query_type', such as by 'SNP',
+    'mutated gene', or 'outlier'. Query is based on 'tumor_type', such as colon.
+    Value correlates with 'query_type', such as TP53 if query
+    type is 'mutated gene', or 'EGFR' for 'outlier'.
