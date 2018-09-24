@@ -67,7 +67,7 @@ def compare_gene(df1, df2, gene):
     return Utilities().compare_gene(df1, df2, gene)
 
 def help():
-    print("Opening help.txt...")
+    print("Opening help.txt in web browser...")
     webbrowser.open("https://github.com/PayneLab/CPTAC/blob/master/doc/help.txt")
 
 def start():
