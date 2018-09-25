@@ -36,8 +36,12 @@ def list():
     print("\t", phosphoproteomics.name)
     print("\t","\t", "Dimensions:", phosphoproteomics.shape)
     print("To access the data, use a get function with the data frame name, i.e. CTPAC.get_proteomics()")
-def get_meta_completeness():
+def get_clinical():
     return clinical
+def get_meta_type(clinical_col):
+    return clinical_meta.loc[clinical_col][0]
+def get_meta_description(clinical_col):
+    return clinical_meta.loc[clinical_col][1]
 def get_proteomics():
     return proteomics
 def get_transcriptome():

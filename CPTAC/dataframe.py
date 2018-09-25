@@ -10,10 +10,11 @@ class DataFrameLoader:
         if self.fileName.endswith('.csv'):
             df = pd.read_csv(file, index_col=0)
             df = df.iloc[1:]
-            #TODO how to preserve type?
-            df = df.apply(pd.to_numeric, errors='coerce')
+            #TODO change implementation for excel file with all data in multiple sheets
             f = self.fileName.split(os.sep)
             f = f[len(f) - 1]
+            if f == "clinical.csv":
+                df = df.apply(pd.to_numeric, errors='coerce')
             df.name = f.split(".")[0]
             return df
         elif self.fileName.endswith('.txt'):
