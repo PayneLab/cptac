@@ -22,13 +22,27 @@ phosphoproteomics = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "phosp
 metaData = MetaData(clinical, clinical_meta)
 molecularData = MolecularData(proteomics, transcriptome, cna, phosphoproteomics)
 
+def list():
+    #TODO return list of data frames and dimensions
+    print("Below are the available data frames contained in this package:")
+    print("\t", clinical.name)
+    print("\t","\t", "Dimensions:", clinical.shape)
+    print("\t", proteomics.name)
+    print("\t","\t", "Dimensions:", proteomics.shape)
+    print("\t", transcriptome.name)
+    print("\t","\t", "Dimensions:", transcriptome.shape)
+    print("\t", cna.name)
+    print("\t","\t", "Dimensions:", cna.shape)
+    print("\t", phosphoproteomics.name)
+    print("\t","\t", "Dimensions:", phosphoproteomics.shape)
+    print("To access the data, use a get function with the data frame name, i.e. CTPAC.get_proteomics()")
 def get_meta_completeness():
     return clinical
 def get_proteomics():
     return proteomics
 def get_transcriptome():
     return transcriptome
-def get_cna():
+def get_CNA():
     return cna
 def get_phosphoproteomics():
     return phosphoproteomics

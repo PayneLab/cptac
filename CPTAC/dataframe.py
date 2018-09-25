@@ -12,6 +12,9 @@ class DataFrameLoader:
             df = df.iloc[1:]
             #TODO how to preserve type?
             df = df.apply(pd.to_numeric, errors='coerce')
+            f = self.fileName.split(os.sep)
+            f = f[len(f) - 1]
+            df.name = f.split(".")[0]
             return df
         elif self.fileName.endswith('.txt'):
             line = file.readline()
