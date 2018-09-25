@@ -79,6 +79,8 @@ def convert(snp_or_sap):
     return Utilities().convert(snp_or_sap)
 def compare_gene(df1, df2, gene):
     return Utilities().compare_gene(df1, df2, gene)
+def compare_clinical(clinical, data, clinical_col):
+    return Utilities().compare_clinical(clinical, data, clinical_col)
 
 def help():
     print("Opening help.txt in web browser...")
