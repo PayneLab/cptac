@@ -1,45 +1,32 @@
 import numpy as np
 import pandas as pd
 import os
+import re
 from .fileLoader import FileLoader
 class DataFrameLoader:
     def __init__(self, fileName):
         self.fileName = fileName
     def createDataFrame(self):
-        file = FileLoader(self.fileName).readFile()
-        if self.fileName.endswith('.csv'):
-            df = pd.read_csv(file, index_col=0)
+        #checks if file ends with .csv followed by 0 to 7 dots or characters.
+        #permits compressed files in various formats
+        if bool(re.search(r'\.csv[.|(a-z)]{,7}$', self.fileName)):
+            df = pd.read_csv(self.fileName, index_col=0)
             df = df.iloc[1:]
             #TODO change implementation for excel file with all data in multiple sheets
             f = self.fileName.split(os.sep)
             f = f[len(f) - 1]
-            if f == "clinical.csv":
+            if bool(re.search(r'clinical\.csv[.|(a-z)]{,7}$', f)):
                 df = df.apply(pd.to_numeric, errors='coerce')
             df.name = f.split(".")[0]
             return df
-        elif self.fileName.endswith('.txt'):
-            line = file.readline()
-            line = line.split()
-            rows = line[1:] #C3L-00358 etc.
-            line = file.readline()
-            dict = {}
-            while line:
-                line = line.split()
-                floats = []
-                for num in line[1:]:
-                    if num != 'NA':
-                        floats.append(float(num))
-                    else:
-                        floats.append(None)
-
-                dict.update({line[0]:floats})
-                line = file.readline()
-            df = pd.DataFrame(dict, rows)
+        elif bool(re.search(r'\.txt[.|(a-z)]{,7}$', self.fileName)):
+            df = pd.read_csv(self.fileName, sep="\t", index_col=0)
+            df = df.transpose()
             df = df.sort_index()
+
             f = self.fileName.split(os.sep)
             f = f[len(f) - 1]
             df.name = f.split(".")[0]
-                    #print(df.head())
             return df
         else:
             print("Error reading file")

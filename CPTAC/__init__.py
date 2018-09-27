@@ -7,17 +7,18 @@ from .utilities import Utilities
 from .queries import Queries
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
+data_directory = dir_path + os.sep + "Data" + os.sep
 print("Loading Clinical Data...")
-clinical = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "clinical.csv").createDataFrame()
-clinical_meta = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "meta_clinical.csv").createDataFrame() #TODO isn't finished yet
+clinical = DataFrameLoader(data_directory + "clinical.csv.gz").createDataFrame()
+clinical_meta = DataFrameLoader(data_directory + "meta_clinical.csv.gz").createDataFrame() #TODO isn't finished yet
 print("Loading Proteomics Data...")
-proteomics = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "proteomics.txt").createDataFrame()
+proteomics = DataFrameLoader(data_directory + "proteomics.txt.gz").createDataFrame()
 print("Loading Transcriptome Data...")
-transcriptome = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "transcriptome.txt").createDataFrame()
+transcriptome = DataFrameLoader(data_directory + "transcriptome.txt.gz").createDataFrame()
 print("Loading CNA Data...")
-cna = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "CNA.txt").createDataFrame()
+cna = DataFrameLoader(data_directory + "CNA.txt.gz").createDataFrame()
 print("Loading Phosphoproteomics Data...")
-phosphoproteomics = DataFrameLoader(dir_path + os.sep + "Data" + os.sep + "phosphoproteomics.txt").createDataFrame()
+phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.txt.gz").createDataFrame()
 
 metaData = MetaData(clinical, clinical_meta)
 molecularData = MolecularData(proteomics, transcriptome, cna, phosphoproteomics)
@@ -91,7 +92,4 @@ def help():
     webbrowser.open("https://github.com/PayneLab/CPTAC/blob/master/doc/help.txt")
 
 def start():
-
-    joke = u'Wenn ist das Nunst\u00fcck git und Slotermeyer? Ja! ... Beiherhund das Oder die Flipperwaldt gersput.'
-
     print("Welcome to our CPTAC data. Enter CPTAC.help() to open our Github help page.")
