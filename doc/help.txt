@@ -1,7 +1,7 @@
 CPTAC help:
 
 get functions:
-  get_meta_completeness():
+  get_clinial():
     Returns clinical.csv as a data frame.
   get_proteomics():
     Returns proteomics.txt as a data frame.
@@ -38,6 +38,9 @@ Utilities:
   compare_gene(df1, df2, gene):
     Selects for specified gene from two provided data frames. Returns data frame
     with two columns for intersection of indices between both data frames.
+  compare_clinical(clinical, data, clinical_col):
+    Selects specified clinical column and adds it to the specified data, i.e.
+    proteomics, CNA etc., returning a data frame of the combined data.
 
 Queries:
   query(tumor_type, query_type, value):
