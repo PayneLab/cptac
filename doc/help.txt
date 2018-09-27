@@ -1,7 +1,7 @@
 CPTAC help:
 
 get functions:
-  get_clinial():
+  get_clinical():
     Returns clinical.csv as a data frame.
   get_proteomics():
     Returns proteomics.txt as a data frame.
