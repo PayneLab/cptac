@@ -1,5 +1,8 @@
 CPTAC help:
 
+  list():
+    Lists the accessible data in the package
+
 get functions:
   get_clinical():
     Returns clinical.csv as a data frame.
