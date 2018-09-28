@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 import re
+import math
 from .fileLoader import FileLoader
 class DataFrameLoader:
     def __init__(self, fileName):
@@ -21,6 +22,10 @@ class DataFrameLoader:
             f = f[len(f) - 1]
             if bool(re.search(r'^clinical\.csv[.|(a-z)]{,7}$', f)):
                 df = df.apply(pd.to_numeric, errors='coerce')
+            elif bool(re.search(r'^meta_clinical\.csv[.|(a-z)]{,7}$', f)):
+                for num in range(0,len(df.index)):
+                    if isinstance(df.index[num], str):
+                        df = df.rename(index = {df.index[num]:df.index[num].replace(" ","_")})
             df.name = f.split(".")[0]
             return df
         elif bool(re.search(r'\.txt[.|(a-z)]{,7}$', self.fileName)):
