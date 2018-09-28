@@ -15,7 +15,7 @@ class DataFrameLoader:
             #TODO change implementation for excel file with all data in multiple sheets
             f = self.fileName.split(os.sep)
             f = f[len(f) - 1]
-            if bool(re.search(r'clinical\.csv[.|(a-z)]{,7}$', f)):
+            if bool(re.search(r'^clinical\.csv[.|(a-z)]{,7}$', f)):
                 df = df.apply(pd.to_numeric, errors='coerce')
             df.name = f.split(".")[0]
             return df
