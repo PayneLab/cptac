@@ -7,6 +7,10 @@ class Utilities:
     def convert(self, snp_or_sap):
         print("Under construction")
     def compare_gene(self, df1, df2, gene):
+        """
+        Returns dataframe containing two columns. Each column is the data for the
+        specified gene from the two specified dataframes
+        """
         gene = gene.upper()
         common = df1.index.intersection(df2.index)
         df1Matched = df1.loc[common]
@@ -19,6 +23,10 @@ class Utilities:
         df.name = gene
         return df
     def compare_clinical(self, clinical, data, clinical_col):
+        """
+        Returns dataframe with specified column from clinical dataframe added to
+        specified dataframe (i.e., proteomics) for comparison and easy plotting
+        """
         common = clinical.index.intersection(data.index)
         clinicalMatched = clinical.loc[common]
         clinicalMatched = clinicalMatched.sort_index()

@@ -7,6 +7,10 @@ class DataFrameLoader:
     def __init__(self, fileName):
         self.fileName = fileName
     def createDataFrame(self):
+        """
+        Creates pandas DataFrame from provided file name. Parses file depending
+        on type of file. Assigns name to dataframe based on name of file.
+        """
         #checks if file ends with .csv followed by 0 to 7 dots or characters.
         #permits compressed files in various formats
         if bool(re.search(r'\.csv[.|(a-z)]{,7}$', self.fileName)):
