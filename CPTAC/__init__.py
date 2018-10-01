@@ -5,6 +5,19 @@ from .meta import MetaData
 from .molecular import MolecularData
 from .utilities import Utilities
 from .queries import Queries
+#temporary fix for .N .T issue
+def __unify(df):
+    idx = []
+    rename = []
+    for num in range(0, len(df.index)):
+        if df.index[num].split('.')[1] == "T":
+            idx.append(df.index[num])
+            rename.append(df.index[num].split('.')[0])
+    df = df.loc[idx]
+    for num in range(0, len(df.index)):
+        df = df.rename(index = {df.index[num]:df.index[num].split('.')[0]})
+    return df
+
 """
 Executes on import CPTAC statement. Selects files from docs folder in CPTAC package
 utilizing DataFrameLoader from dataframe.py. Prints update as files are loaded into
@@ -12,15 +25,21 @@ dataframes.
 """
 dir_path = os.path.dirname(os.path.realpath(__file__))
 data_directory = dir_path + os.sep + "Data" + os.sep
+
 print("Loading Clinical Data...")
 clinical = DataFrameLoader(data_directory + "clinical.csv.gz").createDataFrame()
 clinical_meta = DataFrameLoader(data_directory + "meta_clinical.csv.gz").createDataFrame() #TODO isn't finished yet
+
 print("Loading Proteomics Data...")
 proteomics = DataFrameLoader(data_directory + "proteomics.txt.gz").createDataFrame()
+proteomicsU = __unify(proteomics)
+
 print("Loading Transcriptome Data...")
 transcriptome = DataFrameLoader(data_directory + "transcriptome.txt.gz").createDataFrame()
+
 print("Loading CNA Data...")
 cna = DataFrameLoader(data_directory + "CNA.txt.gz").createDataFrame()
+
 print("Loading Phosphoproteomics Data...")
 phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.txt.gz").createDataFrame()
 
