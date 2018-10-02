@@ -27,26 +27,32 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 data_directory = dir_path + os.sep + "Data" + os.sep
 
 print("Loading Clinical Data...")
-clinical = DataFrameLoader(data_directory + "clinical.csv.gz").createDataFrame()
-clinical_meta = DataFrameLoader(data_directory + "meta_clinical.csv.gz").createDataFrame() #TODO isn't finished yet
+#clinical = DataFrameLoader(data_directory + "clinical.csv.gz").createDataFrame()
+#clinical_meta = DataFrameLoader(data_directory + "meta_clinical.csv.gz").createDataFrame() #TODO isn't finished yet
+clinical = DataFrameLoader(data_directory + "clinical.txt").createDataFrame()
 
 print("Loading Proteomics Data...")
-proteomics = DataFrameLoader(data_directory + "proteomics.txt.gz").createDataFrame()
-proteomicsU = __unify(proteomics)
+#prot = DataFrameLoader(data_directory + "UCEC_proteomics_log2_V1.1.cct").createDataFrame()
+#proteomics = DataFrameLoader(data_directory + "proteomics.txt.gz").createDataFrame()
+#proteomicsU = __unify(proteomics)
+proteomics = DataFrameLoader(data_directory + "proteomics.cct").createDataFrame()
 
 print("Loading Transcriptome Data...")
-transcriptome = DataFrameLoader(data_directory + "transcriptome.txt.gz").createDataFrame()
-transcriptomeU = __unify(transcriptome)
+#transcriptome = DataFrameLoader(data_directory + "transcriptome.txt.gz").createDataFrame()
+#transcriptomeU = __unify(transcriptome)
+transcriptomics = DataFrameLoader(data_directory + "transcriptomics.cct").createDataFrame()
 
 print("Loading CNA Data...")
-cna = DataFrameLoader(data_directory + "CNA.txt.gz").createDataFrame()
+#cna = DataFrameLoader(data_directory + "CNA.txt.gz").createDataFrame()
+cna = DataFrameLoader(data_directory + "CNA.cct").createDataFrame()
 
 print("Loading Phosphoproteomics Data...")
-phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.txt.gz").createDataFrame()
-phosphoproteomicsU = __unify(phosphoproteomics)
+#phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.txt.gz").createDataFrame()
+#phosphoproteomicsU = __unify(phosphoproteomics)
+phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.cct").createDataFrame()
 
-metaData = MetaData(clinical, clinical_meta)
-molecularData = MolecularData(proteomics, transcriptome, cna, phosphoproteomics)
+#metaData = MetaData(clinical)#, clinical_meta)
+#molecularData = MolecularData(proteomics, transcriptome, cna, phosphoproteomics)
 
 def list():
     """

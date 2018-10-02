@@ -14,7 +14,7 @@ class DataFrameLoader:
         """
         #checks if file ends with .csv followed by 0 to 7 dots or characters.
         #permits compressed files in various formats
-        if bool(re.search(r'\.csv[.|(a-z)]{,7}$', self.fileName)):
+        """if bool(re.search(r'\.csv[.|(a-z)]{,7}$', self.fileName)):
             df = pd.read_csv(self.fileName, index_col=0)
             df = df.iloc[1:]
             #TODO change implementation for excel file with all data in multiple sheets
@@ -27,18 +27,27 @@ class DataFrameLoader:
                     if isinstance(df.index[num], str):
                         df = df.rename(index = {df.index[num]:df.index[num].replace(" ","_")})
             df.name = f.split(".")[0]
-            return df
-        elif bool(re.search(r'\.txt[.|(a-z)]{,7}$', self.fileName)):
+            return df"""
+        if bool(re.search(r'\.txt[.|(a-z)]{,7}$', self.fileName)):
             df = pd.read_csv(self.fileName, sep="\t", index_col=0)
-            df = df.transpose()
+            #df = df.transpose() to put back if .cct doesn't work
             df = df.sort_index()
 
             f = self.fileName.split(os.sep)
             f = f[len(f) - 1]
             df.name = f.split(".")[0]
             return df
+        elif bool(re.search(r'\.cct[.|(a-z)]{,7}$', self.fileName)):
+            df = pd.read_csv(self.fileName, sep="\t", index_col=0)
+            df = df.transpose()
+            df = df.sort_index()
+            f = self.fileName.split(os.sep)
+            f = f[len(f) - 1]
+            df.name = f.split(".")[0]
+            return df
+
         else:
-            print("Error reading file")
+            print("Error reading", self.fileName)
 
 
 
