@@ -36,12 +36,14 @@ proteomicsU = __unify(proteomics)
 
 print("Loading Transcriptome Data...")
 transcriptome = DataFrameLoader(data_directory + "transcriptome.txt.gz").createDataFrame()
+transcriptomeU = __unify(transcriptome)
 
 print("Loading CNA Data...")
 cna = DataFrameLoader(data_directory + "CNA.txt.gz").createDataFrame()
 
 print("Loading Phosphoproteomics Data...")
 phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.txt.gz").createDataFrame()
+phosphoproteomicsU = __unify(phosphoproteomics)
 
 metaData = MetaData(clinical, clinical_meta)
 molecularData = MolecularData(proteomics, transcriptome, cna, phosphoproteomics)
