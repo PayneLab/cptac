@@ -55,8 +55,8 @@ def list():
     print("\t","\t", "Dimensions:", clinical.shape)
     print("\t", proteomics.name)
     print("\t","\t", "Dimensions:", proteomics.shape)
-    print("\t", transcriptome.name)
-    print("\t","\t", "Dimensions:", transcriptome.shape)
+    print("\t", transcriptomics.name)
+    print("\t","\t", "Dimensions:", transcriptomics.shape)
     print("\t", cna.name)
     print("\t","\t", "Dimensions:", cna.shape)
     print("\t", phosphoproteomics.name)
@@ -80,9 +80,9 @@ def get_meta_description(clinical_col):
 def get_proteomics():
     """Returns proteomics dataframe"""
     return proteomics
-def get_transcriptome():
+def get_transcriptomics():
     """Returns transcriptome dataframe"""
-    return transcriptome
+    return transcriptomics
 def get_CNA():
     """Returns CNA dataframe"""
     return cna
@@ -98,9 +98,9 @@ def get_meta_cols():
 def get_proteomics_cols():
     """Returns list of columns of proteomics dataframe"""
     return proteomics.columns
-def get_transcriptome_cols():
+def get_transcriptomic_cols():
     """Returns list of columns of transcriptome dataframe"""
-    return transcriptome.columns
+    return transcriptomics.columns
 def get_cohort_meta(cols):
     """Returns specified column or columns of clinical data"""
     return clinical[cols]
@@ -110,9 +110,9 @@ def get_proteomics_quant(colon_ids):
 def get_cohort_proteomics(cols):
     """Returns specified column or columns of proteomics data"""
     return proteomics[cols]
-def get_cohort_transcriptome(cols):
+def get_cohort_transcriptomics(cols):
     """Returns specified column or columns of transcriptome data"""
-    return transcriptome[cols]
+    return transcriptomics[cols]
 def get_cohort_cna(cols):
     """Returns specified column or columns of CNA data"""
     return cna[cols]
