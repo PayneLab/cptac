@@ -43,6 +43,9 @@ print("Loading Phosphoproteomics Data...")
 #phosphoproteomicsU = __unify(phosphoproteomics)
 phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.cct").createDataFrame()
 
+print("Loading Somatic Data...")
+somatic = DataFrameLoader(data_directory + "somatic.cbt").createDataFrame()
+
 #metaData = MetaData(clinical)#, clinical_meta)
 #molecularData = MolecularData(proteomics, transcriptome, cna, phosphoproteomics)
 warning()
@@ -89,6 +92,9 @@ def get_CNA():
 def get_phosphoproteomics():
     """Returns phosphoproteomics dataframe"""
     return phosphoproteomics
+def get_somatic():
+    """Returns somatic mutations dataframe"""
+    return somatic
 def get_meta_cols():
     """
     Returns list of clincal dataframe columns,
