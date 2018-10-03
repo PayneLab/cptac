@@ -6,17 +6,9 @@ from .molecular import MolecularData
 from .utilities import Utilities
 from .queries import Queries
 #temporary fix for .N .T issue
-def __unify(df):
-    idx = []
-    rename = []
-    for num in range(0, len(df.index)):
-        if df.index[num].split('.')[1] == "T":
-            idx.append(df.index[num])
-            rename.append(df.index[num].split('.')[0])
-    df = df.loc[idx]
-    for num in range(0, len(df.index)):
-        df = df.rename(index = {df.index[num]:df.index[num].split('.')[0]})
-    return df
+def warning():
+    print("\n","******PLEASE READ******")
+    print("WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement, or enter CPTAC.embargo() to open the webpage for more details.")
 
 """
 Executes on import CPTAC statement. Selects files from docs folder in CPTAC package
@@ -28,7 +20,7 @@ data_directory = dir_path + os.sep + "Data" + os.sep
 
 print("Loading Clinical Data...")
 #clinical = DataFrameLoader(data_directory + "clinical.csv.gz").createDataFrame()
-#clinical_meta = DataFrameLoader(data_directory + "meta_clinical.csv.gz").createDataFrame() #TODO isn't finished yet
+#clinical_meta = DataFrameLoader(data_directory + "meta_clinical.csv.gz").createDataFrame()
 clinical = DataFrameLoader(data_directory + "clinical.txt").createDataFrame()
 
 print("Loading Proteomics Data...")
@@ -53,7 +45,7 @@ phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.cct").cr
 
 #metaData = MetaData(clinical)#, clinical_meta)
 #molecularData = MolecularData(proteomics, transcriptome, cna, phosphoproteomics)
-
+warning()
 def list():
     """
     Prints list of loaded data frames and dimensions
@@ -160,6 +152,8 @@ def help():
     """Opens github help page"""
     print("Opening help.txt in web browser...")
     webbrowser.open("https://github.com/PayneLab/CPTAC/blob/master/doc/help.txt")
-
+def embargo():
+    print("Opening embargo details in web browser...")
+    webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
 def start():
     print("Welcome to our CPTAC data. Enter CPTAC.help() to open our Github help page.")
