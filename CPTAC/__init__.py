@@ -29,7 +29,7 @@ print("Loading Proteomics Data...")
 #proteomicsU = __unify(proteomics)
 proteomics = DataFrameLoader(data_directory + "proteomics.cct").createDataFrame()
 
-print("Loading Transcriptome Data...")
+print("Loading Transcriptomics Data...")
 #transcriptome = DataFrameLoader(data_directory + "transcriptome.txt.gz").createDataFrame()
 #transcriptomeU = __unify(transcriptome)
 transcriptomics = DataFrameLoader(data_directory + "transcriptomics.cct").createDataFrame()
@@ -81,7 +81,7 @@ def get_proteomics():
     """Returns proteomics dataframe"""
     return proteomics
 def get_transcriptomics():
-    """Returns transcriptome dataframe"""
+    """Returns transcriptomics dataframe"""
     return transcriptomics
 def get_CNA():
     """Returns CNA dataframe"""
@@ -98,8 +98,8 @@ def get_meta_cols():
 def get_proteomics_cols():
     """Returns list of columns of proteomics dataframe"""
     return proteomics.columns
-def get_transcriptomic_cols():
-    """Returns list of columns of transcriptome dataframe"""
+def get_transcriptomics_cols():
+    """Returns list of columns of transcriptomics dataframe"""
     return transcriptomics.columns
 def get_cohort_meta(cols):
     """Returns specified column or columns of clinical data"""
@@ -111,7 +111,7 @@ def get_cohort_proteomics(cols):
     """Returns specified column or columns of proteomics data"""
     return proteomics[cols]
 def get_cohort_transcriptomics(cols):
-    """Returns specified column or columns of transcriptome data"""
+    """Returns specified column or columns of transcriptomics data"""
     return transcriptomics[cols]
 def get_cohort_cna(cols):
     """Returns specified column or columns of CNA data"""
