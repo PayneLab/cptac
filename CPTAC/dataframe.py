@@ -37,15 +37,7 @@ class DataFrameLoader:
             f = f[len(f) - 1]
             df.name = f.split(".")[0]
             return df
-        elif bool(re.search(r'\.cct[.|(a-z)]{,7}$', self.fileName)):
-            df = pd.read_csv(self.fileName, sep="\t", index_col=0)
-            df = df.transpose()
-            df = df.sort_index()
-            f = self.fileName.split(os.sep)
-            f = f[len(f) - 1]
-            df.name = f.split(".")[0]
-            return df
-        elif bool(re.search(r'\.cbt[.|(a-z)]{,7}$', self.fileName)):
+        elif bool(re.search(r'\.(cct|cbt)[.|(a-z)]{,7}$', self.fileName)):
             df = pd.read_csv(self.fileName, sep="\t", index_col=0)
             df = df.transpose()
             df = df.sort_index()
@@ -55,10 +47,6 @@ class DataFrameLoader:
             return df
         else:
             print("Error reading", self.fileName)
-
-
-
-
 
 # clinical = {'FIGO': [0,0,0,3],
 #         'Diabetes': [0,0,1,0],
