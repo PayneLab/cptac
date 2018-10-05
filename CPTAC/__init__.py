@@ -8,7 +8,7 @@ from .queries import Queries
 #temporary fix for .N .T issue
 def warning():
     print("\n","******PLEASE READ******")
-    print("WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement, or enter CPTAC.embargo() to open the webpage for more details.")
+    print("WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter CPTAC.embargo() to open the webpage for more details.")
 
 """
 Executes on import CPTAC statement. Selects files from docs folder in CPTAC package
