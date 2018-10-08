@@ -21,30 +21,30 @@ data_directory = dir_path + os.sep + "Data" + os.sep
 print("Loading Clinical Data...")
 #clinical = DataFrameLoader(data_directory + "clinical.csv.gz").createDataFrame()
 #clinical_meta = DataFrameLoader(data_directory + "meta_clinical.csv.gz").createDataFrame()
-clinical = DataFrameLoader(data_directory + "clinical.txt").createDataFrame()
+clinical = DataFrameLoader(data_directory + "clinical.txt.gz").createDataFrame()
 
 print("Loading Proteomics Data...")
 #prot = DataFrameLoader(data_directory + "UCEC_proteomics_log2_V1.1.cct").createDataFrame()
 #proteomics = DataFrameLoader(data_directory + "proteomics.txt.gz").createDataFrame()
 #proteomicsU = __unify(proteomics)
-proteomics = DataFrameLoader(data_directory + "proteomics.cct").createDataFrame()
+proteomics = DataFrameLoader(data_directory + "proteomics.cct.gz").createDataFrame()
 
 print("Loading Transcriptomics Data...")
 #transcriptome = DataFrameLoader(data_directory + "transcriptome.txt.gz").createDataFrame()
 #transcriptomeU = __unify(transcriptome)
-transcriptomics = DataFrameLoader(data_directory + "transcriptomics.cct").createDataFrame()
+transcriptomics = DataFrameLoader(data_directory + "transcriptomics.cct.gz").createDataFrame()
 
 print("Loading CNA Data...")
 #cna = DataFrameLoader(data_directory + "CNA.txt.gz").createDataFrame()
-cna = DataFrameLoader(data_directory + "CNA.cct").createDataFrame()
+cna = DataFrameLoader(data_directory + "CNA.cct.gz").createDataFrame()
 
 print("Loading Phosphoproteomics Data...")
 #phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.txt.gz").createDataFrame()
 #phosphoproteomicsU = __unify(phosphoproteomics)
-phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.cct").createDataFrame()
+phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.cct.gz").createDataFrame()
 
 print("Loading Somatic Data...")
-somatic = DataFrameLoader(data_directory + "somatic.cbt").createDataFrame()
+somatic = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
 
 #metaData = MetaData(clinical)#, clinical_meta)
 #molecularData = MolecularData(proteomics, transcriptome, cna, phosphoproteomics)
