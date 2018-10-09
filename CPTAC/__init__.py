@@ -145,7 +145,10 @@ def compare_gene(df1, df2, gene):
     Returns dataframe containing two columns. Each column is the data for the
     specified gene from the two specified dataframes
     """
-    return Utilities().compare_gene(df1, df2, gene)
+    if isinstance(gene, str):
+        return Utilities().compare_gene(df1, df2, gene)
+    else:
+        return Utilities().compare_genes(df1, df2, gene)
 def compare_clinical(clinical, data, clinical_col):
     """
     Returns dataframe with specified column from clinical dataframe added to

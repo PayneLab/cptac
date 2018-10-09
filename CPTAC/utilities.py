@@ -22,6 +22,19 @@ class Utilities:
         df = pd.DataFrame(dict, index = df1Matched.index)
         df.name = gene
         return df
+    def compare_genes(self, df1, df2, genes):
+        """
+        Returns dataframe of two column sets corresponding with the provided
+        array of genes
+        """
+        dfs = pd.DataFrame(index = df1.index.intersection(df2.index))
+        for gene in genes:
+            df = Utilities().compare_gene(df1, df2, gene)
+            new_col1 = df1.name + "_" + gene
+            new_col2 = df2.name + "_" + gene
+            df = df.rename(columns = {df1.name:new_col1, df2.name:new_col2})
+            dfs = dfs.add(df, fill_value=0)
+        return dfs
     def compare_clinical(self, clinical, data, clinical_col):
         """
         Returns dataframe with specified column from clinical dataframe added to
