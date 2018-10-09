@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='CPTAC',
-	version='0.1',
+	version='0.2',
 	description='Python packaging for CPTAC data',
 	url='http://github.com/PayneLab/CPTAC',
 	author='Dr. Samuel Payne',
