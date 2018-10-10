@@ -34,6 +34,7 @@ class Utilities:
             new_col2 = df2.name + "_" + gene
             df = df.rename(columns = {df1.name:new_col1, df2.name:new_col2})
             dfs = dfs.add(df, fill_value=0)
+        dfs.name = str(len(genes)) + " Genes Combined" 
         return dfs
     def compare_clinical(self, clinical, data, clinical_col):
         """
