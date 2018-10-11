@@ -1,0 +1,54 @@
+LINE 154 : 2018-10-11 16:49:42,389 [INFO    ] Connecting to Enrichr Server to get latest library names
+LINE 208 : 2018-10-11 16:49:42,398 [DEBUG   ] Starting new HTTP connection (1): amp.pharm.mssm.edu
+LINE 396 : 2018-10-11 16:49:42,637 [DEBUG   ] http://amp.pharm.mssm.edu:80 "GET /Enrichr/datasetStatistics HTTP/1.1" 200 None
+LINE 158 : 2018-10-11 16:49:42,696 [INFO    ] Libraries are used: KEGG_2016
+LINE 166 : 2018-10-11 16:49:42,697 [DEBUG   ] Start Enrichr using library: KEGG_2016
+LINE 167 : 2018-10-11 16:49:42,698 [INFO    ] Analysis name: BMI partitions, Enrichr Library: KEGG_2016
+LINE 208 : 2018-10-11 16:49:42,705 [DEBUG   ] Starting new HTTP connection (1): amp.pharm.mssm.edu
+LINE 396 : 2018-10-11 16:49:43,054 [DEBUG   ] http://amp.pharm.mssm.edu:80 "POST /Enrichr/addList HTTP/1.1" 200 47
+LINE 208 : 2018-10-11 16:49:44,065 [DEBUG   ] Starting new HTTP connection (1): amp.pharm.mssm.edu
+LINE 396 : 2018-10-11 16:49:44,607 [DEBUG   ] http://amp.pharm.mssm.edu:80 "GET /Enrichr/export?userListId=12755149&filename=KEGG_2016.BMI%20partitions.reports&backgroundType=KEGG_2016 HTTP/1.1" 200 None
+LINE 178 : 2018-10-11 16:49:47,641 [INFO    ] Save file of enrichment results: Job Id:731sy
+LINE 2491: 2018-10-11 16:49:47,838 [DEBUG   ] update_title_pos
+LINE 1251: 2018-10-11 16:49:47,852 [DEBUG   ] findfont: Matching :family=sans-serif:style=normal:variant=normal:weight=normal:stretch=normal:size=24.0 to DejaVu Sans ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans.ttf') with score of 0.050000.
+LINE 653 : 2018-10-11 16:49:47,864 [DEBUG   ] Assigning font /b'F1' = '/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans.ttf'
+LINE 1251: 2018-10-11 16:49:47,892 [DEBUG   ] findfont: Matching :family=sans-serif:style=normal:variant=normal:weight=bold:stretch=normal:size=24.0 to DejaVu Sans ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-Bold.ttf') with score of 0.000000.
+LINE 1251: 2018-10-11 16:49:47,897 [DEBUG   ] findfont: Matching :family=STIXGeneral:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXGeneral ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/STIXGeneral.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,899 [DEBUG   ] findfont: Matching :family=STIXGeneral:style=italic:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXGeneral ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/STIXGeneralItalic.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,901 [DEBUG   ] findfont: Matching :family=STIXGeneral:style=normal:variant=normal:weight=bold:stretch=normal:size=10.0 to STIXGeneral ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/STIXGeneralBol.ttf') with score of 0.000000.
+LINE 1251: 2018-10-11 16:49:47,903 [DEBUG   ] findfont: Matching :family=STIXNonUnicode:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXNonUnicode ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/STIXNonUni.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,906 [DEBUG   ] findfont: Matching :family=STIXNonUnicode:style=italic:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXNonUnicode ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/STIXNonUniIta.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,908 [DEBUG   ] findfont: Matching :family=STIXNonUnicode:style=normal:variant=normal:weight=bold:stretch=normal:size=10.0 to STIXNonUnicode ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/STIXNonUniBol.ttf') with score of 0.000000.
+LINE 1251: 2018-10-11 16:49:47,910 [DEBUG   ] findfont: Matching :family=STIXSizeOneSym:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXSizeOneSym ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/STIXSizOneSymReg.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,912 [DEBUG   ] findfont: Matching :family=STIXSizeTwoSym:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXSizeTwoSym ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/STIXSizTwoSymReg.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,913 [DEBUG   ] findfont: Matching :family=STIXSizeThreeSym:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXSizeThreeSym ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/STIXSizThreeSymReg.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,914 [DEBUG   ] findfont: Matching :family=STIXSizeFourSym:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXSizeFourSym ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/STIXSizFourSymReg.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,916 [DEBUG   ] findfont: Matching :family=STIXSizeFiveSym:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXSizeFiveSym ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/STIXSizFiveSymReg.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,918 [DEBUG   ] findfont: Matching :family=cmsy10:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to cmsy10 ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/cmsy10.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,921 [DEBUG   ] findfont: Matching :family=cmr10:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to cmr10 ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/cmr10.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,923 [DEBUG   ] findfont: Matching :family=cmtt10:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to cmtt10 ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/cmtt10.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,926 [DEBUG   ] findfont: Matching :family=cmmi10:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to cmmi10 ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/cmmi10.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,929 [DEBUG   ] findfont: Matching :family=cmb10:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to cmb10 ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/cmb10.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,931 [DEBUG   ] findfont: Matching :family=cmss10:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to cmss10 ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/cmss10.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,934 [DEBUG   ] findfont: Matching :family=cmex10:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to cmex10 ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/cmex10.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,936 [DEBUG   ] findfont: Matching :family=DejaVu Sans:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to DejaVu Sans ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,939 [DEBUG   ] findfont: Matching :family=DejaVu Sans:style=italic:variant=normal:weight=normal:stretch=normal:size=10.0 to DejaVu Sans ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-Oblique.ttf') with score of 0.150000.
+LINE 1251: 2018-10-11 16:49:47,941 [DEBUG   ] findfont: Matching :family=DejaVu Sans:style=normal:variant=normal:weight=bold:stretch=normal:size=10.0 to DejaVu Sans ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-Bold.ttf') with score of 0.000000.
+LINE 1251: 2018-10-11 16:49:47,944 [DEBUG   ] findfont: Matching :family=DejaVu Sans Mono:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to DejaVu Sans Mono ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansMono.ttf') with score of 0.050000.
+LINE 1251: 2018-10-11 16:49:47,946 [DEBUG   ] findfont: Matching :family=DejaVu Sans Display:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to DejaVu Sans Display ('/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansDisplay.ttf') with score of 0.050000.
+LINE 653 : 2018-10-11 16:49:48,165 [DEBUG   ] Assigning font /b'F2' = '/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-Bold.ttf'
+LINE 703 : 2018-10-11 16:49:48,272 [DEBUG   ] Embedding font /usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-Bold.ttf.
+LINE 710 : 2018-10-11 16:49:48,273 [DEBUG   ] Writing TrueType font.
+LINE 703 : 2018-10-11 16:49:48,313 [DEBUG   ] Embedding font /usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans.ttf.
+LINE 710 : 2018-10-11 16:49:48,313 [DEBUG   ] Writing TrueType font.
+LINE 2491: 2018-10-11 16:49:48,388 [DEBUG   ] update_title_pos
+LINE 2491: 2018-10-11 16:49:48,443 [DEBUG   ] update_title_pos
+LINE 2491: 2018-10-11 16:49:48,471 [DEBUG   ] update_title_pos
+LINE 653 : 2018-10-11 16:49:48,489 [DEBUG   ] Assigning font /b'F1' = '/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans.ttf'
+LINE 653 : 2018-10-11 16:49:48,519 [DEBUG   ] Assigning font /b'F2' = '/usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-Bold.ttf'
+LINE 703 : 2018-10-11 16:49:48,605 [DEBUG   ] Embedding font /usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-Bold.ttf.
+LINE 710 : 2018-10-11 16:49:48,606 [DEBUG   ] Writing TrueType font.
+LINE 703 : 2018-10-11 16:49:48,631 [DEBUG   ] Embedding font /usr/local/lib/python3.6/dist-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans.ttf.
+LINE 710 : 2018-10-11 16:49:48,631 [DEBUG   ] Writing TrueType font.
+LINE 193 : 2018-10-11 16:49:48,675 [INFO    ] Done.
+
