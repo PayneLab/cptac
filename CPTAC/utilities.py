@@ -41,6 +41,7 @@ class Utilities:
         Returns dataframe with specified column from clinical dataframe added to
         specified dataframe (i.e., proteomics) for comparison and easy plotting
         """
-        data.insert(0, clinical_col, clinical[clinical_col])
-        data.name = data.name + " with " + clinical_col
-        return data
+        df = data[data.columns]
+        df.insert(0, clinical_col, clinical[clinical_col])
+        df.name = data.name + " with " + clinical_col
+        return df
