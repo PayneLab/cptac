@@ -34,22 +34,13 @@ class Utilities:
             new_col2 = df2.name + "_" + gene
             df = df.rename(columns = {df1.name:new_col1, df2.name:new_col2})
             dfs = dfs.add(df, fill_value=0)
-        dfs.name = str(len(genes)) + " Genes Combined" 
+        dfs.name = str(len(genes)) + " Genes Combined"
         return dfs
     def compare_clinical(self, clinical, data, clinical_col):
         """
         Returns dataframe with specified column from clinical dataframe added to
         specified dataframe (i.e., proteomics) for comparison and easy plotting
         """
-        common = clinical.index.intersection(data.index)
-        clinicalMatched = clinical.loc[common]
-        clinicalMatched = clinicalMatched.sort_index()
-        dataMatched = data.loc[common]
-        dataMatched = dataMatched.sort_index()
-        dict = {clinical_col:clinical[clinical_col]}
-        for num in range(0, len(dataMatched.columns)):
-            column = dataMatched.columns[num]
-            dict.update({column:dataMatched[column]})
-        df = pd.DataFrame(dict, index = clinicalMatched.index)
-        df.name = clinical_col + " with " + data.name
-        return df
+        data.insert(0, clinical_col, clinical[clinical_col])
+        data.name = data.name + " with " + clinical_col
+        return data
