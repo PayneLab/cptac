@@ -22,20 +22,26 @@ class Utilities:
         df = pd.DataFrame(dict, index = df1Matched.index)
         df.name = gene
         return df
+    def compare_genes(self, df1, df2, genes):
+        """
+        Returns dataframe of two column sets corresponding with the provided
+        array of genes
+        """
+        dfs = pd.DataFrame(index = df1.index.intersection(df2.index))
+        for gene in genes:
+            df = Utilities().compare_gene(df1, df2, gene)
+            new_col1 = df1.name + "_" + gene
+            new_col2 = df2.name + "_" + gene
+            df = df.rename(columns = {df1.name:new_col1, df2.name:new_col2})
+            dfs = dfs.add(df, fill_value=0)
+        dfs.name = str(len(genes)) + " Genes Combined"
+        return dfs
     def compare_clinical(self, clinical, data, clinical_col):
         """
         Returns dataframe with specified column from clinical dataframe added to
         specified dataframe (i.e., proteomics) for comparison and easy plotting
         """
-        common = clinical.index.intersection(data.index)
-        clinicalMatched = clinical.loc[common]
-        clinicalMatched = clinicalMatched.sort_index()
-        dataMatched = data.loc[common]
-        dataMatched = dataMatched.sort_index()
-        dict = {clinical_col:clinical[clinical_col]}
-        for num in range(0, len(dataMatched.columns)):
-            column = dataMatched.columns[num]
-            dict.update({column:dataMatched[column]})
-        df = pd.DataFrame(dict, index = clinicalMatched.index)
-        df.name = clinical_col + " with " + data.name
+        df = data[data.columns]
+        df.insert(0, clinical_col, clinical[clinical_col])
+        df.name = data.name + " with " + clinical_col
         return df

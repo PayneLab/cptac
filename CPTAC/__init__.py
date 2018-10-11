@@ -19,28 +19,18 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 data_directory = dir_path + os.sep + "Data" + os.sep
 
 print("Loading Clinical Data...")
-#clinical = DataFrameLoader(data_directory + "clinical.csv.gz").createDataFrame()
-#clinical_meta = DataFrameLoader(data_directory + "meta_clinical.csv.gz").createDataFrame()
 clinical = DataFrameLoader(data_directory + "clinical.txt.gz").createDataFrame()
 
 print("Loading Proteomics Data...")
-#prot = DataFrameLoader(data_directory + "UCEC_proteomics_log2_V1.1.cct").createDataFrame()
-#proteomics = DataFrameLoader(data_directory + "proteomics.txt.gz").createDataFrame()
-#proteomicsU = __unify(proteomics)
 proteomics = DataFrameLoader(data_directory + "proteomics.cct.gz").createDataFrame()
 
 print("Loading Transcriptomics Data...")
-#transcriptome = DataFrameLoader(data_directory + "transcriptome.txt.gz").createDataFrame()
-#transcriptomeU = __unify(transcriptome)
 transcriptomics = DataFrameLoader(data_directory + "transcriptomics.cct.gz").createDataFrame()
 
 print("Loading CNA Data...")
-#cna = DataFrameLoader(data_directory + "CNA.txt.gz").createDataFrame()
 cna = DataFrameLoader(data_directory + "CNA.cct.gz").createDataFrame()
 
 print("Loading Phosphoproteomics Data...")
-#phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.txt.gz").createDataFrame()
-#phosphoproteomicsU = __unify(phosphoproteomics)
 phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.cct.gz").createDataFrame()
 
 print("Loading Somatic Data...")
@@ -68,18 +58,6 @@ def list():
 def get_clinical():
     """Returns clincal dataframe"""
     return clinical
-def get_meta_type(clinical_col):
-    """
-    Returns string of clinical data type, i.e. Diabetes: CON (continuous)
-    """
-    #TODO name in meta is different than in clinical data, how to reconcile?
-    return clinical_meta.loc[clinical_col][0]
-def get_meta_description(clinical_col):
-    """
-    Returns string of clinical data type descrition
-    """
-    #TODO name in meta is different than in clinical data, how to reconcile?
-    return clinical_meta.loc[clinical_col][1]
 def get_proteomics():
     """Returns proteomics dataframe"""
     return proteomics
@@ -145,7 +123,10 @@ def compare_gene(df1, df2, gene):
     Returns dataframe containing two columns. Each column is the data for the
     specified gene from the two specified dataframes
     """
-    return Utilities().compare_gene(df1, df2, gene)
+    if isinstance(gene, str):
+        return Utilities().compare_gene(df1, df2, gene)
+    else:
+        return Utilities().compare_genes(df1, df2, gene)
 def compare_clinical(clinical, data, clinical_col):
     """
     Returns dataframe with specified column from clinical dataframe added to
