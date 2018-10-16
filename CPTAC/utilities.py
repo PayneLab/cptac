@@ -11,17 +11,20 @@ class Utilities:
         Returns dataframe containing two columns. Each column is the data for the
         specified gene from the two specified dataframes
         """
-        gene = gene.upper()
-        common = df1.index.intersection(df2.index)
-        df1Matched = df1.loc[common]
-        df1Matched = df1Matched.sort_index()
-        df2Matched = df2.loc[common]
-        df2Matched = df2Matched.sort_index()
-        #TODO how to check if df1.name without crashing?
-        dict = {df1.name:df1Matched[gene], df2.name:df2Matched[gene]}
-        df = pd.DataFrame(dict, index = df1Matched.index)
-        df.name = gene
-        return df
+        if gene in df1.columns and gene in df2.columns:
+            gene = gene.upper()
+            common = df1.index.intersection(df2.index)
+            df1Matched = df1.loc[common]
+            df1Matched = df1Matched.sort_index()
+            df2Matched = df2.loc[common]
+            df2Matched = df2Matched.sort_index()
+            #TODO how to check if df1.name without crashing?
+            dict = {df1.name:df1Matched[gene], df2.name:df2Matched[gene]}
+            df = pd.DataFrame(dict, index = df1Matched.index)
+            df.name = gene
+            return df
+        else:
+            print(gene,"not in provided dataframes. Please check that the specified gene is included in the provided dataframes")
     def compare_genes(self, df1, df2, genes):
         """
         Returns dataframe of two column sets corresponding with the provided
