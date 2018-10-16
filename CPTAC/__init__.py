@@ -54,6 +54,8 @@ def list():
     print("\t","\t", "Dimensions:", cna.shape)
     print("\t", phosphoproteomics.name)
     print("\t","\t", "Dimensions:", phosphoproteomics.shape)
+    print("\t", somatic.name)
+    print("\t","\t", "Dimensions:", somatic.shape)
     print("To access the data, use a get function with the data frame name, i.e. CTPAC.get_proteomics()")
 def get_clinical():
     """Returns clincal dataframe"""
