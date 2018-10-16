@@ -24,7 +24,7 @@ class Utilities:
             df.name = gene
             return df
         else:
-            print(gene,"not in provided dataframes. Please check that the specified gene is included in the provided dataframes")
+            print(gene,"not found in provided dataframes. Please check that the specified gene is included in the provided dataframes")
     def compare_genes(self, df1, df2, genes):
         """
         Returns dataframe of two column sets corresponding with the provided
