@@ -44,7 +44,10 @@ class Utilities:
         Returns dataframe with specified column from clinical dataframe added to
         specified dataframe (i.e., proteomics) for comparison and easy plotting
         """
-        df = data[data.columns]
-        df.insert(0, clinical_col, clinical[clinical_col])
-        df.name = data.name + " with " + clinical_col
-        return df
+        if clinical_col in clinical:
+            df = data[data.columns]
+            df.insert(0, clinical_col, clinical[clinical_col])
+            df.name = data.name + " with " + clinical_col
+            return df
+        else:
+            print(clinical_col, "not found in clinical dataframe. You can check the available columns by entering CPTAC.get_clincal().columns")
