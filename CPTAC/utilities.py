@@ -12,7 +12,6 @@ class Utilities:
         specified gene from the two specified dataframes
         """
         if gene in df1.columns and gene in df2.columns:
-            gene = gene.upper()
             common = df1.index.intersection(df2.index)
             df1Matched = df1.loc[common]
             df1Matched = df1Matched.sort_index()
