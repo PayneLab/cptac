@@ -136,6 +136,8 @@ def compare_clinical(clinical, data, clinical_col):
     """
     #TODO: do we need clinical parameter? Could just grab it from loaded data?
     return Utilities().compare_clinical(clinical, data, clinical_col)
+def compare_phosphosites(gene):
+    return Utilities().compare_phosphosites(proteomics, phosphoproteomics, gene)
 
 def help():
     """Opens github help page"""

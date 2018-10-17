@@ -50,3 +50,13 @@ class Utilities:
             return df
         else:
             print(clinical_col, "not found in clinical dataframe. You can check the available columns by entering CPTAC.get_clincal().columns")
+    def compare_phosphosites(self, proteomics, phosphoproteomics, gene):
+        if gene in proteomics.columns:
+            df = proteomics[[gene]]
+            regex = gene + ".*"
+            phosphosites = phosphoproteomics.filter(regex =(regex))
+            df = df.add(phosphosites, fill_value=0)
+            df.name = gene + " proteomics and phosphoproteomics"
+            return df
+        else:
+            print(gene, "not found in proteomics dataframe. Available genes can be checked by entering CPTAC.get_proteomics().columns")
