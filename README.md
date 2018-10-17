@@ -13,7 +13,7 @@ To install our package, we use pip. IF you want the package available to command
 pip install .
 ```
 
-If you want the package available within Jupyter, you should open a bash shell and do the following:
+If you want the package available within Jupyter, you can install it in your base conda environment. To do this, open a bash shell and do the following:
 ```
 conda activate
 cd /path/to/CPTAC
