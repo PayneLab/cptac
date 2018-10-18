@@ -137,6 +137,10 @@ def compare_clinical(clinical, data, clinical_col):
     #TODO: do we need clinical parameter? Could just grab it from loaded data?
     return Utilities().compare_clinical(clinical, data, clinical_col)
 def compare_phosphosites(gene):
+    """
+    Returns dataframe with a column from proteomics for the gene specified,
+    as well as columns for all phosphoproteomics columns beginning with the specified gene
+    """
     return Utilities().compare_phosphosites(proteomics, phosphoproteomics, gene)
 
 def help():

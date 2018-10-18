@@ -5,15 +5,17 @@ CPTAC help:
 
 get functions:
   get_clinical():
-    Returns clinical.csv as a data frame.
+    Returns clinical.txt as a data frame.
   get_proteomics():
-    Returns proteomics.txt as a data frame.
+    Returns proteomics.cct as a data frame.
   get_transcriptome():
-    Returns transcriptome.txt as a data frame.
+    Returns transcriptome.cct as a data frame.
   get_cna():
-    Returns CNA.txt as a data frame.
+    Returns CNA.cct as a data frame.
   get_phosphoproteomics():
-    Returns phosphoproteomics.txt as a data frame.
+    Returns phosphoproteomics.cct as a data frame.
+  get_somatic():
+    Returns somatic.ctb as a data frame.
   get_meta_cols():
     Returns column names of clinical data frame.
   get_cohort_meta(cols):
@@ -44,6 +46,10 @@ Utilities:
   compare_clinical(clinical, data, clinical_col):
     Selects specified clinical column and adds it to the specified data, i.e.
     proteomics, CNA etc., returning a data frame of the combined data.
+  compare_phosphosites(gene):
+    Selects column from proteomics for the gene specified,
+    as well as columns for all phosphoproteomics columns beginning with the specified gene
+        
 
 Queries:
   query(tumor_type, query_type, value):
