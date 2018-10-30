@@ -45,6 +45,13 @@ class DataFrameLoader:
             f = f[len(f) - 1]
             df.name = f.split(".")[0]
             return df
+        elif bool(re.search(r'\.maf[.|(a-z)]{,7}$', self.fileName)):
+            df = pd.read_csv(self.fileName, sep = "\t")
+            #TODO how to parse maf file correctly
+            f = self.fileName.split(os.sep)
+            f = f[len(f) - 1]
+            df.name = f.split(".")[0] + " MAF"
+            return df
         else:
             print("Error reading", self.fileName)
 

@@ -1,0 +1,23 @@
+proteomics	The relative protein abudance of each gene for each respective cancer patient.
+transcriptomics	The relative RNA abundance of each gene for each respective cancer patient.
+CNA	The relative copy number alterations of each gene for each respective cancer patient.
+phosphoproteomics	The relative phosphorylated protein abundance of each gene for each respective cancer patient.
+somatic	Data describing the mutations occuring for the tumor samples collected from each respective patient.
+somatic mutations	Data describing the mutations occuring for the tumor samples collected from each respective patient.
+Proteomics_Aliquot_ID	REVISE Identification code of proteomics aliquot.
+Proteomics_Participant_ID	REVISE Identification code proteomics participant.
+Proteomics_TMT_batch	REVISE TMT batch for proteomics
+Proteomics_TMT_plex	REVISE TMT plex for proteomics
+Proteomics_TMT_channel	REVISE TMT channel for proteomics
+Proteomics_Parent_Sample_IDs	Identification code for parent proteomics sample.
+Proteomics_Tumor_normal	Categorical classification of proteomics patients with tumor or normal (controls, further classified as adjacent normal, enriched normal, and myometrium normal).
+Proteomics_OCT	Categorical specification of whether or not the proteomics patient sample was preserved in an OCT (optimal cutting temperature) medium.
+WXS_patient_id	Identification code for specified patient.
+WXS_Tumor_sample_id	Identification code for specified patient's tumor sample.
+WXS_Tumor_file	File name for specified patient's tumor sample, beginning with the WXS Tumor sample ID.
+WXS_Tumor_UUID	UUID (universally unique identifier) identification code for specified patient's tumor sample.
+WXS_Tumor_type	Type of tumor for selected patient.
+WXS_Normal_sample_id	Identification code for specified patient's normal sample.
+WXS_Normal_file	File name for specified patient's normal sample, beginning with the WXS Normal sample ID.
+WXS_Normal_UUID	UUID (universally unique identifier) identification code for specified patient's normal sample.
+WXS_Normal_type Type of normal sample for specified patient.

@@ -22,6 +22,16 @@ dataframes.
 dir_path = os.path.dirname(os.path.realpath(__file__))
 data_directory = dir_path + os.sep + "Data" + os.sep
 
+print("Loading Dictionary...")
+dict = {}
+file = open(data_directory + "definitions.txt", "r")
+
+for line in file:
+    line = line.strip()
+    line = line.split("\t")
+    dict[line[0]] = line[1]
+file.close()
+
 print("Loading Clinical Data...")
 clinical = DataFrameLoader(data_directory + "clinical.txt.gz").createDataFrame()
 
@@ -39,6 +49,7 @@ phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.cct.gz")
 
 print("Loading Somatic Data...")
 somatic = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
+somatic_maf = DataFrameLoader(data_directory + "somatic.maf").createDataFrame()
 
 #metaData = MetaData(clinical)#, clinical_meta)
 #molecularData = MolecularData(proteomics, transcriptome, cna, phosphoproteomics)
@@ -61,6 +72,17 @@ def list():
     print("\t", somatic.name)
     print("\t","\t", "Dimensions:", somatic.shape)
     print("To access the data, use a get function with the data frame name, i.e. CTPAC.get_proteomics()")
+def define(term):
+    """Returns string definition of provided term"""
+    if term in dict:
+        print(dict[term])
+    else:
+        print(term, "not found in dictionary. Alternatively, CPTAC.define() can be used to perform a web search of the term provided.")
+def search(term):
+    """Performs online search of provided term"""
+    url = "https://www.google.com/search?q=" + term
+    print("Searching for", term, "in web browser...")
+    webbrowser.open(url)
 def get_clinical():
     """Returns clincal dataframe"""
     return clinical
