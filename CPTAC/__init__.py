@@ -131,7 +131,11 @@ def get_cohort_cna(cols):
 def get_cohort_phosphoproteomics(cols):
     """Returns specified column or columns of phosphoproteomics data"""
     return phosphoproteomics[cols]
-
+def get_patient_mutations(patient_id):
+    if "Tumor_Sample_Barcode" in somatic_maf.columns:
+        return somatic_maf[somatic_maf["Tumor_Sample_Barcode"] == patient_id]
+    else:
+        print("Parsing error. Tumor Sample Barcode not found in somatic mutations.")
 def get_tumor_ids(tumor_type, query_type, value):
     """
     tumor_type is the tumor type, e.g. colon
