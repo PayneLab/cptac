@@ -193,6 +193,8 @@ def compare_gene(df1, df2, gene):
         return Utilities().compare_gene(df1, df2, gene)
     else:
         return Utilities().compare_genes(df1, df2, gene)
+def compare_mutations(data, gene):
+        return Utilities().compare_mutations(data, somatic_maf, gene)
 def compare_clinical(clinical, data, clinical_col):
     """
     Returns dataframe with specified column from clinical dataframe added to

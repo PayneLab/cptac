@@ -49,15 +49,20 @@ class Utilities:
             dfs = dfs.add(df, fill_value=0)
         dfs.name = str(len(genes)) + " Genes Combined"
         return dfs
-    def compare_mutations(self, df1, somatic, gene, individual, patient_ids):
+    def compare_mutations(self, df1, somatic, gene):
         if sum(somatic["Gene"] == gene) > 0:
             somatic_gene = somatic[somatic["Gene"] == gene]
             somatic_gene = somatic_gene.drop(columns = ["Gene"])
-            if sum(somatic_gene["Patient_Id"] == individual) > 0:
-                somatic_gene_individual = somatic_gene[somatic_gene["Patient_Id"] == individual]
-                print("Under construction")
-            else:
-                print("Individual", individual, "not found in somatic mutations.")
+            keys = somatic_gene["Clinical_Patient_Key"]
+            omics = []
+            for key in keys:
+                if key != "NA":
+                    omics.append(df1.loc[key][gene])
+                else:
+                    omics.append("NA")
+            somatic_gene[df1.name] = omics
+            somatic_gene.name = gene + " mutations with " + df1.name
+            return somatic_gene
         else:
             print("Gene", gene, "not found in somatic mutations.")
     def compare_clinical(self, clinical, data, clinical_col):
