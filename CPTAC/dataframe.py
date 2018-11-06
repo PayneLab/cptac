@@ -61,10 +61,12 @@ class DataFrameLoader:
             if "Tumor_Sample_Barcode" in df.columns:
                 split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n = 1, expand = True)
                 df["Tumor_Sample_Barcode"] = split_barcode[0]
+            parsedDf = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]]
+            parsedDf = parsedDf.rename({"Tumor_Sample_Barcode":"Patient_Id","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
             f = self.fileName.split(os.sep)
             f = f[len(f) - 1]
-            df.name = f.split(".")[0] + " MAF"
-            return df
+            parsedDf.name = f.split(".")[0] + " MAF"
+            return parsedDf
         else:
             print("Error reading", self.fileName)
 
