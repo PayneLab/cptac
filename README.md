@@ -30,5 +30,16 @@ import CPTAC
 The data should load automatically and print progress to the screen. See the tutorial examples in the doc folder.
 
 ## Tutorials
+Tuturials for this package are located under the <code>doc</code> folder. They are all in jupyter notebooks; if you are unfamiliar with jupyter, follow the instructions given at jupyter.org/install to begin running jupyter on your machine. You will then be able to run our documentation as interactive, jupyter-based tutorials.
+Use Case 1: 
+Use Case 2: 
+Use Case 3: 
+Use Case 4: 
+Use Case 5: 
+Use Case 6: 
+Use Case 7: 
+Use Case 8: 
+Use Case 9: 
+
 ## Requirements
 This package is intended to run on Python 3.6 with pandas 0.23.4 and the seaborn package for data visualization. 
