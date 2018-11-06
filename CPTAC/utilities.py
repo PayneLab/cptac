@@ -59,7 +59,7 @@ class Utilities:
                 if key != "NA":
                     omics.append(df1.loc[key][gene])
                 else:
-                    omics.append("NA")
+                    omics.append(float('NaN'))
             somatic_gene[df1.name] = omics
             somatic_gene.name = gene + " mutations with " + df1.name
             return somatic_gene
