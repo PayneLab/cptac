@@ -26,6 +26,25 @@ def warning():
         print(line)
 
 """
+Creates dictionary for linking Patient_Id with individual sample number (i.e. C3L-00006 with S001)
+"""
+def create_patient_ids(clinical):
+    c = clinical[["WXS_patient_id"]][0:100] #S101 through S140 have no patient id
+    s = c.index
+    dictPrepDf = c.set_index('WXS_patient_id')
+    dictPrepDf['idx'] = s
+    patient_ids = dictPrepDf.to_dict()['idx']
+    return patient_ids
+def link_patient_ids(patient_ids, somatic):
+    s = []
+    for x in somatic["Patient_Id"]:
+        if x in patient_ids.keys():
+            s.append(patient_ids[x])
+        else:
+            s.append("NA")
+    somatic["Clinical_Patient_Key"] = s
+    return somatic
+"""
 Executes on import CPTAC statement. Selects files from docs folder in CPTAC package
 utilizing DataFrameLoader from dataframe.py. Prints update as files are loaded into
 dataframes.
@@ -61,6 +80,10 @@ phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.cct.gz")
 print("Loading Somatic Data...")
 somatic = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
 somatic_maf = DataFrameLoader(data_directory + "somatic.maf").createDataFrame()
+patient_ids = create_patient_ids(clinical)
+somatic_maf = link_patient_ids(patient_ids, somatic_maf)
+#c = clinical[clinical["WXS_patient_id"].isin(somatic_maf["Patient_Id"])]
+
 
 #metaData = MetaData(clinical)#, clinical_meta)
 #molecularData = MolecularData(proteomics, transcriptome, cna, phosphoproteomics)
