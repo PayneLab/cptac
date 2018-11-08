@@ -193,7 +193,11 @@ def compare_gene(df1, df2, gene):
         return Utilities().compare_gene(df1, df2, gene)
     else:
         return Utilities().compare_genes(df1, df2, gene)
-def compare_mutations(data, gene):
+def compare_mutations(data, gene, somatic_gene = None):
+    if somatic_gene:
+        data_gene = gene
+        return Utilities().compare_mutations_trans(data, data_gene, somatic_maf, somatic_gene)
+    else:
         return Utilities().compare_mutations(data, somatic_maf, gene)
 def compare_clinical(clinical, data, clinical_col):
     """

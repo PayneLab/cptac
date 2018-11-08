@@ -50,21 +50,33 @@ class Utilities:
         dfs.name = str(len(genes)) + " Genes Combined"
         return dfs
     def compare_mutations(self, df1, somatic, gene):
-        if sum(somatic["Gene"] == gene) > 0:
-            somatic_gene = somatic[somatic["Gene"] == gene]
-            somatic_gene = somatic_gene.drop(columns = ["Gene"])
-            keys = somatic_gene["Clinical_Patient_Key"]
-            omics = []
-            for key in keys:
-                if key != "NA":
-                    omics.append(df1.loc[key][gene])
-                else:
-                    omics.append(float('NaN'))
-            somatic_gene[df1.name] = omics
-            somatic_gene.name = gene + " mutations with " + df1.name
-            return somatic_gene
+        if gene in df1.columns:
+            df1_gene = df1[[gene]]
+            if sum(somatic["Gene"] == gene) > 0:
+                somatic_gene = somatic[somatic["Gene"] == gene]
+                somatic_gene = somatic_gene.drop(columns = ["Gene"])
+                somatic_gene = somatic_gene.set_index("Clinical_Patient_Key")
+                merge = df1_gene.join(somatic_gene, how = "left")
+                merge = merge.fillna(value = {'Mutation':"Wildtype"})
+                return merge
+            else:
+                print("Gene", gene, "not found in somatic mutations.")
         else:
-            print("Gene", gene, "not found in somatic mutations.")
+            print("Gene", gene, "not found in", df1.name, "data")
+    def compare_mutations_trans(self, df1, df1Gene, somatic, somaticGene):
+        if df1Gene in df1.columns:
+            df1_gene = df1[[df1Gene]]
+            if sum(somatic["Gene"] == somaticGene) > 0:
+                somatic_gene = somatic[somatic["Gene"] == somaticGene]
+                somatic_gene = somatic_gene.drop(columns = ["Gene"])
+                somatic_gene = somatic_gene.set_index("Clinical_Patient_Key")
+                merge = df1_gene.join(somatic_gene, how = "left")
+                merge = merge.fillna(value = {'Mutation':"Wildtype"})
+                return merge
+            else:
+                print("Gene", somaticGene, "not found in somatic mutations.")
+        else:
+            print("Gene", df1Gene, "not found in", df1.name,"data")
     def compare_clinical(self, clinical, data, clinical_col):
         """
         Returns dataframe with specified column from clinical dataframe added to
