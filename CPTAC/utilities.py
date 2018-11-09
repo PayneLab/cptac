@@ -17,6 +17,24 @@ class Utilities:
         print("Under construction")
     def convert(self, snp_or_sap):
         print("Under construction")
+    def merge_somatic(self, somatic, gene, df_gene): #private
+        if sum(somatic["Gene"] == gene) > 0:
+            somatic_gene = somatic[somatic["Gene"] == gene]
+            somatic_gene = somatic_gene.drop(columns = ["Gene"])
+            somatic_gene = somatic_gene.set_index("Clinical_Patient_Key")
+            merge = df_gene.join(somatic_gene, how = "left")
+            merge = merge.fillna(value = {'Mutation':"Wildtype"})
+            merge.name = df_gene.columns[0] + " omics data with " + gene + " mutation data"
+            return merge
+        else:
+            print("Gene", gene, "not found in somatic mutations.")
+    def get_phosphosites(self, phosphoproteomics, gene):
+        regex = gene + ".*"
+        phosphosites = phosphoproteomics.filter(regex = (regex))
+        if len(phosphosites.columns) == 0:
+            print("Gene",gene, "not found in phosphoproteomics data")
+        else:
+            return phosphosites
     def compare_gene(self, df1, df2, gene):
         """
         Returns dataframe containing two columns. Each column is the data for the
@@ -52,29 +70,22 @@ class Utilities:
     def compare_mutations(self, df1, somatic, gene):
         if gene in df1.columns:
             df1_gene = df1[[gene]]
-            if sum(somatic["Gene"] == gene) > 0:
-                somatic_gene = somatic[somatic["Gene"] == gene]
-                somatic_gene = somatic_gene.drop(columns = ["Gene"])
-                somatic_gene = somatic_gene.set_index("Clinical_Patient_Key")
-                merge = df1_gene.join(somatic_gene, how = "left")
-                merge = merge.fillna(value = {'Mutation':"Wildtype"})
-                return merge
-            else:
-                print("Gene", gene, "not found in somatic mutations.")
+            return self.merge_somatic(somatic, gene, df1_gene)
+        elif df1.name == "phosphoproteomics":
+            phosphosites = self.get_phosphosites(df1, gene)
+            if len(phosphosites.columns) > 0:
+                return self.merge_somatic(somatic, gene, phosphosites)
+            #TODO: phosphoproteomics
         else:
             print("Gene", gene, "not found in", df1.name, "data")
     def compare_mutations_trans(self, df1, df1Gene, somatic, somaticGene):
         if df1Gene in df1.columns:
             df1_gene = df1[[df1Gene]]
-            if sum(somatic["Gene"] == somaticGene) > 0:
-                somatic_gene = somatic[somatic["Gene"] == somaticGene]
-                somatic_gene = somatic_gene.drop(columns = ["Gene"])
-                somatic_gene = somatic_gene.set_index("Clinical_Patient_Key")
-                merge = df1_gene.join(somatic_gene, how = "left")
-                merge = merge.fillna(value = {'Mutation':"Wildtype"})
-                return merge
-            else:
-                print("Gene", somaticGene, "not found in somatic mutations.")
+            return self.merge_somatic(somatic, somaticGene, df1_gene)
+        elif df1.name == "phosphoproteomics":
+            phosphosites = self.get_phosphosites(df1, df1Gene)
+            if len(phosphosites.columns) > 0:
+                return self.merge_somatic(somatic, somaticGene, phosphosites)
         else:
             print("Gene", df1Gene, "not found in", df1.name,"data")
     def compare_clinical(self, clinical, data, clinical_col):
@@ -96,10 +107,10 @@ class Utilities:
         """
         if gene in proteomics.columns:
             df = proteomics[[gene]]
-            regex = gene + ".*"
-            phosphosites = phosphoproteomics.filter(regex =(regex))
-            df = df.add(phosphosites, fill_value=0)
-            df.name = gene + " proteomics and phosphoproteomics"
-            return df
+            phosphosites = self.get_phosphosites(phosphoproteomics, gene)
+            if len(phosphosites.columns) > 0:
+                df = df.add(phosphosites, fill_value=0)
+                df.name = gene + " proteomics and phosphoproteomics"
+                return df
         else:
             print(gene, "not found in proteomics dataframe. Available genes can be checked by entering CPTAC.get_proteomics().columns")

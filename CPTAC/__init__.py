@@ -132,6 +132,9 @@ def get_CNA():
 def get_phosphoproteomics():
     """Returns phosphoproteomics dataframe"""
     return phosphoproteomics
+def get_phosphosites(gene):
+    """Returns dataframe with all phosphosites of specified gene name"""
+    return Utilities().get_phosphosites(phosphoproteomics, gene)
 def get_somatic():
     """Returns somatic mutations dataframe"""
     return somatic
