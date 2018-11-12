@@ -12,6 +12,7 @@
 import os
 import webbrowser
 import textwrap
+import pandas as pd
 from .dataframe import DataFrameLoader
 from .meta import MetaData
 from .molecular import MolecularData
@@ -78,7 +79,8 @@ print("Loading Phosphoproteomics Data...")
 phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.cct.gz").createDataFrame()
 
 print("Loading Somatic Data...")
-somatic = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
+somatic_binary = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
+somatic_unparsed = pd.read_csv(data_directory + "somatic.maf", sep="\t")
 somatic_maf = DataFrameLoader(data_directory + "somatic.maf").createDataFrame()
 patient_ids = create_patient_ids(clinical)
 somatic_maf = link_patient_ids(patient_ids, somatic_maf)
@@ -135,9 +137,13 @@ def get_phosphoproteomics():
 def get_phosphosites(gene):
     """Returns dataframe with all phosphosites of specified gene name"""
     return Utilities().get_phosphosites(phosphoproteomics, gene)
-def get_somatic():
+def get_somatic(binary=False, unparsed=False):
     """Returns somatic mutations dataframe"""
-    return somatic
+    if binary:
+        return somatic_binary
+    if unparsed:
+        return somatic_unparsed
+    return somatic_maf
 def get_meta_cols():
     """
     Returns list of clincal dataframe columns,
