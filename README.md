@@ -5,11 +5,13 @@ Setup instructions can be found in <code>doc/setup.md</code>
 
 ## Tutorials
 Tuturials for this package are located under the <code>doc</code> folder. They are all in jupyter notebooks; if you are unfamiliar with jupyter, follow the instructions given at jupyter.org/install to begin running jupyter on your machine. You will then be able to run our documentation as interactive, jupyter-based tutorials.
-Use Case 1: Comparing transcriptomics and proteomics for a given gene
-Use Case 2: Comparing various clinical factors, such as BMI, diabetes, and cancer stage, to look for correlation
-Use Case 3: Using Spearman correlation to find genes significantly correlated with a given clinical attribute
-Use Case 4: Investigating protein abundance for different types of genetic mutations
-Use Case 5: Running gene set enrichment analysis - which gene pathways are significantly expressed based on microsatellite instability
+<ul>
+  <li>Use Case 1: Comparing transcriptomics and proteomics for a given gene</li>
+<li>Use Case 2: Comparing various clinical factors, such as BMI, diabetes, and cancer stage, to look for correlation</li>
+<li>Use Case 3: Using Spearman correlation to find genes significantly correlated with a given clinical attribute</li>
+<li>Use Case 4: Investigating protein abundance for different types of genetic mutations</li>
+<li>Use Case 5: Running gene set enrichment analysis - which gene pathways are significantly expressed based on microsatellite instability</li>
+</ul>
 
 ## Requirements
 This package is intended to run on Python 3.6 with pandas 0.23.4 and the seaborn package for data visualization. 
