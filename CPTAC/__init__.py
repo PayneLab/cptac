@@ -92,7 +92,13 @@ somatic_maf = link_patient_ids(patient_ids, somatic_maf)
 warning()
 def list():
     """
+    Parameters
+    None
+
     Prints list of loaded data frames and dimensions
+
+    Returns
+    None
     """
     print("Below are the available data frames contained in this package:")
     print("\t", clinical.name)
@@ -105,86 +111,201 @@ def list():
     print("\t","\t", "Dimensions:", cna.shape)
     print("\t", phosphoproteomics.name)
     print("\t","\t", "Dimensions:", phosphoproteomics.shape)
-    print("\t", somatic.name)
+    print("\t", somatic_maf.name)
     print("\t","\t", "Dimensions:", somatic.shape)
     print("To access the data, use a get function with the data frame name, i.e. CTPAC.get_proteomics()")
 def define(term):
-    """Returns string definition of provided term"""
+    """
+    Parameters
+    term: string of term to be defined
+
+    Returns
+    String definition of provided term
+    """
     if term in dict:
         print(dict[term])
     else:
         print(term, "not found in dictionary. Alternatively, CPTAC.define() can be used to perform a web search of the term provided.")
 def search(term):
-    """Performs online search of provided term"""
+    """
+    Parameters
+    term: string of term to be searched
+
+    Performs online search of provided term
+
+    Returns
+    None
+    """
     url = "https://www.google.com/search?q=" + term
     print("Searching for", term, "in web browser...")
     webbrowser.open(url)
 def get_clinical():
-    """Returns clincal dataframe"""
+    """
+    Parameters
+    None
+
+    Returns
+    Clincal dataframe
+    """
     return clinical
 def get_proteomics():
-    """Returns proteomics dataframe"""
+    """
+    Parameters
+    None
+
+    Returns
+    proteomics dataframe
+    """
     return proteomics
 def get_transcriptomics():
-    """Returns transcriptomics dataframe"""
+    """
+    Parameters
+    None
+
+    Returns
+    Transcriptomics dataframe
+    """
     return transcriptomics
 def get_CNA():
-    """Returns CNA dataframe"""
+    """
+    Parameters
+    None
+
+    Returns
+    CNA dataframe
+    """
     return cna
 def get_phosphoproteomics():
-    """Returns phosphoproteomics dataframe"""
+    """
+    Parameters
+    None
+
+    Returns
+    Phosphoproteomics dataframe
+    """
     return phosphoproteomics
 def get_phosphosites(gene):
     """Returns dataframe with all phosphosites of specified gene name"""
     return Utilities().get_phosphosites(phosphoproteomics, gene)
 def get_somatic(binary=False, unparsed=False):
-    """Returns somatic mutations dataframe"""
+    """
+    Parameters
+    binary: boolean indicating whether to retrieve the somatic mutations binary data
+    unparsed: boolean indicating whether to retrieve unparsed somatic mutations maf data
+
+    Default behavior is to return parsed somatic mutations maf data
+
+    Returns
+    Somatic mutations dataframe corresponding with parameters provided
+    """
     if binary:
         return somatic_binary
     if unparsed:
         return somatic_unparsed
     return somatic_maf
-def get_meta_cols():
+def get_clinical_cols():
     """
-    Returns list of clincal dataframe columns,
-    aka data types (i.e. BMI, Diabetes)
+    Parameters
+    None
+
+    Returns
+    List of clincal dataframe columns, aka data types (i.e. BMI, Diabetes)
     """
     return clinical.columns
 def get_proteomics_cols():
-    """Returns list of columns of proteomics dataframe"""
+    """
+    Parameters
+    None
+
+    Returns
+    List of columns of proteomics dataframe
+    """
     return proteomics.columns
 def get_transcriptomics_cols():
-    """Returns list of columns of transcriptomics dataframe"""
+    """
+    Parameters
+    None
+
+    Returns
+    List of columns of transcriptomics dataframe
+    """
     return transcriptomics.columns
-def get_cohort_meta(cols):
-    """Returns specified column or columns of clinical data"""
+def get_cohort_clinical(cols):
+    """
+    Parameters
+    cols: single column name or array of column names to select for in the clinical dataframe
+
+    Returns
+    Dataframe of specified columns (or Series if one column) of clinical data
+    """
     return clinical[cols]
 def get_proteomics_quant(colon_ids):
-    """Returns specified row or rows of proteomics data"""
-    return proteomics.loc(colon_ids)
+    """
+    Parameters
+    colon_ids: string or list of string ids (i.e. S001, S068) to be selected from proteomics dataframe
+
+    Returns
+    Dataframe of specified rows (or Series if one row) of proteomics data
+    """
+    return proteomics.loc[colon_ids]
 def get_cohort_proteomics(cols):
-    """Returns specified column or columns of proteomics data"""
+    """
+    Parameters
+    cols: single column name or array of column names to select for in the proteomics dataframe
+
+    Returns
+    Dataframe of specified columns (or Series if one column) of proteomics data
+    """
     return proteomics[cols]
 def get_cohort_transcriptomics(cols):
-    """Returns specified column or columns of transcriptomics data"""
+    """
+    Parameters
+    cols: single column name or array of column names to select for in the transcriptomics dataframe
+
+    Returns
+    Dataframe of specified columns (or Series if one column) of transcriptomics data
+    """
     return transcriptomics[cols]
 def get_cohort_cna(cols):
-    """Returns specified column or columns of CNA data"""
+    """
+    Parameters
+    cols: single column name or array of column names to select for in the CNA dataframe
+
+    Returns
+    Dataframe of specified columns (or Series if one column) of CNA data
+    """
     return cna[cols]
 def get_cohort_phosphoproteomics(cols):
-    """Returns specified column or columns of phosphoproteomics data"""
+    """
+    Parameters
+    cols: single column name or array of column names to select for in the phosphoproteomics dataframe
+
+    Returns
+    Dataframe of specified columns (or Series if one column) of phosphoproteomics data
+    """
     return phosphoproteomics[cols]
 def get_patient_mutations(patient_id):
+    """
+    Parameters
+    patient_id: Patient ID (i.e. C3L-00006) to select from somatic mutation data
+
+    Returns
+    Dataframe containing data for provided patient ID
+    """
     if "Tumor_Sample_Barcode" in somatic_maf.columns:
         return somatic_maf[somatic_maf["Tumor_Sample_Barcode"] == patient_id]
     else:
         print("Parsing error. Tumor Sample Barcode not found in somatic mutations.")
 def get_tumor_ids(tumor_type, query_type, value):
-    """
-    tumor_type is the tumor type, e.g. colon
-    query_type is the type of tumor query, e.g. by SNP, mutated gene, outlier
-    value corresponds with the query type, e.g. TP53 for mutated gene or EGFR for outlier
-    """
+    #"""
+    #Parameters
+    #tumor_type is the tumor type, e.g. colon
+    #query_type is the type of tumor query, e.g. by SNP, mutated gene, outlier
+    #value corresponds with the query type, e.g. TP53 for mutated gene or EGFR for outlier
+
+    #Returns
+
+    #"""
     dataframe = None #TODO what should the dataframe be?
     return Queries(dataframe).query(tumor_type, query_type, value)
 def get_gene_mapping():
@@ -195,20 +316,43 @@ def convert(snp_or_sap):
     return Utilities().convert(snp_or_sap)
 def compare_gene(df1, df2, gene):
     """
-    Returns dataframe containing two columns. Each column is the data for the
-    specified gene from the two specified dataframes
+    Parameters
+    df1: omics dataframe (proteomics) to be selected from
+    df2: other omics dataframe (transcriptomics) to be selected from
+    gene: gene or array of genes to select from each of the dataframes
+
+    Returns
+    Dataframe containing two columns (or number of genes provided times two). Each column is the data for the specified gene from the two specified dataframes
     """
     if isinstance(gene, str):
         return Utilities().compare_gene(df1, df2, gene)
     else:
         return Utilities().compare_genes(df1, df2, gene)
 def merge_mutations(data, gene, somatic_gene = None):
+    """
+    Params
+    data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
+    gene: gene to select from omics data (used for somatic data if somatic_gene is left blank)
+    somatic_gene: gene to select from somatic mutation data
+
+    Returns
+    Dataframe containing two columns, the omics data and the somatic mutation type for the gene(s) provided
+    """
     if somatic_gene:
         data_gene = gene
         return Utilities().merge_mutations_trans(data, data_gene, somatic_maf, somatic_gene)
     else:
         return Utilities().merge_mutations(data, somatic_maf, gene)
 def merge_mutations_full(data, gene, somatic_gene = None):
+    """
+    Params
+    data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
+    gene: gene to select from omics data (used for somatic data if somatic_gene is left blank)
+    somatic_gene: gene to select from somatic mutation data
+
+    Returns
+    Dataframe containing numeric omics data and categorical somatic data (including patient ID, mutation type, and mutation location)
+    """
     if somatic_gene:
         data_gene = gene
         return Utilities().merge_mutations_trans(data, data_gene, somatic_maf, somatic_gene, duplicates = True)
@@ -216,24 +360,52 @@ def merge_mutations_full(data, gene, somatic_gene = None):
         return Utilities().merge_mutations(data, somatic_maf, gene, duplicates = True)
 def compare_clinical(clinical, data, clinical_col):
     """
-    Returns dataframe with specified column from clinical dataframe added to
-    specified dataframe (i.e., proteomics) for comparison and easy plotting
+    Parameters
+    clinical: clinical dataframe for omics data to be appended with
+    data: omics data for clinical data to be appended with
+    clinical_col: column in clinical dataframe to be inserted into provided omics data
+
+    Returns
+    Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
     """
     #TODO: do we need clinical parameter? Could just grab it from loaded data?
     return Utilities().compare_clinical(clinical, data, clinical_col)
 def compare_phosphosites(gene):
     """
-    Returns dataframe with a column from proteomics for the gene specified,
-    as well as columns for all phosphoproteomics columns beginning with the specified gene
+    Parameters
+    gene: proteomics gene to query phosphoproteomics dataframe
+
+    Searches for any phosphosites on the gene provided
+
+    Returns
+    Dataframe with a column from proteomics for the gene specified, as well as columns for all phosphoproteomics columns beginning with the specified gene
     """
     return Utilities().compare_phosphosites(proteomics, phosphoproteomics, gene)
 
 def help():
-    """Opens github help page"""
+    """
+    Parameters
+    None
+
+    Opens github help page
+
+    Returns
+    None
+    """
     print("Opening help.txt in web browser...")
     webbrowser.open("https://github.com/PayneLab/CPTAC/blob/master/doc/help.txt")
 def embargo():
+    """
+    Parameters
+    None
+
+    Opens CPTAC embargo details in web browser
+
+    Returns
+    None
+    """
     print("Opening embargo details in web browser...")
     webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
 def start():
+    #Might remove this function
     print("Welcome to our CPTAC data. Enter CPTAC.help() to open our Github help page.")
