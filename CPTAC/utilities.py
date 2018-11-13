@@ -11,17 +11,32 @@
 
 import pandas as pd
 class Utilities:
+
     def __init__(self):
         pass
     def get_gene_mapping(self):
         print("Under construction")
     def convert(self, snp_or_sap):
         print("Under construction")
-    def merge_somatic(self, somatic, gene, df_gene): #private
+    def add_mutation_hierarchy(self, somatic):
+        mutation_hierarchy = {"Missense_Mutation":0,"In_Frame_Del":0,"In_Frame_Ins":0,"Splice_Site":1,"Frame_Shift_Ins":1,"Nonsense_Mutation":1,"Frame_Shift_Del":1,"Nonstop_Mutation":1}
+        hierarchy = []
+        for x in somatic["Mutation"]:
+            if x in mutation_hierarchy.keys():
+                hierarchy.append(mutation_hierarchy[x])
+            else:
+                hierarchy.append(float('NaN'))
+        somatic["Mutation_Hierarchy"] = hierarchy
+        return somatic
+    def merge_somatic(self, somatic, gene, df_gene, multiple_mutations = False): #private
         if sum(somatic["Gene"] == gene) > 0:
             somatic_gene = somatic[somatic["Gene"] == gene]
             somatic_gene = somatic_gene.drop(columns = ["Gene"])
             somatic_gene = somatic_gene.set_index("Clinical_Patient_Key")
+            if not multiple_mutations:
+                somatic_gene = self.add_mutation_hierarchy(somatic_gene)
+                somatic_gene = somatic_gene.sort_values(by = ["Clinical_Patient_Key","Mutation_Hierarchy"], ascending = [True,False])
+                somatic_gene = somatic_gene[~somatic_gene.index.duplicated(keep="first")]
             merge = df_gene.join(somatic_gene, how = "left")
             merge = merge.fillna(value = {'Mutation':"Wildtype"})
             merge.name = df_gene.columns[0] + " omics data with " + gene + " mutation data"
@@ -67,25 +82,43 @@ class Utilities:
             dfs = dfs.add(df, fill_value=0)
         dfs.name = str(len(genes)) + " Genes Combined"
         return dfs
-    def compare_mutations(self, df1, somatic, gene):
+    def merge_mutations(self, df1, somatic, gene, duplicates = False):
         if gene in df1.columns:
-            df1_gene = df1[[gene]]
-            return self.merge_somatic(somatic, gene, df1_gene)
+            df1_gene_df = df1[[gene]]
+            if duplicates:
+                return self.merge_somatic(somatic, gene, df1_gene_df, multiple_mutations = True)
+            else:
+                return self.merge_somatic(somatic, gene, df1_gene_df)[[gene, "Mutation"]]
         elif df1.name == "phosphoproteomics":
             phosphosites = self.get_phosphosites(df1, gene)
             if len(phosphosites.columns) > 0:
-                return self.merge_somatic(somatic, gene, phosphosites)
-            #TODO: phosphoproteomics
+                if duplicates:
+                    return self.merge_somatic(somatic, gene, phosphosites, multiple_mutations = True)
+                else:
+                    columns = list(phosphosites.columns)
+                    columns.append("Mutation")
+                    merged_somatic = self.merge_somatic(somatic, gene, phosphosites)
+                    return merged_somatic[columns]
+
         else:
             print("Gene", gene, "not found in", df1.name, "data")
-    def compare_mutations_trans(self, df1, df1Gene, somatic, somaticGene):
+    def merge_mutations_trans(self, df1, df1Gene, somatic, somaticGene, duplicates = False):
         if df1Gene in df1.columns:
-            df1_gene = df1[[df1Gene]]
-            return self.merge_somatic(somatic, somaticGene, df1_gene)
+            df1_gene_df = df1[[df1Gene]]
+            if duplicates:
+                return self.merge_somatic(somatic, somaticGene, df1_gene_df, multiple_mutations = True)
+            else:
+                return self.merge_somatic(somatic, somaticGene, df1_gene_df)[[df1Gene, "Mutation"]]
         elif df1.name == "phosphoproteomics":
             phosphosites = self.get_phosphosites(df1, df1Gene)
             if len(phosphosites.columns) > 0:
-                return self.merge_somatic(somatic, somaticGene, phosphosites)
+                if duplicates:
+                    return self.merge_somatic(somatic, somaticGene, phosphosites, multiple_mutations = True)
+                else:
+                    columns = list(phosphosites.columns)
+                    columns.append("Mutation")
+                    merged_somatic = self.merge_somatic(somatic, somaticGene, phosphosites)
+                    return merged_somatic[columns]
         else:
             print("Gene", df1Gene, "not found in", df1.name,"data")
     def compare_clinical(self, clinical, data, clinical_col):

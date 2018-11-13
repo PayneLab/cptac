@@ -202,12 +202,18 @@ def compare_gene(df1, df2, gene):
         return Utilities().compare_gene(df1, df2, gene)
     else:
         return Utilities().compare_genes(df1, df2, gene)
-def compare_mutations(data, gene, somatic_gene = None):
+def merge_mutations(data, gene, somatic_gene = None):
     if somatic_gene:
         data_gene = gene
-        return Utilities().compare_mutations_trans(data, data_gene, somatic_maf, somatic_gene)
+        return Utilities().merge_mutations_trans(data, data_gene, somatic_maf, somatic_gene)
     else:
-        return Utilities().compare_mutations(data, somatic_maf, gene)
+        return Utilities().merge_mutations(data, somatic_maf, gene)
+def merge_mutations_full(data, gene, somatic_gene = None):
+    if somatic_gene:
+        data_gene = gene
+        return Utilities().merge_mutations_trans(data, data_gene, somatic_maf, somatic_gene, duplicates = True)
+    else:
+        return Utilities().merge_mutations(data, somatic_maf, gene, duplicates = True)
 def compare_clinical(clinical, data, clinical_col):
     """
     Returns dataframe with specified column from clinical dataframe added to
