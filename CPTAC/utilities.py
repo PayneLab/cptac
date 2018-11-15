@@ -82,15 +82,25 @@ class Utilities:
             dfs = dfs.add(df, fill_value=0)
         dfs.name = str(len(genes)) + " Genes Combined"
         return dfs
-    def merge_mutations(self, df1, somatic, gene, duplicates = False):
-        if gene in df1.columns:
-            df1_gene_df = df1[[gene]]
+    def merge_mutations(self, omics, somatic, gene, duplicates = False):
+        """
+        Parameters
+        omics: dataframe containing specific omics data
+        somatic: dataframe of somatic mutation data
+        gene: string of specific gene to merge omics and somatic data on
+        duplicates: boolean value indicating whether to include duplicate gene mutations for an individual
+
+        Returns
+        Dataframe of merged omics and somatic data based on gene provided
+        """
+        if gene in omics.columns:
+            omics_gene_df = data[[gene]]
             if duplicates:
-                return self.merge_somatic(somatic, gene, df1_gene_df, multiple_mutations = True)
+                return self.merge_somatic(somatic, gene, omics_gene_df, multiple_mutations = True)
             else:
-                return self.merge_somatic(somatic, gene, df1_gene_df)[[gene, "Mutation"]]
-        elif df1.name == "phosphoproteomics":
-            phosphosites = self.get_phosphosites(df1, gene)
+                return self.merge_somatic(somatic, gene, omics_gene_df)[[gene, "Mutation"]]
+        elif omics.name == "phosphoproteomics":
+            phosphosites = self.get_phosphosites(data, gene)
             if len(phosphosites.columns) > 0:
                 if duplicates:
                     return self.merge_somatic(somatic, gene, phosphosites, multiple_mutations = True)
@@ -101,16 +111,27 @@ class Utilities:
                     return merged_somatic[columns]
 
         else:
-            print("Gene", gene, "not found in", df1.name, "data")
-    def merge_mutations_trans(self, df1, df1Gene, somatic, somaticGene, duplicates = False):
-        if df1Gene in df1.columns:
-            df1_gene_df = df1[[df1Gene]]
+            print("Gene", gene, "not found in", omics.name, "data")
+    def merge_mutations_trans(self, omics, omicsGene, somatic, somaticGene, duplicates = False):
+        """
+        Parameters
+        omics: dataframe containing specific omics data (i.e. proteomics, transcriptomics)
+        omicsGene: string of specific gene to merge from omics data
+        somatic: dataframe of somatic mutation data
+        somaticGene: string of specific gene to merge from somatic data
+        duplicates: boolean value indicating whether to include duplicate gene mutations for an individual
+
+        Returns
+        Dataframe of merged omics data (based on specific omicsGene) with somatic data (based on specific somaticGene)
+        """
+        if omicsGene in omics.columns:
+            omics_gene_df = omics[[omicsGene]]
             if duplicates:
-                return self.merge_somatic(somatic, somaticGene, df1_gene_df, multiple_mutations = True)
+                return self.merge_somatic(somatic, somaticGene, omics_gene_df, multiple_mutations = True)
             else:
-                return self.merge_somatic(somatic, somaticGene, df1_gene_df)[[df1Gene, "Mutation"]]
-        elif df1.name == "phosphoproteomics":
-            phosphosites = self.get_phosphosites(df1, df1Gene)
+                return self.merge_somatic(somatic, somaticGene, omics_gene_df)[[omicsGene, "Mutation"]]
+        elif omics.name == "phosphoproteomics":
+            phosphosites = self.get_phosphosites(omics, omicsGene)
             if len(phosphosites.columns) > 0:
                 if duplicates:
                     return self.merge_somatic(somatic, somaticGene, phosphosites, multiple_mutations = True)
@@ -120,7 +141,7 @@ class Utilities:
                     merged_somatic = self.merge_somatic(somatic, somaticGene, phosphosites)
                     return merged_somatic[columns]
         else:
-            print("Gene", df1Gene, "not found in", df1.name,"data")
+            print("Gene", omicsGene, "not found in", omics.name,"data")
     def compare_clinical(self, clinical, data, clinical_col):
         """
         Returns dataframe with specified column from clinical dataframe added to
