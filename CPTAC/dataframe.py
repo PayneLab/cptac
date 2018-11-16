@@ -56,17 +56,3 @@ class DataFrameLoader:
             return parsedDf
         else:
             print("Error reading", self.fileName)
-
-# clinical = {'FIGO': [0,0,0,3],
-#         'Diabetes': [0,0,1,0],
-#         'BMI': [38.88, 39.76, 51.19, 21.57]}
-# df = pd.DataFrame(clinical, index = ['C3L-06', 'C3L-08', 'C3L-32', 'C3L-139'])
-# print(df)
-# dictionary = {"iphone" : 2007,
-# 		"iphone 3G" : 2008,
-# 		"iphone 3GS" : 2009,
-# 		"iphone 4" : 2010,
-# 		"iphone 4S" : 2011,
-# 		"iphone 5" : 2012}
-# series = pd.Series(dictionary)
-# print(series)

@@ -78,12 +78,15 @@ cna = DataFrameLoader(data_directory + "CNA.cct.gz").createDataFrame()
 print("Loading Phosphoproteomics Data...")
 phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.cct.gz").createDataFrame()
 
-print("Loading Somatic Data...")
+print("Loading Somatic Mutation Data...")
 somatic_binary = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
+somatic_binary.name = "somatic binary"
 somatic_unparsed = pd.read_csv(data_directory + "somatic.maf", sep="\t")
+somatic_unparsed.name = "somatic MAF unparsed"
 somatic_maf = DataFrameLoader(data_directory + "somatic.maf").createDataFrame()
 patient_ids = create_patient_ids(clinical)
 somatic_maf = link_patient_ids(patient_ids, somatic_maf)
+somatic_maf.name = "somatic MAF"
 #c = clinical[clinical["WXS_patient_id"].isin(somatic_maf["Patient_Id"])]
 
 
@@ -101,18 +104,10 @@ def list():
     None
     """
     print("Below are the available data frames contained in this package:")
-    print("\t", clinical.name)
-    print("\t","\t", "Dimensions:", clinical.shape)
-    print("\t", proteomics.name)
-    print("\t","\t", "Dimensions:", proteomics.shape)
-    print("\t", transcriptomics.name)
-    print("\t","\t", "Dimensions:", transcriptomics.shape)
-    print("\t", cna.name)
-    print("\t","\t", "Dimensions:", cna.shape)
-    print("\t", phosphoproteomics.name)
-    print("\t","\t", "Dimensions:", phosphoproteomics.shape)
-    print("\t", somatic_maf.name)
-    print("\t","\t", "Dimensions:", somatic.shape)
+    data = [clinical, proteomics, transcriptomics, cna, phosphoproteomics, somatic_binary, somatic_maf]
+    for dataframe in data:
+        print("\t", dataframe.name)
+        print("\t", "\t", "Dimensions:", dataframe.shape)
     print("To access the data, use a get function with the data frame name, i.e. CTPAC.get_proteomics()")
 def define(term):
     """
