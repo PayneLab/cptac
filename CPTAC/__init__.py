@@ -358,10 +358,9 @@ def merge_mutations_full(data, gene, somatic_gene = None):
         return Utilities().merge_mutations_trans(data, data_gene, somatic_maf, somatic_gene, duplicates = True)
     else:
         return Utilities().merge_mutations(data, somatic_maf, gene, duplicates = True)
-def compare_clinical(clinical, data, clinical_col):
+def compare_clinical(data, clinical_col):
     """
     Parameters
-    clinical: clinical dataframe for omics data to be appended with
     data: omics data for clinical data to be appended with
     clinical_col: column in clinical dataframe to be inserted into provided omics data
 
