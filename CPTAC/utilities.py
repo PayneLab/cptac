@@ -19,6 +19,13 @@ class Utilities:
     def convert(self, snp_or_sap):
         print("Under construction")
     def add_mutation_hierarchy(self, somatic):
+        """
+        Parameters
+        somatic: somatic data to add mutation hierarchy to
+
+        Retunrs
+        Somatic mutation dataframe with added mutation hierarchy
+        """
         mutation_hierarchy = {"Missense_Mutation":0,"In_Frame_Del":0,"In_Frame_Ins":0,"Splice_Site":1,"Frame_Shift_Ins":1,"Nonsense_Mutation":1,"Frame_Shift_Del":1,"Nonstop_Mutation":1}
         hierarchy = []
         for x in somatic["Mutation"]:
@@ -29,6 +36,16 @@ class Utilities:
         somatic["Mutation_Hierarchy"] = hierarchy
         return somatic
     def merge_somatic(self, somatic, gene, df_gene, multiple_mutations = False): #private
+        """
+        Parameters
+        somatic: somatic mutations dataframe that will be parsed for specified gene data
+        gene: string of gene to be selected for in somatic mutation data
+        df_gene: selection of omics data for particular gene to be merged with somatic data
+        multiple_mutations: boolean indicating whether to include multiple mutations for specified gene in an individual
+
+        Returns
+        Dataframe of merged somatic and omics dataframes based on gene provided
+        """
         if sum(somatic["Gene"] == gene) > 0:
             somatic_gene = somatic[somatic["Gene"] == gene]
             somatic_gene = somatic_gene.drop(columns = ["Gene"])
@@ -52,8 +69,13 @@ class Utilities:
             return phosphosites
     def compare_gene(self, df1, df2, gene):
         """
-        Returns dataframe containing two columns. Each column is the data for the
-        specified gene from the two specified dataframes
+        Parameters
+        df1: omics dataframe (proteomics) to be selected from
+        df2: other omics dataframe (transcriptomics) to be selected from
+        gene: gene to select from each of the dataframes
+
+        Returns
+        Dataframe containing two columns. Each column is the data for the specified gene from the two specified dataframes
         """
         if gene in df1.columns and gene in df2.columns:
             common = df1.index.intersection(df2.index)
@@ -70,8 +92,13 @@ class Utilities:
             print(gene,"not found in provided dataframes. Please check that the specified gene is included in the provided dataframes")
     def compare_genes(self, df1, df2, genes):
         """
-        Returns dataframe of two column sets corresponding with the provided
-        array of genes
+        Parameters
+        df1: omics dataframe (proteomics) to be selected from
+        df2: other omics dataframe (transcriptomics) to be selected from
+        genes: gene or array of genes to select from each of the dataframes
+
+        Returns
+        Dataframe containing columns equally to the number of genes provided times two. Each two-column set is the data for each specified gene from the two specified dataframes
         """
         dfs = pd.DataFrame(index = df1.index.intersection(df2.index))
         for gene in genes:
@@ -144,8 +171,13 @@ class Utilities:
             print("Gene", omicsGene, "not found in", omics.name,"data")
     def compare_clinical(self, clinical, data, clinical_col):
         """
-        Returns dataframe with specified column from clinical dataframe added to
-        specified dataframe (i.e., proteomics) for comparison and easy plotting
+        Parameters
+        clinical: clinical dataframe for omics data to be appended with
+        data: omics data for clinical data to be appended with
+        clinical_col: column in clinical dataframe to be inserted into provided omics data
+
+        Returns
+        Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
         """
         if clinical_col in clinical:
             df = data[data.columns]
@@ -156,8 +188,13 @@ class Utilities:
             print(clinical_col, "not found in clinical dataframe. You can check the available columns by entering CPTAC.get_clincal().columns")
     def compare_phosphosites(self, proteomics, phosphoproteomics, gene):
         """
-        Returns dataframe with a column from proteomics for the gene specified,
-        as well as columns for all phosphoproteomics columns beginning with the specified gene
+        Parameters
+        gene: proteomics gene to query phosphoproteomics dataframe
+
+        Searches for any phosphosites on the gene provided
+
+        Returns
+        Dataframe with a column from proteomics for the gene specified, as well as columns for all phosphoproteomics columns beginning with the specified gene
         """
         if gene in proteomics.columns:
             df = proteomics[[gene]]
