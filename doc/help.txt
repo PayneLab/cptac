@@ -43,12 +43,20 @@ Utilities:
   compare_gene(df1, df2, gene):
     Selects for specified gene from two provided data frames. Returns data frame
     with two columns for intersection of indices between both data frames.
-  compare_clinical(clinical, data, clinical_col):
+  compare_clinical(data, clinical_col):
     Selects specified clinical column and adds it to the specified data, i.e.
     proteomics, CNA etc., returning a data frame of the combined data.
   compare_phosphosites(gene):
     Selects column from proteomics for the gene specified,
     as well as columns for all phosphoproteomics columns beginning with the specified gene
+  merge_mutations(data, gene, somatic_gene = None):
+    Parameters
+    data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
+    gene: gene to select from omics data (used for somatic data if somatic_gene is left blank)
+    somatic_gene: gene to select from somatic mutation data
+
+    Returns
+    Dataframe containing two columns, the omics data and the somatic mutation type for the gene(s) provided
         
 
 Queries:
