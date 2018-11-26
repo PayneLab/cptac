@@ -36,10 +36,6 @@ get functions:
     Returns specified columns of phosphoproteomics data frame.
 
 Utilities:
-  get_gene_mapping():
-    Returns gene mapping.
-  convert(snp_or_sap):
-    Converts provided SNP to SAP or vice versa.
   compare_gene(df1, df2, gene):
     Selects for specified gene from two provided data frames. Returns data frame
     with two columns for intersection of indices between both data frames.
@@ -53,11 +49,3 @@ Utilities:
     Merges mutation data with specific omics data based on specified gene.
     Can be merged for single gene between both data sets or can be merged on respective
     genes for each data set.
-
-
-Queries:
-  query(tumor_type, query_type, value):
-    Queries data based on 'query_type', such as by 'SNP',
-    'mutated gene', or 'outlier'. Query is based on 'tumor_type', such as colon.
-    Value correlates with 'query_type', such as TP53 if query
-    type is 'mutated gene', or 'EGFR' for 'outlier'.
