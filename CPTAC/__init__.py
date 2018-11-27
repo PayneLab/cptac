@@ -18,6 +18,7 @@ from .meta import MetaData
 from .molecular import MolecularData
 from .utilities import Utilities
 from .queries import Queries
+exec(open('./version.py').read())
 #temporary fix for .N .T issue
 def warning():
     print("\n","******PLEASE READ******")
