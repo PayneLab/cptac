@@ -130,7 +130,7 @@ class Utilities:
             else:
                 return self.merge_somatic(somatic, gene, omics_gene_df)[[gene, "Mutation", "Patient_Type"]]
         elif omics.name == "phosphoproteomics":
-            phosphosites = self.get_phosphosites(data, gene)
+            phosphosites = self.get_phosphosites(omics, gene)
             if len(phosphosites.columns) > 0:
                 if duplicates:
                     return self.merge_somatic(somatic, gene, phosphosites, multiple_mutations = True)
