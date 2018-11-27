@@ -1,11 +1,11 @@
-proteomics	The relative protein abudance of each gene for each respective cancer patient.
+proteomics	The relative protein abundance of each gene for each respective cancer patient.
 transcriptomics	The relative RNA abundance of each gene for each respective cancer patient.
 CNA	The relative copy number alterations of each gene for each respective cancer patient.
 phosphoproteomics	The relative phosphorylated protein abundance of each gene for each respective cancer patient.
 somatic	Data describing the mutations occuring for the somatic tumor samples collected from each respective patient.
 somatic mutations	Data describing the mutations occuring for the somatic tumor samples collected from each respective patient.
 Proteomics_Aliquot_ID	REVISE Identification code of proteomics aliquot.
-Proteomics_Participant_ID	REVISE Identification code proteomics participant.
+Proteomics_Participant_ID	REVISE Identification code for proteomics participant.
 Proteomics_TMT_batch	TMT (tandem mass tag) batch for specified patient's proteomics.
 Proteomics_TMT_plex	TMT (tandem mass tag) plex for specified patient's proteomics.
 Proteomics_TMT_channel	TMT (tandem mass tag) channel for specified patient's proteomics.

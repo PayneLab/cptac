@@ -323,36 +323,34 @@ def compare_gene(df1, df2, gene):
         return Utilities().compare_gene(df1, df2, gene)
     else:
         return Utilities().compare_genes(df1, df2, gene)
-def merge_mutations(data, gene, somatic_gene = None):
+def compare_mutations(omics_data, omics_gene, mutations_gene = None):
     """
     Params
-    data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
-    gene: gene to select from omics data (used for somatic data if somatic_gene is left blank)
-    somatic_gene: gene to select from somatic mutation data
+    omics_data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
+    omics_gene: gene to select from omics data (used for somatic data if somatic_gene is left blank)
+    mutations_gene: gene to select from somatic mutation data
 
     Returns
     Dataframe containing two columns, the omics data and the somatic mutation type for the gene(s) provided
     """
-    if somatic_gene:
-        data_gene = gene
-        return Utilities().merge_mutations_trans(data, data_gene, somatic_maf, somatic_gene)
+    if mutations_gene:
+        return Utilities().merge_mutations_trans(omics_data, omics_gene, somatic_maf, mutations_gene)
     else:
-        return Utilities().merge_mutations(data, somatic_maf, gene)
-def merge_mutations_full(data, gene, somatic_gene = None):
+        return Utilities().merge_mutations(omics_data, somatic_maf, omics_gene)
+def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):
     """
     Params
-    data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
-    gene: gene to select from omics data (used for somatic data if somatic_gene is left blank)
-    somatic_gene: gene to select from somatic mutation data
+    omics_data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
+    omics_gene: gene to select from omics data (used for somatic data if somatic_gene is left blank)
+    mutations_gene: gene to select from somatic mutation data
 
     Returns
     Dataframe containing numeric omics data and categorical somatic data (including patient ID, mutation type, and mutation location)
     """
-    if somatic_gene:
-        data_gene = gene
-        return Utilities().merge_mutations_trans(data, data_gene, somatic_maf, somatic_gene, duplicates = True)
+    if mutations_gene:
+        return Utilities().merge_mutations_trans(omics_data, omics_gene, somatic_maf, mutations_gene, duplicates = True)
     else:
-        return Utilities().merge_mutations(data, somatic_maf, gene, duplicates = True)
+        return Utilities().merge_mutations(omics_data, somatic_maf, omics_gene, duplicates = True)
 def compare_clinical(data, clinical_col):
     """
     Parameters
