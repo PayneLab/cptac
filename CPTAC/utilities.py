@@ -10,6 +10,7 @@
 #   limitations under the License.
 
 import pandas as pd
+import numpy as np
 class Utilities:
 
     def __init__(self):
@@ -56,9 +57,8 @@ class Utilities:
                 somatic_gene = somatic_gene[~somatic_gene.index.duplicated(keep="first")]
             merge = df_gene.join(somatic_gene, how = "left")
             merge = merge.fillna(value = {'Mutation':"Wildtype"})
-            types = ["Tumor"] * 100
-            types.extend(["Normal"] * 40)
-            merge["Patient_Type"] = types
+            merge["index"] = merge.index
+            merge["Patient_Type"] = np.where(merge.index <= "S100", "Tumor", "Normal")
             merge.name = df_gene.columns[0] + " omics data with " + gene + " mutation data"
             return merge
         else:
