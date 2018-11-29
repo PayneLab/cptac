@@ -351,7 +351,7 @@ def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):
         return Utilities().merge_mutations_trans(omics_data, omics_gene, somatic_maf, mutations_gene, duplicates = True)
     else:
         return Utilities().merge_mutations(omics_data, somatic_maf, omics_gene, duplicates = True)
-def compare_clinical(data, clinical_col):
+def compare_clinical(omics_data, clinical_col):
     """
     Parameters
     data: omics data for clinical data to be appended with
@@ -361,7 +361,7 @@ def compare_clinical(data, clinical_col):
     Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
     """
     #TODO: do we need clinical parameter? Could just grab it from loaded data?
-    return Utilities().compare_clinical(clinical, data, clinical_col)
+    return Utilities().compare_clinical(clinical, omics_data, clinical_col)
 def compare_phosphosites(gene):
     """
     Parameters
