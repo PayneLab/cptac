@@ -27,8 +27,9 @@ class DataFrameLoader:
         Dataframe of parsed datafile depending on the data type
         """
         if bool(re.search(r'\.txt[.|(a-z)]{,7}$', self.fileName)):
-            df = pd.read_csv(self.fileName, sep="\t", index_col=0)
-            #df = df.transpose() to put back if .cct doesn't work
+            #temp fix for reading error on clinical_v2:
+            file = open(self.fileName, "r")
+            df = pd.read_csv(file, sep="\t", index_col=0)
             df = df.sort_index()
 
             f = self.fileName.split(os.sep)

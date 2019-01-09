@@ -30,9 +30,9 @@ def warning():
 Creates dictionary for linking Patient_Id with individual sample number (i.e. C3L-00006 with S001)
 """
 def create_patient_ids(clinical):
-    c = clinical[["WXS_patient_id"]][0:100] #S101 through S140 have no patient id
+    c = clinical[["Proteomics_Participant_ID"]][0:100] #S101 through S140 have no patient id
     s = c.index
-    dictPrepDf = c.set_index('WXS_patient_id')
+    dictPrepDf = c.set_index('Proteomics_Participant_ID')
     dictPrepDf['idx'] = s
     patient_ids = dictPrepDf.to_dict()['idx']
     return patient_ids
@@ -64,26 +64,37 @@ for line in file:
 file.close()
 
 print("Loading Clinical Data...")
-clinical = DataFrameLoader(data_directory + "clinical.txt.gz").createDataFrame()
+clinical = DataFrameLoader(data_directory + "clinical_v2.txt").createDataFrame()
+#clinical = DataFrameLoader(data_directory + "clinical.txt.gz").createDataFrame()
 
 print("Loading Proteomics Data...")
-proteomics = DataFrameLoader(data_directory + "proteomics.cct.gz").createDataFrame()
+proteomics = DataFrameLoader(data_directory + "proteomics_v2.cct").createDataFrame()
+#proteomics = DataFrameLoader(data_directory + "proteomics.cct.gz").createDataFrame()
 
 print("Loading Transcriptomics Data...")
-transcriptomics = DataFrameLoader(data_directory + "transcriptomics.cct.gz").createDataFrame()
+transcriptomics = DataFrameLoader(data_directory + "transcriptomics_linear_v2.cct").createDataFrame()
+transcriptomics_circular = DataFrameLoader(data_directory + "transcriptomics_circular_v2.cct").createDataFrame()
+miRNA = DataFrameLoader(data_directory + "miRNA_v2.cct").createDataFrame()
+#transcriptomics = DataFrameLoader(data_directory + "transcriptomics.cct.gz").createDataFrame()
 
 print("Loading CNA Data...")
-cna = DataFrameLoader(data_directory + "CNA.cct.gz").createDataFrame()
+cna = DataFrameLoader(data_directory + "CNA_v2.cct").createDataFrame()
+#cna = DataFrameLoader(data_directory + "CNA.cct.gz").createDataFrame()
 
 print("Loading Phosphoproteomics Data...")
-phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.cct.gz").createDataFrame()
+phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics_site_v2.cct").createDataFrame()
+phosphoproteomics_gene = DataFrameLoader(data_directory + "phosphoproteomics_gene_v2.cct").createDataFrame()
+#phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.cct.gz").createDataFrame()
 
 print("Loading Somatic Mutation Data...")
-somatic_binary = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
+somatic_binary = DataFrameLoader(data_directory + "somatic_v2.cbt").createDataFrame()
+#somatic_binary = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
 somatic_binary.name = "somatic binary"
-somatic_unparsed = pd.read_csv(data_directory + "somatic.maf", sep="\t")
+somatic_unparsed = pd.read_csv(data_directory + "somatic_v2.maf", sep = "\t")
+#somatic_unparsed = pd.read_csv(data_directory + "somatic.maf", sep="\t")
 somatic_unparsed.name = "somatic MAF unparsed"
-somatic_maf = DataFrameLoader(data_directory + "somatic.maf").createDataFrame()
+somatic_maf = DataFrameLoader(data_directory + "somatic_v2.maf").createDataFrame()
+#somatic_maf = DataFrameLoader(data_directory + "somatic.maf").createDataFrame()
 patient_ids = create_patient_ids(clinical)
 somatic_maf = link_patient_ids(patient_ids, somatic_maf)
 somatic_maf.name = "somatic MAF"
@@ -152,14 +163,19 @@ def get_proteomics():
     proteomics dataframe
     """
     return proteomics
-def get_transcriptomics():
+def get_transcriptomics(circular = False, miRNA = False):
     """
     Parameters
-    None
+    circular: boolean indicating whether to return circular RNA data
+    miRNA: boolean indicating whether to return miRNA data
 
     Returns
     Transcriptomics dataframe
     """
+    if circular:
+        return transcriptomics_circular
+    if miRNA:
+        return miRNA
     return transcriptomics
 def get_CNA():
     """
@@ -170,7 +186,7 @@ def get_CNA():
     CNA dataframe
     """
     return cna
-def get_phosphoproteomics():
+def get_phosphoproteomics(gene_level = True):
     """
     Parameters
     None
@@ -178,6 +194,8 @@ def get_phosphoproteomics():
     Returns
     Phosphoproteomics dataframe
     """
+    if gene_level:
+        return phosphoproteomics_gene
     return phosphoproteomics
 def get_phosphosites(gene):
     """Returns dataframe with all phosphosites of specified gene name"""
