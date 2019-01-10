@@ -45,7 +45,7 @@ Utilities:
   compare_phosphosites(gene):
     Selects column from proteomics for the gene specified,
     as well as columns for all phosphoproteomics columns beginning with the specified gene
-  merge_mutations(data, gene, somatic_gene = None):
+  compare_mutations(data, gene, somatic_gene = None):
     Merges mutation data with specific omics data based on specified gene.
     Can be merged for single gene between both data sets or can be merged on respective
     genes for each data set.

@@ -64,36 +64,36 @@ for line in file:
 file.close()
 
 print("Loading Clinical Data...")
-clinical = DataFrameLoader(data_directory + "clinical_v2.txt").createDataFrame()
+clinical = DataFrameLoader(data_directory + "clinical.txt").createDataFrame()
 #clinical = DataFrameLoader(data_directory + "clinical.txt.gz").createDataFrame()
 
 print("Loading Proteomics Data...")
-proteomics = DataFrameLoader(data_directory + "proteomics_v2.cct").createDataFrame()
+proteomics = DataFrameLoader(data_directory + "proteomics.cct.gz").createDataFrame()
 #proteomics = DataFrameLoader(data_directory + "proteomics.cct.gz").createDataFrame()
 
 print("Loading Transcriptomics Data...")
-transcriptomics = DataFrameLoader(data_directory + "transcriptomics_linear_v2.cct").createDataFrame()
-transcriptomics_circular = DataFrameLoader(data_directory + "transcriptomics_circular_v2.cct").createDataFrame()
-miRNA = DataFrameLoader(data_directory + "miRNA_v2.cct").createDataFrame()
+transcriptomics = DataFrameLoader(data_directory + "transcriptomics_linear.cct.gz").createDataFrame()
+transcriptomics_circular = DataFrameLoader(data_directory + "transcriptomics_circular.cct.gz").createDataFrame()
+miRNA = DataFrameLoader(data_directory + "miRNA.cct.gz").createDataFrame()
 #transcriptomics = DataFrameLoader(data_directory + "transcriptomics.cct.gz").createDataFrame()
 
 print("Loading CNA Data...")
-cna = DataFrameLoader(data_directory + "CNA_v2.cct").createDataFrame()
+cna = DataFrameLoader(data_directory + "CNA.cct.gz").createDataFrame()
 #cna = DataFrameLoader(data_directory + "CNA.cct.gz").createDataFrame()
 
 print("Loading Phosphoproteomics Data...")
-phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics_site_v2.cct").createDataFrame()
-phosphoproteomics_gene = DataFrameLoader(data_directory + "phosphoproteomics_gene_v2.cct").createDataFrame()
+phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics_site.cct.gz").createDataFrame()
+phosphoproteomics_gene = DataFrameLoader(data_directory + "phosphoproteomics_gene.cct.gz").createDataFrame()
 #phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.cct.gz").createDataFrame()
 
 print("Loading Somatic Mutation Data...")
-somatic_binary = DataFrameLoader(data_directory + "somatic_v2.cbt").createDataFrame()
+somatic_binary = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
 #somatic_binary = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
 somatic_binary.name = "somatic binary"
-somatic_unparsed = pd.read_csv(data_directory + "somatic_v2.maf", sep = "\t")
+somatic_unparsed = pd.read_csv(data_directory + "somatic.maf.gz", sep = "\t")
 #somatic_unparsed = pd.read_csv(data_directory + "somatic.maf", sep="\t")
 somatic_unparsed.name = "somatic MAF unparsed"
-somatic_maf = DataFrameLoader(data_directory + "somatic_v2.maf").createDataFrame()
+somatic_maf = DataFrameLoader(data_directory + "somatic.maf.gz").createDataFrame()
 #somatic_maf = DataFrameLoader(data_directory + "somatic.maf").createDataFrame()
 patient_ids = create_patient_ids(clinical)
 somatic_maf = link_patient_ids(patient_ids, somatic_maf)
@@ -189,7 +189,7 @@ def get_CNA():
 def get_phosphoproteomics(gene_level = True):
     """
     Parameters
-    None
+    gene_level: boolean indicating whether to return gene level phosphoproteomics (returns site level if false)
 
     Returns
     Phosphoproteomics dataframe
