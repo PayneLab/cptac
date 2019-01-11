@@ -18,7 +18,6 @@ from .meta import MetaData
 from .molecular import MolecularData
 from .utilities import Utilities
 from .queries import Queries
-exec(open('./version.py').read())
 #temporary fix for .N .T issue
 def warning():
     print("\n","******PLEASE READ******")
@@ -420,3 +419,8 @@ def embargo():
 def start():
     #Might remove this function
     print("Welcome to our CPTAC data. Enter CPTAC.help() to open our Github help page.")
+def version():
+    version = {}
+    with open('version.py') as fp:
+    	exec(fp.read(), version)
+    return(version['__version__'])
