@@ -28,7 +28,7 @@ class DataFrameLoader:
         """
         if bool(re.search(r'\.txt[.|(a-z)]{,7}$', self.fileName)):
             #temp fix for reading error on clinical_v2:
-            file = open(self.fileName, "r")
+            file = open(self.fileName, "r", errors="ignore")
             df = pd.read_csv(file, sep="\t", index_col=0)
             df = df.sort_index()
 
