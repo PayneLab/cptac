@@ -421,6 +421,6 @@ def start():
     print("Welcome to our CPTAC data. Enter CPTAC.help() to open our Github help page.")
 def version():
     version = {}
-    with open('version.py') as fp:
+    with open(dir_path + '/version.py') as fp:
     	exec(fp.read(), version)
     return(version['__version__'])

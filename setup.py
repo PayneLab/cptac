@@ -1,7 +1,7 @@
 from setuptools import setup
 
 version = {}
-with open('version.py') as fp:
+with open('CPTAC/version.py') as fp:
 	exec(fp.read(), version)
 
 setup(name='CPTAC',
