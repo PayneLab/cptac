@@ -419,3 +419,8 @@ def embargo():
 def start():
     #Might remove this function
     print("Welcome to our CPTAC data. Enter CPTAC.help() to open our Github help page.")
+def version():
+    version = {}
+    with open(dir_path + '/version.py') as fp:
+    	exec(fp.read(), version)
+    return(version['__version__'])

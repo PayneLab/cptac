@@ -1,7 +1,11 @@
 from setuptools import setup
 
+version = {}
+with open('CPTAC/version.py') as fp:
+	exec(fp.read(), version)
+
 setup(name='CPTAC',
-	version='0.2',
+	version=version['__version__'],
 	description='Python packaging for CPTAC data',
 	url='http://github.com/PayneLab/CPTAC',
 	author='Dr. Samuel Payne',
