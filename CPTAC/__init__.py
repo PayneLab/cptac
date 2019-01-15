@@ -50,6 +50,9 @@ Executes on import CPTAC statement. Selects files from docs folder in CPTAC pack
 utilizing DataFrameLoader from dataframe.py. Prints update as files are loaded into
 dataframes.
 """
+
+print("Loading CPTAC data:")
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 data_directory = dir_path + os.sep + "Data" + os.sep
 
