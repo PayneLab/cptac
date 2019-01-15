@@ -41,8 +41,9 @@ class Plotter:
             print(message)
             return ""
         plt.show()
-        
+
 print("Running tests:")
+
 print("Plotting...")
 Plotter().plot(CPTAC.get_proteomics(), "A1BG","PTEN","scatterplot")
 Plotter().plot(CPTAC.get_clinical(), "Diabetes","BMI","barplot")

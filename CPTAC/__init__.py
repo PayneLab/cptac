@@ -189,7 +189,7 @@ def get_CNA():
     CNA dataframe
     """
     return cna
-def get_phosphoproteomics(gene_level = True):
+def get_phosphoproteomics(gene_level = False):
     """
     Parameters
     gene_level: boolean indicating whether to return gene level phosphoproteomics (returns site level if false)
