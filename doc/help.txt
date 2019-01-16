@@ -8,17 +8,19 @@ get functions:
     Returns clinical.txt as a data frame.
   get_proteomics():
     Returns proteomics.cct as a data frame.
-  get_transcriptome():
-    Returns transcriptome.cct as a data frame.
+  get_transcriptomics(circular, miRNA):
+    Returns transcriptomics_linear.cct (optional transcriptomics_circular.cct
+    or miRNA.cct) as a data frame.
   get_cna():
     Returns CNA.cct as a data frame.
-  get_phosphoproteomics():
-    Returns phosphoproteomics.cct as a data frame.
-  get_somatic():
-    Returns somatic.ctb as a data frame.
-  get_meta_cols():
+  get_phosphoproteomics(gene_level):
+    Returns phosphoproteomics_site.cct (optional phosphoproteomics_gene.cct)
+    as a data frame.
+  get_somatic(binary, unparsed):
+    Returns parsed somatic.maf (optional somatic.cbt or unparsed somatic.maf) as a data frame.
+  get_clinical_cols():
     Returns column names of clinical data frame.
-  get_cohort_meta(cols):
+  get_cohort_meta(columns):
     Returns specified columns of clinical data frame.
   get_proteomics_quant(colon_ids):
     Returns specified indices of proteomics data frame.
@@ -26,13 +28,13 @@ get functions:
     Returns column names of proteomics data frame.
   get_transcriptome_cols():
     Returns column names of transcriptome data frame.
-  get_cohort_proteomics(cols):
+  get_cohort_proteomics(columns):
     Returns specified columns of proteomics data frame.
-  get_cohort_transcriptome(cols):
+  get_cohort_transcriptome(columns):
     Returns specified columns of transcriptome data frame.
-  get_cohort_cna(cols):
+  get_cohort_cna(columns):
     Returns specified columns of CNA data frame.
-  get_cohort_phosphoproteomics(cols):
+  get_cohort_phosphoproteomics(columns):
     Returns specified columns of phosphoproteomics data frame.
 
 Utilities:
@@ -45,7 +47,7 @@ Utilities:
   compare_phosphosites(gene):
     Selects column from proteomics for the gene specified,
     as well as columns for all phosphoproteomics columns beginning with the specified gene
-  merge_mutations(data, gene, somatic_gene = None):
+  compare_mutations(data, gene, somatic_gene = None):
     Merges mutation data with specific omics data based on specified gene.
     Can be merged for single gene between both data sets or can be merged on respective
     genes for each data set.
