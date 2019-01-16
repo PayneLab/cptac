@@ -50,7 +50,6 @@ Executes on import CPTAC statement. Selects files from docs folder in CPTAC pack
 utilizing DataFrameLoader from dataframe.py. Prints update as files are loaded into
 dataframes.
 """
-
 print("Loading CPTAC data:")
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -246,15 +245,15 @@ def get_transcriptomics_cols():
     List of columns of transcriptomics dataframe
     """
     return transcriptomics.columns
-def get_cohort_clinical(cols):
+def get_cohort_clinical(columns):
     """
     Parameters
-    cols: single column name or array of column names to select for in the clinical dataframe
+    columns: single column name or array of column names to select for in the clinical dataframe
 
     Returns
     Dataframe of specified columns (or Series if one column) of clinical data
     """
-    return clinical[cols]
+    return clinical[columns]
 def get_proteomics_quant(colon_ids):
     """
     Parameters
@@ -264,42 +263,42 @@ def get_proteomics_quant(colon_ids):
     Dataframe of specified rows (or Series if one row) of proteomics data
     """
     return proteomics.loc[colon_ids]
-def get_cohort_proteomics(cols):
+def get_cohort_proteomics(columns):
     """
     Parameters
-    cols: single column name or array of column names to select for in the proteomics dataframe
+    columns: single column name or array of column names to select for in the proteomics dataframe
 
     Returns
     Dataframe of specified columns (or Series if one column) of proteomics data
     """
-    return proteomics[cols]
-def get_cohort_transcriptomics(cols):
+    return proteomics[columns]
+def get_cohort_transcriptomics(columns):
     """
     Parameters
-    cols: single column name or array of column names to select for in the transcriptomics dataframe
+    columns: single column name or array of column names to select for in the transcriptomics dataframe
 
     Returns
     Dataframe of specified columns (or Series if one column) of transcriptomics data
     """
-    return transcriptomics[cols]
-def get_cohort_cna(cols):
+    return transcriptomics[columns]
+def get_cohort_cna(columns):
     """
     Parameters
-    cols: single column name or array of column names to select for in the CNA dataframe
+    columns: single column name or array of column names to select for in the CNA dataframe
 
     Returns
     Dataframe of specified columns (or Series if one column) of CNA data
     """
-    return cna[cols]
-def get_cohort_phosphoproteomics(cols):
+    return cna[columns]
+def get_cohort_phosphoproteomics(columns):
     """
     Parameters
-    cols: single column name or array of column names to select for in the phosphoproteomics dataframe
+    columns: single column name or array of column names to select for in the phosphoproteomics dataframe
 
     Returns
     Dataframe of specified columns (or Series if one column) of phosphoproteomics data
     """
-    return phosphoproteomics[cols]
+    return phosphoproteomics[columns]
 def get_patient_mutations(patient_id):
     """
     Parameters
@@ -308,10 +307,12 @@ def get_patient_mutations(patient_id):
     Returns
     Dataframe containing data for provided patient ID
     """
-    if "Tumor_Sample_Barcode" in somatic_maf.columns:
-        return somatic_maf[somatic_maf["Tumor_Sample_Barcode"] == patient_id]
+    if len(patient_id) == 4: #S***
+        return somatic_maf[somatic_maf["Patient_Id"] == patient_id]
+    elif len(patient_id) > 0: #C3L-*****
+        return somatic_maf[somatic_maf["Clinical_Patient_Key"] == patient_id]
     else:
-        print("Parsing error. Tumor Sample Barcode not found in somatic mutations.")
+        print("ERROR:", patient_id, "not a valid patient_id.")
 def get_tumor_ids(tumor_type, query_type, value):
     #"""
     #Parameters

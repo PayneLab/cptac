@@ -20,7 +20,7 @@ get functions:
     Returns parsed somatic.maf (optional somatic.cbt or unparsed somatic.maf) as a data frame.
   get_clinical_cols():
     Returns column names of clinical data frame.
-  get_cohort_meta(columns):
+  get_cohort_clinical(columns):
     Returns specified columns of clinical data frame.
   get_proteomics_quant(colon_ids):
     Returns specified indices of proteomics data frame.
