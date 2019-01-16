@@ -36,6 +36,8 @@ get functions:
     Returns specified columns of CNA data frame.
   get_cohort_phosphoproteomics(columns):
     Returns specified columns of phosphoproteomics data frame.
+  get_patient_mutations(patient_id):
+    Returns data frame of mutation data matching specified patient ID.
 
 Utilities:
   compare_gene(df1, df2, gene):
