@@ -18,7 +18,7 @@ from .meta import MetaData
 from .molecular import MolecularData
 from .utilities import Utilities
 from .queries import Queries
-#temporary fix for .N .T issue
+
 def warning():
     print("\n","******PLEASE READ******")
     warning = "WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter CPTAC.embargo() to open the webpage for more details."
@@ -67,43 +67,34 @@ file.close()
 
 print("Loading Clinical Data...")
 clinical = DataFrameLoader(data_directory + "clinical.txt").createDataFrame()
-#clinical = DataFrameLoader(data_directory + "clinical.txt.gz").createDataFrame()
 
 print("Loading Proteomics Data...")
 proteomics = DataFrameLoader(data_directory + "proteomics.cct.gz").createDataFrame()
-#proteomics = DataFrameLoader(data_directory + "proteomics.cct.gz").createDataFrame()
 
 print("Loading Transcriptomics Data...")
 transcriptomics = DataFrameLoader(data_directory + "transcriptomics_linear.cct.gz").createDataFrame()
 transcriptomics_circular = DataFrameLoader(data_directory + "transcriptomics_circular.cct.gz").createDataFrame()
 miRNA = DataFrameLoader(data_directory + "miRNA.cct.gz").createDataFrame()
-#transcriptomics = DataFrameLoader(data_directory + "transcriptomics.cct.gz").createDataFrame()
 
 print("Loading CNA Data...")
 cna = DataFrameLoader(data_directory + "CNA.cct.gz").createDataFrame()
-#cna = DataFrameLoader(data_directory + "CNA.cct.gz").createDataFrame()
 
 print("Loading Phosphoproteomics Data...")
 phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics_site.cct.gz").createDataFrame()
 phosphoproteomics_gene = DataFrameLoader(data_directory + "phosphoproteomics_gene.cct.gz").createDataFrame()
-#phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics.cct.gz").createDataFrame()
 
 print("Loading Somatic Mutation Data...")
 somatic_binary = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
-#somatic_binary = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
 somatic_binary.name = "somatic binary"
 somatic_unparsed = pd.read_csv(data_directory + "somatic.maf.gz", sep = "\t")
-#somatic_unparsed = pd.read_csv(data_directory + "somatic.maf", sep="\t")
 somatic_unparsed.name = "somatic MAF unparsed"
 somatic_maf = DataFrameLoader(data_directory + "somatic.maf.gz").createDataFrame()
-#somatic_maf = DataFrameLoader(data_directory + "somatic.maf").createDataFrame()
 patient_ids = create_patient_ids(clinical)
 somatic_maf = link_patient_ids(patient_ids, somatic_maf)
 somatic_maf.name = "somatic MAF"
-#c = clinical[clinical["WXS_patient_id"].isin(somatic_maf["Patient_Id"])]
 
 
-#metaData = MetaData(clinical)#, clinical_meta)
+#metaData = MetaData(clinical)
 #molecularData = MolecularData(proteomics, transcriptome, cna, phosphoproteomics)
 warning()
 def list():
@@ -302,7 +293,7 @@ def get_cohort_phosphoproteomics(columns):
 def get_patient_mutations(patient_id):
     """
     Parameters
-    patient_id: Patient ID (i.e. C3L-00006) to select from somatic mutation data
+    patient_id: Patient ID (i.e. C3L-00006, S018, etc.) to select from somatic mutation data
 
     Returns
     Dataframe containing data for provided patient ID
@@ -313,7 +304,7 @@ def get_patient_mutations(patient_id):
         return somatic_maf[somatic_maf["Clinical_Patient_Key"] == patient_id]
     else:
         print("ERROR:", patient_id, "not a valid patient_id.")
-def get_tumor_ids(tumor_type, query_type, value):
+def get_tumor_ids(tumor_type, query_type, value): #TODO: implement
     #"""
     #Parameters
     #tumor_type is the tumor type, e.g. colon
@@ -341,9 +332,9 @@ def compare_gene(df1, df2, gene):
     Returns
     Dataframe containing two columns (or number of genes provided times two). Each column is the data for the specified gene from the two specified dataframes
     """
-    if isinstance(gene, str):
+    if isinstance(gene, str): #simple way to check for single gene string
         return Utilities().compare_gene(df1, df2, gene)
-    else:
+    else: #if not single gene string, then assuming an array was provided
         return Utilities().compare_genes(df1, df2, gene)
 def compare_mutations(omics_data, omics_gene, mutations_gene = None):
     """
