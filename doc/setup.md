@@ -1,8 +1,8 @@
 
 # Setup instructions
 
-##Downloading the data
-###From GitHub
+## Downloading the data
+### From GitHub
 To download the data, open bash, navigate to the directory you want to store CPTAC under, and enter:
 
 ```
@@ -15,7 +15,7 @@ To install our package, we use pip. If you want the package available to command
 pip install .
 ```
 
-###Directly from PyPI
+### Directly from PyPI
 
 
 The package will soon be accessible on pip itelf. For now, it's on the pip test site for debugging. You can download it from there with
@@ -31,7 +31,7 @@ To download a different version of the data, add the version number after the CP
 pip install -i https://test.pypi.org/simple/ CPTAC==0.1.1
 ``` 
 
-##Setting up for Jupyter notebooks
+## Setting up for Jupyter notebooks
 If you want the package available within Jupyter, you can install it in your base conda environment. To do this, open a bash shell and do the following:
 ```
 conda activate
@@ -39,7 +39,7 @@ cd /path/to/CPTAC
 pip install .
 ```
 
-##Opening the data in Python
+## Opening the data in Python
 After installation, open Python anywhere on your system and use our method by entering:
 
 ```
