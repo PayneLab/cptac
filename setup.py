@@ -10,7 +10,7 @@ setup(name='CPTAC',
 	url='http://github.com/PayneLab/CPTAC',
 	author='Dr. Samuel Payne',
 	author_email='sam_payne@byu.edu',
-	license='MIT',
+	license='Apache 2.0',
 	packages=['CPTAC'],
 	install_requires=[
 		'numpy',
