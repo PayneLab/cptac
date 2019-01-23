@@ -12,6 +12,10 @@ setup(name='CPTAC',
 	author_email='sam_payne@byu.edu',
 	license='MIT',
 	packages=['CPTAC'],
+	install_requires=[
+		'numpy',
+		'pandas'
+	],
 	zip_safe=False,
 	include_package_data=True
 	)
