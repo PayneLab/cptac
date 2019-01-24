@@ -1,2 +1,3 @@
 include README.md
-include CPTAC/Data/*
+include CPTAC/Endometrial/Data/*
+include CPTAC/Ovarian/Data/*
