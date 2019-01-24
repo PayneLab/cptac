@@ -1,5 +1,5 @@
 # CPTAC
-This project is intended to facilitate accessing and interacting with cancer data from the NIH. Currently, the dataset available is from a series of endometrial cancer studies. These cancer studies are downloadable via our Python package as native dataframe objects from the pandas package and can therefore be integrated very quickly and easily with other Python-based data analysis tools. Follow our walkthrough tutorials for a basic cookbook of ways to use our system.
+This project is intended to facilitate accessing and interacting with cancer data from the NIH. Currently, the datasets available are from a series of endometrial cancer studies as well as ovarian cancer studies. These cancer studies are downloadable via our Python package as native dataframe objects from the pandas package and can therefore be integrated very quickly and easily with other Python-based data analysis tools. Follow our walkthrough tutorials for a basic cookbook of ways to use our system.
 
 Setup instructions can be found in <code>doc/setup.md</code>
 
