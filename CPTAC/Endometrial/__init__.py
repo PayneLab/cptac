@@ -21,7 +21,7 @@ from .queries import Queries
 
 def warning():
     print("\n","******PLEASE READ******")
-    warning = "WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter CPTAC.embargo() to open the webpage for more details."
+    warning = "WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter embargo() to open the webpage for more details."
     wrapped_list = textwrap.wrap(warning)
     for line in wrapped_list:
         print(line)
@@ -416,6 +416,6 @@ def start():
     print("Welcome to our CPTAC data. Enter CPTAC.help() to open our Github help page.")
 def version():
     version = {}
-    with open(dir_path + '/version.py') as fp:
+    with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder
     	exec(fp.read(), version)
     return(version['__version__'])
