@@ -4,8 +4,8 @@ CPTAC help:
     Lists the accessible data in the package
 
 get functions:
-  get_clinical(unfiltered):
-    Returns clinical.txt (optional unfiltered clinical.txt, which includes
+  get_clinical(excluded):
+    Returns clinical.txt (optional excluded cases in clinical.txt, which includes
     all "Yes" samples under Case_excluded) as a data frame.
   get_proteomics():
     Returns proteomics.cct as a data frame.

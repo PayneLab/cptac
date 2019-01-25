@@ -139,10 +139,10 @@ def search(term):
     url = "https://www.google.com/search?q=" + term
     print("Searching for", term, "in web browser...")
     webbrowser.open(url)
-def get_clinical(unfiltered=False):
+def get_clinical(excluded=False):
     """
     Parameters
-    unfiltered: boolean indicating whether to return unfiltered clinical data, aka clinical["Case_excluded"] == "Yes"
+    excluded: boolean indicating whether to return unfiltered clinical data, aka clinical["Case_excluded"] == "Yes"
 
     Returns
     Clincal dataframe
