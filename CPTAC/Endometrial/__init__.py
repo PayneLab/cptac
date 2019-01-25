@@ -147,7 +147,7 @@ def get_clinical(excluded=False):
     Returns
     Clincal dataframe
     """
-    if unfiltered:
+    if excluded:
         return clinical_unfiltered
     return clinical
 def get_proteomics():
