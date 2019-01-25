@@ -30,7 +30,7 @@ def warning():
 Creates dictionary for linking Patient_Id with individual sample number (i.e. C3L-00006 with S001)
 """
 def create_patient_ids(clinical):
-    c = clinical[["Proteomics_Participant_ID"]][0:100] #S101 through S140 have no patient id
+    c = clinical[["Proteomics_Participant_ID"]][0:103] # S105 maps back to S001
     s = c.index
     dictPrepDf = c.set_index('Proteomics_Participant_ID')
     dictPrepDf['idx'] = s
@@ -90,7 +90,7 @@ somatic_binary.name = "somatic binary"
 somatic_unparsed = pd.read_csv(data_directory + "somatic.maf.gz", sep = "\t")
 somatic_unparsed.name = "somatic MAF unparsed"
 somatic_maf = DataFrameLoader(data_directory + "somatic.maf.gz").createDataFrame()
-patient_ids = create_patient_ids(clinical)
+patient_ids = create_patient_ids(clinical_unfiltered)
 somatic_maf = link_patient_ids(patient_ids, somatic_maf)
 somatic_maf.name = "somatic MAF"
 
