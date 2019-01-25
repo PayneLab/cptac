@@ -66,7 +66,8 @@ for line in file:
 file.close()
 
 print("Loading Clinical Data...")
-clinical = DataFrameLoader(data_directory + "clinical.txt").createDataFrame()
+clinical_unfiltered = DataFrameLoader(data_directory + "clinical.txt").createDataFrame()
+clinical = clinical_unfiltered[clinical_unfiltered["Case_excluded"] == "No"]
 
 print("Loading Proteomics Data...")
 proteomics = DataFrameLoader(data_directory + "proteomics.cct.gz").createDataFrame()
@@ -138,14 +139,16 @@ def search(term):
     url = "https://www.google.com/search?q=" + term
     print("Searching for", term, "in web browser...")
     webbrowser.open(url)
-def get_clinical():
+def get_clinical(unfiltered=False):
     """
     Parameters
-    None
+    unfiltered: boolean indicating whether to return unfiltered clinical data, aka clinical["Case_excluded"] == "Yes"
 
     Returns
     Clincal dataframe
     """
+    if unfiltered:
+        return clinical_unfiltered
     return clinical
 def get_proteomics():
     """
