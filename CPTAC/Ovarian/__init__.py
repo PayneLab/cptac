@@ -33,51 +33,33 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 data_directory = dir_path + os.sep + "Data" + os.sep
 path = data_directory + os.sep + "*.*"
 files = glob.glob(path)
-data = []
+data = {}
 print("Loading Ovarian CPTAC data:")
 for file in files:
-    data.append(read_data(file))
+    df = read_data(file)
+    data[df.name] = df
 warning()
 
 
 def get_data():
     return data
 def get_clinical():
-    for x in data:
-        if x.name == "clinical":
-            return x
-    print("Clinical data not found")
+    return data.get("clinical")
 
 def get_cnv():
-    for x in data:
-        if x.name == "cnv":
-            return x
-    print("CNA data not found")
+    return data.get("cnv")
 
 def get_phosphoproteomics():
-    for x in data:
-        if x.name == "phosphoproteomics":
-            return x
-    print("Phosphoproteomics data not found")
+    return data.get("phosphoproteomics")
 
 def get_proteomics():
-    for x in data:
-        if x.name == "proteomics":
-            return x
-    print("Proteomics data not found")
+    return data.get("proteomics")
 
 def get_somatic_mutations():
-    for x in data:
-        if x.name.split("_")[0] == "somatic": #TODO: find difference between somatic_19 and somatic_38
-            return x #returns somatic_19 for now
-    print("Somatic data not found")
+    return data.get("somatic_19") #TODO: how to handle different somatic files?
 
 def get_transcriptomics():
-    for x in data:
-        if x.name == "trancriptomics":
-            return x
-    print("Transcriptomics data not found")
-
+    return data.get("transcriptomics")
 
 
 def embargo():
