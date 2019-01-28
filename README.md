@@ -15,3 +15,6 @@ Tuturials for this package are located under the <code>doc</code> folder and des
 
 ## Requirements
 This package is intended to run on Python 3.6 with pandas 0.23.4. In the tutorials we use seaborn 0.9.0 for data visualization. 
+
+## License
+This package contains a license.md document which describes the license for use. Please note the difference between the license as it applies to code versus data.
