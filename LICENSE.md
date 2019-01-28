@@ -1,4 +1,8 @@
-                                 Apache License
+This python package has two components, which have subtly different licensing. The software and the data presented by the software. The software itself - all python codes - is available under the Apache 2.0 license outlined below. The data - clinical and molecular characterization of cancer cohorts - is available under the Apache 2.0 license BUT is subject to a publication embargo until a certain date. Please pay attention to the embargo date printed every time your import the package. Your use of the data is noted as an explicit acknowledgement of the embargo policies and timing.
+
+
+
+Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
 
