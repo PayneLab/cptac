@@ -101,7 +101,7 @@ class Utilities:
         genes: gene or array of genes to select from each of the dataframes
 
         Returns
-        Dataframe containing columns equally to the number of genes provided times two. Each two-column set is the data for each specified gene from the two specified dataframes
+        Dataframe containing columns equal to the number of genes provided times two. Each two-column set is the data for each specified gene from the two specified dataframes
         """
         dfs = pd.DataFrame(index = df1.index.intersection(df2.index))
         for gene in genes:

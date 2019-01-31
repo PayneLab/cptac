@@ -6,6 +6,8 @@ import glob
 import os
 import textwrap
 import webbrowser
+from .utilities import Utilities
+from .dataframe import DataFrameLoader
 
 
 def warning():
@@ -22,10 +24,10 @@ def read_data(fileName):
     f = f[len(f) - 1]
     name = f.split(".")[0]
     print("Loading",name,"data...")
-    if name != "clinical":
-        df = pd.read_csv(fileName, sep="\t", index_col=0)
-    else:
+    if name == "clinical":
         df = pd.read_csv(fileName, sep="\t")
+    else:
+        df = pd.read_csv(fileName, sep="\t", index_col=0)
     df.name = name
     return df
 
@@ -36,7 +38,7 @@ files = glob.glob(path)
 data = {}
 print("Loading Ovarian CPTAC data:")
 for file in files:
-    df = read_data(file)
+    df = DataFrameLoader(file).createDataFrame()
     data[df.name] = df
 warning()
 
@@ -55,11 +57,31 @@ def get_phosphoproteomics():
 def get_proteomics():
     return data.get("proteomics")
 
-def get_somatic_mutations():
-    return data.get("somatic_19") #TODO: how to handle different somatic files?
+def get_somatic_mutations(hg="38"):
+    if hg == "38":
+        return data.get("somatic_38") #Defaulting to somatic_38
+    elif hg == "19":
+        return data.get("somatic_19")
+    else:
+        print("Somatic",hg,"data not found, available options are somatic_19 and somatic_38")
 
 def get_transcriptomics():
     return data.get("transcriptomics")
+
+def compare_gene(df1, df2, gene):
+    """
+    Parameters
+    df1: omics dataframe (proteomics) to be selected from
+    df2: other omics dataframe (transcriptomics) to be selected from
+    gene: gene or array of genes to select from each of the dataframes
+
+    Returns
+    Dataframe containing two columns (or number of genes provided times two). Each column is the data for the specified gene from the two specified dataframes
+    """
+    if isinstance(gene, str): #simple way to check for single gene string
+        return Utilities().compare_gene(df1, df2, gene)
+    else: #if not single gene string, then assuming an array was provided
+        return Utilities().compare_genes(df1, df2, gene)
 
 
 def embargo():
