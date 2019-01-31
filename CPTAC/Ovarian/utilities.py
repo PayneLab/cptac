@@ -5,6 +5,8 @@ class Utilities:
     def __init__(self):
         pass
     def compare_gene(self, df1, df2, gene):
+        print("Under construction...")
+        return;
         """
         Parameters
         df1: omics dataframe (proteomics) to be selected from
@@ -28,6 +30,8 @@ class Utilities:
         else:
             print(gene,"not found in provided dataframes. Please check that the specified gene is included in the provided dataframes")
     def compare_genes(self, df1, df2, genes):
+        print("Under construction...")
+        return;
         """
         Parameters
         df1: omics dataframe (proteomics) to be selected from
