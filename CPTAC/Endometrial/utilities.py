@@ -16,10 +16,16 @@ class Utilities:
     def __init__(self):
         pass
     def get_gene_mapping(self):
+        """
+        Under construction
+        """
         print("Under construction")
     def convert(self, snp_or_sap):
+        """
+        Under construction
+        """
         print("Under construction")
-    def add_mutation_hierarchy(self, somatic):
+    def add_mutation_hierarchy(self, somatic): #private
         """
         Parameters
         somatic: somatic data to add mutation hierarchy to
@@ -80,19 +86,28 @@ class Utilities:
         Returns
         Dataframe containing two columns. Each column is the data for the specified gene from the two specified dataframes
         """
-        if gene in df1.columns and gene in df2.columns:
-            common = df1.index.intersection(df2.index)
-            df1Matched = df1.loc[common]
-            df1Matched = df1Matched.sort_index()
-            df2Matched = df2.loc[common]
-            df2Matched = df2Matched.sort_index()
-            #TODO how to check if df1.name without crashing?
-            dict = {df1.name:df1Matched[gene], df2.name:df2Matched[gene]}
-            df = pd.DataFrame(dict, index = df1Matched.index)
-            df.name = gene
+        if gene in df1.columns and gene in df2.columns: #check provided gene is in both provided dataframes
+            common = df1.index.intersection(df2.index) #get rows common to df1 and df2
+            df1Matched = df1.loc[common] #select all common rows in df1
+            df1Matched = df1Matched.sort_index() #sort rows in ascending order
+            df2Matched = df2.loc[common] #select all common rows in df2
+            df2Matched = df2Matched.sort_index() #sort rows in ascending order
+            assert(hasattr(df1,"name")); assert(hasattr(df2,"name")) #check that both dataframes have a name, which is assined at
+            dict = {df1.name:df1Matched[gene], df2.name:df2Matched[gene]} #create prep dictionary for dataframe mapping name to specified gene column
+            df = pd.DataFrame(dict, index = df1Matched.index) #create dataframe with common rows as rows, and dataframe name to specified gene column as columns
+            df.name = gene #dataframe is named as specified gene
             return df
         else:
-            print(gene,"not found in provided dataframes. Please check that the specified gene is included in the provided dataframes")
+            if gene not in df1.columns:
+                if gene not in df2.columns:
+                    print(gene,"not found in either of the provided dataframes. Please check that the specified gene is included in both of the provided dataframes.")
+                else:
+                    print(gene, "not found in", df1.name, "dataframe. Please check that the specified gene is included in both of the provided dataframes.")
+            else:
+                if gene not in df2.columns:
+                    print(gene, "not found in", df2.name, "dataframe. Please check that the specified gene is included in both of the provided dataframes.")
+                else: #Shouldn't reach this branch
+                    print("Error asserting",gene,"in",df1.name,"and",df2.name,"dataframes.")
     def compare_genes(self, df1, df2, genes):
         """
         Parameters
@@ -103,14 +118,14 @@ class Utilities:
         Returns
         Dataframe containing columns equal to the number of genes provided times two. Each two-column set is the data for each specified gene from the two specified dataframes
         """
-        dfs = pd.DataFrame(index = df1.index.intersection(df2.index))
-        for gene in genes:
-            df = Utilities().compare_gene(df1, df2, gene)
-            new_col1 = df1.name + "_" + gene
-            new_col2 = df2.name + "_" + gene
-            df = df.rename(columns = {df1.name:new_col1, df2.name:new_col2})
-            dfs = dfs.add(df, fill_value=0)
-        dfs.name = str(len(genes)) + " Genes Combined"
+        dfs = pd.DataFrame(index = df1.index.intersection(df2.index)) #create empty returnable dataframe with common rows of df1 and df2 as rows
+        for gene in genes: #loop through list of genes provided
+            df = Utilities().compare_gene(df1, df2, gene) #create temp dataframe per gene in list
+            new_col1 = df1.name + "_" + gene #create first new column using first dataframe name and gene
+            new_col2 = df2.name + "_" + gene #create second new column using second dataframe name and gene
+            df = df.rename(columns = {df1.name:new_col1, df2.name:new_col2}) #rename columns in returned dataframe
+            dfs = dfs.add(df, fill_value=0) #append temp dataframe onto returnable dataframe
+        dfs.name = str(len(genes)) + " Genes Combined" #Name returnable dataframe using number of genes provided
         return dfs
     def merge_mutations(self, omics, somatic, gene, duplicates = False):
         """

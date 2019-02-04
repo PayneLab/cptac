@@ -13,7 +13,7 @@ from .dataframe import DataFrameLoader
 def warning():
     print("\n","******PLEASE READ******")
     #TODO: What is the embargo date for the ovarian cancer data?
-    warning = "WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until June 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter embargo() to open the webpage for more details."
+    warning = "WARNING: This data is under a publication embargo until June 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until June 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter embargo() to open the webpage for more details."
     wrapped_list = textwrap.wrap(warning)
     for line in wrapped_list:
         print(line)
@@ -42,6 +42,22 @@ for file in files:
     data[df.name] = df
 warning()
 
+def list():
+    """
+    Parameters
+    None
+
+    Prints list of loaded data frames and dimensions
+
+    Returns
+    None
+    """
+
+    print("Below are the available ovarian data frames contained in this package:")
+    for dataframe in data:
+        print("\t", data[dataframe].name)
+        print("\t", "\t", "Dimensions:", data[dataframe].shape)
+    print("To access the data, use a get function with the data frame name, i.e. ovarian.get_proteomics()")
 
 def get_data():
     return data
@@ -73,16 +89,28 @@ def compare_gene(df1, df2, gene):
     Parameters
     df1: omics dataframe (proteomics) to be selected from
     df2: other omics dataframe (transcriptomics) to be selected from
-    gene: gene or array of genes to select from each of the dataframes
+    gene: gene or list of genes to select from each of the dataframes
 
     Returns
-    Dataframe containing two columns (or number of genes provided times two). Each column is the data for the specified gene from the two specified dataframes
+    Dataframe containing common rows between provided dataframes and columns for the specified gene (or genes) from provided dataframes.
     """
     if isinstance(gene, str): #simple way to check for single gene string
         return Utilities().compare_gene(df1, df2, gene)
     else: #if not single gene string, then assuming an array was provided
         return Utilities().compare_genes(df1, df2, gene)
 
+def compare_clinical(omics_data, clinical_col):
+    print("Under construction")
+    return;
+    """
+    Parameters
+    data: omics data for clinical data to be appended with
+    clinical_col: column in clinical dataframe to be inserted into provided omics data
+
+    Returns
+    Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
+    """
+    return Utilities().compare_clinical(get_clinical(), omics_data, clinical_col)
 
 def embargo():
     """
@@ -97,6 +125,15 @@ def embargo():
     print("Opening embargo details in web browser...")
     webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
 def version():
+    """
+    Parameters
+    None
+
+    Prints version number of CPTAC package
+
+    Returns
+    Version number
+    """
     version = {}
     with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder
     	exec(fp.read(), version)

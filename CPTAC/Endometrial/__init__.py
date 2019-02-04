@@ -108,12 +108,12 @@ def list():
     Returns
     None
     """
-    print("Below are the available data frames contained in this package:")
+    print("Below are the available endometrial data frames contained in this package:")
     data = [clinical, proteomics, transcriptomics, cna, phosphoproteomics, somatic_binary, somatic_maf]
     for dataframe in data:
         print("\t", dataframe.name)
         print("\t", "\t", "Dimensions:", dataframe.shape)
-    print("To access the data, use a get function with the data frame name, i.e. CTPAC.get_proteomics()")
+    print("To access the data, use a get function with the data frame name, i.e. endometrial.get_proteomics()")
 def define(term):
     """
     Parameters
@@ -308,6 +308,9 @@ def get_patient_mutations(patient_id):
     else:
         print("ERROR:", patient_id, "not a valid patient_id.")
 def get_tumor_ids(tumor_type, query_type, value): #TODO: implement
+    """
+    Under construction
+    """
     #"""
     #Parameters
     #tumor_type is the tumor type, e.g. colon
@@ -320,9 +323,15 @@ def get_tumor_ids(tumor_type, query_type, value): #TODO: implement
     dataframe = None #TODO what should the dataframe be?
     return Queries(dataframe).query(tumor_type, query_type, value)
 def get_gene_mapping():
+    """
+    Under construction
+    """
     #TODO implement
     return Utilities().get_gene_mapping()
 def convert(snp_or_sap):
+    """
+    Under construction
+    """
     #TODO implement
     return Utilities().convert(snp_or_sap)
 def compare_gene(df1, df2, gene):
@@ -333,7 +342,7 @@ def compare_gene(df1, df2, gene):
     gene: gene or array of genes to select from each of the dataframes
 
     Returns
-    Dataframe containing two columns (or number of genes provided times two). Each column is the data for the specified gene from the two specified dataframes
+    Dataframe containing common rows between provided dataframes and columns for the specified gene (or genes) from provided dataframes.
     """
     if isinstance(gene, str): #simple way to check for single gene string
         return Utilities().compare_gene(df1, df2, gene)
@@ -376,7 +385,6 @@ def compare_clinical(omics_data, clinical_col):
     Returns
     Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
     """
-    #TODO: do we need clinical parameter? Could just grab it from loaded data?
     return Utilities().compare_clinical(clinical, omics_data, clinical_col)
 def compare_phosphosites(gene):
     """
@@ -418,6 +426,15 @@ def start():
     #Might remove this function
     print("Welcome to our CPTAC data. Enter CPTAC.help() to open our Github help page.")
 def version():
+    """
+    Parameters
+    None
+
+    Prints version number of CPTAC package
+
+    Returns
+    Version number
+    """
     version = {}
     with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder
     	exec(fp.read(), version)
