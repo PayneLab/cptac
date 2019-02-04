@@ -4,7 +4,7 @@ This project is intended to facilitate accessing and interacting with cancer dat
 Setup instructions can be found in <code>doc/setup.md</code>
 
 ## Tutorials
-Tuturials for this package are located under the <code>doc</code> folder and describe how to use the package for research. All the tutorials are written in python using the interactive jupyter notebooks. If you are unfamiliar with jupyter, follow the instructions given at jupyter.org/install to begin running jupyter on your machine. You will then be able to run our documentation as interactive, jupyter-based tutorials.
+Tutorials for this package are located under the <code>doc</code> folder and describe how to use the package for research. All the tutorials are written in python using the interactive jupyter notebooks. If you are unfamiliar with jupyter, follow the instructions given at jupyter.org/install to begin running jupyter on your machine. You will then be able to run our documentation as interactive, jupyter-based tutorials.
 <ul>
   <li>Use Case 1: Comparing transcriptomics and proteomics for a single gene</li>
 <li>Use Case 2: Looking for correlation between various clinical factors, such as BMI, diabetes, and cancer stage</li>
