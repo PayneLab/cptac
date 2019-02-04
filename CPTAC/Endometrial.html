@@ -1,0 +1,253 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: package Endometrial</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>Endometrial</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:c%3A%5Cusers%5Cdavid%5Cdocuments%5Cgithub%5Cpaynelab%5Ccptac%5Ccptac%5Cendometrial%5C__init__.py">c:\users\david\documents\github\paynelab\cptac\cptac\endometrial\__init__.py</a></font></td></tr></table>
+    <p><tt>#&nbsp;&nbsp;&nbsp;Copyright&nbsp;2018&nbsp;Samuel&nbsp;Payne&nbsp;sam_payne@byu.edu<br>
+#&nbsp;&nbsp;&nbsp;Licensed&nbsp;under&nbsp;the&nbsp;Apache&nbsp;License,&nbsp;Version&nbsp;2.0&nbsp;(the&nbsp;"License");<br>
+#&nbsp;&nbsp;&nbsp;you&nbsp;may&nbsp;not&nbsp;use&nbsp;this&nbsp;file&nbsp;except&nbsp;in&nbsp;compliance&nbsp;with&nbsp;the&nbsp;License.<br>
+#&nbsp;&nbsp;&nbsp;You&nbsp;may&nbsp;obtain&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;License&nbsp;at<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a><br>
+#&nbsp;&nbsp;&nbsp;Unless&nbsp;required&nbsp;by&nbsp;applicable&nbsp;law&nbsp;or&nbsp;agreed&nbsp;to&nbsp;in&nbsp;writing,&nbsp;software<br>
+#&nbsp;&nbsp;&nbsp;distributed&nbsp;under&nbsp;the&nbsp;License&nbsp;is&nbsp;distributed&nbsp;on&nbsp;an&nbsp;"AS&nbsp;IS"&nbsp;BASIS,<br>
+#&nbsp;&nbsp;&nbsp;WITHOUT&nbsp;WARRANTIES&nbsp;OR&nbsp;CONDITIONS&nbsp;OF&nbsp;ANY&nbsp;KIND,&nbsp;either&nbsp;express&nbsp;or&nbsp;implied.<br>
+#&nbsp;&nbsp;&nbsp;See&nbsp;the&nbsp;License&nbsp;for&nbsp;the&nbsp;specific&nbsp;language&nbsp;governing&nbsp;permissions&nbsp;and<br>
+#&nbsp;&nbsp;&nbsp;limitations&nbsp;under&nbsp;the&nbsp;License.</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Package Contents</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="Endometrial.dataTest.html">dataTest</a><br>
+<a href="Endometrial.dataframe.html">dataframe</a><br>
+</td><td width="25%" valign=top><a href="Endometrial.fileLoader.html">fileLoader</a><br>
+<a href="Endometrial.meta.html">meta</a><br>
+</td><td width="25%" valign=top><a href="Endometrial.molecular.html">molecular</a><br>
+<a href="Endometrial.queries.html">queries</a><br>
+</td><td width="25%" valign=top><a href="Endometrial.utilities.html">utilities</a><br>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-compare_clinical"><strong>compare_clinical</strong></a>(omics_data, clinical_col)</dt><dd><tt>Parameters<br>
+data:&nbsp;omics&nbsp;data&nbsp;for&nbsp;clinical&nbsp;data&nbsp;to&nbsp;be&nbsp;appended&nbsp;with<br>
+clinical_col:&nbsp;column&nbsp;in&nbsp;clinical&nbsp;dataframe&nbsp;to&nbsp;be&nbsp;inserted&nbsp;into&nbsp;provided&nbsp;omics&nbsp;data<br>
+&nbsp;<br>
+Returns<br>
+Dataframe&nbsp;with&nbsp;specified&nbsp;column&nbsp;from&nbsp;clinical&nbsp;dataframe&nbsp;added&nbsp;to&nbsp;specified&nbsp;dataframe&nbsp;(i.e.,&nbsp;proteomics)&nbsp;for&nbsp;comparison&nbsp;and&nbsp;easy&nbsp;plotting</tt></dd></dl>
+ <dl><dt><a name="-compare_gene"><strong>compare_gene</strong></a>(df1, df2, gene)</dt><dd><tt>Parameters<br>
+df1:&nbsp;omics&nbsp;dataframe&nbsp;(proteomics)&nbsp;to&nbsp;be&nbsp;selected&nbsp;from<br>
+df2:&nbsp;other&nbsp;omics&nbsp;dataframe&nbsp;(transcriptomics)&nbsp;to&nbsp;be&nbsp;selected&nbsp;from<br>
+gene:&nbsp;gene&nbsp;or&nbsp;array&nbsp;of&nbsp;genes&nbsp;to&nbsp;select&nbsp;from&nbsp;each&nbsp;of&nbsp;the&nbsp;dataframes<br>
+&nbsp;<br>
+Returns<br>
+Dataframe&nbsp;containing&nbsp;two&nbsp;columns&nbsp;(or&nbsp;number&nbsp;of&nbsp;genes&nbsp;provided&nbsp;times&nbsp;two).&nbsp;Each&nbsp;column&nbsp;is&nbsp;the&nbsp;data&nbsp;for&nbsp;the&nbsp;specified&nbsp;gene&nbsp;from&nbsp;the&nbsp;two&nbsp;specified&nbsp;dataframes</tt></dd></dl>
+ <dl><dt><a name="-compare_mutations"><strong>compare_mutations</strong></a>(omics_data, omics_gene, mutations_gene=None)</dt><dd><tt>Params<br>
+omics_data:&nbsp;omics&nbsp;dataframe&nbsp;(i.e.&nbsp;proteomics,&nbsp;phosphoproteomics,&nbsp;transcriptomics)<br>
+omics_gene:&nbsp;gene&nbsp;to&nbsp;select&nbsp;from&nbsp;omics&nbsp;data&nbsp;(used&nbsp;for&nbsp;somatic&nbsp;data&nbsp;if&nbsp;somatic_gene&nbsp;is&nbsp;left&nbsp;blank)<br>
+mutations_gene:&nbsp;gene&nbsp;to&nbsp;select&nbsp;from&nbsp;somatic&nbsp;mutation&nbsp;data<br>
+&nbsp;<br>
+Returns<br>
+Dataframe&nbsp;containing&nbsp;two&nbsp;columns,&nbsp;the&nbsp;omics&nbsp;data&nbsp;and&nbsp;the&nbsp;somatic&nbsp;mutation&nbsp;type&nbsp;for&nbsp;the&nbsp;gene(s)&nbsp;provided</tt></dd></dl>
+ <dl><dt><a name="-compare_mutations_full"><strong>compare_mutations_full</strong></a>(omics_data, omics_gene, mutations_gene=None)</dt><dd><tt>Params<br>
+omics_data:&nbsp;omics&nbsp;dataframe&nbsp;(i.e.&nbsp;proteomics,&nbsp;phosphoproteomics,&nbsp;transcriptomics)<br>
+omics_gene:&nbsp;gene&nbsp;to&nbsp;select&nbsp;from&nbsp;omics&nbsp;data&nbsp;(used&nbsp;for&nbsp;somatic&nbsp;data&nbsp;if&nbsp;somatic_gene&nbsp;is&nbsp;left&nbsp;blank)<br>
+mutations_gene:&nbsp;gene&nbsp;to&nbsp;select&nbsp;from&nbsp;somatic&nbsp;mutation&nbsp;data<br>
+&nbsp;<br>
+Returns<br>
+Dataframe&nbsp;containing&nbsp;numeric&nbsp;omics&nbsp;data&nbsp;and&nbsp;categorical&nbsp;somatic&nbsp;data&nbsp;(including&nbsp;patient&nbsp;ID,&nbsp;mutation&nbsp;type,&nbsp;and&nbsp;mutation&nbsp;location)</tt></dd></dl>
+ <dl><dt><a name="-compare_phosphosites"><strong>compare_phosphosites</strong></a>(gene)</dt><dd><tt>Parameters<br>
+gene:&nbsp;proteomics&nbsp;gene&nbsp;to&nbsp;query&nbsp;phosphoproteomics&nbsp;dataframe<br>
+&nbsp;<br>
+Searches&nbsp;for&nbsp;any&nbsp;phosphosites&nbsp;on&nbsp;the&nbsp;gene&nbsp;provided<br>
+&nbsp;<br>
+Returns<br>
+Dataframe&nbsp;with&nbsp;a&nbsp;column&nbsp;from&nbsp;proteomics&nbsp;for&nbsp;the&nbsp;gene&nbsp;specified,&nbsp;as&nbsp;well&nbsp;as&nbsp;columns&nbsp;for&nbsp;all&nbsp;phosphoproteomics&nbsp;columns&nbsp;beginning&nbsp;with&nbsp;the&nbsp;specified&nbsp;gene</tt></dd></dl>
+ <dl><dt><a name="-convert"><strong>convert</strong></a>(snp_or_sap)</dt></dl>
+ <dl><dt><a name="-create_patient_ids"><strong>create_patient_ids</strong></a>(clinical)</dt></dl>
+ <dl><dt><a name="-define"><strong>define</strong></a>(term)</dt><dd><tt>Parameters<br>
+term:&nbsp;string&nbsp;of&nbsp;term&nbsp;to&nbsp;be&nbsp;defined<br>
+&nbsp;<br>
+Returns<br>
+String&nbsp;definition&nbsp;of&nbsp;provided&nbsp;term</tt></dd></dl>
+ <dl><dt><a name="-embargo"><strong>embargo</strong></a>()</dt><dd><tt>Parameters<br>
+None<br>
+&nbsp;<br>
+Opens&nbsp;CPTAC&nbsp;embargo&nbsp;details&nbsp;in&nbsp;web&nbsp;browser<br>
+&nbsp;<br>
+Returns<br>
+None</tt></dd></dl>
+ <dl><dt><a name="-get_CNA"><strong>get_CNA</strong></a>()</dt><dd><tt>Parameters<br>
+None<br>
+&nbsp;<br>
+Returns<br>
+CNA&nbsp;dataframe</tt></dd></dl>
+ <dl><dt><a name="-get_clinical"><strong>get_clinical</strong></a>(excluded=False)</dt><dd><tt>Parameters<br>
+excluded:&nbsp;boolean&nbsp;indicating&nbsp;whether&nbsp;to&nbsp;return&nbsp;unfiltered&nbsp;clinical&nbsp;data,&nbsp;aka&nbsp;clinical["Case_excluded"]&nbsp;==&nbsp;"Yes"<br>
+&nbsp;<br>
+Returns<br>
+Clincal&nbsp;dataframe</tt></dd></dl>
+ <dl><dt><a name="-get_clinical_cols"><strong>get_clinical_cols</strong></a>()</dt><dd><tt>Parameters<br>
+None<br>
+&nbsp;<br>
+Returns<br>
+List&nbsp;of&nbsp;clincal&nbsp;dataframe&nbsp;columns,&nbsp;aka&nbsp;data&nbsp;types&nbsp;(i.e.&nbsp;BMI,&nbsp;Diabetes)</tt></dd></dl>
+ <dl><dt><a name="-get_cohort_clinical"><strong>get_cohort_clinical</strong></a>(columns)</dt><dd><tt>Parameters<br>
+columns:&nbsp;single&nbsp;column&nbsp;name&nbsp;or&nbsp;array&nbsp;of&nbsp;column&nbsp;names&nbsp;to&nbsp;select&nbsp;for&nbsp;in&nbsp;the&nbsp;clinical&nbsp;dataframe<br>
+&nbsp;<br>
+Returns<br>
+Dataframe&nbsp;of&nbsp;specified&nbsp;columns&nbsp;(or&nbsp;Series&nbsp;if&nbsp;one&nbsp;column)&nbsp;of&nbsp;clinical&nbsp;data</tt></dd></dl>
+ <dl><dt><a name="-get_cohort_cna"><strong>get_cohort_cna</strong></a>(columns)</dt><dd><tt>Parameters<br>
+columns:&nbsp;single&nbsp;column&nbsp;name&nbsp;or&nbsp;array&nbsp;of&nbsp;column&nbsp;names&nbsp;to&nbsp;select&nbsp;for&nbsp;in&nbsp;the&nbsp;CNA&nbsp;dataframe<br>
+&nbsp;<br>
+Returns<br>
+Dataframe&nbsp;of&nbsp;specified&nbsp;columns&nbsp;(or&nbsp;Series&nbsp;if&nbsp;one&nbsp;column)&nbsp;of&nbsp;CNA&nbsp;data</tt></dd></dl>
+ <dl><dt><a name="-get_cohort_phosphoproteomics"><strong>get_cohort_phosphoproteomics</strong></a>(columns)</dt><dd><tt>Parameters<br>
+columns:&nbsp;single&nbsp;column&nbsp;name&nbsp;or&nbsp;array&nbsp;of&nbsp;column&nbsp;names&nbsp;to&nbsp;select&nbsp;for&nbsp;in&nbsp;the&nbsp;phosphoproteomics&nbsp;dataframe<br>
+&nbsp;<br>
+Returns<br>
+Dataframe&nbsp;of&nbsp;specified&nbsp;columns&nbsp;(or&nbsp;Series&nbsp;if&nbsp;one&nbsp;column)&nbsp;of&nbsp;phosphoproteomics&nbsp;data</tt></dd></dl>
+ <dl><dt><a name="-get_cohort_proteomics"><strong>get_cohort_proteomics</strong></a>(columns)</dt><dd><tt>Parameters<br>
+columns:&nbsp;single&nbsp;column&nbsp;name&nbsp;or&nbsp;array&nbsp;of&nbsp;column&nbsp;names&nbsp;to&nbsp;select&nbsp;for&nbsp;in&nbsp;the&nbsp;proteomics&nbsp;dataframe<br>
+&nbsp;<br>
+Returns<br>
+Dataframe&nbsp;of&nbsp;specified&nbsp;columns&nbsp;(or&nbsp;Series&nbsp;if&nbsp;one&nbsp;column)&nbsp;of&nbsp;proteomics&nbsp;data</tt></dd></dl>
+ <dl><dt><a name="-get_cohort_transcriptomics"><strong>get_cohort_transcriptomics</strong></a>(columns)</dt><dd><tt>Parameters<br>
+columns:&nbsp;single&nbsp;column&nbsp;name&nbsp;or&nbsp;array&nbsp;of&nbsp;column&nbsp;names&nbsp;to&nbsp;select&nbsp;for&nbsp;in&nbsp;the&nbsp;transcriptomics&nbsp;dataframe<br>
+&nbsp;<br>
+Returns<br>
+Dataframe&nbsp;of&nbsp;specified&nbsp;columns&nbsp;(or&nbsp;Series&nbsp;if&nbsp;one&nbsp;column)&nbsp;of&nbsp;transcriptomics&nbsp;data</tt></dd></dl>
+ <dl><dt><a name="-get_gene_mapping"><strong>get_gene_mapping</strong></a>()</dt></dl>
+ <dl><dt><a name="-get_patient_mutations"><strong>get_patient_mutations</strong></a>(patient_id)</dt><dd><tt>Parameters<br>
+patient_id:&nbsp;Patient&nbsp;ID&nbsp;(i.e.&nbsp;C3L-00006,&nbsp;S018,&nbsp;etc.)&nbsp;to&nbsp;select&nbsp;from&nbsp;somatic&nbsp;mutation&nbsp;data<br>
+&nbsp;<br>
+Returns<br>
+Dataframe&nbsp;containing&nbsp;data&nbsp;for&nbsp;provided&nbsp;patient&nbsp;ID</tt></dd></dl>
+ <dl><dt><a name="-get_phosphoproteomics"><strong>get_phosphoproteomics</strong></a>(gene_level=False)</dt><dd><tt>Parameters<br>
+gene_level:&nbsp;boolean&nbsp;indicating&nbsp;whether&nbsp;to&nbsp;return&nbsp;gene&nbsp;level&nbsp;phosphoproteomics&nbsp;(returns&nbsp;site&nbsp;level&nbsp;if&nbsp;false)<br>
+&nbsp;<br>
+Returns<br>
+Phosphoproteomics&nbsp;dataframe</tt></dd></dl>
+ <dl><dt><a name="-get_phosphosites"><strong>get_phosphosites</strong></a>(gene)</dt><dd><tt>Returns&nbsp;dataframe&nbsp;with&nbsp;all&nbsp;phosphosites&nbsp;of&nbsp;specified&nbsp;gene&nbsp;name</tt></dd></dl>
+ <dl><dt><a name="-get_proteomics"><strong>get_proteomics</strong></a>()</dt><dd><tt>Parameters<br>
+None<br>
+&nbsp;<br>
+Returns<br>
+proteomics&nbsp;dataframe</tt></dd></dl>
+ <dl><dt><a name="-get_proteomics_cols"><strong>get_proteomics_cols</strong></a>()</dt><dd><tt>Parameters<br>
+None<br>
+&nbsp;<br>
+Returns<br>
+List&nbsp;of&nbsp;columns&nbsp;of&nbsp;proteomics&nbsp;dataframe</tt></dd></dl>
+ <dl><dt><a name="-get_proteomics_quant"><strong>get_proteomics_quant</strong></a>(colon_ids)</dt><dd><tt>Parameters<br>
+colon_ids:&nbsp;string&nbsp;or&nbsp;list&nbsp;of&nbsp;string&nbsp;ids&nbsp;(i.e.&nbsp;S001,&nbsp;S068)&nbsp;to&nbsp;be&nbsp;selected&nbsp;from&nbsp;proteomics&nbsp;dataframe<br>
+&nbsp;<br>
+Returns<br>
+Dataframe&nbsp;of&nbsp;specified&nbsp;rows&nbsp;(or&nbsp;Series&nbsp;if&nbsp;one&nbsp;row)&nbsp;of&nbsp;proteomics&nbsp;data</tt></dd></dl>
+ <dl><dt><a name="-get_somatic"><strong>get_somatic</strong></a>(binary=False, unparsed=False)</dt><dd><tt>Parameters<br>
+binary:&nbsp;boolean&nbsp;indicating&nbsp;whether&nbsp;to&nbsp;retrieve&nbsp;the&nbsp;somatic&nbsp;mutations&nbsp;binary&nbsp;data<br>
+unparsed:&nbsp;boolean&nbsp;indicating&nbsp;whether&nbsp;to&nbsp;retrieve&nbsp;unparsed&nbsp;somatic&nbsp;mutations&nbsp;maf&nbsp;data<br>
+&nbsp;<br>
+Default&nbsp;behavior&nbsp;is&nbsp;to&nbsp;return&nbsp;parsed&nbsp;somatic&nbsp;mutations&nbsp;maf&nbsp;data<br>
+&nbsp;<br>
+Returns<br>
+Somatic&nbsp;mutations&nbsp;dataframe&nbsp;corresponding&nbsp;with&nbsp;parameters&nbsp;provided</tt></dd></dl>
+ <dl><dt><a name="-get_transcriptomics"><strong>get_transcriptomics</strong></a>(circular=False, miRNA=False)</dt><dd><tt>Parameters<br>
+circular:&nbsp;boolean&nbsp;indicating&nbsp;whether&nbsp;to&nbsp;return&nbsp;circular&nbsp;RNA&nbsp;data<br>
+miRNA:&nbsp;boolean&nbsp;indicating&nbsp;whether&nbsp;to&nbsp;return&nbsp;miRNA&nbsp;data<br>
+&nbsp;<br>
+Returns<br>
+Transcriptomics&nbsp;dataframe</tt></dd></dl>
+ <dl><dt><a name="-get_transcriptomics_cols"><strong>get_transcriptomics_cols</strong></a>()</dt><dd><tt>Parameters<br>
+None<br>
+&nbsp;<br>
+Returns<br>
+List&nbsp;of&nbsp;columns&nbsp;of&nbsp;transcriptomics&nbsp;dataframe</tt></dd></dl>
+ <dl><dt><a name="-get_tumor_ids"><strong>get_tumor_ids</strong></a>(tumor_type, query_type, value)</dt></dl>
+ <dl><dt><a name="-help"><strong>help</strong></a>()</dt><dd><tt>Parameters<br>
+None<br>
+&nbsp;<br>
+Opens&nbsp;github&nbsp;help&nbsp;page<br>
+&nbsp;<br>
+Returns<br>
+None</tt></dd></dl>
+ <dl><dt><a name="-link_patient_ids"><strong>link_patient_ids</strong></a>(patient_ids, somatic)</dt></dl>
+ <dl><dt><a name="-list"><strong>list</strong></a>()</dt><dd><tt>Parameters<br>
+None<br>
+&nbsp;<br>
+Prints&nbsp;list&nbsp;of&nbsp;loaded&nbsp;data&nbsp;frames&nbsp;and&nbsp;dimensions<br>
+&nbsp;<br>
+Returns<br>
+None</tt></dd></dl>
+ <dl><dt><a name="-search"><strong>search</strong></a>(term)</dt><dd><tt>Parameters<br>
+term:&nbsp;string&nbsp;of&nbsp;term&nbsp;to&nbsp;be&nbsp;searched<br>
+&nbsp;<br>
+Performs&nbsp;online&nbsp;search&nbsp;of&nbsp;provided&nbsp;term<br>
+&nbsp;<br>
+Returns<br>
+None</tt></dd></dl>
+ <dl><dt><a name="-start"><strong>start</strong></a>()</dt></dl>
+ <dl><dt><a name="-version"><strong>version</strong></a>()</dt></dl>
+ <dl><dt><a name="-warning"><strong>warning</strong></a>()</dt></dl>
+</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>__warningregistry__</strong> = {'version': 18}<br>
+<strong>clinical</strong> =      Proteomics_Participant_ID Case_excluded    ...aN                  NaN
+
+[144 rows x 170 columns]<br>
+<strong>clinical_unfiltered</strong> =      Proteomics_Participant_ID Case_excluded    ...aN                  NaN
+
+[153 rows x 170 columns]<br>
+<strong>cna</strong> = idx   MFSD14A  SASS6  TRMT13  LRRC39   DBT  RTCA...0.18    -0.18   -0.18
+
+[103 rows x 28057 columns]<br>
+<strong>data_directory</strong> = r'C:\Users\David\Documents\GitHub\PayneLab\CPTAC\CPTAC\Endometrial\Data\'<br>
+<strong>dict</strong> = {'Age': 'Age of the specified patient.', 'BMI': 'BMI (body mass index) of specified patient.', 'CIBERSORT': 'Analytical tool developed by Newman et al. to pr...ixed cell population, using gene expression data.', 'CIBERSORT-Absolute_score': 'REVISE', 'CIBERSORT-B_cells_memory': 'CIBERSORT estimated abundance of memory B cells for specified patient.', 'CIBERSORT-B_cells_naive': 'CIBERSORT estimated abundance of naive B cells for specified patient.', 'CIBERSORT-Dendritic_cells_activated': 'CIBERSORT estimated abundance of activated dendritic cells for specified patient.', 'CIBERSORT-Dendritic_cells_resting': 'CIBERSORT estimated abundance of resting dendritic cells for specified patient.', 'CIBERSORT-Eosinophils': 'CIBERSORT estimated abundance of eosinophils (white blood cell) for specified patient.', 'CIBERSORT-Macrophages_M0': 'CIBERSORT estimated abundance of M0 macrophages for specified patient.', ...}<br>
+<strong>dir_path</strong> = r'C:\Users\David\Documents\GitHub\PayneLab\CPTAC\CPTAC\Endometrial'<br>
+<strong>file</strong> = &lt;_io.TextIOWrapper name='C:\\Users\\David\\Docum...ata\\definitions.txt' mode='r' encoding='cp1252'&gt;<br>
+<strong>line</strong> = ['Tumor_purity', 'Categorical classification of whether the tumor purity is normal or low for specified patient.']<br>
+<strong>miRNA</strong> = idx   hsa-let-7a-2-3p  hsa-let-7a-3p  hsa-let-7a...  6.97           11.87
+
+[104 rows x 2337 columns]<br>
+<strong>patient_ids</strong> = {'C3L-00006': 'S001', 'C3L-00008': 'S002', 'C3L-00032': 'S003', 'C3L-00084': 'S004', 'C3L-00090': 'S005', 'C3L-00098': 'S006', 'C3L-00136': 'S007', 'C3L-00137': 'S008', 'C3L-00139': 'S009', 'C3L-00143': 'S010', ...}<br>
+<strong>phosphoproteomics</strong> = idx   AAAS-S495  AAAS-S541  AAAS-Y485  AACS-S618...       NaN    0.02160
+
+[153 rows x 73212 columns]<br>
+<strong>phosphoproteomics_gene</strong> = idx       AAAS    AACS   AAED1    AAGAB      AAK...00  0.108500  0.021600
+
+[153 rows x 8466 columns]<br>
+<strong>proteomics</strong> = idx     A1BG     A2M    A2ML1  A4GALT      AAAS ...0 -0.093100  0.055700
+
+[153 rows x 10999 columns]<br>
+<strong>somatic_binary</strong> = idx   A1BG_p.E298K  A1BG_p.S181N  A1CF_p.F487L  ...      0             0
+
+[103 rows x 51559 columns]<br>
+<strong>somatic_maf</strong> =       Patient_Id       Gene           Mutation  ...6F                 S103
+
+[53101 rows x 5 columns]<br>
+<strong>somatic_unparsed</strong> =       Hugo_Symbol  Entrez_Gene_Id Center     ......     NaN          NaN
+
+[53101 rows x 124 columns]<br>
+<strong>transcriptomics</strong> = idx   A1BG  A1BG-AS1  A1CF    A2M  A2M-AS1  A2ML...  12.64  12.30  11.21
+
+[115 rows x 28057 columns]<br>
+<strong>transcriptomics_circular</strong> = idx   circ_chr10_100260218_100262063_CWF19L1    ...                  0.00
+
+[115 rows x 4945 columns]</td></tr></table>
+</body></html>
