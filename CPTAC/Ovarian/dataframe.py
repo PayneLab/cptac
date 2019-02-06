@@ -30,6 +30,7 @@ class DataFrameLoader:
             return df
         elif self.name == "phosphoproteomics":
             df = pd.read_csv(self.fileName, sep = "\t",index_col = 0)
+            df = df[df["site"].notnull()] #drops all nan values in site column
             df = df.drop(["refseq_peptide","Peptide"],axis=1)
             df = df.set_index("site")
             df = df.sort_index()
