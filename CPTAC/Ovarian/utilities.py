@@ -68,10 +68,39 @@ class Utilities:
         """
         if clinical_col in clinical:
             df = data[data.columns] #prep returnable dataframe due to DataFrame.insert() changing by reference. If only df = data, then insert() will change data as well
+            if len(clinical.index) != len(df.index):
+                clinical = clinical.reindex(df.index)
             values = clinical[clinical_col]
-            
             df.insert(0, clinical_col, values) #inserts specified clinical column at the beginning of the returnable dataframe
             df.name = data.name + " with " + clinical_col #assigns dataframe name using data name and specified clinical column
             return df
         else:
             print(clinical_col, "not found in clinical dataframe. You can check the available columns by entering CPTAC.get_clincal().columns")
+
+    def get_phosphosites(self, phosphoproteomics, gene):
+        regex = gene + ".*"
+        phosphosites = phosphoproteomics.filter(regex = (regex))
+        if len(phosphosites.columns) == 0:
+            print("Gene",gene, "not found in phosphoproteomics data")
+        else:
+            return phosphosites
+
+    def compare_phosphosites(self, proteomics, phosphoproteomics, gene):
+        """
+        Parameters
+        gene: proteomics gene to query phosphoproteomics dataframe
+
+        Searches for any phosphosites on the gene provided
+
+        Returns
+        Dataframe with a column from proteomics for the gene specified, as well as columns for all phosphoproteomics columns beginning with the specified gene
+        """
+        if gene in proteomics.columns:
+            df = proteomics[[gene]]
+            phosphosites = self.get_phosphosites(phosphoproteomics, gene)
+            if len(phosphosites.columns) > 0:
+                df = df.add(phosphosites, fill_value=0)
+                df.name = gene + " proteomics and phosphoproteomics"
+                return df
+        else:
+            print(gene, "not found in proteomics dataframe. Available genes can be checked by entering CPTAC.get_proteomics().columns")

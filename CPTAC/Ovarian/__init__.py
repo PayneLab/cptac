@@ -100,8 +100,6 @@ def compare_gene(df1, df2, gene):
         return Utilities().compare_genes(df1, df2, gene)
 
 def compare_clinical(omics_data, clinical_col):
-    print("Under construction")
-    return;
     """
     Parameters
     data: omics data for clinical data to be appended with
@@ -111,6 +109,20 @@ def compare_clinical(omics_data, clinical_col):
     Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
     """
     return Utilities().compare_clinical(get_clinical(), omics_data, clinical_col)
+def get_phosphosites(gene):
+    """Returns dataframe with all phosphosites of specified gene name"""
+    return Utilities().get_phosphosites(get_phosphoproteomics(), gene)
+def compare_phosphosites(gene):
+    """
+    Parameters
+    gene: proteomics gene to query phosphoproteomics dataframe
+
+    Searches for any phosphosites on the gene provided
+
+    Returns
+    Dataframe with a column from proteomics for the gene specified, as well as columns for all phosphoproteomics columns beginning with the specified gene
+    """
+    return Utilities().compare_phosphosites(get_proteomics(), get_phosphoproteomics(), gene)
 
 def embargo():
     """

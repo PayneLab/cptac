@@ -18,14 +18,25 @@ class DataFrameLoader:
         """
         print("Loading",self.name,"data...")
         if self.name == "proteomics":
-            df = pd.read_csv(self.fileName,sep="\t", index_col=0)
+            df = pd.read_csv(self.fileName,sep="\t", index_col = 0)
+            df = df[df["hgnc_symbol"].notnull()] #drops all nan values in hgnc_symbol column
             df = df.set_index("hgnc_symbol")
             df = df.transpose()
             df = df.sort_index()
             df.name = self.name
-            return df
+            #return df
+            c_number = 83 #this is a magic number, change this
+            c_index = df.index[0:c_number].str[1:]
+            c_df = df.iloc[0:c_number]
+            c_df["hgnc"] = c_index
+            c_df = c_df.set_index("hgnc")
+            c_df.name = self.name
+            return c_df
+
         elif self.name == "clinical":
             df = pd.read_csv(self.fileName, sep="\t")
+            df = df.set_index("PPID")
+            df = df[~df.index.duplicated(keep="first")]
             df.name = self.name
             return df
         elif self.name == "phosphoproteomics":
