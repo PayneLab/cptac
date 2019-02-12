@@ -64,9 +64,13 @@ class DataFrameLoader:
             df.name = self.name
             return df
         elif self.name.split("_")[0] == "somatic":
-            df = pd.read_csv(self.fileName, sep="\t", index_col=0)
-            df = df.sort_index()
-            df.name = self.name
-            return df
+            df = pd.read_csv(self.fileName, sep = "\t")
+            if "Tumor_Sample_Barcode" in df.columns:
+                split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n = 1, expand = True)
+                df["Tumor_Sample_Barcode"] = split_barcode[0]
+            parsedDf = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]]
+            parsedDf = parsedDf.rename({"Tumor_Sample_Barcode":"Patient_Id","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
+            parsedDf.name = self.name
+            return parsedDf
         else:
             print("Error reading", self.fileName)
