@@ -42,10 +42,10 @@ class DataFrameLoader:
             df = df.transpose()
             df = df.sort_index()
             df.name = self.name
-            #return df
-            c_df = self.clip_indices(df, clip_number=83) #83rd row is where the N***** indices start, is there a better solution??
-            c_df.name = self.name
-            return c_df
+            return df
+            #c_df = self.clip_indices(df, clip_number=83) #83rd row is where the N***** indices start, is there a better solution??
+            #c_df.name = self.name
+            #return c_df
 
         elif self.name == "clinical":
             df = pd.read_csv(self.fileName, sep="\t")
@@ -61,10 +61,10 @@ class DataFrameLoader:
             df = df.sort_index()
             df = df.transpose()
             df.name = self.name
-            #return df
-            c_df = self.clip_indices(df, clip_number=83)
-            c_df.name = self.name
-            return c_df
+            return df
+            #c_df = self.clip_indices(df, clip_number=83)
+            #c_df.name = self.name
+            #return c_df
         elif self.name == "transcriptomics":
             df = pd.read_csv(self.fileName, sep="\t", index_col=0)
             df = df.sort_index()
@@ -87,6 +87,7 @@ class DataFrameLoader:
                 df["Tumor_Sample_Barcode"] = split_barcode[0]
             parsedDf = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]]
             parsedDf = parsedDf.rename({"Tumor_Sample_Barcode":"Patient_Id","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
+            parsedDf = parsedDf.set_index("Patient_Id")
             parsedDf.name = self.name
             return parsedDf
         else:

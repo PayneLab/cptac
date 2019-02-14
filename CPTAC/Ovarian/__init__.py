@@ -17,6 +17,52 @@ def warning():
     wrapped_list = textwrap.wrap(warning)
     for line in wrapped_list:
         print(line)
+def align_indices(data):
+    all_index = data.get("clinical").index
+    prot_index = data.get("proteomics").index
+    c_prot = prot_index[0:83].str[1:]
+    all_index = all_index.append(c_prot).unique().sort_values()
+    all_index = all_index.append(prot_index[83:])
+    patient_key = []
+    for i in range(0,len(all_index)):
+        s = "S" + str(i + 1)
+        patient_key.append(s)
+    dict = {"patient_id":all_index,"patient_key":patient_key}
+    key_id_map = pd.DataFrame(dict).set_index("patient_id")
+    return key_id_map
+def map_ids(data, key_id_map):
+    tran = data.get("transcriptomics")
+    tran["patient_key"] = key_id_map.loc[tran.index]
+    data["transcriptomics"] = tran
+
+    clin = data.get("clinical")
+    clin["patient_key"] = key_id_map.loc[clin.index]
+    data["clinical"] = clin
+
+    cnv = data.get("cnv")
+    cnv["patient_key"] = key_id_map.loc[cnv.index]
+    data["cnv"] = cnv
+
+    som38 = data.get("somatic_38")
+    som38["patient_key"] = key_id_map.loc[som38.index]
+    som19 = data.get("somatic_19")
+    som19["patient_key"] = key_id_map.loc[som19.index]
+    data["somatic_38"] = som38
+    data["somatic_19"] = som19
+
+    prot = data.get("proteomics")
+    c = key_id_map.loc[prot.index.str[1:][0:83]]
+    n = key_id_map.loc[prot.index[83:]]
+    prot["patient_key"] = np.concatenate([c,n])
+    data["proteomics"] = prot
+
+    pho = data.get("phosphoproteomics")
+    c = key_id_map.loc[pho.index.str[1:][0:83]]
+    n = key_id_map.loc[pho.index[83:]]
+    pho["patient_key"] = np.concatenate([c,n])
+    data["phosphoproteomics"] = pho
+
+    return data
 
 def read_data(fileName):
     df = None
@@ -40,6 +86,9 @@ print("Loading Ovarian CPTAC data:")
 for file in files:
     df = DataFrameLoader(file).createDataFrame()
     data[df.name] = df
+key_id_map = align_indices(data)
+data = map_ids(data, key_id_map)
+
 warning()
 
 def list():
@@ -95,9 +144,9 @@ def compare_gene(df1, df2, gene):
     Dataframe containing common rows between provided dataframes and columns for the specified gene (or genes) from provided dataframes.
     """
     if isinstance(gene, str): #simple way to check for single gene string
-        return Utilities().compare_gene(df1, df2, gene)
+        return Utilities().compare_gene(df1, df2, gene, key_id_map)
     else: #if not single gene string, then assuming an array was provided
-        return Utilities().compare_genes(df1, df2, gene)
+        return Utilities().compare_genes(df1, df2, gene, key_id_map)
 
 def compare_clinical(omics_data, clinical_col):
     """
@@ -134,10 +183,10 @@ def compare_mutations(omics_data, omics_gene, mutations_gene = None):
     Dataframe containing two columns, the omics data and the somatic mutation type for the gene(s) provided
     """
     if mutations_gene:
-        return Utilities().merge_mutations_trans(omics_data, omics_gene, get_somatic_mutations(), mutations_gene)
+        return Utilities().merge_mutations_trans(omics_data, omics_gene, get_somatic_mutations(), mutations_gene, key_id_map)
     else:
-        return Utilities().merge_mutations(omics_data, get_somatic_mutations(), omics_gene)
-def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):
+        return Utilities().merge_mutations(omics_data, get_somatic_mutations(), omics_gene, key_id_map)
+def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):#doesn't work right now due to duplicate indices messing up the key_id_map
     """
     Params
     omics_data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
@@ -148,9 +197,9 @@ def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):
     Dataframe containing numeric omics data and categorical somatic data (including patient ID, mutation type, and mutation location)
     """
     if mutations_gene:
-        return Utilities().merge_mutations_trans(omics_data, omics_gene, get_somatic_mutations(), mutations_gene, duplicates = True)
+        return Utilities().merge_mutations_trans(omics_data, omics_gene, get_somatic_mutations(), mutations_gene,  key_id_map, duplicates = True)
     else:
-        return Utilities().merge_mutations(omics_data, get_somatic_mutations(), omics_gene, duplicates = True)
+        return Utilities().merge_mutations(omics_data, get_somatic_mutations(), omics_gene, key_id_map, duplicates = True)
 
 def embargo():
     """
