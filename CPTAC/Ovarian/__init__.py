@@ -157,7 +157,7 @@ def compare_clinical(omics_data, clinical_col):
     Returns
     Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
     """
-    return Utilities().compare_clinical(get_clinical(), omics_data, clinical_col)
+    return Utilities().compare_clinical(get_clinical(), omics_data, clinical_col, key_id_map)
 def get_phosphosites(gene):
     """Returns dataframe with all phosphosites of specified gene name"""
     return Utilities().get_phosphosites(get_phosphoproteomics(), gene)
