@@ -68,6 +68,7 @@ file.close()
 print("Loading Clinical Data...")
 clinical_unfiltered = DataFrameLoader(data_directory + "clinical.txt").createDataFrame()
 clinical = clinical_unfiltered[clinical_unfiltered["Case_excluded"] == "No"]
+clinical.name = clinical_unfiltered.name
 
 print("Loading Proteomics Data...")
 proteomics = DataFrameLoader(data_directory + "proteomics.cct.gz").createDataFrame()

@@ -66,7 +66,7 @@ class Utilities:
         dfs.name = str(len(genes)) + " Genes Combined" #Name returnable dataframe using number of genes provided
         return dfs
 
-    def compare_clinical(self, clinical, data, clinical_col):
+    def compare_clinical(self, clinical, data, clinical_col, key_id_map):
         """
         Parameters
         clinical: clinical dataframe for omics data to be appended with
@@ -77,11 +77,14 @@ class Utilities:
         Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
         """
         if clinical_col in clinical:
-            df = data[data.columns] #prep returnable dataframe due to DataFrame.insert() changing by reference. If only df = data, then insert() will change data as well
-            if len(clinical.index) != len(df.index):
-                clinical = clinical.reindex(df.index)
+            df = data[data.columns].set_index("patient_key") #prep returnable dataframe due to DataFrame.insert() changing by reference. If only df = data, then insert() will change data as well
+            clinical = clinical.set_index("patient_key")
+            clinical = clinical.reindex(df.index)
             values = clinical[clinical_col]
             df.insert(0, clinical_col, values) #inserts specified clinical column at the beginning of the returnable dataframe
+            df = df.assign(patient_id = key_id_map[key_id_map["patient_key"].isin(list(df.index))].index)
+            df = df.assign(patient_key = df.index)
+            df = df.set_index("patient_id")
             df.name = data.name + " with " + clinical_col #assigns dataframe name using data name and specified clinical column
             return df
         else:
