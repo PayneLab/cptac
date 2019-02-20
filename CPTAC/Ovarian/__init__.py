@@ -17,20 +17,21 @@ def warning():
     wrapped_list = textwrap.wrap(warning)
     for line in wrapped_list:
         print(line)
-def align_indices(data):
-    all_index = data.get("clinical").index
+def align_indices(data): #private
+    all_index = data.get("clinical").index #grab the biggest index
     prot_index = data.get("proteomics").index
-    c_prot = prot_index[0:83].str[1:]
-    all_index = all_index.append(c_prot).unique().sort_values()
-    all_index = all_index.append(prot_index[83:])
+    c_prot = prot_index[0:83].str[1:] #drops letter off all indices with "C"
+    all_index = all_index.append(c_prot).unique().sort_values() #sort all unique indices of all indices
+    all_index = all_index.append(prot_index[83:]) #append all "N" indices
     patient_key = []
-    for i in range(0,len(all_index)):
+    for i in range(0,len(all_index)): #make S number for every index
         s = "S" + str(i + 1)
         patient_key.append(s)
     dict = {"patient_id":all_index,"patient_key":patient_key}
-    key_id_map = pd.DataFrame(dict).set_index("patient_id")
+    key_id_map = pd.DataFrame(dict).set_index("patient_id") #map patient id to S number (called patient key)
     return key_id_map
-def map_ids(data, key_id_map):
+def map_ids(data, key_id_map): #private, adds patient key (S number) to every data set for merging
+    #transcriptomics, clinical, cnv, and somatic mutation data all match normally
     tran = data.get("transcriptomics")
     tran["patient_key"] = key_id_map.loc[tran.index]
     data["transcriptomics"] = tran
@@ -50,6 +51,7 @@ def map_ids(data, key_id_map):
     data["somatic_38"] = som38
     data["somatic_19"] = som19
 
+    #because of "C" and "N" prefix, proteomics and phosphoproteomics indices are mapped by dropping the "C" to find the propper patient key (S number)
     prot = data.get("proteomics")
     c = key_id_map.loc[prot.index.str[1:][0:83]]
     n = key_id_map.loc[prot.index[83:]]
@@ -64,32 +66,18 @@ def map_ids(data, key_id_map):
 
     return data
 
-def read_data(fileName):
-    df = None
-    f = fileName.split(os.sep)
-    f = f[len(f) - 1]
-    name = f.split(".")[0]
-    print("Loading",name,"data...")
-    if name == "clinical":
-        df = pd.read_csv(fileName, sep="\t")
-    else:
-        df = pd.read_csv(fileName, sep="\t", index_col=0)
-    df.name = name
-    return df
-
-dir_path = os.path.dirname(os.path.realpath(__file__))
-data_directory = dir_path + os.sep + "Data" + os.sep
-path = data_directory + os.sep + "*.*"
-files = glob.glob(path)
+dir_path = os.path.dirname(os.path.realpath(__file__)) #gets path to CPTAC package
+data_directory = dir_path + os.sep + "Data" + os.sep #appends Data to path
+path = data_directory + os.sep + "*.*" #appends "*.*" to path, which looks for all files
+files = glob.glob(path) #puts all files into iterable variable
 data = {}
 print("Loading Ovarian CPTAC data:")
-for file in files:
+for file in files: #loops through files variable
     df = DataFrameLoader(file).createDataFrame()
-    data[df.name] = df
-key_id_map = align_indices(data)
-data = map_ids(data, key_id_map)
-
-warning()
+    data[df.name] = df #maps dataframe name to dataframe
+key_id_map = align_indices(data) #creates map for all unique indices to S number for merging
+data = map_ids(data, key_id_map) #adds S number to all indicies for all data
+warning() #displays warning
 
 def list():
     """

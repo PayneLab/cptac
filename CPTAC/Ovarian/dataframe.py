@@ -7,25 +7,7 @@ class DataFrameLoader:
         self.fileName = fileName
         f = fileName.split(os.sep)
         f = f[len(f) - 1]
-        self.name = f.split(".")[0]
-    def clip_indices(self, df, clip_number): #private
-        """
-        Parameters
-        df: dataframe to be clipped
-        clip_number: row index for first cutoff value. Results in df.iloc[0:clip_number], therefore leaving off the index number provided.
-
-        Selects the first clip_number rows and clips the first character off of the indices, for dataframes with C***** and N*****.
-        Possibly a better solution
-
-        Returns
-        Dataframe with amended and selected indices.
-        """
-        c_index = df.index[0:clip_number].str[1:]
-        c_df_indices = df.iloc[0:clip_number].index #these next two lines of code eliminate SetWithCopy warning
-        c_df = df.loc[c_df_indices,:] #The original c_df = df.iloc[0:c_number], then c_df["hgnc"] = c_index gave SetWithCopy warning
-        c_df["hgnc"] = c_index
-        c_df = c_df.set_index("hgnc")
-        return c_df
+        self.name = f.split(".")[0] #sets name as first section of file name (i.e. proteomics.txt.gz becomes proteomics)
     def createDataFrame(self):
         """
         Parameters
@@ -43,10 +25,6 @@ class DataFrameLoader:
             df = df.sort_index()
             df.name = self.name
             return df
-            #c_df = self.clip_indices(df, clip_number=83) #83rd row is where the N***** indices start, is there a better solution??
-            #c_df.name = self.name
-            #return c_df
-
         elif self.name == "clinical":
             df = pd.read_csv(self.fileName, sep="\t")
             df = df.set_index("PPID")
@@ -62,9 +40,6 @@ class DataFrameLoader:
             df = df.transpose()
             df.name = self.name
             return df
-            #c_df = self.clip_indices(df, clip_number=83)
-            #c_df.name = self.name
-            #return c_df
         elif self.name == "transcriptomics":
             df = pd.read_csv(self.fileName, sep="\t", index_col=0)
             df = df.sort_index()

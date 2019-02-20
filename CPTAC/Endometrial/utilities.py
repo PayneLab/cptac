@@ -35,7 +35,7 @@ class Utilities:
         """
         mutation_hierarchy = {"Missense_Mutation":0,"In_Frame_Del":0,"In_Frame_Ins":0,"Splice_Site":1,"Frame_Shift_Ins":1,"Nonsense_Mutation":1,"Frame_Shift_Del":1,"Nonstop_Mutation":1}
         hierarchy = []
-        for x in somatic["Mutation"]:
+        for x in somatic["Mutation"]: #for every value in the Mutation column, append its value in the hard coded mutation hierarchy
             if x in mutation_hierarchy.keys():
                 hierarchy.append(mutation_hierarchy[x])
             else:
@@ -54,24 +54,24 @@ class Utilities:
         Dataframe of merged somatic and omics dataframes based on gene provided
         """
         if sum(somatic["Gene"] == gene) > 0:
-            somatic_gene = somatic[somatic["Gene"] == gene]
-            somatic_gene = somatic_gene.drop(columns = ["Gene"])
-            somatic_gene = somatic_gene.set_index("Clinical_Patient_Key")
+            somatic_gene = somatic[somatic["Gene"] == gene] #select for all mutations for specified gene
+            somatic_gene = somatic_gene.drop(columns = ["Gene"]) #drop the gene column due to every value being the same
+            somatic_gene = somatic_gene.set_index("Clinical_Patient_Key") #set index as S** number for merging
             if not multiple_mutations:
                 somatic_gene = self.add_mutation_hierarchy(somatic_gene) #appends hierachy for sorting so correct duplicate can be kept
                 somatic_gene = somatic_gene.sort_values(by = ["Clinical_Patient_Key","Mutation_Hierarchy"], ascending = [True,False]) #sorts by patient key, then by hierarchy so the duplicates will come with the lower number first
                 somatic_gene = somatic_gene[~somatic_gene.index.duplicated(keep="first")] #keeps first duplicate row if indices are the same
-            merge = df_gene.join(somatic_gene, how = "left")
-            merge = merge.fillna(value = {'Mutation':"Wildtype"})
-            merge["index"] = merge.index
-            merge["Patient_Type"] = np.where(merge.index <= "S100", "Tumor", "Normal")
+            merge = df_gene.join(somatic_gene, how = "left") #left join omics data and mutation data (left being the omics data)
+            merge = merge.fillna(value = {'Mutation':"Wildtype"}) #fill in all Mutation NA values (no mutation data) as Wildtype
+            merge["index"] = merge.index #set index values as column
+            merge["Patient_Type"] = np.where(merge.index <= "S100", "Tumor", "Normal") #add patient type, setting all samples up to S100 as Tumor, others as normal. TODO: Should S100 be different now?
             merge.name = df_gene.columns[0] + " omics data with " + gene + " mutation data"
             return merge
         else:
             print("Gene", gene, "not found in somatic mutations.")
     def get_phosphosites(self, phosphoproteomics, gene):
-        regex = gene + ".*"
-        phosphosites = phosphoproteomics.filter(regex = (regex))
+        regex = gene + ".*" #set regular expression using specified gene
+        phosphosites = phosphoproteomics.filter(regex = (regex)) #find all columns that match the regular expression, aka, all phosphosites for the specified gene
         if len(phosphosites.columns) == 0:
             print("Gene",gene, "not found in phosphoproteomics data")
         else:
@@ -139,26 +139,26 @@ class Utilities:
         Dataframe of merged omics and somatic data based on gene provided
         """
         if gene in omics.columns:
-            omics_gene_df = omics[[gene]]
-            if duplicates:
+            omics_gene_df = omics[[gene]] #select omics data for specified gene
+            if duplicates: #don't filter out duplicate sample mutations
                 return self.merge_somatic(somatic, gene, omics_gene_df, multiple_mutations = True)
-            else:
+            else: #filter out duplicate sample mutations
                 return self.merge_somatic(somatic, gene, omics_gene_df)[[gene, "Mutation", "Patient_Type"]]
         elif omics.name.split("_")[0] == "phosphoproteomics":
             phosphosites = self.get_phosphosites(omics, gene)
             if len(phosphosites.columns) > 0:
-                if duplicates:
+                if duplicates:#don't filter out duplicate sample mutations
                     return self.merge_somatic(somatic, gene, phosphosites, multiple_mutations = True)
-                else:
+                else:#filter out duplicate sample mutations
                     columns = list(phosphosites.columns)
                     columns.append("Mutation")
                     columns.append("Patient_Type")
                     merged_somatic = self.merge_somatic(somatic, gene, phosphosites)
-                    return merged_somatic[columns]
+                    return merged_somatic[columns] #select all phosphosites, mutation, and patient type columns
 
         else:
             print("Gene", gene, "not found in", omics.name, "data")
-    def merge_mutations_trans(self, omics, omicsGene, somatic, somaticGene, duplicates = False):
+    def merge_mutations_trans(self, omics, omicsGene, somatic, somaticGene, duplicates = False): #same function as merge_mutations, except use somaticGene to select mutation data
         """
         Parameters
         omics: dataframe containing specific omics data (i.e. proteomics, transcriptomics)
@@ -200,8 +200,8 @@ class Utilities:
         Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
         """
         if clinical_col in clinical:
-            df = data[data.columns]
-            df.insert(0, clinical_col, clinical[clinical_col])
+            df = data[data.columns] #new df variable prevents insert function overwriting the original data
+            df.insert(0, clinical_col, clinical[clinical_col]) #insert specified clinical column into specified omics data
             df.name = data.name + " with " + clinical_col
             return df
         else:
@@ -217,10 +217,10 @@ class Utilities:
         Dataframe with a column from proteomics for the gene specified, as well as columns for all phosphoproteomics columns beginning with the specified gene
         """
         if gene in proteomics.columns:
-            df = proteomics[[gene]]
-            phosphosites = self.get_phosphosites(phosphoproteomics, gene)
+            df = proteomics[[gene]] #select proteomics data for specified gene
+            phosphosites = self.get_phosphosites(phosphoproteomics, gene) #gets phosphosites for specified gene
             if len(phosphosites.columns) > 0:
-                df = df.add(phosphosites, fill_value=0)
+                df = df.add(phosphosites, fill_value=0) #adds phosphosites columns to proteomics data for specified gene
                 df.name = gene + " proteomics and phosphoproteomics"
                 return df
         else:

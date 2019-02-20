@@ -29,14 +29,14 @@ def warning():
 """
 Creates dictionary for linking Patient_Id with individual sample number (i.e. C3L-00006 with S001)
 """
-def create_patient_ids(clinical):
+def create_patient_ids(clinical): #private
     c = clinical[["Proteomics_Participant_ID"]][0:103] # S105 maps back to S001
     s = c.index
     dictPrepDf = c.set_index('Proteomics_Participant_ID')
     dictPrepDf['idx'] = s
     patient_ids = dictPrepDf.to_dict()['idx']
     return patient_ids
-def link_patient_ids(patient_ids, somatic):
+def link_patient_ids(patient_ids, somatic): #private
     s = []
     for x in somatic["Patient_Id"]:
         if x in patient_ids.keys():
@@ -67,7 +67,7 @@ file.close()
 
 print("Loading Clinical Data...")
 clinical_unfiltered = DataFrameLoader(data_directory + "clinical.txt").createDataFrame()
-clinical = clinical_unfiltered[clinical_unfiltered["Case_excluded"] == "No"]
+clinical = clinical_unfiltered[clinical_unfiltered["Case_excluded"] == "No"] #Drops all samples with Case_excluded == Yes
 clinical.name = clinical_unfiltered.name
 
 print("Loading Proteomics Data...")
@@ -91,8 +91,8 @@ somatic_binary.name = "somatic binary"
 somatic_unparsed = pd.read_csv(data_directory + "somatic.maf.gz", sep = "\t")
 somatic_unparsed.name = "somatic MAF unparsed"
 somatic_maf = DataFrameLoader(data_directory + "somatic.maf.gz").createDataFrame()
-patient_ids = create_patient_ids(clinical_unfiltered)
-somatic_maf = link_patient_ids(patient_ids, somatic_maf)
+patient_ids = create_patient_ids(clinical_unfiltered) #maps C3L-**** number to S*** number
+somatic_maf = link_patient_ids(patient_ids, somatic_maf) #adds S*** number to somatic mutations dataframe
 somatic_maf.name = "somatic MAF"
 
 
@@ -353,15 +353,15 @@ def compare_mutations(omics_data, omics_gene, mutations_gene = None):
     """
     Params
     omics_data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
-    omics_gene: gene to select from omics data (used for somatic data if somatic_gene is left blank)
+    omics_gene: gene to select from omics data (used for mutation data if mutations_gene is left blank)
     mutations_gene: gene to select from somatic mutation data
 
     Returns
     Dataframe containing two columns, the omics data and the somatic mutation type for the gene(s) provided
     """
-    if mutations_gene:
+    if mutations_gene: #compare omics data of omics gene to mutations of mutations_gene
         return Utilities().merge_mutations_trans(omics_data, omics_gene, somatic_maf, mutations_gene)
-    else:
+    else: #compare omics data to mutations for same gene
         return Utilities().merge_mutations(omics_data, somatic_maf, omics_gene)
 def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):
     """
@@ -373,9 +373,9 @@ def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):
     Returns
     Dataframe containing numeric omics data and categorical somatic data (including patient ID, mutation type, and mutation location)
     """
-    if mutations_gene:
+    if mutations_gene: #compare omics data of omics gene to mutations of mutations_gene
         return Utilities().merge_mutations_trans(omics_data, omics_gene, somatic_maf, mutations_gene, duplicates = True)
-    else:
+    else: #compare omics data to mutations for same gene
         return Utilities().merge_mutations(omics_data, somatic_maf, omics_gene, duplicates = True)
 def compare_clinical(omics_data, clinical_col):
     """
@@ -423,9 +423,6 @@ def embargo():
     """
     print("Opening embargo details in web browser...")
     webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
-def start():
-    #Might remove this function
-    print("Welcome to our CPTAC data. Enter CPTAC.help() to open our Github help page.")
 def version():
     """
     Parameters
@@ -437,6 +434,6 @@ def version():
     Version number
     """
     version = {}
-    with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder
+    with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder, TODO: how to navigate from dataTest.py?
     	exec(fp.read(), version)
     return(version['__version__'])
