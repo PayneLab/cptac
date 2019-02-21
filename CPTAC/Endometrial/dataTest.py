@@ -70,6 +70,7 @@ class Basic:
 
         ## Check some test values
 
+        # Print whether we passed or failed
         if PASS:
             print("PASS")
         else:
