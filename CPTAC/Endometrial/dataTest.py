@@ -44,54 +44,80 @@ class Basic:
         else:
             print("FAIL")
 
-    def evaluate_getters_2(self):
-        # ***UNDER CONSTRUCTION***
+    def evaluate_getter(name, getter, exp_dim, exp_headers, coordinates, values):
+        """
+        Parameters
+        name: string containing the name of the dataframe gotten by the getter we're testing
+        getter: the method to get the dataframe we're testing, e.g. en.get_clinical()
+        exp_dim: a tuple containing the expected dimensions of the dataframe, in the format (rows, columns)
+        exp_headers: a list of the expected headers for the dataframe, in order
+        coordinates: a tuple with three elements, each element being a tuple with two elements, the first element being the int index of the row of a test value, and the second element being the int index of the column of a test value
+        values: a tuple with three elements, each element being the expected value of the test value corresponding to the coordinates at the same index in the coordinates parameter 
 
-        # We will call each get function, and test the dimensions, headers, and some test values for it.
-        print("Evaluating getters 2...")
+        Returns
+        Bool indicating if getter passed the test
+        """
         PASS = True
 
-        # Test get_clinical() with default excluded=False
-        clinical = en.get_clinical()
+        # Get our dataframe to test
+        df = getter
 
         ## Check dimensions
-        exp_clinical_dim = (144, 170)
-        act_clinical_dim = clinical.shape
-        if exp_clinical_dim != act_clinical_dim:
-            print("Error: Clinical dataframe dimensions did not match expected values.\nExpected: {}\nActual: {}".format(exp_clinical_dim, act_clinical_dim))
+        act_dim = df.shape
+        if exp_dim != act_dim:
+            print("Error: {} dataframe dimensions did not match expected values.\n\tExpected: {}\n\tActual: {}".format(name, exp_dim, act_dim))
             PASS = False
 
         ## Check headers
-        exp_clinical_headers = ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Clin_Stage_Dist_Mets-cM', 'Path_Stage_Dist_Mets-pM', 'tumor_Stage-Pathological', 'FIGO_stage', 'LVSI', 'BMI', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm', 'Estrogen_Receptor', 'Estrogen_Receptor_%', 'Progesterone_Receptor', 'Progesterone_Receptor_%', 'MLH1', 'MLH2', 'MSH6', 'PMS2', 'p53', 'Other_IHC_specify', 'MLH1_Promoter_Hypermethylation', 'Num_full_term_pregnancies', 'EPIC_Bcells', 'EPIC_CAFs', 'EPIC_CD4_Tcells', 'EPIC_CD8_Tcells', 'EPIC_Endothelial', 'EPIC_Macrophages', 'EPIC_NKcells', 'EPIC_otherCells', 'CIBERSORT_B _cells _naive', 'CIBERSORT_B _cells _memory', 'CIBERSORT_Plasma _cells', 'CIBERSORT_T _cells _CD8', 'CIBERSORT_T _cells _CD4 _naive', 'CIBERSORT_T _cells _CD4 _memory _resting', 'CIBERSORT_T _cells _CD4 _memory _activated', 'CIBERSORT_T _cells _follicular _helper', 'CIBERSORT_T _cells _regulatory _(Tregs)', 'CIBERSORT_T _cells _gamma _delta', 'CIBERSORT_NK _cells _resting', 'CIBERSORT_NK _cells _activated', 'CIBERSORT_Monocytes', 'CIBERSORT_Macrophages _M0', 'CIBERSORT_Macrophages _M1', 'CIBERSORT_Macrophages _M2', 'CIBERSORT_Dendritic _cells _resting', 'CIBERSORT_Dendritic _cells _activated', 'CIBERSORT_Mast _cells _resting', 'CIBERSORT_Mast _cells _activated', 'CIBERSORT_Eosinophils', 'CIBERSORT_Neutrophils', 'CIBERSORT_Absolute _score', 'ESTIMATE_StromalScore', 'ESTIMATE_ImmuneScore', 'ESTIMATE_ESTIMATEScore', 'Stemness_score', 'ER_ESR1', 'PR_PGR', 'Pathway_activity_EGFR', 'Pathway_activity_Hypoxia', 'Pathway_activity_JAK.STAT', 'Pathway_activity_MAPK', 'Pathway_activity_NFkB', 'Pathway_activity_PI3K', 'Pathway_activity_TGFb', 'Pathway_activity_TNFa', 'Pathway_activity_Trail', 'Pathway_activity_VEGF', 'Pathway_activity_p53', 'TP53_ATM', 'TP53_CHEK2', 'TP53_MDM4', 'TP53_RPS6KA3', 'TP53_TP53', 'TP53_pathway', 'PI3K_AKT1', 'PI3K_AKT2', 'PI3K_AKT3', 'PI3K_DEPDC5', 'PI3K_DEPTOR', 'PI3K_INPP4B', 'PI3K_MAPKAP1', 'PI3K_MLST8', 'PI3K_MTOR', 'PI3K_NPRL2', 'PI3K_NPRL3', 'PI3K_PDK1', 'PI3K_PIK3CA', 'PI3K_PIK3CB', 'PI3K_PIK3R1', 'PI3K_PIK3R2', 'PI3K_PPP2R1A', 'PI3K_PTEN', 'PI3K_RHEB', 'PI3K_RICTOR', 'PI3K_RPS6', 'PI3K_RPS6KB1', 'PI3K_RPTOR', 'PI3K_STK11', 'PI3K_TSC1', 'PI3K_TSC2', 'PI3K_pathway', 'HRD_BRCA1', 'HRD_BRCA2', 'HRD_BRCA1_or_BRCA2', 'CNV_clustering', 'CNV_1q_amplification', 'CNV_index', 'Purity_Immune', 'Purity_Cancer', 'Purity_Stroma', 'MSI_status', 'POLE_subtype', 'JAK1_MS_INDEL', 'JAK1_Mutation', 'Log2_variant_per_Mbp', 'Log2_SNP_per_Mbp', 'Log2_INDEL_per_Mbp', 'Log2_variant_total', 'Log2_SNP_total', 'Log2_INDEL_total', 'Mutation_signature_C>A', 'Mutation_signature_C>G', 'Mutation_signature_C>T', 'Mutation_signature_T>C', 'Mutation_signature_T>A', 'Mutation_signature_T>G', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'WXS_tumor_filename', 'WXS_tumor_UUID', 'WGS_normal_sample_type', 'WGS_normal_UUID', 'WGS_tumor_sample_type', 'WGS_tumor_UUID', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
+        act_headers = df.columns.values
 
-        act_clinical_headers = clinical.columns.values
-
-        if len(exp_clinical_headers) != len(act_clinical_headers):
+        if len(exp_headers) != len(act_headers):
             # We shouldn't get to this point unless the dimension check failed.
-            print("Error: Clinical dataframe had unexpected number of headers.\nExpected: {}\nActual: {}".format(len(exp_clinical_headers), len(act_clinical_headers)))
+            print("Error: {} dataframe had unexpected number of headers.\n\tExpected: {}\n\tActual: {}".format(name, len(exp_headers), len(act_headers)))
             PASS = False
         else:
-            for i, header in enumerate(exp_clinical_headers):
-                if header != act_clinical_headers[i]:
-                    print("Error: Clinical dataframe header did not match expected value.\nExpected: {}\nActual: {}".format(header, act_clinical_headers[i]))
+            for i, header in enumerate(exp_headers):
+                if header != act_headers[i]:
+                    print("Error: {} dataframe header did not match expected value.\n\tExpected: {}\n\tActual: {}".format(name, header, act_headers[i]))
                     PASS = False
 
-        ## Check some test values
-        exp_clinical_values = [] # Actually make this a dict, with the keys the test values, and the values a tuple of the index and column
-        act_clinical_values = []
+        ## Check test values
+        act_values = [
+            df.iloc[coordinates[0][0], coordinates[0][1]],
+            df.iloc[coordinates[1][0], coordinates[1][1]],
+            df.iloc[coordinates[2][0], coordinates[2][1]]
+        ]
 
-        for i, value in exp_clinical_values:
-            if value != act_clinical_values[i]:
-# need to fix format                print("Error: Clinical dataframe value for did not match expected value.\nIndex: {}\nColumn: {}\nExpected: {}\nActual: {}".format(value, act_clinical_values[i]))
+        for i, value in enumerate(values):
+            if act_values[i] != value:
+                print("Error: {} dataframe value did not match expected value.\n\tColumn: {}\n\tIndex: {}\n\tExpected: {}\n\tActual: {}".format(name, df.columns.values[coordinates[i][1]], df.index.values[coordinates[i][0]], value, act_values[i]))
                 PASS = False
-                
 
-        # Print whether we passed or failed
+        # Return whether the getter passed the test
+        return PASS
+
+    def evaluate_getters_v2(self):
+        # ***UNDER CONSTRUCTION***
+
+        print("Evaluating getters v2...")
+        PASS = True
+
+        # First we'll test get_clinical() with the default parameter excluded=False
+        PASS = Basic.evaluate_getter(
+            "Clinical",
+            en.get_clinical(),
+            (144, 170),
+            ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Clin_Stage_Dist_Mets-cM', 'Path_Stage_Dist_Mets-pM', 'tumor_Stage-Pathological', 'FIGO_stage', 'LVSI', 'BMI', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm', 'Estrogen_Receptor', 'Estrogen_Receptor_%', 'Progesterone_Receptor', 'Progesterone_Receptor_%', 'MLH1', 'MLH2', 'MSH6', 'PMS2', 'p53', 'Other_IHC_specify', 'MLH1_Promoter_Hypermethylation', 'Num_full_term_pregnancies', 'EPIC_Bcells', 'EPIC_CAFs', 'EPIC_CD4_Tcells', 'EPIC_CD8_Tcells', 'EPIC_Endothelial', 'EPIC_Macrophages', 'EPIC_NKcells', 'EPIC_otherCells', 'CIBERSORT_B _cells _naive', 'CIBERSORT_B _cells _memory', 'CIBERSORT_Plasma _cells', 'CIBERSORT_T _cells _CD8', 'CIBERSORT_T _cells _CD4 _naive', 'CIBERSORT_T _cells _CD4 _memory _resting', 'CIBERSORT_T _cells _CD4 _memory _activated', 'CIBERSORT_T _cells _follicular _helper', 'CIBERSORT_T _cells _regulatory _(Tregs)', 'CIBERSORT_T _cells _gamma _delta', 'CIBERSORT_NK _cells _resting', 'CIBERSORT_NK _cells _activated', 'CIBERSORT_Monocytes', 'CIBERSORT_Macrophages _M0', 'CIBERSORT_Macrophages _M1', 'CIBERSORT_Macrophages _M2', 'CIBERSORT_Dendritic _cells _resting', 'CIBERSORT_Dendritic _cells _activated', 'CIBERSORT_Mast _cells _resting', 'CIBERSORT_Mast _cells _activated', 'CIBERSORT_Eosinophils', 'CIBERSORT_Neutrophils', 'CIBERSORT_Absolute _score', 'ESTIMATE_StromalScore', 'ESTIMATE_ImmuneScore', 'ESTIMATE_ESTIMATEScore', 'Stemness_score', 'ER_ESR1', 'PR_PGR', 'Pathway_activity_EGFR', 'Pathway_activity_Hypoxia', 'Pathway_activity_JAK.STAT', 'Pathway_activity_MAPK', 'Pathway_activity_NFkB', 'Pathway_activity_PI3K', 'Pathway_activity_TGFb', 'Pathway_activity_TNFa', 'Pathway_activity_Trail', 'Pathway_activity_VEGF', 'Pathway_activity_p53', 'TP53_ATM', 'TP53_CHEK2', 'TP53_MDM4', 'TP53_RPS6KA3', 'TP53_TP53', 'TP53_pathway', 'PI3K_AKT1', 'PI3K_AKT2', 'PI3K_AKT3', 'PI3K_DEPDC5', 'PI3K_DEPTOR', 'PI3K_INPP4B', 'PI3K_MAPKAP1', 'PI3K_MLST8', 'PI3K_MTOR', 'PI3K_NPRL2', 'PI3K_NPRL3', 'PI3K_PDK1', 'PI3K_PIK3CA', 'PI3K_PIK3CB', 'PI3K_PIK3R1', 'PI3K_PIK3R2', 'PI3K_PPP2R1A', 'PI3K_PTEN', 'PI3K_RHEB', 'PI3K_RICTOR', 'PI3K_RPS6', 'PI3K_RPS6KB1', 'PI3K_RPTOR', 'PI3K_STK11', 'PI3K_TSC1', 'PI3K_TSC2', 'PI3K_pathway', 'HRD_BRCA1', 'HRD_BRCA2', 'HRD_BRCA1_or_BRCA2', 'CNV_clustering', 'CNV_1q_amplification', 'CNV_index', 'Purity_Immune', 'Purity_Cancer', 'Purity_Stroma', 'MSI_status', 'POLE_subtype', 'JAK1_MS_INDEL', 'JAK1_Mutation', 'Log2_variant_per_Mbp', 'Log2_SNP_per_Mbp', 'Log2_INDEL_per_Mbp', 'Log2_variant_total', 'Log2_SNP_total', 'Log2_INDEL_total', 'Mutation_signature_C>A', 'Mutation_signature_C>G', 'Mutation_signature_C>T', 'Mutation_signature_T>C', 'Mutation_signature_T>A', 'Mutation_signature_T>G', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'WXS_tumor_filename', 'WXS_tumor_UUID', 'WGS_normal_sample_type', 'WGS_normal_UUID', 'WGS_tumor_sample_type', 'WGS_tumor_UUID', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'],
+            ((79, 81), (15, 146), (88, 12)),
+            (-1.03, 57.77777778, 'Serous')
+        )
+
+        # Indicate whether the overall test passed
         if PASS:
             print("PASS")
         else:
             print("FAIL")
-	
+       
     def evaluate_special_getters(self):
         print("Evaluating special getters...")
         results = []
@@ -186,7 +212,7 @@ print("\nRunning tests:\n")
 Basic().evaluate_getters()
 Basic().evaluate_special_getters()
 Basic().evaluate_utilities()
-# Basic().evaluate_getters_2()
+Basic().evaluate_getters_v2()
 
 print("Plotting...")
 Plotter().plot(en.get_proteomics(), "A1BG","PTEN","scatterplot")
