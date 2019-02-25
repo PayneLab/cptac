@@ -44,13 +44,13 @@ class Basic:
         else:
             print("FAIL")
 
-    def evaluate_getter(name, getter, exp_dim, exp_headers, coordinates, values):
+    def evaluate_getter(self, name, getter, exp_dim, exp_headers, coordinates, values):
         """
         Parameters
         name: string containing the name of the dataframe gotten by the getter we're testing
         getter: the method to get the dataframe we're testing, e.g. en.get_clinical()
         exp_dim: a tuple containing the expected dimensions of the dataframe, in the format (rows, columns)
-        exp_headers: a list of the expected headers for the dataframe, in order
+        exp_headers: a list containing the expected first ten and last ten headers, in order
         coordinates: a tuple with three elements, each element being a tuple with two elements, the first element being the int index of the row of a test value, and the second element being the int index of the column of a test value
         values: a tuple with three elements, each element being the expected value of the test value corresponding to the coordinates at the same index in the coordinates parameter 
 
@@ -69,7 +69,8 @@ class Basic:
             PASS = False
 
         ## Check headers
-        act_headers = df.columns.values
+        act_headers = list(df.columns.values)
+        act_headers = act_headers[:10] + act_headers[-10:]
 
         if len(exp_headers) != len(act_headers):
             # We shouldn't get to this point unless the dimension check failed.
@@ -100,16 +101,37 @@ class Basic:
         # ***UNDER CONSTRUCTION***
 
         print("Evaluating getters v2...")
+        tester = Basic()
         PASS = True
 
-        # First we'll test get_clinical() with the default parameter excluded=False
-        PASS = Basic.evaluate_getter(
+        # Test get_clinical() with the default parameter excluded=False
+        PASS = tester.evaluate_getter(
             "Clinical",
             en.get_clinical(),
             (144, 170),
-            ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Clin_Stage_Dist_Mets-cM', 'Path_Stage_Dist_Mets-pM', 'tumor_Stage-Pathological', 'FIGO_stage', 'LVSI', 'BMI', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm', 'Estrogen_Receptor', 'Estrogen_Receptor_%', 'Progesterone_Receptor', 'Progesterone_Receptor_%', 'MLH1', 'MLH2', 'MSH6', 'PMS2', 'p53', 'Other_IHC_specify', 'MLH1_Promoter_Hypermethylation', 'Num_full_term_pregnancies', 'EPIC_Bcells', 'EPIC_CAFs', 'EPIC_CD4_Tcells', 'EPIC_CD8_Tcells', 'EPIC_Endothelial', 'EPIC_Macrophages', 'EPIC_NKcells', 'EPIC_otherCells', 'CIBERSORT_B _cells _naive', 'CIBERSORT_B _cells _memory', 'CIBERSORT_Plasma _cells', 'CIBERSORT_T _cells _CD8', 'CIBERSORT_T _cells _CD4 _naive', 'CIBERSORT_T _cells _CD4 _memory _resting', 'CIBERSORT_T _cells _CD4 _memory _activated', 'CIBERSORT_T _cells _follicular _helper', 'CIBERSORT_T _cells _regulatory _(Tregs)', 'CIBERSORT_T _cells _gamma _delta', 'CIBERSORT_NK _cells _resting', 'CIBERSORT_NK _cells _activated', 'CIBERSORT_Monocytes', 'CIBERSORT_Macrophages _M0', 'CIBERSORT_Macrophages _M1', 'CIBERSORT_Macrophages _M2', 'CIBERSORT_Dendritic _cells _resting', 'CIBERSORT_Dendritic _cells _activated', 'CIBERSORT_Mast _cells _resting', 'CIBERSORT_Mast _cells _activated', 'CIBERSORT_Eosinophils', 'CIBERSORT_Neutrophils', 'CIBERSORT_Absolute _score', 'ESTIMATE_StromalScore', 'ESTIMATE_ImmuneScore', 'ESTIMATE_ESTIMATEScore', 'Stemness_score', 'ER_ESR1', 'PR_PGR', 'Pathway_activity_EGFR', 'Pathway_activity_Hypoxia', 'Pathway_activity_JAK.STAT', 'Pathway_activity_MAPK', 'Pathway_activity_NFkB', 'Pathway_activity_PI3K', 'Pathway_activity_TGFb', 'Pathway_activity_TNFa', 'Pathway_activity_Trail', 'Pathway_activity_VEGF', 'Pathway_activity_p53', 'TP53_ATM', 'TP53_CHEK2', 'TP53_MDM4', 'TP53_RPS6KA3', 'TP53_TP53', 'TP53_pathway', 'PI3K_AKT1', 'PI3K_AKT2', 'PI3K_AKT3', 'PI3K_DEPDC5', 'PI3K_DEPTOR', 'PI3K_INPP4B', 'PI3K_MAPKAP1', 'PI3K_MLST8', 'PI3K_MTOR', 'PI3K_NPRL2', 'PI3K_NPRL3', 'PI3K_PDK1', 'PI3K_PIK3CA', 'PI3K_PIK3CB', 'PI3K_PIK3R1', 'PI3K_PIK3R2', 'PI3K_PPP2R1A', 'PI3K_PTEN', 'PI3K_RHEB', 'PI3K_RICTOR', 'PI3K_RPS6', 'PI3K_RPS6KB1', 'PI3K_RPTOR', 'PI3K_STK11', 'PI3K_TSC1', 'PI3K_TSC2', 'PI3K_pathway', 'HRD_BRCA1', 'HRD_BRCA2', 'HRD_BRCA1_or_BRCA2', 'CNV_clustering', 'CNV_1q_amplification', 'CNV_index', 'Purity_Immune', 'Purity_Cancer', 'Purity_Stroma', 'MSI_status', 'POLE_subtype', 'JAK1_MS_INDEL', 'JAK1_Mutation', 'Log2_variant_per_Mbp', 'Log2_SNP_per_Mbp', 'Log2_INDEL_per_Mbp', 'Log2_variant_total', 'Log2_SNP_total', 'Log2_INDEL_total', 'Mutation_signature_C>A', 'Mutation_signature_C>G', 'Mutation_signature_C>T', 'Mutation_signature_T>C', 'Mutation_signature_T>A', 'Mutation_signature_T>G', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'WXS_tumor_filename', 'WXS_tumor_UUID', 'WGS_normal_sample_type', 'WGS_normal_UUID', 'WGS_tumor_sample_type', 'WGS_tumor_UUID', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'],
+            ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'],
             ((79, 81), (15, 146), (88, 12)),
             (-1.03, 57.77777778, 'Serous')
+        )
+
+        # Test get_clinical(excluded=True)
+        PASS = tester.evaluate_getter(
+            "Clinical (with excluded cases)",
+            en.get_clinical(excluded=True),
+            (153, 170),
+            ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'],
+            ((23, 44), (151, 6), (32, 165)),
+            (0.004118258, 'CPT0230400002,CPT0230400003,CPT0230400004,CPT0230410002,CPT0230410003,CPT0230410004,CPT0230420002,CPT0230420003,CPT0230420004', 'e292b646-ce77-45a1-a535-cb0dd26898e8')
+        )
+
+        # Test get_proteomics()
+        PASS = tester.evaluate_getter(
+            "Proteomics",
+            en.get_proteomics(),
+            (153, 10999),
+            ['A1BG', 'A2M', 'A2ML1', 'A4GALT', 'AAAS', 'AACS', 'AADAT', 'AAED1', 'AAGAB', 'AAK1', 'ZSWIM8', 'ZSWIM9', 'ZW10', 'ZWILCH', 'ZWINT', 'ZXDC', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3'],
+            ((34, 6003), (99, 9544), (152, 32)),
+            (-0.8170000000000001, -1.28, 0.904)
         )
 
         # Indicate whether the overall test passed
