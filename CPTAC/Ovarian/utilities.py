@@ -161,7 +161,16 @@ class Utilities:
             merge[["Mutation"]] = merge[["Mutation"]].fillna(value = "Wildtype") #fill in all Mutation NA values (no mutation data) as Wildtype
             #merge["index"] = merge.index
             #merge["Patient_Type"] = np.where(merge.index <= "S100", "Tumor", "Normal") #TODO: this breaks with Ovarian data, need to fix
-            merge["patient_id"] = key_id_map[key_id_map["patient_key"].isin(list(merge.index))].index #reverse lookup for patient key (S number) to patient id (non-S number)
+            if multiple_mutations:
+                patient_ids = []
+                patient_keys = list(merge.index)
+                for key in patient_keys:
+                    patient_ids.append(key_id_map[key_id_map["patient_key"] == key].index.values[0])
+                assert(len(patient_ids) == len(patient_keys))
+                merge["patient_id"] = patient_ids
+                merge = merge.sort_values(by = ["patient_id"])
+            else:
+                merge["patient_id"] = key_id_map[key_id_map["patient_key"].isin(list(merge.index))].index #reverse lookup for patient key (S number) to patient id (non-S number)
             merge["patient_key"] = merge.index #move index to column
             merge = merge.set_index("patient_id") #set index to patient id (non-S number)
             merge.name = df_gene.columns[0] + " omics data with " + gene + " mutation data"
