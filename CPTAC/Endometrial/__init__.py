@@ -175,7 +175,7 @@ def get_transcriptomics(data_type="linear"):
     elif data_type == "miRNA":
         return miRNA
     else:
-        print("Invalid value for get_transcriptomics() data_type parameter.\n\tYou passed: {}\n\tOptions: 'linear', 'circular', or 'miRNA'".format(type))
+        print("Invalid value for get_transcriptomics() data_type parameter.\n\tYou passed: {}\n\tOptions: 'linear', 'circular', or 'miRNA'".format(data_type))
 def get_CNA():
     """
     Parameters

@@ -28,8 +28,8 @@ class Basic:
         dataframes.append(en.get_phosphoproteomics()); file_names[len(dataframes)] = "site phosphoproteomics"
         dataframes.append(en.get_phosphoproteomics(gene_level = True)); file_names[len(dataframes)] = "gene phosphoproteomics"
         dataframes.append(en.get_transcriptomics()); file_names[len(dataframes)] = "linear transcriptomics"
-        dataframes.append(en.get_transcriptomics(circular = True)); file_names[len(dataframes)] = "circular transcriptomics"
-        dataframes.append(en.get_transcriptomics(miRNA = True)); file_names[len(dataframes)] = "miRNA"
+        dataframes.append(en.get_transcriptomics(data_type="circular")); file_names[len(dataframes)] = "circular transcriptomics"
+        dataframes.append(en.get_transcriptomics(data_type="miRNA")); file_names[len(dataframes)] = "miRNA"
         dataframes.append(en.get_CNA()); file_names[len(dataframes)] = "CNA"
         dataframes.append(en.get_somatic()); file_names[len(dataframes)] = "parsed somatic maf"
         dataframes.append(en.get_somatic(binary=True)); file_names[len(dataframes)] = "binary somatic"
@@ -105,34 +105,72 @@ class Basic:
         PASS = True
 
         # Test get_clinical() with the default parameter excluded=False
-        PASS = tester.evaluate_getter(
+        if not tester.evaluate_getter(
             "Clinical",
             en.get_clinical(),
             (144, 170),
             ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'],
             ((79, 81), (15, 146), (88, 12)),
             (-1.03, 57.77777778, 'Serous')
-        )
+        ):
+            PASS = False
 
         # Test get_clinical(excluded=True)
-        PASS = tester.evaluate_getter(
+        if not tester.evaluate_getter(
             "Clinical (with excluded cases)",
             en.get_clinical(excluded=True),
             (153, 170),
             ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'],
             ((23, 44), (151, 6), (32, 165)),
             (0.004118258, 'CPT0230400002,CPT0230400003,CPT0230400004,CPT0230410002,CPT0230410003,CPT0230410004,CPT0230420002,CPT0230420003,CPT0230420004', 'e292b646-ce77-45a1-a535-cb0dd26898e8')
-        )
+        ):
+            PASS = False
 
         # Test get_proteomics()
-        PASS = tester.evaluate_getter(
+        if not  tester.evaluate_getter(
             "Proteomics",
             en.get_proteomics(),
             (153, 10999),
             ['A1BG', 'A2M', 'A2ML1', 'A4GALT', 'AAAS', 'AACS', 'AADAT', 'AAED1', 'AAGAB', 'AAK1', 'ZSWIM8', 'ZSWIM9', 'ZW10', 'ZWILCH', 'ZWINT', 'ZXDC', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3'],
             ((34, 6003), (99, 9544), (152, 32)),
             (-0.8170000000000001, -1.28, 0.904)
-        )
+        ):
+            PASS = False
+
+        # Test get_transcriptomics() with default data_type="linear"
+        if not tester.evaluate_getter(
+            "Transcriptomics (linear)",
+            en.get_transcriptomics(),
+            (115, 28057),
+            ['A1BG', 'A1BG-AS1', 'A1CF', 'A2M', 'A2M-AS1', 'A2ML1', 'A2MP1', 'A3GALT2', 'A4GALT', 'A4GNT', 'ZWILCH', 'ZWINT', 'ZXDA', 'ZXDB', 'ZXDC', 'ZYG11A', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3'],
+            ((22, 25483), (110, 23), (101, 17748)),
+            (0.89, 11.83, 7.02)
+        ):
+            PASS = False
+
+        # Test get_transcriptomics(data_type="circular")
+        if not tester.evaluate_getter(
+            "Transcriptomics (circular)",
+            en.get_transcriptomics(data_type="circular"),
+            (115, 4945),
+            ['circ_chr10_100260218_100262063_CWF19L1', 'circ_chr10_100923975_100926019_SLF2', 'circ_chr10_100923978_100926019_SLF2', 'circ_chr10_100937402_100944128_SLF2', 'circ_chr10_100937402_100950753_SLF2', 'circ_chr10_101584602_101586156_POLL', 'circ_chr10_101667886_101676436_FBXW4', 'circ_chr10_101672915_101676436_FBXW4', 'circ_chr10_101792839_101807901_OGA', 'circ_chr10_101792839_101810314_OGA', 'circ_chrX_80288906_80310233_CHMP1B2P', 'circ_chrX_80289664_80310233_CHMP1B2P', 'circ_chrX_80707427_80719656_BRWD3', 'circ_chrX_80791854_80793772_BRWD3', 'circ_chrX_84096194_84164387_RPS6KA6', 'circ_chrX_84134782_84164387_RPS6KA6', 'circ_chrX_85067127_85074391_APOOL', 'circ_chrX_85978767_85981809_CHM', 'circ_chrX_91414904_91418871_PABPC5-AS1', 'circ_chrX_9691579_9693419_TBL1X'],
+            ((110, 1), (34, 4935), (73, 2003)),
+            (8.85, 6.48, 0.0)
+        ):
+            PASS = False
+
+        # Test get_transcriptomics(data_type="miRNA")
+        if not tester.evaluate_getter(
+            "Transcriptomics (miRNA)",
+            en.get_transcriptomics(data_type="miRNA"),
+            (104, 2337),
+            ['hsa-let-7a-2-3p', 'hsa-let-7a-3p', 'hsa-let-7a-5p', 'hsa-let-7b-3p', 'hsa-let-7b-5p', 'hsa-let-7c-3p', 'hsa-let-7c-5p', 'hsa-let-7d-3p', 'hsa-let-7d-5p', 'hsa-let-7e-3p', 'hsa-miR-9901', 'hsa-miR-9902', 'hsa-miR-9903', 'hsa-miR-9983-3p', 'hsa-miR-9985', 'hsa-miR-9986', 'hsa-miR-99a-3p', 'hsa-miR-99a-5p', 'hsa-miR-99b-3p', 'hsa-miR-99b-5p'],
+            ((5, 0), (100, 1597), (54, 2231)),
+            (1.79, 1.25, 1.86)
+        ):
+            PASS = False
+
+        # We could test get_transcriptomics() with an invalid value for data_type, but that would cause an error message from get_transcriptomics() to be printed on standard output. Is there a way to grab that output, instead of printing it?
 
         # Indicate whether the overall test passed
         if PASS:
