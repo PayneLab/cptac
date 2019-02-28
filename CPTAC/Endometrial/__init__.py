@@ -160,20 +160,22 @@ def get_proteomics():
     proteomics dataframe
     """
     return proteomics
-def get_transcriptomics(circular = False, miRNA = False):
+def get_transcriptomics(data_type="linear"):
     """
     Parameters
-    circular: boolean indicating whether to return circular RNA data
-    miRNA: boolean indicating whether to return miRNA data
+    type: either "linear", "circular", or "miRNA". Indicates which transcriptomics dataframe you want.
 
     Returns
     Transcriptomics dataframe
     """
-    if circular:
+    if data_type == "linear":
+        return transcriptomics
+    elif data_type == "circular":
         return transcriptomics_circular
-    if miRNA:
+    elif data_type == "miRNA":
         return miRNA
-    return transcriptomics
+    else:
+        print("Invalid value for get_transcriptomics() data_type parameter.\n\tYou passed: {}\n\tOptions: 'linear', 'circular', or 'miRNA'".format(type))
 def get_CNA():
     """
     Parameters
