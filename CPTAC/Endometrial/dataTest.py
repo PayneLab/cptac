@@ -170,7 +170,25 @@ class Basic:
         ):
             PASS = False
 
-        # We could test get_transcriptomics() with an invalid value for data_type, but that would cause an error message from get_transcriptomics() to be printed on standard output. Is there a way to grab that output, instead of printing it?
+        # Test get_transcriptomics() with an invalid parameter, and make sure that it raises an exception
+        try:
+            en.get_transcriptomics("lorem ipsum")
+        except ValueError:
+            pass
+        else:
+            print("Error: get_transcriptomics() did not raise ValueError as expected, when given invalid parameter.")
+            PASS = False
+
+        # Test get_CNA()
+        if not tester.evaluate_getter(
+            "CNA",
+            en.get_CNA(),
+            (103, 28057),
+            ['MFSD14A', 'SASS6', 'TRMT13', 'LRRC39', 'DBT', 'RTCA-AS1', 'RTCA', 'MIR553', 'UBE4B', 'CDC14A', 'TSPY8', 'FAM197Y2', 'FAM197Y4', 'FAM197Y5', 'FAM197Y7', 'FAM197Y8', 'FAM197Y6', 'FAM197Y3', 'RBMY3AP', 'TTTY22'],
+            ((12, 27865), (67, 8), (102, 15439)),
+            (-0.19, 0.01, 0.03)
+        ):
+            PASS = False
 
         # Indicate whether the overall test passed
         if PASS:
