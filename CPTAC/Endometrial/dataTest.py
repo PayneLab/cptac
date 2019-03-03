@@ -59,6 +59,9 @@ class Basic:
         """
         PASS = True
 
+        # The following line mostly just to check that everything's working fine during development
+        print("\tTesting {}".format(name))
+
         # Get our dataframe to test
         df = getter
 
@@ -93,6 +96,9 @@ class Basic:
             if act_values[i] != value:
                 print("Error: {} dataframe value did not match expected value.\n\tColumn: {}\n\tIndex: {}\n\tExpected: {}\n\tActual: {}".format(name, df.columns.values[coordinates[i][1]], df.index.values[coordinates[i][0]], value, act_values[i]))
                 PASS = False
+
+        # The following line mostly to check everything's working during development
+        print("\t\tPass: " + str(PASS))
 
         # Return whether the getter passed the test
         return PASS
@@ -137,7 +143,7 @@ class Basic:
         ):
             PASS = False
 
-        # Test get_transcriptomics() with default data_type="linear"
+        # Test get_transcriptomics() with default parameter data_type="linear"
         if not tester.evaluate_getter(
             "Transcriptomics (linear)",
             en.get_transcriptomics(),
@@ -187,6 +193,17 @@ class Basic:
             ['MFSD14A', 'SASS6', 'TRMT13', 'LRRC39', 'DBT', 'RTCA-AS1', 'RTCA', 'MIR553', 'UBE4B', 'CDC14A', 'TSPY8', 'FAM197Y2', 'FAM197Y4', 'FAM197Y5', 'FAM197Y7', 'FAM197Y8', 'FAM197Y6', 'FAM197Y3', 'RBMY3AP', 'TTTY22'],
             ((12, 27865), (67, 8), (102, 15439)),
             (-0.19, 0.01, 0.03)
+        ):
+            PASS = False
+
+        # Test get_phosphoproteomics() with default parameter gene_level=False
+        if not tester.evaluate_getter(
+            "Phosphoproteomics (site)",
+            en.get_phosphoproteomics(),
+            (153, 73212),
+            ['AAAS-S495', 'AAAS-S541', 'AAAS-Y485', 'AACS-S618', 'AAED1-S12', 'AAGAB-S310', 'AAGAB-S311', 'AAK1-S14', 'AAK1-S18', 'AAK1-S20', 'ZZZ3-S397', 'ZZZ3-S411', 'ZZZ3-S420', 'ZZZ3-S424', 'ZZZ3-S426', 'ZZZ3-S468', 'ZZZ3-S89', 'ZZZ3-T415', 'ZZZ3-T418', 'ZZZ3-Y399'],
+            ((46, 45), (12, 72435), (96, 45362)),
+            (0.195, -0.27899999999999997, -0.13)
         ):
             PASS = False
 
