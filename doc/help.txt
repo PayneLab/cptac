@@ -27,12 +27,12 @@ get functions:
     Returns specified indices of proteomics data frame.
   get_proteomics_cols():
     Returns column names of proteomics data frame.
-  get_transcriptome_cols():
-    Returns column names of transcriptome data frame.
+  get_transcriptomics_cols():
+    Returns column names of transcriptomics data frame.
   get_cohort_proteomics(columns):
     Returns specified columns of proteomics data frame.
-  get_cohort_transcriptome(columns):
-    Returns specified columns of transcriptome data frame.
+  get_cohort_transcriptomics(columns):
+    Returns specified columns of transcriptomics data frame.
   get_cohort_cna(columns):
     Returns specified columns of CNA data frame.
   get_cohort_phosphoproteomics(columns):
