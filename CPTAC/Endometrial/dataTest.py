@@ -50,7 +50,7 @@ class Basic:
         name: string containing the name of the dataframe gotten by the getter we're testing
         getter: the method to get the dataframe we're testing, e.g. en.get_clinical()
         exp_dim: a tuple containing the expected dimensions of the dataframe, in the format (rows, columns)
-        exp_headers: a list containing the expected first ten and last ten headers, in order
+        exp_headers: if the dataframe has up to 20 columns, all of the headers for the dataframe, in order. If it has more than 20 columns, then a list containing the first ten and last ten headers, in order.
         coordinates: a tuple with three elements, each element being a tuple with two elements, the first element being the int index of the row of a test value, and the second element being the int index of the column of a test value
         values: a tuple with three elements, each element being the expected value of the test value corresponding to the coordinates at the same index in the coordinates parameter 
 
@@ -72,12 +72,14 @@ class Basic:
             PASS = False
 
         ## Check headers
-        act_headers = list(df.columns.values)
-        act_headers = act_headers[:10] + act_headers[-10:]
+        act_headers_all = list(df.columns.values)
+        if len(df.columns.values) <= 20:
+            act_headers = act_headers_all
+        else:
+            act_headers = act_headers_all[:10] + act_headers_all[-10:]
 
         if len(exp_headers) != len(act_headers):
-            # We shouldn't get to this point unless the tester function was given the wrong number of headers to test.
-            print("Error: unexpected number of headers given to test from the {} dataframe.".format(name))
+            print("Unexpected number of test headers in {} dataframe. Expected number of headers: {}. You passed {} headers.".format(name, len(act_headers), len(exp_headers)))
             PASS = False
         else:
             for i, header in enumerate(exp_headers):
@@ -204,6 +206,39 @@ class Basic:
             ['AAAS-S495', 'AAAS-S541', 'AAAS-Y485', 'AACS-S618', 'AAED1-S12', 'AAGAB-S310', 'AAGAB-S311', 'AAK1-S14', 'AAK1-S18', 'AAK1-S20', 'ZZZ3-S397', 'ZZZ3-S411', 'ZZZ3-S420', 'ZZZ3-S424', 'ZZZ3-S426', 'ZZZ3-S468', 'ZZZ3-S89', 'ZZZ3-T415', 'ZZZ3-T418', 'ZZZ3-Y399'],
             ((46, 45), (12, 72435), (96, 45362)),
             (0.195, -0.27899999999999997, -0.13)
+        ):
+            PASS = False
+
+        # Test get_phosphoproteomics(gene_level=True)
+        if not tester.evaluate_getter(
+            "Phosphoproteomics (gene)",
+            en.get_phosphoproteomics(gene_level=True),
+            (153, 8466),
+            ['AAAS', 'AACS', 'AAED1', 'AAGAB', 'AAK1', 'AAMDC', 'AARS', 'AASDH', 'AATF', 'ABCA1', 'ZSCAN5C', 'ZSWIM3', 'ZSWIM8', 'ZUP1', 'ZW10', 'ZXDA', 'ZXDC', 'ZYX', 'ZZEF1', 'ZZZ3'],
+            ((2, 7999), (148, 1045), (78, 6543)),
+            (-0.0879, 1.33, 0.153)
+        ):
+            PASS = False
+
+        # Test get_phosphosites
+        if not tester.evaluate_getter(
+            "Phosphosites for the AAK1-S14 gene",
+            en.get_phosphosites('AAK1-S14'),
+            (153, 1),
+            ['AAK1-S14'],
+            ((34, 0), (76, 0), (143, 0)),
+            (1.46, -0.0511, 0.9940000000000001)
+        ):
+            PASS = False
+
+        # Test get_somatic() with default parameters binary=False, unparsed=False
+        if not tester.evaluate_getter(
+            "Somatic",
+            en.get_somatic(),
+            (53101, 5),
+            ['Patient_Id', 'Gene', 'Mutation', 'Location', 'Clinical_Patient_Key'],
+            ((53000, 3), (12, 4), (34567, 0)),
+            ('p.M1259I', 'S001', 'C3N-00151')
         ):
             PASS = False
 
