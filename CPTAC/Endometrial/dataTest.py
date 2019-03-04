@@ -76,8 +76,8 @@ class Basic:
         act_headers = act_headers[:10] + act_headers[-10:]
 
         if len(exp_headers) != len(act_headers):
-            # We shouldn't get to this point unless the dimension check failed.
-            print("Error: {} dataframe had unexpected number of headers.\n\tExpected: {}\n\tActual: {}".format(name, len(exp_headers), len(act_headers)))
+            # We shouldn't get to this point unless the tester function was given the wrong number of headers to test.
+            print("Error: unexpected number of headers given to test from the {} dataframe.".format(name))
             PASS = False
         else:
             for i, header in enumerate(exp_headers):
@@ -114,10 +114,10 @@ class Basic:
         if not tester.evaluate_getter(
             "Clinical",
             en.get_clinical(),
-            (144, 170),
+            (144, 171),
             ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'],
             ((79, 81), (15, 146), (88, 12)),
-            (-1.03, 57.77777778, 'Serous')
+            (-1.03, 8.888888889, 'Serous')
         ):
             PASS = False
 
@@ -125,10 +125,10 @@ class Basic:
         if not tester.evaluate_getter(
             "Clinical (with excluded cases)",
             en.get_clinical(excluded=True),
-            (153, 170),
+            (153, 171),
             ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'],
             ((23, 44), (151, 6), (32, 165)),
-            (0.004118258, 'CPT0230400002,CPT0230400003,CPT0230400004,CPT0230410002,CPT0230410003,CPT0230410004,CPT0230420002,CPT0230420003,CPT0230420004', 'e292b646-ce77-45a1-a535-cb0dd26898e8')
+            (0.004118258, 'CPT0230400002,CPT0230400003,CPT0230400004,CPT0230410002,CPT0230410003,CPT0230410004,CPT0230420002,CPT0230420003,CPT0230420004', '171011_UNC31-K00269_0086_AHLJLCBBXX_CTTGTA_S7_L003_R2_001.fastq.gz')
         ):
             PASS = False
 
