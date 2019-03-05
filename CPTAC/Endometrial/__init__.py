@@ -70,6 +70,9 @@ clinical_unfiltered = DataFrameLoader(data_directory + "clinical.txt").createDat
 clinical = clinical_unfiltered[clinical_unfiltered["Case_excluded"] == "No"] #Drops all samples with Case_excluded == Yes
 clinical.name = clinical_unfiltered.name
 
+print("Loading Acetylation Proteomics Data...")
+acetylproteomics = DataFrameLoader(data_directory + "acetylproteomics.cct").createDataFrame()
+
 print("Loading Proteomics Data...")
 proteomics = DataFrameLoader(data_directory + "proteomics.cct.gz").createDataFrame()
 
@@ -151,6 +154,8 @@ def get_clinical(excluded=False):
     if excluded:
         return clinical_unfiltered
     return clinical
+def get_acetylproteomics():
+    return acetylproteomics
 def get_proteomics():
     """
     Parameters
