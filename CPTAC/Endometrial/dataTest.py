@@ -44,11 +44,11 @@ class Basic:
         else:
             print("FAIL")
 
-    def evaluate_getter(self, name, getter, exp_dim, exp_headers, coordinates, values):
+    def evaluate_getter(self, name, df, exp_dim, exp_headers, coordinates, values):
         """
         Parameters
         name: string containing the name of the dataframe gotten by the getter we're testing
-        getter: the method to get the dataframe we're testing, e.g. en.get_clinical()
+        df: the dataframe gotten by the getter we are testing
         exp_dim: a tuple containing the expected dimensions of the dataframe, in the format (rows, columns)
         exp_headers: if the dataframe has up to 20 columns, all of the headers for the dataframe, in order. If it has more than 20 columns, then a list containing the first ten and last ten headers, in order.
         coordinates: a tuple with three elements, each element being a tuple with two elements, the first element being the int index of the row of a test value, and the second element being the int index of the column of a test value
@@ -61,9 +61,6 @@ class Basic:
 
         # The following line mostly just to check that everything's working fine during development
         print("\tTesting {}".format(name))
-
-        # Get our dataframe to test
-        df = getter
 
         ## Check dimensions
         act_dim = df.shape
@@ -231,15 +228,38 @@ class Basic:
         ):
             PASS = False
 
-        # Test get_somatic() with default parameters binary=False, unparsed=False
+        # Test get_somatic() with default parameters binary=False, unparsed=False (this will return the Somatic Maf dataframe)
         if not tester.evaluate_getter(
-            "Somatic",
+            "Somatic (maf)",
             en.get_somatic(),
             (53101, 5),
             ['Patient_Id', 'Gene', 'Mutation', 'Location', 'Clinical_Patient_Key'],
             ((53000, 3), (12, 4), (34567, 0)),
             ('p.M1259I', 'S001', 'C3N-00151')
         ):
+            PASS = False
+
+        # Test get_somatic(binary=True) and therefore unparsed=False
+        somatic_binary_name = "Somatic (binary)"
+        somatic_binary_df = en.get_somatic(binary=True)
+        somatic_binary_dim = (103, 51559)
+        somatic_binary_headers = ['A1BG_p.E298K', 'A1BG_p.S181N', 'A1CF_p.F487L', 'A1CF_p.S236Y', 'A2ML1_p.A8V', 'A2ML1_p.G1306D', 'A2ML1_p.L1347F', 'A2ML1_p.L82I', 'A2ML1_p.P712S', 'A2ML1_p.R443Q', 'ZYG11A_p.Q442H', 'ZYG11B_p.H315R', 'ZYG11B_p.R495M', 'ZYG11B_p.R728C', 'ZYX_p.C447Y', 'ZZEF1_p.A2723V', 'ZZEF1_p.D845Y', 'ZZEF1_p.K1251E', 'ZZEF1_p.K2387Sfs*40', 'ZZZ3_p.Y891C']
+        somatic_binary_test_coord = ((102, 51558), (0, 0), (45, 25436))
+        somatic_binary_test_vals = (0, 0, 0)
+
+        if not tester.evaluate_getter(somatic_binary_name, somatic_binary_df, somatic_binary_dim, somatic_binary_headers, somatic_binary_test_coord, somatic_binary_test_vals):
+            PASS = False
+
+        
+        # Test get_somatic(unparsed=True) and therefore binary=False
+        somatic_unparsed_name = "Somatic (unparsed)"
+        somatic_unparsed_df = en.get_somatic(unparsed=True)
+        somatic_unparsed_dim = (53101, 124)
+        somatic_unparsed_headers = ['Hugo_Symbol', 'Entrez_Gene_Id', 'Center', 'NCBI_Build', 'Chromosome', 'Start_Position', 'End_Position', 'Strand', 'Variant_Classification', 'Variant_Type', 'ExAC_AC_AN_Adj', 'ExAC_AC_AN', 'ExAC_AC_AN_AFR', 'ExAC_AC_AN_AMR', 'ExAC_AC_AN_EAS', 'ExAC_AC_AN_FIN', 'ExAC_AC_AN_NFE', 'ExAC_AC_AN_OTH', 'ExAC_AC_AN_SAS', 'ExAC_FILTER']
+        somatic_unparsed_test_coord = ((52265, 45), (12, 70), (27658, 1))
+        somatic_unparsed_test_vals = ('strelkasnv-varssnv-mutectsnv', 'UPI0000167B91', 0)
+
+        if not tester.evaluate_getter(somatic_unparsed_name, somatic_unparsed_df, somatic_unparsed_dim, somatic_unparsed_headers, somatic_unparsed_test_coord, somatic_unparsed_test_vals):
             PASS = False
 
         # Indicate whether the overall test passed
