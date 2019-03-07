@@ -64,7 +64,7 @@ class Utilities:
             merge = df_gene.join(somatic_gene, how = "left") #left join omics data and mutation data (left being the omics data)
             merge = merge.fillna(value = {'Mutation':"Wildtype"}) #fill in all Mutation NA values (no mutation data) as Wildtype
             merge["index"] = merge.index #set index values as column
-            merge["Patient_Type"] = np.where(merge.index <= "S100", "Tumor", "Normal") #add patient type, setting all samples up to S100 as Tumor, others as normal. TODO: Should S100 be different now?
+            merge["Sample_Status"] = np.where(merge.index <= "S100", "Tumor", "Normal") #add patient type, setting all samples up to S100 as Tumor, others as normal. TODO: Should S100 be different now?
             merge.name = df_gene.columns[0] + " omics data with " + gene + " mutation data"
             return merge
         else:
@@ -143,7 +143,7 @@ class Utilities:
             if duplicates: #don't filter out duplicate sample mutations
                 return self.merge_somatic(somatic, gene, omics_gene_df, multiple_mutations = True)
             else: #filter out duplicate sample mutations
-                return self.merge_somatic(somatic, gene, omics_gene_df)[[gene, "Mutation", "Patient_Type"]]
+                return self.merge_somatic(somatic, gene, omics_gene_df)[[gene, "Mutation", "Sample_Status"]]
         elif omics.name.split("_")[0] == "phosphoproteomics":
             phosphosites = self.get_phosphosites(omics, gene)
             if len(phosphosites.columns) > 0:
@@ -152,7 +152,7 @@ class Utilities:
                 else:#filter out duplicate sample mutations
                     columns = list(phosphosites.columns)
                     columns.append("Mutation")
-                    columns.append("Patient_Type")
+                    columns.append("Sample_Status")
                     merged_somatic = self.merge_somatic(somatic, gene, phosphosites)
                     return merged_somatic[columns] #select all phosphosites, mutation, and patient type columns
 
@@ -175,7 +175,7 @@ class Utilities:
             if duplicates:
                 return self.merge_somatic(somatic, somaticGene, omics_gene_df, multiple_mutations = True)
             else:
-                return self.merge_somatic(somatic, somaticGene, omics_gene_df)[[omicsGene, "Mutation", "Patient_Type"]]
+                return self.merge_somatic(somatic, somaticGene, omics_gene_df)[[omicsGene, "Mutation", "Sample_Status"]]
         elif omics.name.split("_")[0] == "phosphoproteomics":
             phosphosites = self.get_phosphosites(omics, omicsGene)
             if len(phosphosites.columns) > 0:
@@ -184,7 +184,7 @@ class Utilities:
                 else:
                     columns = list(phosphosites.columns)
                     columns.append("Mutation")
-                    columns.append("Patient_Type")
+                    columns.append("Sample_Status")
                     merged_somatic = self.merge_somatic(somatic, somaticGene, phosphosites)
                     return merged_somatic[columns]
         else:
