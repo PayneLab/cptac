@@ -44,7 +44,7 @@ class Basic:
         else:
             print("FAIL")
 
-    def evaluate_getter(self, name, df, exp_dim, exp_headers, coordinates, values):
+    def check_dataframe(self, name, df, exp_dim, exp_headers, coordinates, values):
         """
         Parameters
         name: string containing the name of the dataframe gotten by the getter we're testing
@@ -59,8 +59,7 @@ class Basic:
         """
         PASS = True
 
-        # The following line mostly just to check that everything's working fine during development
-        print("\tTesting {}".format(name))
+        df = df
 
         ## Check dimensions
         act_dim = df.shape
@@ -110,7 +109,7 @@ class Basic:
         PASS = True
 
         # Test get_clinical() with the default parameter excluded=False
-        if not tester.evaluate_getter(
+        if not tester.check_dataframe(
             "Clinical",
             en.get_clinical(),
             (144, 171),
@@ -121,7 +120,7 @@ class Basic:
             PASS = False
 
         # Test get_clinical(excluded=True)
-        if not tester.evaluate_getter(
+        if not tester.check_dataframe(
             "Clinical (with excluded cases)",
             en.get_clinical(excluded=True),
             (153, 171),
@@ -132,7 +131,7 @@ class Basic:
             PASS = False
 
         # Test get_proteomics()
-        if not  tester.evaluate_getter(
+        if not  tester.check_dataframe(
             "Proteomics",
             en.get_proteomics(),
             (153, 10999),
@@ -143,7 +142,7 @@ class Basic:
             PASS = False
 
         # Test get_transcriptomics() with default parameter data_type="linear"
-        if not tester.evaluate_getter(
+        if not tester.check_dataframe(
             "Transcriptomics (linear)",
             en.get_transcriptomics(),
             (115, 28057),
@@ -154,7 +153,7 @@ class Basic:
             PASS = False
 
         # Test get_transcriptomics(data_type="circular")
-        if not tester.evaluate_getter(
+        if not tester.check_dataframe(
             "Transcriptomics (circular)",
             en.get_transcriptomics(data_type="circular"),
             (115, 4945),
@@ -165,7 +164,7 @@ class Basic:
             PASS = False
 
         # Test get_transcriptomics(data_type="miRNA")
-        if not tester.evaluate_getter(
+        if not tester.check_dataframe(
             "Transcriptomics (miRNA)",
             en.get_transcriptomics(data_type="miRNA"),
             (104, 2337),
@@ -185,7 +184,7 @@ class Basic:
             PASS = False
 
         # Test get_CNA()
-        if not tester.evaluate_getter(
+        if not tester.check_dataframe(
             "CNA",
             en.get_CNA(),
             (103, 28057),
@@ -196,7 +195,7 @@ class Basic:
             PASS = False
 
         # Test get_phosphoproteomics() with default parameter gene_level=False
-        if not tester.evaluate_getter(
+        if not tester.check_dataframe(
             "Phosphoproteomics (site)",
             en.get_phosphoproteomics(),
             (153, 73212),
@@ -207,7 +206,7 @@ class Basic:
             PASS = False
 
         # Test get_phosphoproteomics(gene_level=True)
-        if not tester.evaluate_getter(
+        if not tester.check_dataframe(
             "Phosphoproteomics (gene)",
             en.get_phosphoproteomics(gene_level=True),
             (153, 8466),
@@ -218,7 +217,7 @@ class Basic:
             PASS = False
 
         # Test get_phosphosites
-        if not tester.evaluate_getter(
+        if not tester.check_dataframe(
             "Phosphosites for the AAK1-S14 gene",
             en.get_phosphosites('AAK1-S14'),
             (153, 1),
@@ -229,14 +228,14 @@ class Basic:
             PASS = False
 
         # Test get_somatic() with default parameters binary=False, unparsed=False (this will return the Somatic Maf dataframe)
-        if not tester.evaluate_getter(
-            "Somatic (maf)",
-            en.get_somatic(),
-            (53101, 5),
-            ['Patient_Id', 'Gene', 'Mutation', 'Location', 'Clinical_Patient_Key'],
-            ((53000, 3), (12, 4), (34567, 0)),
-            ('p.M1259I', 'S001', 'C3N-00151')
-        ):
+        somatic_name = "Somatic (maf)"
+        somatic_df = en.get_somatic()
+        somatic_dim = (53101, 5)
+        somatic_headers = ['Patient_Id', 'Gene', 'Mutation', 'Location', 'Clinical_Patient_Key']
+        somatic_test_coord = ((53000, 3), (12, 4), (34567, 0))
+        somatic_test_vals = ('p.M1259I', 'S001', 'C3N-00151')
+
+        if not tester.check_dataframe(somatic_name, somatic_df, somatic_dim, somatic_headers, somatic_test_coord, somatic_test_vals):
             PASS = False
 
         # Test get_somatic(binary=True) and therefore unparsed=False
@@ -247,7 +246,7 @@ class Basic:
         somatic_binary_test_coord = ((102, 51558), (0, 0), (45, 25436))
         somatic_binary_test_vals = (0, 0, 0)
 
-        if not tester.evaluate_getter(somatic_binary_name, somatic_binary_df, somatic_binary_dim, somatic_binary_headers, somatic_binary_test_coord, somatic_binary_test_vals):
+        if not tester.check_dataframe(somatic_binary_name, somatic_binary_df, somatic_binary_dim, somatic_binary_headers, somatic_binary_test_coord, somatic_binary_test_vals):
             PASS = False
 
         
@@ -259,7 +258,7 @@ class Basic:
         somatic_unparsed_test_coord = ((52265, 45), (12, 70), (27658, 1))
         somatic_unparsed_test_vals = ('strelkasnv-varssnv-mutectsnv', 'UPI0000167B91', 0)
 
-        if not tester.evaluate_getter(somatic_unparsed_name, somatic_unparsed_df, somatic_unparsed_dim, somatic_unparsed_headers, somatic_unparsed_test_coord, somatic_unparsed_test_vals):
+        if not tester.check_dataframe(somatic_unparsed_name, somatic_unparsed_df, somatic_unparsed_dim, somatic_unparsed_headers, somatic_unparsed_test_coord, somatic_unparsed_test_vals):
             PASS = False
 
         # Indicate whether the overall test passed
@@ -319,6 +318,8 @@ class Basic:
         else:
             print("FAIL")
 
+    def evaluate_utilities_v2(self):
+        pass
 
 class Stats:
     def __init__(self):
