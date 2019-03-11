@@ -59,8 +59,6 @@ class Basic:
         """
         PASS = True
 
-        df = df
-
         ## Check dimensions
         act_dim = df.shape
         if exp_dim != act_dim:
