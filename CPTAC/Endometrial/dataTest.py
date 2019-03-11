@@ -55,7 +55,7 @@ class Basic:
         values: a tuple with three elements, each element being the expected value of the test value corresponding to the coordinates at the same index in the coordinates parameter 
 
         Returns
-        Bool indicating if getter passed the test
+        Bool indicating if dataframe passed the test
         """
         PASS = True
 
@@ -195,36 +195,36 @@ class Basic:
             PASS = False
 
         # Test get_phosphoproteomics() with default parameter gene_level=False
-        if not tester.check_dataframe(
-            "Phosphoproteomics (site)",
-            en.get_phosphoproteomics(),
-            (153, 73212),
-            ['AAAS-S495', 'AAAS-S541', 'AAAS-Y485', 'AACS-S618', 'AAED1-S12', 'AAGAB-S310', 'AAGAB-S311', 'AAK1-S14', 'AAK1-S18', 'AAK1-S20', 'ZZZ3-S397', 'ZZZ3-S411', 'ZZZ3-S420', 'ZZZ3-S424', 'ZZZ3-S426', 'ZZZ3-S468', 'ZZZ3-S89', 'ZZZ3-T415', 'ZZZ3-T418', 'ZZZ3-Y399'],
-            ((46, 45), (12, 72435), (96, 45362)),
-            (0.195, -0.27899999999999997, -0.13)
-        ):
+        phosphoproteomics_site_name = "Phosphoproteomics (site)"
+        phosphoproteomics_site_df =  en.get_phosphoproteomics()
+        phosphoproteomics_site_dim = (153, 73212)
+        phosphoproteomics_site_headers = ['AAAS-S495', 'AAAS-S541', 'AAAS-Y485', 'AACS-S618', 'AAED1-S12', 'AAGAB-S310', 'AAGAB-S311', 'AAK1-S14', 'AAK1-S18', 'AAK1-S20', 'ZZZ3-S397', 'ZZZ3-S411', 'ZZZ3-S420', 'ZZZ3-S424', 'ZZZ3-S426', 'ZZZ3-S468', 'ZZZ3-S89', 'ZZZ3-T415', 'ZZZ3-T418', 'ZZZ3-Y399']
+        phosphoproteomics_site_test_coord = ((46, 45), (12, 72435), (96, 45362))
+        phosphoproteomics_site_test_vals = (0.195, -0.27899999999999997, -0.13)
+
+        if not tester.check_dataframe(phosphoproteomics_site_name, phosphoproteomics_site_df, phosphoproteomics_site_dim, phosphoproteomics_site_headers, phosphoproteomics_site_test_coord, phosphoproteomics_site_test_vals):
             PASS = False
 
         # Test get_phosphoproteomics(gene_level=True)
-        if not tester.check_dataframe(
-            "Phosphoproteomics (gene)",
-            en.get_phosphoproteomics(gene_level=True),
-            (153, 8466),
-            ['AAAS', 'AACS', 'AAED1', 'AAGAB', 'AAK1', 'AAMDC', 'AARS', 'AASDH', 'AATF', 'ABCA1', 'ZSCAN5C', 'ZSWIM3', 'ZSWIM8', 'ZUP1', 'ZW10', 'ZXDA', 'ZXDC', 'ZYX', 'ZZEF1', 'ZZZ3'],
-            ((2, 7999), (148, 1045), (78, 6543)),
-            (-0.0879, 1.33, 0.153)
-        ):
+        phosphoproteomics_gene_name = "Phosphoproteomics (gene)"
+        phosphoproteomics_gene_df = en.get_phosphoproteomics(gene_level=True)
+        phosphoproteomics_gene_dim = (153, 8466)
+        phosphoproteomics_gene_headers = ['AAAS', 'AACS', 'AAED1', 'AAGAB', 'AAK1', 'AAMDC', 'AARS', 'AASDH', 'AATF', 'ABCA1', 'ZSCAN5C', 'ZSWIM3', 'ZSWIM8', 'ZUP1', 'ZW10', 'ZXDA', 'ZXDC', 'ZYX', 'ZZEF1', 'ZZZ3']
+        phosphoproteomics_gene_test_coord =  ((2, 7999), (148, 1045), (78, 6543))
+        phosphoproteomics_gene_test_vals = (-0.0879, 1.33, 0.153)
+
+        if not tester.check_dataframe(phosphoproteomics_gene_name, phosphoproteomics_gene_df, phosphoproteomics_gene_dim, phosphoproteomics_gene_headers, phosphoproteomics_gene_test_coord, phosphoproteomics_gene_test_vals):
             PASS = False
 
         # Test get_phosphosites
-        if not tester.check_dataframe(
-            "Phosphosites for the AAK1-S14 gene",
-            en.get_phosphosites('AAK1-S14'),
-            (153, 1),
-            ['AAK1-S14'],
-            ((34, 0), (76, 0), (143, 0)),
-            (1.46, -0.0511, 0.9940000000000001)
-        ):
+        phosphosites_name = "Phosphosites for the AAK1-S14 gene"
+        phosphosites_df = en.get_phosphosites('AAK1-S14')
+        phosphosites_dim = (153, 1)
+        phosphosites_headers = ['AAK1-S14']
+        phosphosites_test_coord = ((34, 0), (76, 0), (143, 0))
+        phosphosites_test_vals = (1.46, -0.0511, 0.9940000000000001)
+
+        if not tester.check_dataframe(phosphosites_name, phosphosites_df, phosphosites_dim, phosphosites_headers, phosphosites_test_coord, phosphosites_test_vals):
             PASS = False
 
         # Test get_somatic() with default parameters binary=False, unparsed=False (this will return the Somatic Maf dataframe)
@@ -319,7 +319,41 @@ class Basic:
             print("FAIL")
 
     def evaluate_utilities_v2(self):
-        pass
+        # We will test all of the compare_**** functions, which either merge dataframes, or add columns to a dataframe
+        # When dataframes are merged, we will make sure that the data in the merged dataframe was mapped to the proper identifier
+        # When a column is added, we will make sure that data is not lost.
+
+        # Load our dataframes
+        proteomics = en.get_proteomics()
+        phosphoproteomics = en.get_phosphoproteomics()
+        transcriptomics = en.get_transcriptomics()
+        cna = en.get_CNA()
+
+        # Test compare_gene, using the A1BG gene
+        compared_A1BG = en.compare_gene(proteomics, transcriptomics, 'A1BG')
+        # Loop through each row in the merged dataframe, and make sure that the values for each sample match the values for that sample in the original two dataframes.
+
+        # Test compare_genes
+
+        # Test compare_mutations (proteomics)
+
+        # Test compare_mutations (proetomics with somatic)
+
+        # Test compare_mutations (phosphosproteomics)
+
+        # Test compare_mutations (phosphoproteomics with somatic)
+
+        # Test compare_mutations_full (proteomics)
+
+        # Test compare_mutations_full (proetomics with somatic)
+
+        # Test compare_mutations_full (phosphosproteomics)
+
+        # Test compare_mutations_full (phosphoproteomics with somatic)
+
+        # Test compare_clinical
+
+        # Test compare_phosphosites
 
 class Stats:
     def __init__(self):
