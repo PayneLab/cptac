@@ -67,35 +67,58 @@ file.close()
 
 print("Loading Clinical Data...")
 clinical_unfiltered = DataFrameLoader(data_directory + "clinical.txt").createDataFrame()
-clinical = clinical_unfiltered[clinical_unfiltered["Case_excluded"] == "No"] #Drops all samples with Case_excluded == Yes
+casesToDrop = clinical_unfiltered[clinical_unfiltered["Case_excluded"] == "Yes"].index
+clinical = clinical_unfiltered.drop(casesToDrop, errors = "ignore") #Drops all samples with Case_excluded == Yes
 clinical.name = clinical_unfiltered.name
 
 print("Loading Acetylation Proteomics Data...")
-acetylproteomics = DataFrameLoader(data_directory + "acetylproteomics.cct").createDataFrame()
+acetylproteomics_u = DataFrameLoader(data_directory + "acetylproteomics.cct").createDataFrame()
+acetylproteomics = acetylproteomics_u.drop(casesToDrop, errors = "ignore")
+acetylproteomics.name = acetylproteomics_u.name
 
 print("Loading Proteomics Data...")
-proteomics = DataFrameLoader(data_directory + "proteomics.cct.gz").createDataFrame()
+proteomics_u = DataFrameLoader(data_directory + "proteomics.cct.gz").createDataFrame()
+proteomics = proteomics_u.drop(casesToDrop, errors = "ignore")
+proteomics.name = proteomics_u.name
 
 print("Loading Transcriptomics Data...")
-transcriptomics = DataFrameLoader(data_directory + "transcriptomics_linear.cct.gz").createDataFrame()
-transcriptomics_circular = DataFrameLoader(data_directory + "transcriptomics_circular.cct.gz").createDataFrame()
-miRNA = DataFrameLoader(data_directory + "miRNA.cct.gz").createDataFrame()
+transcriptomics_u = DataFrameLoader(data_directory + "transcriptomics_linear.cct.gz").createDataFrame()
+transcriptomics_circular_u = DataFrameLoader(data_directory + "transcriptomics_circular.cct.gz").createDataFrame()
+miRNA_u = DataFrameLoader(data_directory + "miRNA.cct.gz").createDataFrame()
+
+transcriptomics = transcriptomics_u.drop(casesToDrop, errors = "ignore")
+transcriptomics_circular = transcriptomics_circular_u.drop(casesToDrop, errors = "ignore")
+miRNA = miRNA_u.drop(casesToDrop, errors = "ignore")
+
+transcriptomics.name = transcriptomics_u.name
+transcriptomics_circular.name = transcriptomics_circular_u.name
+miRNA.name = miRNA_u.name
 
 print("Loading CNA Data...")
-cna = DataFrameLoader(data_directory + "CNA.cct.gz").createDataFrame()
+cna_u = DataFrameLoader(data_directory + "CNA.cct.gz").createDataFrame()
+cna = cna_u.drop(casesToDrop, errors = "ignore")
+cna.name = cna_u.name
 
 print("Loading Phosphoproteomics Data...")
-phosphoproteomics = DataFrameLoader(data_directory + "phosphoproteomics_site.cct.gz").createDataFrame()
-phosphoproteomics_gene = DataFrameLoader(data_directory + "phosphoproteomics_gene.cct.gz").createDataFrame()
+phosphoproteomics_u = DataFrameLoader(data_directory + "phosphoproteomics_site.cct.gz").createDataFrame()
+phosphoproteomics_gene_u = DataFrameLoader(data_directory + "phosphoproteomics_gene.cct.gz").createDataFrame()
+
+phosphoproteomics = phosphoproteomics_u.drop(casesToDrop, errors = "ignore")
+phosphoproteomics_gene = phosphoproteomics_gene_u.drop(casesToDrop, errors = "ignore")
+phosphoproteomics.name = phosphoproteomics_u.name
+phosphoproteomics_gene.name = phosphoproteomics_gene_u.name
 
 print("Loading Somatic Mutation Data...")
-somatic_binary = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
+somatic_binary_u = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
+somatic_binary = somatic_binary_u.drop(casesToDrop, errors = "ignore")
 somatic_binary.name = "somatic binary"
-somatic_unparsed = pd.read_csv(data_directory + "somatic.maf.gz", sep = "\t")
+somatic_unparsed_u = pd.read_csv(data_directory + "somatic.maf.gz", sep = "\t")
+somatic_unparsed = somatic_unparsed_u.drop(casesToDrop, errors = "ignore")
 somatic_unparsed.name = "somatic MAF unparsed"
-somatic_maf = DataFrameLoader(data_directory + "somatic.maf.gz").createDataFrame()
+somatic_maf_u = DataFrameLoader(data_directory + "somatic.maf.gz").createDataFrame()
 patient_ids = create_patient_ids(clinical_unfiltered) #maps C3L-**** number to S*** number
-somatic_maf = link_patient_ids(patient_ids, somatic_maf) #adds S*** number to somatic mutations dataframe
+somatic_maf_u = link_patient_ids(patient_ids, somatic_maf_u) #adds S*** number to somatic mutations dataframe
+somatic_maf = somatic_maf_u.drop(casesToDrop, errors = "ignore")
 somatic_maf.name = "somatic MAF"
 
 
