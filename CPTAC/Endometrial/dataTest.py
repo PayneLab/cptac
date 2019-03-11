@@ -95,9 +95,6 @@ class Basic:
                 print("Error: {} dataframe value did not match expected value.\n\tColumn: {}\n\tIndex: {}\n\tExpected: {}\n\tActual: {}".format(name, df.columns.values[coordinates[i][1]], df.index.values[coordinates[i][0]], value, act_values[i]))
                 PASS = False
 
-        # The following line mostly to check everything's working during development
-        print("\t\tPass: " + str(PASS))
-
         # Return whether the getter passed the test
         return PASS
 
@@ -109,69 +106,69 @@ class Basic:
         PASS = True
 
         # Test get_clinical() with the default parameter excluded=False
-        if not tester.check_dataframe(
-            "Clinical",
-            en.get_clinical(),
-            (144, 171),
-            ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'],
-            ((79, 81), (15, 146), (88, 12)),
-            (-1.03, 8.888888889, 'Serous')
-        ):
+        clinical_name = "Clinical"
+        clinical_df = en.get_clinical()
+        clinical_dim = (144, 171)
+        clinical_headers = ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
+        clinical_test_coord = ((79, 81), (15, 146), (88, 12))
+        clinical_test_vals = (-1.03, 8.888888889, 'Serous')
+
+        if not tester.check_dataframe(clinical_name, clinical_df, clinical_dim, clinical_headers, clinical_test_coord, clinical_test_vals):
             PASS = False
 
         # Test get_clinical(excluded=True)
-        if not tester.check_dataframe(
-            "Clinical (with excluded cases)",
-            en.get_clinical(excluded=True),
-            (153, 171),
-            ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'],
-            ((23, 44), (151, 6), (32, 165)),
-            (0.004118258, 'CPT0230400002,CPT0230400003,CPT0230400004,CPT0230410002,CPT0230410003,CPT0230410004,CPT0230420002,CPT0230420003,CPT0230420004', '171011_UNC31-K00269_0086_AHLJLCBBXX_CTTGTA_S7_L003_R2_001.fastq.gz')
-        ):
+        clinical_excluded_name = "Clinical (with excluded cases)"
+        clinical_excluded_df = en.get_clinical(excluded=True)
+        clinical_excluded_dim = (153, 171)
+        clinical_excluded_headers = ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
+        clinical_excluded_test_coord = ((23, 44), (151, 6), (32, 165))
+        clinical_excluded_test_vals = (0.004118258, 'CPT0230400002,CPT0230400003,CPT0230400004,CPT0230410002,CPT0230410003,CPT0230410004,CPT0230420002,CPT0230420003,CPT0230420004', '171011_UNC31-K00269_0086_AHLJLCBBXX_CTTGTA_S7_L003_R2_001.fastq.gz')
+
+        if not tester.check_dataframe(clinical_excluded_name, clinical_excluded_df, clinical_excluded_dim, clinical_excluded_headers, clinical_excluded_test_coord, clinical_excluded_test_vals):
             PASS = False
 
         # Test get_proteomics()
-        if not  tester.check_dataframe(
-            "Proteomics",
-            en.get_proteomics(),
-            (153, 10999),
-            ['A1BG', 'A2M', 'A2ML1', 'A4GALT', 'AAAS', 'AACS', 'AADAT', 'AAED1', 'AAGAB', 'AAK1', 'ZSWIM8', 'ZSWIM9', 'ZW10', 'ZWILCH', 'ZWINT', 'ZXDC', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3'],
-            ((34, 6003), (99, 9544), (152, 32)),
-            (-0.8170000000000001, -1.28, 0.904)
-        ):
+        proteomics_name = "Proteomics"
+        proteomics_df = en.get_proteomics()
+        proteomics_dim = (144, 10999)
+        proteomics_headers = ['A1BG', 'A2M', 'A2ML1', 'A4GALT', 'AAAS', 'AACS', 'AADAT', 'AAED1', 'AAGAB', 'AAK1', 'ZSWIM8', 'ZSWIM9', 'ZW10', 'ZWILCH', 'ZWINT', 'ZXDC', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3']
+        proteomics_test_coord = ((34, 6003), (99, 9544), (143, 32))
+        proteomics_test_vals = (0.0461, 1.68, 0.904)
+
+        if not  tester.check_dataframe(proteomics_name, proteomics_df, proteomics_dim, proteomics_headers, proteomics_test_coord, proteomics_test_vals):
             PASS = False
 
         # Test get_transcriptomics() with default parameter data_type="linear"
-        if not tester.check_dataframe(
-            "Transcriptomics (linear)",
-            en.get_transcriptomics(),
-            (115, 28057),
-            ['A1BG', 'A1BG-AS1', 'A1CF', 'A2M', 'A2M-AS1', 'A2ML1', 'A2MP1', 'A3GALT2', 'A4GALT', 'A4GNT', 'ZWILCH', 'ZWINT', 'ZXDA', 'ZXDB', 'ZXDC', 'ZYG11A', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3'],
-            ((22, 25483), (110, 23), (101, 17748)),
-            (0.89, 11.83, 7.02)
-        ):
+        transcriptomics_linear_name = "Transcriptomics (linear)"
+        transcriptomics_linear_df = en.get_transcriptomics()
+        transcriptomics_linear_dim = (109, 28057)
+        transcriptomics_linear_headers = ['A1BG', 'A1BG-AS1', 'A1CF', 'A2M', 'A2M-AS1', 'A2ML1', 'A2MP1', 'A3GALT2', 'A4GALT', 'A4GNT', 'ZWILCH', 'ZWINT', 'ZXDA', 'ZXDB', 'ZXDC', 'ZYG11A', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3']
+        transcriptomics_linear_test_coord = ((22, 25483), (108, 23), (101, 17748))
+        transcriptomics_linear_test_vals = (0.82, 12.0, 6.19)
+
+        if not tester.check_dataframe(transcriptomics_linear_name, transcriptomics_linear_df, transcriptomics_linear_dim, transcriptomics_linear_headers, transcriptomics_linear_test_coord, transcriptomics_linear_test_vals):
             PASS = False
 
         # Test get_transcriptomics(data_type="circular")
-        if not tester.check_dataframe(
-            "Transcriptomics (circular)",
-            en.get_transcriptomics(data_type="circular"),
-            (115, 4945),
-            ['circ_chr10_100260218_100262063_CWF19L1', 'circ_chr10_100923975_100926019_SLF2', 'circ_chr10_100923978_100926019_SLF2', 'circ_chr10_100937402_100944128_SLF2', 'circ_chr10_100937402_100950753_SLF2', 'circ_chr10_101584602_101586156_POLL', 'circ_chr10_101667886_101676436_FBXW4', 'circ_chr10_101672915_101676436_FBXW4', 'circ_chr10_101792839_101807901_OGA', 'circ_chr10_101792839_101810314_OGA', 'circ_chrX_80288906_80310233_CHMP1B2P', 'circ_chrX_80289664_80310233_CHMP1B2P', 'circ_chrX_80707427_80719656_BRWD3', 'circ_chrX_80791854_80793772_BRWD3', 'circ_chrX_84096194_84164387_RPS6KA6', 'circ_chrX_84134782_84164387_RPS6KA6', 'circ_chrX_85067127_85074391_APOOL', 'circ_chrX_85978767_85981809_CHM', 'circ_chrX_91414904_91418871_PABPC5-AS1', 'circ_chrX_9691579_9693419_TBL1X'],
-            ((110, 1), (34, 4935), (73, 2003)),
-            (8.85, 6.48, 0.0)
-        ):
+        transcriptomics_circular_name = "Transcriptomics (circular)"
+        transcriptomics_circular_df = en.get_transcriptomics(data_type="circular")
+        transcriptomics_circular_dim = (109, 4945)
+        transcriptomics_circular_headers = ['circ_chr10_100260218_100262063_CWF19L1', 'circ_chr10_100923975_100926019_SLF2', 'circ_chr10_100923978_100926019_SLF2', 'circ_chr10_100937402_100944128_SLF2', 'circ_chr10_100937402_100950753_SLF2', 'circ_chr10_101584602_101586156_POLL', 'circ_chr10_101667886_101676436_FBXW4', 'circ_chr10_101672915_101676436_FBXW4', 'circ_chr10_101792839_101807901_OGA', 'circ_chr10_101792839_101810314_OGA', 'circ_chrX_80288906_80310233_CHMP1B2P', 'circ_chrX_80289664_80310233_CHMP1B2P', 'circ_chrX_80707427_80719656_BRWD3', 'circ_chrX_80791854_80793772_BRWD3', 'circ_chrX_84096194_84164387_RPS6KA6', 'circ_chrX_84134782_84164387_RPS6KA6', 'circ_chrX_85067127_85074391_APOOL', 'circ_chrX_85978767_85981809_CHM', 'circ_chrX_91414904_91418871_PABPC5-AS1', 'circ_chrX_9691579_9693419_TBL1X']
+        transcriptomics_circular_test_coord = ((108, 1), (30, 4935), (73, 2003))
+        transcriptomics_circular_test_vals = (9.08, 6.56, 0.0)
+
+        if not tester.check_dataframe(transcriptomics_circular_name, transcriptomics_circular_df, transcriptomics_circular_dim, transcriptomics_circular_headers, transcriptomics_circular_test_coord, transcriptomics_circular_test_vals):
             PASS = False
 
         # Test get_transcriptomics(data_type="miRNA")
-        if not tester.check_dataframe(
-            "Transcriptomics (miRNA)",
-            en.get_transcriptomics(data_type="miRNA"),
-            (104, 2337),
-            ['hsa-let-7a-2-3p', 'hsa-let-7a-3p', 'hsa-let-7a-5p', 'hsa-let-7b-3p', 'hsa-let-7b-5p', 'hsa-let-7c-3p', 'hsa-let-7c-5p', 'hsa-let-7d-3p', 'hsa-let-7d-5p', 'hsa-let-7e-3p', 'hsa-miR-9901', 'hsa-miR-9902', 'hsa-miR-9903', 'hsa-miR-9983-3p', 'hsa-miR-9985', 'hsa-miR-9986', 'hsa-miR-99a-3p', 'hsa-miR-99a-5p', 'hsa-miR-99b-3p', 'hsa-miR-99b-5p'],
-            ((5, 0), (100, 1597), (54, 2231)),
-            (1.79, 1.25, 1.86)
-        ):
+        mirna_name = "Transcriptomics (miRNA)"
+        mirna_df = en.get_transcriptomics(data_type="miRNA")
+        mirna_dim = (99, 2337)
+        mirna_headers = ['hsa-let-7a-2-3p', 'hsa-let-7a-3p', 'hsa-let-7a-5p', 'hsa-let-7b-3p', 'hsa-let-7b-5p', 'hsa-let-7c-3p', 'hsa-let-7c-5p', 'hsa-let-7d-3p', 'hsa-let-7d-5p', 'hsa-let-7e-3p', 'hsa-miR-9901', 'hsa-miR-9902', 'hsa-miR-9903', 'hsa-miR-9983-3p', 'hsa-miR-9985', 'hsa-miR-9986', 'hsa-miR-99a-3p', 'hsa-miR-99a-5p', 'hsa-miR-99b-3p', 'hsa-miR-99b-5p']
+        mirna_test_coord = ((5, 0), (98, 1597), (54, 2231))
+        mirna_test_vals = (1.79, 1.36, 0.26)
+        
+        if not tester.check_dataframe(mirna_name, mirna_df, mirna_dim, mirna_headers, mirna_test_coord, mirna_test_vals):
             PASS = False
 
         # Test get_transcriptomics() with an invalid parameter, and make sure that it raises an exception
@@ -184,23 +181,23 @@ class Basic:
             PASS = False
 
         # Test get_CNA()
-        if not tester.check_dataframe(
-            "CNA",
-            en.get_CNA(),
-            (103, 28057),
-            ['MFSD14A', 'SASS6', 'TRMT13', 'LRRC39', 'DBT', 'RTCA-AS1', 'RTCA', 'MIR553', 'UBE4B', 'CDC14A', 'TSPY8', 'FAM197Y2', 'FAM197Y4', 'FAM197Y5', 'FAM197Y7', 'FAM197Y8', 'FAM197Y6', 'FAM197Y3', 'RBMY3AP', 'TTTY22'],
-            ((12, 27865), (67, 8), (102, 15439)),
-            (-0.19, 0.01, 0.03)
-        ):
+        cna_name = "CNA"
+        cna_df = en.get_CNA()
+        cna_dim = (95, 28057)
+        cna_headers = ['MFSD14A', 'SASS6', 'TRMT13', 'LRRC39', 'DBT', 'RTCA-AS1', 'RTCA', 'MIR553', 'UBE4B', 'CDC14A', 'TSPY8', 'FAM197Y2', 'FAM197Y4', 'FAM197Y5', 'FAM197Y7', 'FAM197Y8', 'FAM197Y6', 'FAM197Y3', 'RBMY3AP', 'TTTY22']
+        cna_test_coord = ((12, 27865), (60, 8), (94, 15439))
+        cna_test_vals = (-0.07, 0.01, 0.03)
+
+        if not tester.check_dataframe(cna_name, cna_df, cna_dim, cna_headers, cna_test_coord, cna_test_vals):
             PASS = False
 
         # Test get_phosphoproteomics() with default parameter gene_level=False
         phosphoproteomics_site_name = "Phosphoproteomics (site)"
         phosphoproteomics_site_df =  en.get_phosphoproteomics()
-        phosphoproteomics_site_dim = (153, 73212)
+        phosphoproteomics_site_dim = (144, 73212)
         phosphoproteomics_site_headers = ['AAAS-S495', 'AAAS-S541', 'AAAS-Y485', 'AACS-S618', 'AAED1-S12', 'AAGAB-S310', 'AAGAB-S311', 'AAK1-S14', 'AAK1-S18', 'AAK1-S20', 'ZZZ3-S397', 'ZZZ3-S411', 'ZZZ3-S420', 'ZZZ3-S424', 'ZZZ3-S426', 'ZZZ3-S468', 'ZZZ3-S89', 'ZZZ3-T415', 'ZZZ3-T418', 'ZZZ3-Y399']
-        phosphoproteomics_site_test_coord = ((46, 45), (12, 72435), (96, 45362))
-        phosphoproteomics_site_test_vals = (0.195, -0.27899999999999997, -0.13)
+        phosphoproteomics_site_test_coord = ((36, 46), (12, 72436), (96, 45361))
+        phosphoproteomics_site_test_vals = (0.579, 0.669, 0.156)
 
         if not tester.check_dataframe(phosphoproteomics_site_name, phosphoproteomics_site_df, phosphoproteomics_site_dim, phosphoproteomics_site_headers, phosphoproteomics_site_test_coord, phosphoproteomics_site_test_vals):
             PASS = False
@@ -208,10 +205,10 @@ class Basic:
         # Test get_phosphoproteomics(gene_level=True)
         phosphoproteomics_gene_name = "Phosphoproteomics (gene)"
         phosphoproteomics_gene_df = en.get_phosphoproteomics(gene_level=True)
-        phosphoproteomics_gene_dim = (153, 8466)
+        phosphoproteomics_gene_dim = (144, 8466)
         phosphoproteomics_gene_headers = ['AAAS', 'AACS', 'AAED1', 'AAGAB', 'AAK1', 'AAMDC', 'AARS', 'AASDH', 'AATF', 'ABCA1', 'ZSCAN5C', 'ZSWIM3', 'ZSWIM8', 'ZUP1', 'ZW10', 'ZXDA', 'ZXDC', 'ZYX', 'ZZEF1', 'ZZZ3']
-        phosphoproteomics_gene_test_coord =  ((2, 7999), (148, 1045), (78, 6543))
-        phosphoproteomics_gene_test_vals = (-0.0879, 1.33, 0.153)
+        phosphoproteomics_gene_test_coord =  ((2, 7999), (143, 1045), (71, 6543))
+        phosphoproteomics_gene_test_vals = (-0.0879, 0.929, 0.153)
 
         if not tester.check_dataframe(phosphoproteomics_gene_name, phosphoproteomics_gene_df, phosphoproteomics_gene_dim, phosphoproteomics_gene_headers, phosphoproteomics_gene_test_coord, phosphoproteomics_gene_test_vals):
             PASS = False
@@ -219,10 +216,10 @@ class Basic:
         # Test get_phosphosites
         phosphosites_name = "Phosphosites for the AAK1-S14 gene"
         phosphosites_df = en.get_phosphosites('AAK1-S14')
-        phosphosites_dim = (153, 1)
+        phosphosites_dim = (144, 1)
         phosphosites_headers = ['AAK1-S14']
-        phosphosites_test_coord = ((34, 0), (76, 0), (143, 0))
-        phosphosites_test_vals = (1.46, -0.0511, 0.9940000000000001)
+        phosphosites_test_coord = ((27, 0), (76, 0), (128, 0))
+        phosphosites_test_vals = (0.603, -0.272, 0.1395)
 
         if not tester.check_dataframe(phosphosites_name, phosphosites_df, phosphosites_dim, phosphosites_headers, phosphosites_test_coord, phosphosites_test_vals):
             PASS = False
@@ -241,9 +238,9 @@ class Basic:
         # Test get_somatic(binary=True) and therefore unparsed=False
         somatic_binary_name = "Somatic (binary)"
         somatic_binary_df = en.get_somatic(binary=True)
-        somatic_binary_dim = (103, 51559)
+        somatic_binary_dim = (95, 51559)
         somatic_binary_headers = ['A1BG_p.E298K', 'A1BG_p.S181N', 'A1CF_p.F487L', 'A1CF_p.S236Y', 'A2ML1_p.A8V', 'A2ML1_p.G1306D', 'A2ML1_p.L1347F', 'A2ML1_p.L82I', 'A2ML1_p.P712S', 'A2ML1_p.R443Q', 'ZYG11A_p.Q442H', 'ZYG11B_p.H315R', 'ZYG11B_p.R495M', 'ZYG11B_p.R728C', 'ZYX_p.C447Y', 'ZZEF1_p.A2723V', 'ZZEF1_p.D845Y', 'ZZEF1_p.K1251E', 'ZZEF1_p.K2387Sfs*40', 'ZZZ3_p.Y891C']
-        somatic_binary_test_coord = ((102, 51558), (0, 0), (45, 25436))
+        somatic_binary_test_coord = ((94, 51558), (0, 0), (45, 25436))
         somatic_binary_test_vals = (0, 0, 0)
 
         if not tester.check_dataframe(somatic_binary_name, somatic_binary_df, somatic_binary_dim, somatic_binary_headers, somatic_binary_test_coord, somatic_binary_test_vals):
