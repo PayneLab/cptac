@@ -118,7 +118,9 @@ somatic_unparsed.name = "somatic MAF unparsed"
 somatic_maf_u = DataFrameLoader(data_directory + "somatic.maf.gz").createDataFrame()
 patient_ids = create_patient_ids(clinical_unfiltered) #maps C3L-**** number to S*** number
 somatic_maf_u = link_patient_ids(patient_ids, somatic_maf_u) #adds S*** number to somatic mutations dataframe
+somatic_maf_u = somatic_maf_u.set_index("Clinical_Patient_Key")
 somatic_maf = somatic_maf_u.drop(casesToDrop, errors = "ignore")
+somatic_maf = somatic_maf.reset_index()
 somatic_maf.name = "somatic MAF"
 
 
