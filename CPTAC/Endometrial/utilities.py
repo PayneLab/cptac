@@ -30,7 +30,7 @@ class Utilities:
         Parameters
         somatic: somatic data to add mutation hierarchy to
 
-        Retunrs
+        Returns
         Somatic mutation dataframe with added mutation hierarchy
         """
         mutation_hierarchy = {"Missense_Mutation":0,"In_Frame_Del":0,"In_Frame_Ins":0,"Splice_Site":1,"Frame_Shift_Ins":1,"Nonsense_Mutation":1,"Frame_Shift_Del":1,"Nonstop_Mutation":1}
@@ -205,7 +205,24 @@ class Utilities:
             df.name = data.name + " with " + clinical_col
             return df
         else:
-            print(clinical_col, "not found in clinical dataframe. You can check the available columns by entering CPTAC.get_clincal().columns")
+            print(clinical_col, "not found in clinical dataframe. You can check the available columns by entering CPTAC.get_clinical_cols()")
+    def compare_derived_molecular(self, derived_molecular, data, dm_col):
+        """
+        Parameters
+        derived_molecular: derived molecular dataframe for omics data to be appended with
+        data: omics data for derived molecular data to be appended with
+        dm_col: column in derived molecular dataframe to be inserted into provided omics data
+
+        Returns
+        Dataframe with specified column from derived molecular dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
+        """
+        if dm_col in derived_molecular:
+            df = data[data.columns]
+            df.insert(0, dm_col, derived_molecular[dm_col])
+            df.name = data.name + " with " + dm_col
+            return df
+        else:
+            print(dm_col, "not found in derived_molecular dataframe. You can check the available columns by entering CPTAC.get_derived_molecular_cols()")
     def compare_phosphosites(self, proteomics, phosphoproteomics, gene):
         """
         Parameters

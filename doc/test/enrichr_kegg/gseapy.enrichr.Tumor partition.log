@@ -1,0 +1,82 @@
+LINE 205 : 2019-03-11 14:54:44,830 [DEBUG   ] Starting new HTTP connection (1): amp.pharm.mssm.edu:80
+LINE 393 : 2019-03-11 14:54:45,104 [DEBUG   ] http://amp.pharm.mssm.edu:80 "GET /Enrichr/datasetStatistics HTTP/1.1" 200 None
+LINE 250 : 2019-03-11 14:54:45,166 [INFO    ] Connecting to Enrichr Server to get latest library names
+LINE 268 : 2019-03-11 14:54:45,168 [DEBUG   ] Start Enrichr using library: KEGG_2016
+LINE 269 : 2019-03-11 14:54:45,169 [INFO    ] Analysis name: Tumor partition, Enrichr Library: KEGG_2016
+LINE 205 : 2019-03-11 14:54:45,174 [DEBUG   ] Starting new HTTP connection (1): amp.pharm.mssm.edu:80
+LINE 393 : 2019-03-11 14:54:47,286 [DEBUG   ] http://amp.pharm.mssm.edu:80 "POST /Enrichr/addList HTTP/1.1" 200 47
+LINE 205 : 2019-03-11 14:54:48,294 [DEBUG   ] Starting new HTTP connection (1): amp.pharm.mssm.edu:80
+LINE 393 : 2019-03-11 14:54:50,153 [DEBUG   ] http://amp.pharm.mssm.edu:80 "GET /Enrichr/export?userListId=16476496&filename=KEGG_2016.Tumor%20partition.reports&backgroundType=KEGG_2016 HTTP/1.1" 200 None
+LINE 277 : 2019-03-11 14:54:51,261 [INFO    ] Save file of enrichment results: Job Id:9aqow
+LINE 2515: 2019-03-11 14:54:52,257 [DEBUG   ] update_title_pos
+LINE 1254: 2019-03-11 14:54:52,371 [DEBUG   ] findfont: Matching :family=sans-serif:style=normal:variant=normal:weight=normal:stretch=normal:size=16.0 to DejaVu Sans ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans.ttf') with score of 0.050000.
+LINE 653 : 2019-03-11 14:54:52,833 [DEBUG   ] Assigning font /b'F1' = 'c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans.ttf'
+LINE 1254: 2019-03-11 14:54:52,862 [DEBUG   ] findfont: Matching :family=sans-serif:style=normal:variant=normal:weight=bold:stretch=normal:size=16.0 to DejaVu Sans ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans-Bold.ttf') with score of 0.000000.
+LINE 1254: 2019-03-11 14:54:52,981 [DEBUG   ] findfont: Matching :family=STIXGeneral:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXGeneral ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\STIXGeneral.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,016 [DEBUG   ] findfont: Matching :family=STIXGeneral:style=italic:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXGeneral ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\STIXGeneralItalic.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,024 [DEBUG   ] findfont: Matching :family=STIXGeneral:style=normal:variant=normal:weight=bold:stretch=normal:size=10.0 to STIXGeneral ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\STIXGeneralBol.ttf') with score of 0.000000.
+LINE 1254: 2019-03-11 14:54:53,042 [DEBUG   ] findfont: Matching :family=STIXNonUnicode:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXNonUnicode ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\STIXNonUni.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,066 [DEBUG   ] findfont: Matching :family=STIXNonUnicode:style=italic:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXNonUnicode ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\STIXNonUniIta.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,070 [DEBUG   ] findfont: Matching :family=STIXNonUnicode:style=normal:variant=normal:weight=bold:stretch=normal:size=10.0 to STIXNonUnicode ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\STIXNonUniBol.ttf') with score of 0.000000.
+LINE 1254: 2019-03-11 14:54:53,087 [DEBUG   ] findfont: Matching :family=STIXSizeOneSym:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXSizeOneSym ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\STIXSizOneSymReg.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,098 [DEBUG   ] findfont: Matching :family=STIXSizeTwoSym:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXSizeTwoSym ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\STIXSizTwoSymReg.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,107 [DEBUG   ] findfont: Matching :family=STIXSizeThreeSym:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXSizeThreeSym ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\STIXSizThreeSymReg.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,119 [DEBUG   ] findfont: Matching :family=STIXSizeFourSym:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXSizeFourSym ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\STIXSizFourSymReg.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,131 [DEBUG   ] findfont: Matching :family=STIXSizeFiveSym:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to STIXSizeFiveSym ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\STIXSizFiveSymReg.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,141 [DEBUG   ] findfont: Matching :family=cmsy10:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to cmsy10 ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\cmsy10.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,163 [DEBUG   ] findfont: Matching :family=cmr10:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to cmr10 ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\cmr10.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,172 [DEBUG   ] findfont: Matching :family=cmtt10:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to cmtt10 ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\cmtt10.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,181 [DEBUG   ] findfont: Matching :family=cmmi10:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to cmmi10 ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\cmmi10.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,190 [DEBUG   ] findfont: Matching :family=cmb10:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to cmb10 ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\cmb10.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,198 [DEBUG   ] findfont: Matching :family=cmss10:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to cmss10 ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\cmss10.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,204 [DEBUG   ] findfont: Matching :family=cmex10:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to cmex10 ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\cmex10.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,210 [DEBUG   ] findfont: Matching :family=DejaVu Sans:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to DejaVu Sans ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,217 [DEBUG   ] findfont: Matching :family=DejaVu Sans:style=italic:variant=normal:weight=normal:stretch=normal:size=10.0 to DejaVu Sans ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans-Oblique.ttf') with score of 0.150000.
+LINE 1254: 2019-03-11 14:54:53,218 [DEBUG   ] findfont: Matching :family=DejaVu Sans:style=normal:variant=normal:weight=bold:stretch=normal:size=10.0 to DejaVu Sans ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans-Bold.ttf') with score of 0.000000.
+LINE 1254: 2019-03-11 14:54:53,224 [DEBUG   ] findfont: Matching :family=DejaVu Sans Mono:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to DejaVu Sans Mono ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSansMono.ttf') with score of 0.050000.
+LINE 1254: 2019-03-11 14:54:53,231 [DEBUG   ] findfont: Matching :family=DejaVu Sans Display:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to DejaVu Sans Display ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSansDisplay.ttf') with score of 0.050000.
+LINE 653 : 2019-03-11 14:54:53,729 [DEBUG   ] Assigning font /b'F2' = 'c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans-Bold.ttf'
+LINE 1254: 2019-03-11 14:54:53,882 [DEBUG   ] findfont: Matching :family=sans-serif:style=normal:variant=normal:weight=bold:stretch=normal:size=24.0 to DejaVu Sans ('c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans-Bold.ttf') with score of 0.000000.
+LINE 703 : 2019-03-11 14:54:53,889 [DEBUG   ] Embedding font c:\users\rental\appdata\local\programs\python\python37\lib\site-packages\matplotlib\mpl-data\fonts\ttf\DejaVuSans-Bold.ttf.
+LINE 710 : 2019-03-11 14:54:53,889 [DEBUG   ] Writing TrueType font.
+LINE 703 : 2019-03-11 14:54:54,018 [DEBUG   ] Embedding font c:\users\rental\appdata\local\programs\python\python37\lib\site-packages\matplotlib\mpl-data\fonts\ttf\DejaVuSans.ttf.
+LINE 710 : 2019-03-11 14:54:54,018 [DEBUG   ] Writing TrueType font.
+LINE 2515: 2019-03-11 14:54:54,146 [DEBUG   ] update_title_pos
+LINE 2515: 2019-03-11 14:54:54,210 [DEBUG   ] update_title_pos
+LINE 2515: 2019-03-11 14:54:54,235 [DEBUG   ] update_title_pos
+LINE 653 : 2019-03-11 14:54:54,246 [DEBUG   ] Assigning font /b'F1' = 'c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans.ttf'
+LINE 653 : 2019-03-11 14:54:54,264 [DEBUG   ] Assigning font /b'F2' = 'c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans-Bold.ttf'
+LINE 703 : 2019-03-11 14:54:54,317 [DEBUG   ] Embedding font c:\users\rental\appdata\local\programs\python\python37\lib\site-packages\matplotlib\mpl-data\fonts\ttf\DejaVuSans-Bold.ttf.
+LINE 710 : 2019-03-11 14:54:54,317 [DEBUG   ] Writing TrueType font.
+LINE 703 : 2019-03-11 14:54:54,344 [DEBUG   ] Embedding font c:\users\rental\appdata\local\programs\python\python37\lib\site-packages\matplotlib\mpl-data\fonts\ttf\DejaVuSans.ttf.
+LINE 710 : 2019-03-11 14:54:54,345 [DEBUG   ] Writing TrueType font.
+LINE 287 : 2019-03-11 14:54:54,375 [INFO    ] Done.
+
+LINE 205 : 2019-03-11 14:54:54,378 [DEBUG   ] Starting new HTTP connection (1): amp.pharm.mssm.edu:80
+LINE 393 : 2019-03-11 14:54:54,562 [DEBUG   ] http://amp.pharm.mssm.edu:80 "GET /Enrichr/datasetStatistics HTTP/1.1" 200 None
+LINE 250 : 2019-03-11 14:54:54,627 [INFO    ] Connecting to Enrichr Server to get latest library names
+LINE 268 : 2019-03-11 14:54:54,629 [DEBUG   ] Start Enrichr using library: KEGG_2016
+LINE 269 : 2019-03-11 14:54:54,630 [INFO    ] Analysis name: Normal partition, Enrichr Library: KEGG_2016
+LINE 205 : 2019-03-11 14:54:54,635 [DEBUG   ] Starting new HTTP connection (1): amp.pharm.mssm.edu:80
+LINE 393 : 2019-03-11 14:54:57,273 [DEBUG   ] http://amp.pharm.mssm.edu:80 "POST /Enrichr/addList HTTP/1.1" 200 47
+LINE 205 : 2019-03-11 14:54:58,282 [DEBUG   ] Starting new HTTP connection (1): amp.pharm.mssm.edu:80
+LINE 393 : 2019-03-11 14:55:00,455 [DEBUG   ] http://amp.pharm.mssm.edu:80 "GET /Enrichr/export?userListId=16476497&filename=KEGG_2016.Normal%20partition.reports&backgroundType=KEGG_2016 HTTP/1.1" 200 None
+LINE 277 : 2019-03-11 14:55:01,497 [INFO    ] Save file of enrichment results: Job Id:9aqox
+LINE 2515: 2019-03-11 14:55:01,622 [DEBUG   ] update_title_pos
+LINE 653 : 2019-03-11 14:55:01,640 [DEBUG   ] Assigning font /b'F1' = 'c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans.ttf'
+LINE 653 : 2019-03-11 14:55:01,659 [DEBUG   ] Assigning font /b'F2' = 'c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans-Bold.ttf'
+LINE 703 : 2019-03-11 14:55:01,787 [DEBUG   ] Embedding font c:\users\rental\appdata\local\programs\python\python37\lib\site-packages\matplotlib\mpl-data\fonts\ttf\DejaVuSans-Bold.ttf.
+LINE 710 : 2019-03-11 14:55:01,788 [DEBUG   ] Writing TrueType font.
+LINE 703 : 2019-03-11 14:55:01,822 [DEBUG   ] Embedding font c:\users\rental\appdata\local\programs\python\python37\lib\site-packages\matplotlib\mpl-data\fonts\ttf\DejaVuSans.ttf.
+LINE 710 : 2019-03-11 14:55:01,822 [DEBUG   ] Writing TrueType font.
+LINE 2515: 2019-03-11 14:55:01,856 [DEBUG   ] update_title_pos
+LINE 2515: 2019-03-11 14:55:01,889 [DEBUG   ] update_title_pos
+LINE 2515: 2019-03-11 14:55:01,909 [DEBUG   ] update_title_pos
+LINE 653 : 2019-03-11 14:55:01,920 [DEBUG   ] Assigning font /b'F1' = 'c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans.ttf'
+LINE 653 : 2019-03-11 14:55:01,939 [DEBUG   ] Assigning font /b'F2' = 'c:\\users\\rental\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans-Bold.ttf'
+LINE 703 : 2019-03-11 14:55:01,997 [DEBUG   ] Embedding font c:\users\rental\appdata\local\programs\python\python37\lib\site-packages\matplotlib\mpl-data\fonts\ttf\DejaVuSans-Bold.ttf.
+LINE 710 : 2019-03-11 14:55:01,997 [DEBUG   ] Writing TrueType font.
+LINE 703 : 2019-03-11 14:55:02,025 [DEBUG   ] Embedding font c:\users\rental\appdata\local\programs\python\python37\lib\site-packages\matplotlib\mpl-data\fonts\ttf\DejaVuSans.ttf.
+LINE 710 : 2019-03-11 14:55:02,025 [DEBUG   ] Writing TrueType font.
+LINE 287 : 2019-03-11 14:55:02,056 [INFO    ] Done.
+

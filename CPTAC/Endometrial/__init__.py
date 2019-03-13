@@ -66,10 +66,25 @@ for line in file:
 file.close()
 
 print("Loading Clinical Data...")
-clinical_unfiltered = DataFrameLoader(data_directory + "clinical.txt").createDataFrame()
-casesToDrop = clinical_unfiltered[clinical_unfiltered["Case_excluded"] == "Yes"].index
+clinical_file_data = DataFrameLoader(data_directory + "clinical.txt").createDataFrame()
+casesToDrop = clinical_file_data[clinical_file_data["Case_excluded"] == "Yes"].index
+clinical_unfiltered = clinical_file_data[[
+    'Proteomics_Participant_ID', 'Case_excluded',  'Proteomics_Tumor_Normal',  'Country', 
+    'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 
+    'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Clin_Stage_Dist_Mets-cM', 'Path_Stage_Dist_Mets-pM', 
+    'tumor_Stage-Pathological', 'FIGO_stage', 'LVSI', 'BMI', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 
+    'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm',   'Num_full_term_pregnancies']]
 clinical = clinical_unfiltered.drop(casesToDrop, errors = "ignore") #Drops all samples with Case_excluded == Yes
+clinical_unfiltered.name = "clinical"
 clinical.name = clinical_unfiltered.name
+derived_molecular_u = clinical_file_data.drop(['Proteomics_Participant_ID', 'Case_excluded',  'Proteomics_Tumor_Normal',  'Country', 
+    'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 
+    'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Clin_Stage_Dist_Mets-cM', 'Path_Stage_Dist_Mets-pM', 
+    'tumor_Stage-Pathological', 'FIGO_stage', 'LVSI', 'BMI', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 
+    'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm',   'Num_full_term_pregnancies'], axis=1)
+derived_molecular = derived_molecular_u.drop(casesToDrop, errors = "ignore")
+derived_molecular_u.name = "derived_molecular"
+derived_molecular.name = derived_molecular_u.name
 
 print("Loading Acetylation Proteomics Data...")
 acetylproteomics_u = DataFrameLoader(data_directory + "acetylproteomics.cct").createDataFrame()
@@ -168,72 +183,123 @@ def search(term):
     url = "https://www.google.com/search?q=" + term
     print("Searching for", term, "in web browser...")
     webbrowser.open(url)
-def get_clinical(excluded=False):
+def unfiltered_warning():
+    #warning to print if someone tries to get the unfiltered data for any dataframe
+    #edit this
+    print("unfiltered warning!!")
+def get_clinical(unfiltered=False):
     """
     Parameters
-    excluded: boolean indicating whether to return unfiltered clinical data, aka clinical["Case_excluded"] == "Yes"
+    unfiltered: boolean indicating whether to return unfiltered clinical data, aka clinical["Case_excluded"] == "Yes"
 
     Returns
-    Clincal dataframe
+    Clinical dataframe
     """
-    if excluded:
+    if unfiltered:
+        unfiltered_warning()
         return clinical_unfiltered
     return clinical
-def get_acetylproteomics():
-    return acetylproteomics
-def get_proteomics():
+def get_derived_molecular(unfiltered=False):
     """
     Parameters
-    None
+    unfiltered: boolean indicating whether to return unfiltered derived molecular data
 
     Returns
-    proteomics dataframe
+    Derived Molecular dataframe
     """
-    return proteomics
-def get_transcriptomics(data_type="linear"):
+    if unfiltered:
+        unfiltered_warning()
+        return derived_molecular_u
+    return derived_molecular
+def get_acetylproteomics(unfiltered=False):
     """
     Parameters
-    type: either "linear", "circular", or "miRNA". Indicates which transcriptomics dataframe you want.
+    unfiltered: boolean indicating whether to return unfiltered acetylproteomics data
+
+    Returns
+    Acetylproteomics dataframe
+    """
+    if unfiltered:
+        unfiltered_warning()
+        return acetylproteomics_u
+    return acetylproteomics
+def get_proteomics(unfiltered=False):
+    """
+    Parameters
+    unfiltered: boolean indicating whether to return unfiltered proteomics data
+
+    Returns
+    Proteomics dataframe
+    """
+    if unfiltered:
+        unfiltered_warning()
+        return proteomics_u
+    return proteomics
+def get_transcriptomics(data_type="linear", unfiltered=False):
+    """
+    Parameters
+    data_type: either "linear", "circular", or "miRNA". Indicates which transcriptomics dataframe you want.
+    unfiltered: boolean indicating whether to return unfiltered transcriptomics data
 
     Returns
     Transcriptomics dataframe
     """
     if data_type == "linear":
+        if unfiltered:
+            unfiltered_warning()
+            return transcriptomics_u
         return transcriptomics
     elif data_type == "circular":
+        if unfiltered:
+            unfiltered_warning()
+            return transcriptomics_circular_u
         return transcriptomics_circular
     elif data_type == "miRNA":
+        if unfiltered:
+            unfiltered_warning()
+            return miRNA_u
         return miRNA
     else:
         raise ValueError("Invalid value for get_transcriptomics() data_type parameter.\n\tYou passed: '{}'\n\tOptions: 'linear', 'circular', or 'miRNA'".format(data_type))
-def get_CNA():
+def get_CNA(unfiltered=False):
     """
     Parameters
-    None
+    unfiltered: boolean indicating whether to return unfiltered CNA data
 
     Returns
     CNA dataframe
     """
+    if unfiltered:
+        unfiltered_warning()
+        return cna_u
     return cna
-def get_phosphoproteomics(gene_level = False):
+def get_phosphoproteomics(gene_level=False, unfiltered=False):
     """
     Parameters
     gene_level: boolean indicating whether to return gene level phosphoproteomics (returns site level if false)
+    unfiltered: boolean indicating whether to return unfiltered phosphoproteomics data
 
     Returns
     Phosphoproteomics dataframe
     """
     if gene_level:
+        if unfiltered:
+            unfiltered_warning()
+            return phosphoproteomics_gene_u
         return phosphoproteomics_gene
+    if unfiltered:
+        unfiltered_warning()
+        return phosphoproteomics_u
     return phosphoproteomics
 def get_phosphosites(gene):
     """Returns dataframe with all phosphosites of specified gene name"""
     return Utilities().get_phosphosites(phosphoproteomics, gene)
-def get_somatic(binary=False, unparsed=False):
+def get_somatic(binary=False, unparsed=False, unfiltered=False):
     """
     Parameters
     binary: boolean indicating whether to retrieve the somatic mutations binary data
     unparsed: boolean indicating whether to retrieve unparsed somatic mutations maf data
+    unfiltered: boolean indicating whether to return unfiltered somatic data
 
     Default behavior is to return parsed somatic mutations maf data
 
@@ -241,9 +307,18 @@ def get_somatic(binary=False, unparsed=False):
     Somatic mutations dataframe corresponding with parameters provided
     """
     if binary:
+        if unfiltered:
+            unfiltered_warning()
+            return somatic_binary_u
         return somatic_binary
     if unparsed:
+        if unfiltered:
+            unfiltered_warning()
+            return somatic_unparsed_u
         return somatic_unparsed
+    if unfiltered:
+        unfiltered_warning()
+        return somatic_maf_u
     return somatic_maf
 def get_clinical_cols():
     """
@@ -254,6 +329,15 @@ def get_clinical_cols():
     List of clincal dataframe columns, aka data types (i.e. BMI, Diabetes)
     """
     return clinical.columns
+def get_derived_molecular_cols():
+    """
+    Parameters
+    None
+
+    Returns
+    List of derived molecular dataframe columns
+    """
+    return derived_molecular.columns
 def get_proteomics_cols():
     """
     Parameters
