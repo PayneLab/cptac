@@ -69,18 +69,18 @@ print("Loading Clinical Data...")
 clinical_file_data = DataFrameLoader(data_directory + "clinical.txt").createDataFrame()
 casesToDrop = clinical_file_data[clinical_file_data["Case_excluded"] == "Yes"].index
 clinical_unfiltered = clinical_file_data[[
-    'Proteomics_Participant_ID', 'Case_excluded',  'Proteomics_Tumor_Normal',  'Country', 
-    'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 
-    'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Clin_Stage_Dist_Mets-cM', 'Path_Stage_Dist_Mets-pM', 
-    'tumor_Stage-Pathological', 'FIGO_stage', 'LVSI', 'BMI', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 
+    'Proteomics_Participant_ID', 'Case_excluded',  'Proteomics_Tumor_Normal',  'Country',
+    'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity',
+    'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Clin_Stage_Dist_Mets-cM', 'Path_Stage_Dist_Mets-pM',
+    'tumor_Stage-Pathological', 'FIGO_stage', 'LVSI', 'BMI', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site',
     'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm',   'Num_full_term_pregnancies']]
 clinical = clinical_unfiltered.drop(casesToDrop, errors = "ignore") #Drops all samples with Case_excluded == Yes
 clinical_unfiltered.name = "clinical"
 clinical.name = clinical_unfiltered.name
-derived_molecular_u = clinical_file_data.drop(['Proteomics_Participant_ID', 'Case_excluded',  'Proteomics_Tumor_Normal',  'Country', 
-    'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 
-    'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Clin_Stage_Dist_Mets-cM', 'Path_Stage_Dist_Mets-pM', 
-    'tumor_Stage-Pathological', 'FIGO_stage', 'LVSI', 'BMI', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 
+derived_molecular_u = clinical_file_data.drop(['Proteomics_Participant_ID', 'Case_excluded',  'Proteomics_Tumor_Normal',  'Country',
+    'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity',
+    'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Clin_Stage_Dist_Mets-cM', 'Path_Stage_Dist_Mets-pM',
+    'tumor_Stage-Pathological', 'FIGO_stage', 'LVSI', 'BMI', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site',
     'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm',   'Num_full_term_pregnancies'], axis=1)
 derived_molecular = derived_molecular_u.drop(casesToDrop, errors = "ignore")
 derived_molecular_u.name = "derived_molecular"
@@ -184,9 +184,18 @@ def search(term):
     print("Searching for", term, "in web browser...")
     webbrowser.open(url)
 def unfiltered_warning():
-    #warning to print if someone tries to get the unfiltered data for any dataframe
-    #edit this
-    print("unfiltered warning!!")
+    """
+    Parameters
+    None
+
+    Prints warning to about the unfiltered data
+
+    Returns
+    None
+    """
+
+    message = "IMPORTANT! Data has been filtered due to quality check on samples. Inclusion of unfiltered samples in analyses is NOT recommended."
+    print(message)
 def get_clinical(unfiltered=False):
     """
     Parameters
