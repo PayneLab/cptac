@@ -5,7 +5,7 @@ Tutorials for this package describe how to use the package functions for researc
 <ul>
   <li>Use Case 1: Comparing transcriptomics and proteomics for a single gene</li>
 <li>Use Case 2: Looking for correlation between various clinical factors, such as BMI, diabetes, and cancer stage</li>
-<li>Use Case 3: Using Spearman correlation to find genes significantly correlated with a clinical attribute</li>
+<li>Use Case 3: Using statistical test to find genes significantly correlated with a clinical attribute</li>
 <li>Use Case 4: Investigating how genetic mutation affects protein abundance</li>
 <li>Use Case 5: Running gene set enrichment analysis - which pathways are differentially expressed based on microsatellite instability</li>
 </ul>
