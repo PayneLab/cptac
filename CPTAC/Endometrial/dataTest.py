@@ -19,32 +19,8 @@ import CPTAC.Endometrial as en
 class Basic:
     def __init__(self):
         pass
-    def evaluate_getters(self):
-        print("Evaluating getters...")
-        dataframes = []
-        file_names = {}
-        dataframes.append(en.get_clinical()); file_names[len(dataframes)] = "clinical"
-        dataframes.append(en.get_proteomics()); file_names[len(dataframes)] = "proteomics"
-        dataframes.append(en.get_phosphoproteomics()); file_names[len(dataframes)] = "site phosphoproteomics"
-        dataframes.append(en.get_phosphoproteomics(gene_level = True)); file_names[len(dataframes)] = "gene phosphoproteomics"
-        dataframes.append(en.get_transcriptomics()); file_names[len(dataframes)] = "linear transcriptomics"
-        dataframes.append(en.get_transcriptomics(data_type="circular")); file_names[len(dataframes)] = "circular transcriptomics"
-        dataframes.append(en.get_transcriptomics(data_type="miRNA")); file_names[len(dataframes)] = "miRNA"
-        dataframes.append(en.get_CNA()); file_names[len(dataframes)] = "CNA"
-        dataframes.append(en.get_somatic()); file_names[len(dataframes)] = "parsed somatic maf"
-        dataframes.append(en.get_somatic(binary=True)); file_names[len(dataframes)] = "binary somatic"
-        dataframes.append(en.get_somatic(unparsed=True)); file_names[len(dataframes)] = "unparsed somatic maf"
-        PASS = True
-        for x in range(0,len(dataframes)):
-            if dataframes[x] is None:
-                print("Error reading", file_names[x+1], "data")
-                PASS = False
-        if PASS:
-            print("PASS")
-        else:
-            print("FAIL")
 
-    def check_dataframe(self, name, df, exp_dim, exp_headers, coordinates, values):
+    def check_dataframe(self, name, df, exp_dim, exp_headers, coordinates, values): # private
         """
         Parameters
         name: string containing the name of the dataframe gotten by the getter we're testing
@@ -58,6 +34,10 @@ class Basic:
         Bool indicating if dataframe passed the test
         """
         PASS = True
+
+        # Check that we actually got a dataframe
+        if df is None:
+            print("Error loading {} dataframe. Getter returned None.".format(name))
 
         ## Check dimensions
         act_dim = df.shape
@@ -96,8 +76,7 @@ class Basic:
         # Return whether the getter passed the test
         return PASS
 
-    def evaluate_getters_v2(self):
-        # ***UNDER CONSTRUCTION***
+    def evaluate_getters(self):
 
         print("Evaluating getters v2...")
         tester = Basic()
@@ -114,9 +93,9 @@ class Basic:
         if not tester.check_dataframe(clinical_name, clinical_df, clinical_dim, clinical_headers, clinical_test_coord, clinical_test_vals):
             PASS = False
 
-        # Test get_clinical(excluded=True)
+        # Test get_clinical(unfiltered=True)
         clinical_excluded_name = "Clinical (with excluded cases)"
-        clinical_excluded_df = en.get_clinical(excluded=True)
+        clinical_excluded_df = en.get_clinical(unfiltered=True)
         clinical_excluded_dim = (153, 171)
         clinical_excluded_headers = ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
         clinical_excluded_test_coord = ((23, 44), (151, 6), (32, 165))
@@ -313,10 +292,37 @@ class Basic:
         else:
             print("FAIL")
 
+    def test_merged_column(self, original_df, merged_df, original_header, merged_header): # private
+        """
+        Parameters
+        original_df: the dataframe the column was taken from
+        merged_df: the merged dataframe with the column
+        original_header: the column's header in the original dataframe
+        merged_header: the column's header in the merged dataframe
+
+        Returns
+        bool indicating whether the column in the merged dataframe and the column in the original dataframe had the same values for each index
+        """
+        PASS = True
+
+        for sample in merged_df.index.values:
+            original_value = original_df.loc[sample, original_header]
+            merged_value = merged_df.loc[sample, merged_header]
+            if (merged_value != original_value) and (pd.notna(merged_value) or pd.notna(original_value)):
+                print("Merged dataframe had incorrect values.\n\tDataframe: {}\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}".format(merged_df.name, sample, merged_header, original_value, merged_value))
+                PASS = False
+
+        return PASS
+
     def evaluate_utilities_v2(self):
         # We will test all of the compare_**** functions, which either merge dataframes, or add columns to a dataframe
         # When dataframes are merged, we will make sure that the data in the merged dataframe was mapped to the proper identifier
         # When a column is added, we will make sure that data is not lost.
+
+        print("Evaluating utilities v2...")
+
+        PASS = True
+        tester = Basic()
 
         # Load our dataframes
         proteomics = en.get_proteomics()
@@ -325,10 +331,29 @@ class Basic:
         cna = en.get_CNA()
 
         # Test compare_gene, using the A1BG gene
-        compared_A1BG = en.compare_gene(proteomics, transcriptomics, 'A1BG')
-        # Loop through each row in the merged dataframe, and make sure that the values for each sample match the values for that sample in the original two dataframes.
+        gene = 'A1BG'
+        A1BG_compared = en.compare_gene(proteomics, transcriptomics, gene)
 
-        # Test compare_genes
+        if not tester.test_merged_column(proteomics, A1BG_compared, gene, A1BG_compared.columns.values[0]):
+           PASS = False
+
+        if not tester.test_merged_column(transcriptomics, A1BG_compared, gene, A1BG_compared.columns.values[1]):
+           PASS = False
+
+        # Test compare_gene, using a list of genes
+        gene_list = ['A1BG', 'ZZEF1', 'SMURF1']
+        sorted_gene_list = sorted(gene_list) # compare_gene should sort the genes
+        list_compared = en.compare_gene(proteomics, transcriptomics, gene_list)
+
+        ### compare_gene should give all the data from the first dataframe in the first three columns
+        for i in range(3):
+            if not tester.test_merged_column(proteomics, list_compared, sorted_gene_list[i], list_compared.columns.values[i]):
+               PASS = False
+
+        ### compare_gene should give all the data from the second dataframe in the last three columns
+        for i in range(3):
+            if not tester.test_merged_column(transcriptomics, list_compared, sorted_gene_list[i], list_compared.columns.values[i + 3]):
+               PASS = False
 
         # Test compare_mutations (proteomics)
 
@@ -349,6 +374,12 @@ class Basic:
         # Test compare_clinical
 
         # Test compare_phosphosites
+
+        # Indicate whether the overall test passed
+        if PASS:
+            print("PASS")
+        else:
+            print("FAIL")
 
 class Stats:
     def __init__(self):
@@ -389,19 +420,22 @@ class Plotter:
 
 print("\nRunning tests:\n")
 
-Basic().evaluate_getters()
+print("Warning: getters test is not up to date.")
+#Basic().evaluate_getters()
 Basic().evaluate_special_getters()
 Basic().evaluate_utilities()
-Basic().evaluate_getters_v2()
+Basic().evaluate_utilities_v2()
 
-print("Plotting...")
-Plotter().plot(en.get_proteomics(), "A1BG","PTEN","scatterplot")
-Plotter().plot(en.get_clinical(), "Diabetes","BMI","barplot")
-Plotter().plot(en.get_clinical(), "Diabetes","BMI","boxplot")
-print("PASS")
+# The below tests are not so necessary anymore, now that we have better tests above.
 
-print("Running statistics...")
-message = Stats().evaluate(en.get_proteomics(), "Pathway_activity_p53")
-print(message)
+#print("Plotting...")
+#Plotter().plot(en.get_proteomics(), "A1BG","PTEN","scatterplot")
+#Plotter().plot(en.get_clinical(), "Diabetes","BMI","barplot")
+#Plotter().plot(en.get_clinical(), "Diabetes","BMI","boxplot")
+#print("PASS")
+
+#print("Running statistics...")
+#message = Stats().evaluate(en.get_proteomics(), "Tumor_Size_cm")
+#print(message)
 
 print("Version:",en.version())
