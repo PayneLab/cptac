@@ -2,12 +2,6 @@ import webbrowser
 import textwrap
 import os
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-message = "Welcome to the CPTAC data service package. This import contains information about the package. In order to access a specific data set, import a CPTAC subfolder by either \'import CPTAC.DataName\' or \'from CPTAC import DataName\'."
-wrapped_list = textwrap.wrap(message)
-for line in wrapped_list:
-    print(line)
-
 def help():
     """
     Parameters
@@ -43,6 +37,15 @@ def version():
     Version number
     """
     version = {}
-    with open(dir_path + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder, TODO: how to navigate from dataTest.py?
+    with open(dir_path + os.sep + "version.py") as fp:
     	exec(fp.read(), version)
     return(version['__version__'])
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+message = "Welcome to the CPTAC data service package. In order to access a specific data set, import a CPTAC subfolder by either \'import CPTAC.DataName\' or \'from CPTAC import DataName\'.\n"
+wrapped_list = textwrap.wrap(message)
+for line in wrapped_list:
+    print(line)
+print("******")
+print("Version:",version())
+print("******")
