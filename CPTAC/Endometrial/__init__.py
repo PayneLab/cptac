@@ -512,6 +512,16 @@ def compare_clinical(omics_data, clinical_col):
     Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
     """
     return Utilities().compare_clinical(clinical, omics_data, clinical_col)
+def compare_derived_molecular(omics_data, molecular_col):
+    """
+    Parameters
+    omics_data: omics data for derived molecular data to be appended with
+    molecular_col: column in derived molecular dataframe to be inserted into provided omics data
+
+    Returns
+    Dataframe with specififed column from molecular dataframe added to specified datafarme (i.e., proteomics) for comparison and easy plotting
+    """
+    return Utilities().compare_derived_molecular(derived_molecular, omics_data, molecular_col)
 def compare_phosphosites(gene):
     """
     Parameters
