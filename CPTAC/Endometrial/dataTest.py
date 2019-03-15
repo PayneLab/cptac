@@ -42,7 +42,7 @@ class Basic:
         ## Check dimensions
         act_dim = df.shape
         if exp_dim != act_dim:
-            print("Error: {} dataframe dimensions did not match expected values.\n\tExpected: {}\n\tActual: {}".format(name, exp_dim, act_dim))
+            print("Error: {} dataframe dimensions did not match expected values.\n\tExpected: {}\n\tActual: {}\n".format(name, exp_dim, act_dim))
             PASS = False
 
         ## Check headers
@@ -53,12 +53,12 @@ class Basic:
             act_headers = act_headers_all[:10] + act_headers_all[-10:]
 
         if len(exp_headers) != len(act_headers):
-            print("Unexpected number of test headers in {} dataframe. Expected number of headers: {}. You passed {} headers.".format(name, len(act_headers), len(exp_headers)))
+            print("Unexpected number of test headers in {} dataframe. Expected number of headers: {}. You passed {} headers.\n".format(name, len(act_headers), len(exp_headers)))
             PASS = False
         else:
             for i, header in enumerate(exp_headers):
                 if header != act_headers[i]:
-                    print("Error: {} dataframe header did not match expected value.\n\tExpected: {}\n\tActual: {}".format(name, header, act_headers[i]))
+                    print("Error: {} dataframe header did not match expected value.\n\tExpected: {}\n\tActual: {}\n".format(name, header, act_headers[i]))
                     PASS = False
 
         ## Check test values
@@ -70,39 +70,49 @@ class Basic:
 
         for i, value in enumerate(values):
             if act_values[i] != value:
-                print("Error: {} dataframe value did not match expected value.\n\tColumn: {}\n\tIndex: {}\n\tExpected: {}\n\tActual: {}".format(name, df.columns.values[coordinates[i][1]], df.index.values[coordinates[i][0]], value, act_values[i]))
+                print("Error: {} dataframe value did not match expected value.\n\tColumn: {}\n\tIndex: {}\n\tExpected: {}\n\tActual: {}\n".format(name, df.columns.values[coordinates[i][1]], df.index.values[coordinates[i][0]], value, act_values[i]))
                 PASS = False
 
-        # Return whether the getter passed the test
+        # Return whether the dataframe passed the test
         return PASS
 
     def evaluate_getters(self):
 
-        print("Evaluating getters v2...")
+        print("Evaluating getters ...")
         tester = Basic()
         PASS = True
 
-        # Test get_clinical() with the default parameter excluded=False
+        # Test get_clinical() with the default parameter unfiltered=False
         clinical_name = "Clinical"
         clinical_df = en.get_clinical()
-        clinical_dim = (144, 171)
-        clinical_headers = ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
-        clinical_test_coord = ((79, 81), (15, 146), (88, 12))
-        clinical_test_vals = (-1.03, 8.888888889, 'Serous')
+        clinical_dim = (144, 27)
+        clinical_headers = ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_Tumor_Normal', 'Country', 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 'Path_Stage_Primary_Tumor-pT', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm', 'Num_full_term_pregnancies']
+        clinical_test_coord = ((79, 16), (15, 25), (88, 2))
+        clinical_test_vals = (23.88, 3.2, 'Tumor')
 
         if not tester.check_dataframe(clinical_name, clinical_df, clinical_dim, clinical_headers, clinical_test_coord, clinical_test_vals):
             PASS = False
 
         # Test get_clinical(unfiltered=True)
-        clinical_excluded_name = "Clinical (with excluded cases)"
+        clinical_excluded_name = "Clinical (with unfiltered samples)"
         clinical_excluded_df = en.get_clinical(unfiltered=True)
-        clinical_excluded_dim = (153, 171)
-        clinical_excluded_headers = ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_Tumor_Normal', 'Proteomics_OCT', 'Country', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
-        clinical_excluded_test_coord = ((23, 44), (151, 6), (32, 165))
-        clinical_excluded_test_vals = (0.004118258, 'CPT0230400002,CPT0230400003,CPT0230400004,CPT0230410002,CPT0230410003,CPT0230410004,CPT0230420002,CPT0230420003,CPT0230420004', '171011_UNC31-K00269_0086_AHLJLCBBXX_CTTGTA_S7_L003_R2_001.fastq.gz')
+        clinical_excluded_dim = (153, 27)
+        clinical_excluded_headers = ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_Tumor_Normal', 'Country', 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 'Path_Stage_Primary_Tumor-pT', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm', 'Num_full_term_pregnancies']
+        clinical_excluded_test_coord = ((23, 8), (151, 1), (32, 26))
+        clinical_excluded_test_vals = ('Normal', 'No', '3')
 
         if not tester.check_dataframe(clinical_excluded_name, clinical_excluded_df, clinical_excluded_dim, clinical_excluded_headers, clinical_excluded_test_coord, clinical_excluded_test_vals):
             PASS = False
+        
+        print("NOTE: The unfiltered data warning above was expected.") # To avoid confusion
+
+        # Test get_derived_molecular() with default parameter unfiltered=False
+
+        # Test get_derived_molecular(unfiltered=True)
+
+        # Test get_acetylproteomics() with default parameter unfiltered=False
+
+        # Test get_acetylproteomics(unfiltered=True)
 
         # Test get_proteomics()
         proteomics_name = "Proteomics"
@@ -204,10 +214,10 @@ class Basic:
         # Test get_somatic() with default parameters binary=False, unparsed=False (this will return the Somatic Maf dataframe)
         somatic_name = "Somatic (maf)"
         somatic_df = en.get_somatic()
-        somatic_dim = (53101, 5)
-        somatic_headers = ['Patient_Id', 'Gene', 'Mutation', 'Location', 'Clinical_Patient_Key']
-        somatic_test_coord = ((53000, 3), (12, 4), (34567, 0))
-        somatic_test_vals = ('p.M1259I', 'S001', 'C3N-00151')
+        somatic_dim = (52560, 5)
+        somatic_headers = ['Clinical_Patient_Key', 'Patient_Id', 'Gene', 'Mutation', 'Location']
+        somatic_test_coord = ((52000, 3), (12, 4), (34567, 0))
+        somatic_test_vals = ('Missense_Mutation', 'p.T2121P', 'S059')
 
         if not tester.check_dataframe(somatic_name, somatic_df, somatic_dim, somatic_headers, somatic_test_coord, somatic_test_vals):
             PASS = False
@@ -292,13 +302,14 @@ class Basic:
         else:
             print("FAIL")
 
-    def test_merged_column(self, original_df, merged_df, original_header, merged_header): # private
+    def test_merged_column(self, original_df, merged_df, original_header, merged_header, merged_df_name): # private
         """
         Parameters
         original_df: the dataframe the column was taken from
         merged_df: the merged dataframe with the column
         original_header: the column's header in the original dataframe
         merged_header: the column's header in the merged dataframe
+        merged_name: the name of the merged dataframe, in case we need to print an informative error message
 
         Returns
         bool indicating whether the column in the merged dataframe and the column in the original dataframe had the same values for each index
@@ -309,7 +320,7 @@ class Basic:
             original_value = original_df.loc[sample, original_header]
             merged_value = merged_df.loc[sample, merged_header]
             if (merged_value != original_value) and (pd.notna(merged_value) or pd.notna(original_value)):
-                print("Merged dataframe had incorrect values.\n\tDataframe: {}\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}".format(merged_df.name, sample, merged_header, original_value, merged_value))
+                print("Merged dataframe had incorrect values.\n\tDataframe: {}\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}\n".format(merged_df_name, sample, merged_header, original_value, merged_value))
                 PASS = False
 
         return PASS
@@ -318,6 +329,7 @@ class Basic:
         # We will test all of the compare_**** functions, which either merge dataframes, or add columns to a dataframe
         # When dataframes are merged, we will make sure that the data in the merged dataframe was mapped to the proper identifier
         # When a column is added, we will make sure that data is not lost.
+        # When values are imputed ('Wildtype' for NaN in somatic), we will make sure it is done only for the correct samples.
 
         print("Evaluating utilities v2...")
 
@@ -333,31 +345,55 @@ class Basic:
         # Test compare_gene, using the A1BG gene
         gene = 'A1BG'
         A1BG_compared = en.compare_gene(proteomics, transcriptomics, gene)
+        A1BG_compared_name = 'A1BG_compared'
 
-        if not tester.test_merged_column(proteomics, A1BG_compared, gene, A1BG_compared.columns.values[0]):
+        ### Check the proteomics column
+        if not tester.test_merged_column(proteomics, A1BG_compared, gene, A1BG_compared.columns.values[0], A1BG_compared_name):
            PASS = False
 
-        if not tester.test_merged_column(transcriptomics, A1BG_compared, gene, A1BG_compared.columns.values[1]):
+        ### Check the transcriptomics column
+        if not tester.test_merged_column(transcriptomics, A1BG_compared, gene, A1BG_compared.columns.values[1], A1BG_compared_name):
            PASS = False
 
         # Test compare_gene, using a list of genes
         gene_list = ['A1BG', 'ZZEF1', 'SMURF1']
         sorted_gene_list = sorted(gene_list) # compare_gene should sort the genes
         list_compared = en.compare_gene(proteomics, transcriptomics, gene_list)
+        list_compared_name = 'list_compared'
 
-        ### compare_gene should give all the data from the first dataframe in the first three columns
+        ### Test the data from the first dataframe, which are in the first three columns of the merged dataframe
         for i in range(3):
-            if not tester.test_merged_column(proteomics, list_compared, sorted_gene_list[i], list_compared.columns.values[i]):
+            if not tester.test_merged_column(proteomics, list_compared, sorted_gene_list[i], list_compared.columns.values[i], list_compared_name):
                PASS = False
 
-        ### compare_gene should give all the data from the second dataframe in the last three columns
+        ### Test the data from the second dataframe, which are in the last three columns of the merged dataframe
         for i in range(3):
-            if not tester.test_merged_column(transcriptomics, list_compared, sorted_gene_list[i], list_compared.columns.values[i + 3]):
+            if not tester.test_merged_column(transcriptomics, list_compared, sorted_gene_list[i], list_compared.columns.values[i + 3], list_compared_name):
                PASS = False
 
-        # Test compare_mutations (proteomics)
+        # Test compare_mutations, using functionality to compare a gene's omics data to its own somatic mutation data
+        gene = 'TP53'
+        TP53_mutation_compared = en.compare_mutations(proteomics, gene)
+        TP53_mutation_compared_name = 'TP53_mutation_compared'
 
-        # Test compare_mutations (proetomics with somatic)
+        ### Test data in 'TP53' column, which is the proteomics data for TP53
+        if not tester.test_merged_column(proteomics, TP53_mutation_compared, gene, gene, TP53_mutation_compared_name):
+            PASS = False
+
+        ### Test data in 'Mutation' column, which is from the somatic mutation data for TP53
+        # To get the proper values to compare to from the somatic dataframe, we'll need to write a test_merged_column_from_row function that gets the original values from the somatic table for a particular sample and gene.
+
+        ### Test data in 'Sample_Status' column, which is from the somatic mutation data for TP53
+
+        # Test compare_mutations, using functionality to compare a gene's omcis data to the mutation data for another gene
+        gene_2 = 'AURKA'
+        multiple_mutation_compared = en.compare_mutations(proteomics, gene, gene_2)
+
+        ### Test data in 'TP53' column, which is the proteomics data for TP53
+
+        ### Test data in 'Mutation' column, which is from the somatic mutation data for AURKA
+
+        ### Test data in 'Sample_Status' column, which is from the somatic mutation data for AURKA
 
         # Test compare_mutations (phosphosproteomics)
 
@@ -420,8 +456,7 @@ class Plotter:
 
 print("\nRunning tests:\n")
 
-print("Warning: getters test is not up to date.")
-#Basic().evaluate_getters()
+Basic().evaluate_getters()
 Basic().evaluate_special_getters()
 Basic().evaluate_utilities()
 Basic().evaluate_utilities_v2()
