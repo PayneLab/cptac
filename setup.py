@@ -11,7 +11,7 @@ setup(name='CPTAC',
 	author='Dr. Samuel Payne',
 	author_email='sam_payne@byu.edu',
 	license='Apache 2.0',
-	packages=['CPTAC','CPTAC.Endometrial','CPTAC.Ovarian'],
+	packages=['CPTAC','CPTAC.Endometrial','CPTAC.Ovarian','CPTAC.Colon'],
 	install_requires=[
 		'numpy',
 		'pandas'

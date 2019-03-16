@@ -1,7 +1,19 @@
 import webbrowser
 import textwrap
 import os
+def list():
+    """Parameters
+    None
 
+    Lists all available datasets
+
+    Returns
+    None
+    """
+    print("Available datasets:")
+    print("Endometrial")
+    print("Ovarian")
+    print("Colon")
 def help():
     """
     Parameters
@@ -42,7 +54,7 @@ def version():
     return(version['__version__'])
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-message = "Welcome to the CPTAC data service package. In order to access a specific data set, import a CPTAC subfolder by either \'import CPTAC.DataName\' or \'from CPTAC import DataName\'.\n"
+message = "Welcome to the CPTAC data service package. Available datasets may be viewed using CPTAC.list(). In order to access a specific data set, import a CPTAC subfolder using either \'import CPTAC.Dataset\' or \'from CPTAC import Dataset\'.\n"
 wrapped_list = textwrap.wrap(message)
 for line in wrapped_list:
     print(line)

@@ -12,7 +12,6 @@ from .dataframe import DataFrameLoader
 
 def warning():
     print("\n","******PLEASE READ******")
-    #TODO: What is the embargo date for the ovarian cancer data?
     warning = "WARNING: This data is under a publication embargo until June 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until June 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter embargo() to open the webpage for more details."
     wrapped_list = textwrap.wrap(warning)
     for line in wrapped_list:
