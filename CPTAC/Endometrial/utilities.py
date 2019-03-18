@@ -143,7 +143,10 @@ class Utilities:
             if duplicates: #don't filter out duplicate sample mutations
                 return self.merge_somatic(somatic, gene, omics_gene_df, multiple_mutations = True)
             else: #filter out duplicate sample mutations
-                return self.merge_somatic(somatic, gene, omics_gene_df)[[gene, "Mutation", "Sample_Status"]]
+                merged_with_duplicates = self.merge_somatic(somatic, gene, omics_gene_df)
+                merged = merged_with_duplicates[[gene, "Mutation", "Sample_Status"]]
+                merged.name = merged_with_duplicates.name
+                return merged
         elif omics.name.split("_")[0] == "phosphoproteomics":
             phosphosites = self.get_phosphosites(omics, gene)
             if len(phosphosites.columns) > 0:
