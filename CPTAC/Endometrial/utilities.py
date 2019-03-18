@@ -188,8 +188,10 @@ class Utilities:
                     columns = list(phosphosites.columns)
                     columns.append("Mutation")
                     columns.append("Sample_Status")
-                    merged_somatic = self.merge_somatic(somatic, somaticGene, phosphosites)
-                    return merged_somatic[columns]
+                    merged_somatic_full = self.merge_somatic(somatic, somaticGene, phosphosites)
+                    merged_somatic = merged_somatic_full[columns]
+                    merged_somatic.name = merged_somatic_full.name
+                    return merged_somatic
         else:
             print("Gene", omicsGene, "not found in", omics.name,"data")
     def compare_clinical(self, clinical, data, clinical_col):
