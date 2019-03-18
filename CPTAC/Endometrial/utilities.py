@@ -64,7 +64,7 @@ class Utilities:
             merge = df_gene.join(somatic_gene, how = "left") #left join omics data and mutation data (left being the omics data)
             merge = merge.fillna(value = {'Mutation':"Wildtype"}) #fill in all Mutation NA values (no mutation data) as Wildtype
             merge["index"] = merge.index #set index values as column
-            merge["Sample_Status"] = np.where(merge.index <= "S104", "Tumor", "Normal") #add patient type, setting all samples up to S100 as Tumor, others as normal.
+            merge["Sample_Status"] = np.where(merge.index <= "S104", "Tumor", "Normal") #add patient type, setting all samples up to S104 as Tumor, others as normal.
             merge.name = df_gene.columns[0] + " omics data with " + gene + " mutation data"
             return merge
         else:
