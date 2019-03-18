@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
 import CPTAC.Endometrial as en
+from utilities import *
 
 class Basic:
     def __init__(self):
@@ -325,6 +326,49 @@ class Basic:
 
         return PASS
 
+    def test_merged_column_from_row(self, source_df, merged_df, ID_column, filter_column, filter_value, source_column, dest_column, merged_df_name):
+        """
+        Parameters
+        source_df: dataframe the data came from
+        merged_df: dataframe the data was put in
+        ID_column: string indiating the column in source_df that has the ID values that are the indices in merged_df
+        filter_column: string indicating the column whose value was looked at to decide whether to take the value in the source column for a particular row, and put it in merged_df
+        filter_value: the value in filter_column that indicates the data from source_column for that sample should go in merged_df
+        source_column: string indicating the column in source_df from which data was taken
+        dest_column: string indicating the column in merged_df where the data from source_df was put
+        merged_df_name: string with the name of the merged dataframe, in case we need to print an informative error message.
+
+        Returns
+        bool indicating whether, for each sample and filter value, the data in merged_df matched the data in source_df for that sample ID and filter value.
+        """
+        PASS = True
+
+        for sample in merged_df.index.values:
+            sample_source_df = source_df.loc[source_df[ID_column] == sample] # Load a dataframe with all just the values from source_df for this sample
+            source_filtered_df = sample_source_df.loc[sample_source_df[filter_column] == filter_value]
+            original_values = source_filtered_df[source_column].values
+
+            if len(original_values) == 0:
+                if source_df.name.startswith('somatic'):
+                    original_value = 'Wildtype' # Assuming the merge we're testing called merge_somatic from utilities.py at some point, all NaN mutation values were imputed to Wildtype
+                else:
+                    original_value == float('NaN')
+            elif len(original_values) == 1:
+                original_value = original_values[0]
+            elif len(original_values) > 1 and source_df.name.startswith('somatic'):
+                source_filtered_with_hierarchy = Utilities().add_mutation_hierarchy(source_filtered_df)
+                source_filtered_with_hierarchy = source_filtered_with_hierarchy.sort_values(by = [ID_column, 'Mutation_Hierarchy'], ascending = [True,False]) #sorts by patient key, then by hierarchy so the duplicates will come with the lower number first
+                original_value = source_filtered_with_hierarchy[source_column].iloc[0]
+            else:
+                raise ValueError('Unexpected duplicate entries in source dataframe for merged dataframe.\n\tSource dataframe: {}\n\tMerged dataframe: {}\n\tSample: {}\n\tColumn: {}\n\tValues found: {}\n'.format(source_df.name, merged_df_name, sample, source_column, original_values))
+
+            merged_value = merged_df.loc[sample, dest_column]
+            if (merged_value != original_value) and (pd.notna(merged_value) or pd.notna(original_value)):
+                print("Merged dataframe had incorrect value.\n\tDataframe: {}\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}\n".format(merged_df_name, sample, dest_column, original_value, merged_value))
+                PASS = False
+
+        return PASS
+
     def evaluate_utilities_v2(self):
         # We will test all of the compare_**** functions, which either merge dataframes, or add columns to a dataframe
         # When dataframes are merged, we will make sure that the data in the merged dataframe was mapped to the proper identifier
@@ -341,6 +385,7 @@ class Basic:
         phosphoproteomics = en.get_phosphoproteomics()
         transcriptomics = en.get_transcriptomics()
         cna = en.get_CNA()
+        somatic = en.get_somatic()
 
         # Test compare_gene, using the A1BG gene
         gene = 'A1BG'
@@ -381,9 +426,26 @@ class Basic:
             PASS = False
 
         ### Test data in 'Mutation' column, which is from the somatic mutation data for TP53
-        # To get the proper values to compare to from the somatic dataframe, we'll need to write a test_merged_column_from_row function that gets the original values from the somatic table for a particular sample and gene.
+        somatic_ID_column = 'Clinical_Patient_Key'
+        somatic_filter_column = 'Gene'
+        somatic_source_column = 'Mutation'
+        somatic_dest_column = 'Mutation'
+        if not tester.test_merged_column_from_row(somatic, TP53_mutation_compared, somatic_ID_column, somatic_filter_column, gene, somatic_source_column, somatic_dest_column, TP53_mutation_compared_name):
+            PASS = False
 
-        ### Test data in 'Sample_Status' column, which is from the somatic mutation data for TP53
+        ### Test data in 'Sample_Status' column, which should be 'Tumor' for all samples up to and including S100, and 'Normal' for the remaining ones
+        TP53_sample_statuses =  TP53_mutation_compared['Sample_Status']
+        for row in TP53_sample_statuses.iteritems():
+            sample = row[0]
+            value = row[1]
+            if sample <= 'S100':
+                if value != 'Tumor':
+                    print('Merged dataframe had incorrect value.\n\tDataframe: {}\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}\n'.format(TP53_mutation_compared_name, sample, 'Sample_Status', 'Tumor', value))
+                    PASS = False
+            else:
+                if value != 'Normal':
+                    print('Merged dataframe had incorrect value.\n\tDataframe: {}\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}\n'.format(TP53_mutation_compared_name, sample, 'Sample_Status', 'Normal', value))
+                    PASS = False
 
         # Test compare_mutations, using functionality to compare a gene's omcis data to the mutation data for another gene
         gene_2 = 'AURKA'
