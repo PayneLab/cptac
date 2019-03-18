@@ -11,3 +11,27 @@
 class Utilities:
     def __init__(self):
         pass
+
+    def compare_gene(self, df1, df2, gene):
+        pass
+
+    def compare_genes(self, df1, df2, genes):
+        pass
+
+    def compare_clinical(self, clinical, data, clinical_col):
+        pass
+
+    def compare_phosphosites(self, proteomics, phosphoproteomics, gene):
+        pass
+
+    def add_mutation_hierarchy(self, somatic): # private
+        pass
+
+    def merge_somatic(self, somatic, gene, df_gene, multiple_mutations = False): # private
+        pass
+
+    def merge_mutations(self, omics, somatic, gene, duplicates = False):
+        pass
+
+    def merge_mutations_trans(self, omics, omics_gene, somatic, somatic_gene, duplicates = False):
+        pass
