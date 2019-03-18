@@ -438,7 +438,7 @@ class Basic:
         for row in TP53_sample_statuses.iteritems():
             sample = row[0]
             value = row[1]
-            if sample <= 'S100':
+            if sample <= 'S104':
                 if value != 'Tumor':
                     print('Merged dataframe had incorrect value.\n\tDataframe: {}\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}\n'.format(TP53_mutation_compared_name, sample, 'Sample_Status', 'Tumor', value))
                     PASS = False
