@@ -156,8 +156,10 @@ class Utilities:
                     columns = list(phosphosites.columns)
                     columns.append("Mutation")
                     columns.append("Sample_Status")
-                    merged_somatic = self.merge_somatic(somatic, gene, phosphosites)
-                    return merged_somatic[columns] #select all phosphosites, mutation, and patient type columns
+                    merged_somatic_full = self.merge_somatic(somatic, gene, phosphosites)
+                    merged_somatic = merged_somatic_full[columns] #select all phosphosites, mutation, and patient type columns
+                    merged_somatic.name = merged_somatic_full.name
+                    return merged_somatic
 
         else:
             print("Gene", gene, "not found in", omics.name, "data")
@@ -178,7 +180,10 @@ class Utilities:
             if duplicates:
                 return self.merge_somatic(somatic, somaticGene, omics_gene_df, multiple_mutations = True)
             else:
-                return self.merge_somatic(somatic, somaticGene, omics_gene_df)[[omicsGene, "Mutation", "Sample_Status"]]
+                merged_somatic_full = self.merge_somatic(somatic, somaticGene, omics_gene_df)
+                merged_somatic = merged_somatic_full[[omicsGene, "Mutation", "Sample_Status"]]
+                merged_somatic.name = merged_somatic_full.name
+                return merged_somatic
         elif omics.name.split("_")[0] == "phosphoproteomics":
             phosphosites = self.get_phosphosites(omics, omicsGene)
             if len(phosphosites.columns) > 0:
