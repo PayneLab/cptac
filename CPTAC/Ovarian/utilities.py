@@ -172,6 +172,8 @@ class Utilities:
             merge["patient_key"] = merge.index #move index to column
             merge = merge.set_index("patient_id") #set index to patient id (non-S number)
             merge["Sample_Status"] = np.where(merge.index <= "26OV013", "Tumor", "Normal") #26OV013 is the last patient id before the "N******" ids
+            merge.loc[merge.Sample_Status == "Normal","Mutation"] = "Wildtype_Normal" #change all Wildtype for Normal samples to Wildtype_Normal
+            merge.loc[merge.Mutation == "Wildtype","Mutation"] = "Wildtype_Tumor" #change all other Wildtype (should be for Tumor samples with imputed Wildtype value) to Wildtype_Tumor
             merge.name = df_gene.columns[0] + " omics data with " + gene + " mutation data"
             return merge
         else:
