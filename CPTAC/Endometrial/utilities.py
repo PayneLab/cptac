@@ -170,7 +170,6 @@ class Utilities:
                     merged_somatic = merged_somatic_full[columns] #select all phosphosites, mutation, and patient type columns
                     merged_somatic.name = merged_somatic_full.name
                     return merged_somatic
-
         else:
             print("Gene", gene, "not found in", omics.name, "data")
     def merge_mutations_trans(self, omics, omicsGene, somatic, somaticGene, duplicates = False): #same function as merge_mutations, except use somaticGene to select mutation data

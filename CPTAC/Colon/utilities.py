@@ -160,7 +160,26 @@ class Utilities:
         Returns
         Dataframe of merged somatic and omics dataframes based on gene provided
         """
-        pass
+        print('Somatic mutation maf file has not been added to our dataset yet. This function will not run properly until then.')
+        return
+        if sum(somatic["Gene"] == gene) > 0:
+            somatic_gene = somatic[somatic["Gene"] == gene] #select for all mutations for specified gene
+            somatic_gene = somatic_gene.drop(columns = ["Gene"]) #drop the gene column due to every value being the same
+            somatic_gene = somatic_gene.set_index("Clinical_Patient_Key") #set index as TODO: INSERT PROPER COLUMN NAME FOR INDEX
+            if not multiple_mutations:
+                somatic_gene = self.add_mutation_hierarchy(somatic_gene) #appends hierachy for sorting so correct duplicate can be kept
+                somatic_gene = somatic_gene.sort_values(by = ["Clinical_Patient_Key","Mutation_Hierarchy"], ascending = [True,False]) #sorts by patient key, then by hierarchy so the duplicates will come with the higher number first TODO: INSERT PROPER COLUMN NAMES
+                somatic_gene = somatic_gene[~somatic_gene.index.duplicated(keep="first")] #keeps first duplicate row if indices are the same
+            merge = df_gene.join(somatic_gene, how = "left") #left join omics data and mutation data (left being the omics data)
+            merge = merge.fillna(value = {'Mutation':"Wildtype"}) #fill in all Mutation NA values (no mutation data) as Wildtype
+            merge["index"] = merge.index #set index values as column
+            merge["Sample_Status"] = np.where(merge.index <= "S104", "Tumor", "Normal") #add patient type, setting all samples up to S104 as Tumor, others as normal. TODO: UDPATE TO REFLECT COLON SOMATIC MAF FILE FORMAT
+            merge.loc[merge.Sample_Status == "Normal","Mutation"] = "Wildtype_Normal" #change all Wildtype for Normal samples to Wildtype_Normal
+            merge.loc[merge.Mutation == "Wildtype","Mutation"] = "Wildtype_Tumor" #change all other Wildtype (should be for Tumor samples with imputed Wildtype value) to Wildtype_Tumor
+            merge.name = df_gene.columns[0] + " omics data with " + gene + " mutation data"
+            return merge
+        else:
+            print("Gene", gene, "not found in somatic mutations.")
 
     def merge_mutations(self, omics, somatic, gene, duplicates = False):
         """
@@ -173,7 +192,32 @@ class Utilities:
         Returns
         Dataframe of merged omics and somatic data based on gene provided
         """
-        pass
+        print('Somatic mutation maf file has not been added to our dataset yet. This function will not run properly until then.')
+        return
+        if gene in omics.columns:
+            omics_gene_df = omics[[gene]] #select omics data for specified gene
+            if duplicates: #don't filter out duplicate sample mutations
+                return self.merge_somatic(somatic, gene, omics_gene_df, multiple_mutations = True)
+            else: #filter out duplicate sample mutations
+                merged_with_duplicates = self.merge_somatic(somatic, gene, omics_gene_df)
+                merged = merged_with_duplicates[[gene, "Mutation", "Sample_Status"]]
+                merged.name = merged_with_duplicates.name
+                return merged
+        elif omics.name.split("_")[0] == "phosphoproteomics":
+            phosphosites = self.get_phosphosites(omics, gene)
+            if len(phosphosites.columns) > 0:
+                if duplicates:#don't filter out duplicate sample mutations
+                    return self.merge_somatic(somatic, gene, phosphosites, multiple_mutations = True)
+                else:#filter out duplicate sample mutations
+                    columns = list(phosphosites.columns)
+                    columns.append("Mutation")
+                    columns.append("Sample_Status")
+                    merged_somatic_full = self.merge_somatic(somatic, gene, phosphosites)
+                    merged_somatic = merged_somatic_full[columns] #select all phosphosites, mutation, and patient type columns
+                    merged_somatic.name = merged_somatic_full.name
+                    return merged_somatic
+        else:
+            print("Gene", gene, "not found in", omics.name, "data")
 
     def merge_mutations_trans(self, omics, omics_gene, somatic, somatic_gene, duplicates = False):
         """
@@ -187,4 +231,29 @@ class Utilities:
         Returns
         Dataframe of merged omics data (based on specific omicsGene) with somatic data (based on specific somaticGene)
         """
-        pass
+        print('Somatic mutation maf file has not been added to our dataset yet. This function will not run properly until then.')
+        return
+        if omicsGene in omics.columns:
+            omics_gene_df = omics[[omicsGene]]
+            if duplicates:
+                return self.merge_somatic(somatic, somaticGene, omics_gene_df, multiple_mutations = True)
+            else:
+                merged_somatic_full = self.merge_somatic(somatic, somaticGene, omics_gene_df)
+                merged_somatic = merged_somatic_full[[omicsGene, "Mutation", "Sample_Status"]]
+                merged_somatic.name = merged_somatic_full.name
+                return merged_somatic
+        elif omics.name.split("_")[0] == "phosphoproteomics":
+            phosphosites = self.get_phosphosites(omics, omicsGene)
+            if len(phosphosites.columns) > 0:
+                if duplicates:
+                    return self.merge_somatic(somatic, somaticGene, phosphosites, multiple_mutations = True)
+                else:
+                    columns = list(phosphosites.columns)
+                    columns.append("Mutation")
+                    columns.append("Sample_Status")
+                    merged_somatic_full = self.merge_somatic(somatic, somaticGene, phosphosites)
+                    merged_somatic = merged_somatic_full[columns]
+                    merged_somatic.name = merged_somatic_full.name
+                    return merged_somatic
+        else:
+            print("Gene", omicsGene, "not found in", omics.name,"data")
