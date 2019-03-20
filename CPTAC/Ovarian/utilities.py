@@ -130,7 +130,7 @@ class Utilities:
         Parameters
         somatic: somatic data to add mutation hierarchy to
 
-        Retunrs
+        Returns
         Somatic mutation dataframe with added mutation hierarchy
         """
         mutation_hierarchy = {"Missense_Mutation":0,"In_Frame_Del":0,"In_Frame_Ins":0,"Splice_Site":1,"Frame_Shift_Ins":1,"Nonsense_Mutation":1,"Frame_Shift_Del":1,"Nonstop_Mutation":1}
@@ -140,7 +140,7 @@ class Utilities:
                 hierarchy.append(mutation_hierarchy[x])
             else:
                 hierarchy.append(float('NaN'))
-        somatic["Mutation_Hierarchy"] = hierarchy
+        somatic = somatic.assign(Mutation_Hierarchy =  hierarchy)
         return somatic
     def merge_somatic(self, somatic, gene, df_gene, key_id_map, multiple_mutations = False): #private
         """

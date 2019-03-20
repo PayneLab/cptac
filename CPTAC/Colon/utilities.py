@@ -139,7 +139,15 @@ class Utilities:
         Retunrs
         Somatic mutation dataframe with added mutation hierarchy
         """
-        pass
+        mutation_hierarchy = {"Missense_Mutation":0,"In_Frame_Del":0,"In_Frame_Ins":0,"Splice_Site":1,"Frame_Shift_Ins":1,"Nonsense_Mutation":1,"Frame_Shift_Del":1,"Nonstop_Mutation":1}
+        hierarchy = []
+        for x in somatic["Mutation"]: #for every value in the Mutation column, append its value in the hard coded mutation hierarchy
+            if x in mutation_hierarchy.keys():
+                hierarchy.append(mutation_hierarchy[x])
+            else:
+                hierarchy.append(float('NaN'))
+        somatic = somatic.assign(Mutation_Hierarchy =  hierarchy)
+        return somatic
 
     def merge_somatic(self, somatic, gene, df_gene, multiple_mutations = False): # private
         """
