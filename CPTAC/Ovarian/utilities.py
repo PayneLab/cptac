@@ -21,7 +21,7 @@ class Utilities:
             common = df1.set_index("patient_key").index.intersection(df2.set_index("patient_key").index) #select for intersection of patient keys between two dataframes
             df1Matched = df1.set_index("patient_key").loc[common] #select for rows matching common patient keys in df1
             df2Matched = df2.set_index("patient_key").loc[common] #select for rows matching common patient keys in df2
-            assert(hasattr(df1,"name")); assert(hasattr(df2,"name")) #check that both dataframes have a name, which is assined in DataFrameLoader class
+            assert(hasattr(df1,"name")); assert(hasattr(df2,"name")) #check that both dataframes have a name, which is assigned in DataFrameLoader class
             dict = {df1.name:df1Matched[gene], df2.name:df2Matched[gene]} #create prep dictionary for dataframe mapping name to specified gene column
             df = pd.DataFrame(dict, index = df1Matched.index) #create dataframe with common rows as rows, and dataframe name to specified gene column as columns
             df["patient_id"] = key_id_map[key_id_map["patient_key"].isin(list(df.index))].index
@@ -88,9 +88,17 @@ class Utilities:
             df.name = data.name + " with " + clinical_col #assigns dataframe name using data name and specified clinical column
             return df
         else:
-            print(clinical_col, "not found in clinical dataframe. You can check the available columns by entering CPTAC.get_clincal().columns")
+            print(clinical_col, "not found in clinical dataframe. You can check the available columns using get_clincal().columns")
 
     def get_phosphosites(self, phosphoproteomics, gene):
+        """
+        Parameters
+        phosphoproteomics: the phosphoproteomics dataframe
+        gene: the gene we want to get the phosphosites for
+
+        Returns
+        dataframe containing the phosphosites for the specified gene
+        """
         regex = gene + ".*" #set regular expression using specified gene
         phosphosites = phosphoproteomics.filter(regex = (regex)) #find all columns that match the regular expression, aka, all phosphosites for the specified gene
         if len(phosphosites.columns) == 0:
@@ -116,7 +124,7 @@ class Utilities:
                 df.name = gene + " proteomics and phosphoproteomics"
                 return df
         else:
-            print(gene, "not found in proteomics dataframe. Available genes can be checked by entering CPTAC.get_proteomics().columns")
+            print(gene, "not found in proteomics dataframe. Available genes can be checked using get_proteomics().columns")
     def add_mutation_hierarchy(self, somatic): #private
         """
         Parameters

@@ -36,7 +36,7 @@ for file in files: #loops through files variable
         data[df.name] = df #maps dataframe name to dataframe
     except IOError:
         print("Error reading", file)
-        print("Check that all file names coencide with DataFrameLoader specs")
+        print("Check that all file names coincide with DataFrameLoader specs")
 warning()
 
 def get_clinical():

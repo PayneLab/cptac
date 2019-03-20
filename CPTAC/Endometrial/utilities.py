@@ -72,6 +72,14 @@ class Utilities:
         else:
             print("Gene", gene, "not found in somatic mutations.")
     def get_phosphosites(self, phosphoproteomics, gene):
+        """
+        Parameters
+        phosphoproteomics: the phosphoproteomics dataframe
+        gene: the gene we want to get the phosphosites for
+
+        Returns
+        dataframe containing the phosphosites for the specified gene
+        """
         regex = gene + ".*" #set regular expression using specified gene
         phosphosites = phosphoproteomics.filter(regex = (regex)) #find all columns that match the regular expression, aka, all phosphosites for the specified gene
         if len(phosphosites.columns) == 0:
@@ -94,7 +102,7 @@ class Utilities:
             df1Matched = df1Matched.sort_index() #sort rows in ascending order
             df2Matched = df2.loc[common] #select all common rows in df2
             df2Matched = df2Matched.sort_index() #sort rows in ascending order
-            assert(hasattr(df1,"name")); assert(hasattr(df2,"name")) #check that both dataframes have a name, which is assined at
+            assert(hasattr(df1,"name")); assert(hasattr(df2,"name")) #check that both dataframes have a name, which is assigned at
             dict = {df1.name:df1Matched[gene], df2.name:df2Matched[gene]} #create prep dictionary for dataframe mapping name to specified gene column
             df = pd.DataFrame(dict, index = df1Matched.index) #create dataframe with common rows as rows, and dataframe name to specified gene column as columns
             df.name = gene #dataframe is named as specified gene
@@ -217,7 +225,7 @@ class Utilities:
             df.name = data.name + " with " + clinical_col
             return df
         else:
-            print(clinical_col, "not found in clinical dataframe. You can check the available columns by entering CPTAC.get_clinical_cols()")
+            print(clinical_col, "not found in clinical dataframe. You can check the available columns using get_clinical_cols()")
     def compare_derived_molecular(self, derived_molecular, data, dm_col):
         """
         Parameters
@@ -234,7 +242,7 @@ class Utilities:
             df.name = data.name + " with " + dm_col
             return df
         else:
-            print(dm_col, "not found in derived_molecular dataframe. You can check the available columns by entering CPTAC.get_derived_molecular_cols()")
+            print(dm_col, "not found in derived_molecular dataframe. You can check the available columns using get_derived_molecular_cols()")
     def compare_phosphosites(self, proteomics, phosphoproteomics, gene):
         """
         Parameters
@@ -253,4 +261,4 @@ class Utilities:
                 df.name = gene + " proteomics and phosphoproteomics"
                 return df
         else:
-            print(gene, "not found in proteomics dataframe. Available genes can be checked by entering CPTAC.get_proteomics().columns")
+            print(gene, "not found in proteomics dataframe. Available genes can be checked using get_proteomics().columns")
