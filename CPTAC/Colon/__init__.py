@@ -31,5 +31,92 @@ for file in files: #loops through files variable
         print("Error reading", file)
         print("Check that all file names coincide with DataFrameLoader specs")
 
+def list():
+	"""
+	Parameters: 
+	None
+
+	Prints a list of available dataframes and dimensions
+
+	Returns:
+	None
+	"""
+	print("Below are the available colon data frames contained in this package:")
+	#dataframes = [clinical, miRNA, mutation, proteomics, transcriptomics, phosphoproteomics]
+	for dataframe in data:
+		print("\t", data[dataframe].name)
+		print("\t", "\t", "Dimensions:", data[dataframe].shape)
+	print("To access the data, use a get function with the data frame name, i.e. colon.get_proteomics()")
+
 def get_clinical():
-    return data.get("clinical")
+	"""
+	Parameters: 
+	None
+
+	Returns:
+	Clinical dataframe
+	"""
+	return data.get("clinical")
+def get_miRNA():
+	"""
+	Parameters: 
+	None
+
+	Returns:
+	miRNA dataframe
+	"""
+	return data.get("miRNA")
+def get_mutation():
+	"""
+	Parameters: 
+	None
+
+	Returns:
+	Mutation dataframe
+	"""
+	return data.get("mutation")
+def get_phosphoproteomics():
+	"""
+	Parameters: 
+	None
+
+	Returns:
+	Phosphoproteomics dataframe (both normal and tumor entries combined in one dataframe)
+	"""
+	tumor = data.get("phosphoproteomics_tumor")
+	normal = data.get("phosphoproteomics_normal") #normal entries are not marked
+	combined = tumor.append(normal)
+	return combined
+def get_proteomics():
+	"""
+	Parameters: 
+	None
+
+	Returns:
+	Proteomics dataframe (both normal and tumor entries combined in one dataframe)
+	"""
+	tumor = data.get("proteomics_tumor")
+	normal = data.get("proteomics_normal") #normal entries are marked with 'N' on the end of the ID
+	combined = tumor.append(normal)
+	return combined
+def get_transcriptomics():
+	"""
+	Parameters: 
+	None
+
+	Returns:
+	Transcriptomics dataframe
+	"""
+	return data.get("transcriptomics")
+#TODO: add wrapper functions
+"""
+def compare_gene():
+def compare_genes():
+def compare_clinical():
+def get_phosphosites():
+def compare_phosphosites():
+def add_mutation_hierarchy():
+def merge_somatic():
+def merge_mutations():
+def merge_mutations_trans():
+"""
