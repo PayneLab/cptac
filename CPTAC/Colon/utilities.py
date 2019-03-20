@@ -58,7 +58,7 @@ class Utilities:
         pass
 
     def compare_phosphosites(self, proteomics, phosphoproteomics, gene):
-         """
+        """
         Parameters
         proteomics: the proteomics dataframe
         phosphoproteomics: the phosphoproteomics dataframe
