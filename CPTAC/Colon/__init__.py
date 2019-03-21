@@ -33,7 +33,7 @@ for file in files: #loops through files variable
 
 def list():
 	"""
-	Parameters: 
+	Parameters:
 	None
 
 	Prints a list of available dataframes and dimensions
@@ -50,7 +50,7 @@ def list():
 
 def get_clinical():
 	"""
-	Parameters: 
+	Parameters:
 	None
 
 	Returns:
@@ -59,7 +59,7 @@ def get_clinical():
 	return data.get("clinical")
 def get_miRNA():
 	"""
-	Parameters: 
+	Parameters:
 	None
 
 	Returns:
@@ -68,7 +68,7 @@ def get_miRNA():
 	return data.get("miRNA")
 def get_mutation():
 	"""
-	Parameters: 
+	Parameters:
 	None
 
 	Returns:
@@ -77,7 +77,7 @@ def get_mutation():
 	return data.get("mutation")
 def get_phosphoproteomics():
 	"""
-	Parameters: 
+	Parameters:
 	None
 
 	Returns:
@@ -89,7 +89,7 @@ def get_phosphoproteomics():
 	return combined
 def get_proteomics():
 	"""
-	Parameters: 
+	Parameters:
 	None
 
 	Returns:
@@ -98,25 +98,46 @@ def get_proteomics():
 	tumor = data.get("proteomics_tumor")
 	normal = data.get("proteomics_normal") #normal entries are marked with 'N' on the end of the ID
 	combined = tumor.append(normal)
+	combined.name = "proteomics"
 	return combined
 def get_transcriptomics():
 	"""
-	Parameters: 
+	Parameters:
 	None
 
 	Returns:
 	Transcriptomics dataframe
 	"""
 	return data.get("transcriptomics")
+
+def compare_gene(df1, df2, gene):
+    """
+    Parameters
+    df1: omics dataframe (proteomics) to be selected from
+    df2: other omics dataframe (transcriptomics) to be selected from
+    gene: gene or list of genes to select from each of the dataframes
+
+    Returns
+    Dataframe containing common rows between provided dataframes and columns for the specified gene (or genes) from provided dataframes.
+    """
+    if isinstance(gene, str): #simple way to check for single gene string
+        return Utilities().compare_gene(df1, df2, gene)
+    else: #if not single gene string, then assuming an array was provided
+        return Utilities().compare_genes(df1, df2, gene)
+def compare_clinical(omics_data, clinical_col):
+    """
+    Parameters
+    data: omics data for clinical data to be appended with
+    clinical_col: column in clinical dataframe to be inserted into provided omics data
+
+    Returns
+    Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
+    """
+    return Utilities().compare_clinical(get_clinical(), omics_data, clinical_col)
+
 #TODO: add wrapper functions
 """
-def compare_gene():
-def compare_genes():
-def compare_clinical():
 def get_phosphosites():
 def compare_phosphosites():
-def add_mutation_hierarchy():
-def merge_somatic():
-def merge_mutations():
-def merge_mutations_trans():
+def compare_mutations():
 """
