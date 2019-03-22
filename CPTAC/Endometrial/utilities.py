@@ -64,10 +64,10 @@ class Utilities:
             merge = df_gene.join(somatic_gene, how = "left") #left join omics data and mutation data (left being the omics data)
             merge = merge.fillna(value = {'Mutation':"Wildtype"}) #fill in all Mutation NA values (no mutation data) as Wildtype
             merge["index"] = merge.index #set index values as column ??Do we need this? Just duplicates the index column.
-            merge.rename(columns={'Mutation':gene + '_Mutation', 'Location':gene + '_Location'}, inplace=True) # Add the gene name to the column headers, so that it's clear which gene the data is for after we merge it later.
-            merge[gene + "_Sample_Status"] = np.where(merge.index <= "S104", "Tumor", "Normal") #add patient type, setting all samples up to S104 as Tumor, others as normal.
+            merge["Sample_Status"] = np.where(merge.index <= "S104", "Tumor", "Normal") #add patient type, setting all samples up to S104 as Tumor, others as normal.
             merge.loc[merge.Sample_Status == "Normal","Mutation"] = "Wildtype_Normal" #change all Wildtype for Normal samples to Wildtype_Normal
             merge.loc[merge.Mutation == "Wildtype","Mutation"] = "Wildtype_Tumor" #change all other Wildtype (should be for Tumor samples with imputed Wildtype value) to Wildtype_Tumor
+            merge.rename(columns={'Mutation':gene + '_Mutation', 'Location':gene + '_Location', 'Sample_Status':gene + '_Sample_Status'}, inplace=True) # Add the gene name to the column headers, so that it's clear which gene the data is for after we merge it later.
             merge.name = df_gene.columns[0] + " omics data with " + gene + " mutation data"
             return merge
         else:
