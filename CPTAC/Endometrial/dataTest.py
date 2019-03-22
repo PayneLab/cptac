@@ -350,7 +350,10 @@ class Basic:
 
             if len(original_values) == 0:
                 if source_df.name.startswith('somatic'):
-                    original_value = 'Wildtype' # Assuming the merge we're testing called merge_somatic from utilities.py at some point, all NaN mutation values were imputed to Wildtype
+                    if sample <= 'S104':
+                        original_value = 'Wildtype_Tumor'
+                    else:
+                        original_value = 'Wildtype_Normal'
                 else:
                     original_value == float('NaN')
             elif len(original_values) == 1:
