@@ -187,17 +187,16 @@ class Utilities:
         if omicsGene in omics.columns:
             omics_gene_df = omics[[omicsGene]]
             if duplicates:
-                return self.merge_somatic(somatic, somaticGene, omics_gene_df, multiple_mutations = True)
+                merged_somatic = self.merge_somatic(somatic, somaticGene, omics_gene_df, multiple_mutations = True)
             else:
                 merged_somatic_full = self.merge_somatic(somatic, somaticGene, omics_gene_df)
                 merged_somatic = merged_somatic_full[[omicsGene, "Mutation", "Sample_Status"]]
                 merged_somatic.name = merged_somatic_full.name
-                return merged_somatic
         elif omics.name.split("_")[0] == "phosphoproteomics":
             phosphosites = self.get_phosphosites(omics, omicsGene)
             if len(phosphosites.columns) > 0:
                 if duplicates:
-                    return self.merge_somatic(somatic, somaticGene, phosphosites, multiple_mutations = True)
+                    merged_somatic = self.merge_somatic(somatic, somaticGene, phosphosites, multiple_mutations = True)
                 else:
                     columns = list(phosphosites.columns)
                     columns.append("Mutation")
@@ -205,9 +204,12 @@ class Utilities:
                     merged_somatic_full = self.merge_somatic(somatic, somaticGene, phosphosites)
                     merged_somatic = merged_somatic_full[columns]
                     merged_somatic.name = merged_somatic_full.name
-                    return merged_somatic
         else:
             print("Gene", omicsGene, "not found in", omics.name,"data")
+            return
+        merged_somatic.rename(columns={'Mutation':somaticGene + '_Mutation', 'Location':somaticGene + '_Location', 'Sample_Status':somaticGene + '_Sample_Status'}, inplace=True) # Add the gene name to the column headers, so that it's clear which gene the data is for.
+        return merged_somatic
+
     def compare_clinical(self, clinical, data, clinical_col):
         """
         Parameters
