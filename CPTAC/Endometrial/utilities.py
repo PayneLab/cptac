@@ -184,6 +184,7 @@ class Utilities:
         Returns
         Dataframe of merged omics data (based on specific omicsGene) with somatic data (based on specific somaticGene)
         """
+        merged_somatic = None
         if omicsGene in omics.columns:
             omics_gene_df = omics[[omicsGene]]
             if duplicates:
@@ -207,7 +208,7 @@ class Utilities:
         else:
             print("Gene", omicsGene, "not found in", omics.name,"data")
             return
-        merged_somatic.rename(columns={'Mutation':somaticGene + '_Mutation', 'Location':somaticGene + '_Location', 'Sample_Status':somaticGene + '_Sample_Status'}, inplace=True) # Add the gene name to the column headers, so that it's clear which gene the data is for.
+        merged_somatic = merged_somatic.rename(columns={omicsGene:omicsGene + '_omics', 'Mutation':somaticGene + '_Mutation', 'Location':somaticGene + '_Location', 'Sample_Status':somaticGene + '_Sample_Status'}) # Add the gene name to the column headers, so that it's clear which gene the data is for.
         return merged_somatic
 
     def compare_clinical(self, clinical, data, clinical_col):
