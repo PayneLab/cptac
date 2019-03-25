@@ -232,25 +232,31 @@ class Utilities:
         Returns
         Dataframe of merged omics data (based on specific omicsGene) with somatic data (based on specific somaticGene)
         """
+        merged_somatic = None
         if omicsGene in omics.columns:
             omics_gene_df = omics[[omicsGene,"patient_key"]].set_index("patient_key")
             if duplicates:
-                return self.merge_somatic(somatic, somaticGene, omics_gene_df, key_id_map, multiple_mutations = True)
+                merged_somatic = self.merge_somatic(somatic, somaticGene, omics_gene_df, key_id_map, multiple_mutations = True)
             else:
-                return self.merge_somatic(somatic, somaticGene, omics_gene_df, key_id_map)[[omicsGene, "Mutation", "patient_key", "Sample_Status"]]
+                merged_somatic = self.merge_somatic(somatic, somaticGene, omics_gene_df, key_id_map)[[omicsGene, "Mutation", "patient_key", "Sample_Status"]]
         elif omics.name.split("_")[0] == "phosphoproteomics":
             phosphosites = self.get_phosphosites(omics, omicsGene)
             if len(phosphosites.columns) > 0:
                 phosphosites = phosphosites.assign(patient_key = omics["patient_key"])
                 phosphosites = phosphosites.set_index("patient_key")
                 if duplicates:
-                    return self.merge_somatic(somatic, somaticGene, phosphosites, key_id_map, multiple_mutations = True)
+                    merged_somatic = self.merge_somatic(somatic, somaticGene, phosphosites, key_id_map, multiple_mutations = True)
                 else:
                     columns = list(phosphosites.columns)
                     columns.append("Mutation")
                     columns.append("patient_key")
                     columns.append("Sample_Status")
                     merged_somatic = self.merge_somatic(somatic, somaticGene, phosphosites, key_id_map)
-                    return merged_somatic[columns]
+                    merged_somatic =  merged_somatic[columns]
         else:
             print("Gene", omicsGene, "not found in", omics.name,"data")
+            return
+        if merged_somatic is None:
+            return
+        merged_somatic = merged_somatic.rename(columns={omicsGene:omicsGene + '_omics', 'Mutation':somaticGene + '_Mutation', 'Location':somaticGene + '_Location', 'Sample_Status':somaticGene + '_Sample_Status'}) # Add the gene name to the column headers, so that it's clear which gene the data is for.
+        return merged_somatic
