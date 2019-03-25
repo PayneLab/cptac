@@ -192,8 +192,6 @@ class Utilities:
             else:
                 merged_somatic_full = self.merge_somatic(somatic, somaticGene, omics_gene_df)
                 merged_somatic = merged_somatic_full[[omicsGene, "Mutation", "Sample_Status"]]
-                merged_somatic = merged_somatic.drop(columns=['Patient_Id'])
-                merged_somatic = merged_somatic.fillna(value={'Location':'No_mutation'})
                 merged_somatic.name = merged_somatic_full.name
         elif omics.name.split("_")[0] == "phosphoproteomics":
             phosphosites = self.get_phosphosites(omics, omicsGene)
@@ -212,6 +210,8 @@ class Utilities:
             return
         if merged_somatic is None:
             return
+        merged_somatic = merged_somatic.drop(columns=['Patient_Id'])
+        merged_somatic = merged_somatic.fillna(value={'Location':'No_mutation'})
         merged_somatic = merged_somatic.rename(columns={omicsGene:omicsGene + '_omics', 'Mutation':somaticGene + '_Mutation', 'Location':somaticGene + '_Location', 'Sample_Status':somaticGene + '_Sample_Status'}) # Add the gene name to the column headers, so that it's clear which gene the data is for.
         return merged_somatic
 
