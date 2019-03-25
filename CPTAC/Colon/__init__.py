@@ -65,7 +65,7 @@ def get_miRNA():
 	miRNA dataframe
 	"""
 	return data.get("miRNA")
-def get_mutation():
+def get_mutation(binary = False):
 	"""
 	Parameters:
 	None
@@ -73,6 +73,8 @@ def get_mutation():
 	Returns:
 	Mutation dataframe
 	"""
+	if binary:
+		return data.get("mutation_binary")
 	return data.get("mutation")
 def get_phosphoproteomics():
 	"""
