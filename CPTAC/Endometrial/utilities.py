@@ -208,6 +208,8 @@ class Utilities:
         else:
             print("Gene", omicsGene, "not found in", omics.name,"data")
             return
+        if merged_somatic is None:
+            return
         merged_somatic = merged_somatic.rename(columns={omicsGene:omicsGene + '_omics', 'Mutation':somaticGene + '_Mutation', 'Location':somaticGene + '_Location', 'Sample_Status':somaticGene + '_Sample_Status'}) # Add the gene name to the column headers, so that it's clear which gene the data is for.
         return merged_somatic
 
