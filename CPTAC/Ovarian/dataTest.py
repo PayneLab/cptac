@@ -59,6 +59,8 @@ class Basic:
         print(comp_7)
         print(comp_8)
 
+        print('PASS')
+
 print("\nRunning tests:\n")
 
 Basic().evaluate_getters()
