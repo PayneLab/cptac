@@ -1,5 +1,5 @@
 # CPTAC
-This project is intended to facilitate accessing and interacting with cancer data from the NIH. Currently, the datasets available are from a series of endometrial cancer studies as well as ovarian cancer studies. These cancer studies are downloadable via our Python package as native dataframe objects from the pandas package and can therefore be integrated very quickly and easily with other Python-based data analysis tools. Follow our walkthrough tutorials for a basic cookbook of ways to use our system.
+This project is intended to facilitate accessing and interacting with cancer data from the NIH CPTAC consortium, which characterizes and studies the proteogenomic landscape of tumors. Currently, the datasets available are: endometrial cancer, ovarian cancer and colon cancer. These cancer studies are downloadable via our Python package as native dataframe objects and can therefore be integrated very quickly and easily with other Python-based data analysis tools. Follow our walkthrough tutorials for a basic cookbook of ways to use our system.
 
 Setup instructions can be found in <code>doc/setup.md</code>
 
@@ -14,7 +14,7 @@ Tutorials for this package are located under the <code>doc</code> folder and des
 </ul>
 
 ## Requirements
-This package is intended to run on Python 3.6 with pandas 0.23.4. In the tutorials we use seaborn 0.9.0 for data visualization. 
+This package is intended to run on Python 3.6 with pandas 0.23.4. In the tutorials, we use seaborn 0.9.0 for data visualization. 
 
 ## License
 This package contains LICENSE.md document which describes the license for use. Please note the difference between the license as it applies to code versus data.
