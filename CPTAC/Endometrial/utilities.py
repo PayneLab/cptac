@@ -63,7 +63,7 @@ class Utilities:
                 somatic_gene = somatic_gene[~somatic_gene.index.duplicated(keep="first")] #keeps first duplicate row if indices are the same
             merge = df_gene.join(somatic_gene, how = "left") #left join omics data and mutation data (left being the omics data)
             merge = merge.fillna(value = {'Mutation':"Wildtype"}) #fill in all Mutation NA values (no mutation data) as Wildtype
-            merge["index"] = merge.index #set index values as column ??Do we need this? Just duplicates the index column.
+            #merge["index"] = merge.index #set index values as column
             merge["Sample_Status"] = np.where(merge.index <= "S104", "Tumor", "Normal") #add patient type, setting all samples up to S104 as Tumor, others as normal.
             merge.loc[merge.Sample_Status == "Normal","Mutation"] = "Wildtype_Normal" #change all Wildtype for Normal samples to Wildtype_Normal
             merge.loc[merge.Mutation == "Wildtype","Mutation"] = "Wildtype_Tumor" #change all other Wildtype (should be for Tumor samples with imputed Wildtype value) to Wildtype_Tumor
@@ -192,6 +192,8 @@ class Utilities:
             else:
                 merged_somatic_full = self.merge_somatic(somatic, somaticGene, omics_gene_df)
                 merged_somatic = merged_somatic_full[[omicsGene, "Mutation", "Sample_Status"]]
+                merged_somatic = merged_somatic.drop(columns=['Patient_Id'])
+                merged_somatic = merged_somatic.fillna('Location':'No_mutation')
                 merged_somatic.name = merged_somatic_full.name
         elif omics.name.split("_")[0] == "phosphoproteomics":
             phosphosites = self.get_phosphosites(omics, omicsGene)
