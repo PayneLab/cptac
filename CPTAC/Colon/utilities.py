@@ -106,8 +106,7 @@ class Utilities:
         phosphosites = phosphoproteomics.filter(regex = (regex)) #find all columns that match the regular expression, aka, all phosphosites for the specified gene
         if len(phosphosites.columns) == 0:
             print("Gene",gene, "not found in phosphoproteomics data")
-        else:
-            return phosphosites
+        return phosphosites
 
     def compare_phosphosites(self, proteomics, phosphoproteomics, gene):
         """
@@ -176,6 +175,8 @@ class Utilities:
             merge["Sample_Status"] = np.where(merge.index <= "S104", "Tumor", "Normal") #add patient type, setting all samples up to S104 as Tumor, others as normal. TODO: UDPATE TO REFLECT COLON SOMATIC MAF FILE FORMAT
             merge.loc[merge.Sample_Status == "Normal","Mutation"] = "Wildtype_Normal" #change all Wildtype for Normal samples to Wildtype_Normal
             merge.loc[merge.Mutation == "Wildtype","Mutation"] = "Wildtype_Tumor" #change all other Wildtype (should be for Tumor samples with imputed Wildtype value) to Wildtype_Tumor
+            merge = merge.drop(columns=['Patient_Id']) # We don't need this column
+            merge = merge.fillna(value={'Location':'No_mutation'}) # If there's no location, there wasn't a mutation--make it easier for people to understand what that means.
             merge.name = df_gene.columns[0] + " omics data with " + gene + " mutation data"
             return merge
         else:
