@@ -29,7 +29,7 @@ class DataFrameLoader:
         """
         df = None
         print("Loading",self.name,"data...")
-        if self.name == "clinical" or self.name.split("_")[0] == "proteomics" or self.name.split("_")[0] == "transcriptomics" or self.name == "mutation":
+        if self.name == "clinical" or self.name.split("_")[0] == "proteomics" or self.name.split("_")[0] == "transcriptomics":
             df = pd.read_csv(self.fileName, sep="\t",index_col=0)
             df = df.transpose()
             df.name = self.name
@@ -41,6 +41,14 @@ class DataFrameLoader:
             df = pd.read_csv(self.fileName, sep="\t",index_col=0)
             df = df.transpose()
             df.name = self.name
+        elif self.name.split("_")[0] == "mutation":
+            if self.fileName.split(os.sep)[-1].split(".")[1] == "cbt":
+                df = pd.read_csv(self.fileName, sep="\t",index_col=0)
+                df = df.transpose()
+                df.name = self.name
+            elif self.fileName.split(os.sep)[-1].split(".")[1] == "txt":
+                df = pd.read_csv(self.fileName, sep="\t").set_index("SampleID").sort_index()
+                df.name = self.name
         else:
             error_message = "Error reading " + self.fileName
             raise IOError(error_message)
