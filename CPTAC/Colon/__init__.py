@@ -47,7 +47,6 @@ def list():
 		print("\t", data[dataframe].name)
 		print("\t", "\t", "Dimensions:", data[dataframe].shape)
 	print("To access the data, use a get function with the data frame name, i.e. colon.get_proteomics()")
-
 def get_clinical():
 	"""
 	Parameters:
@@ -109,7 +108,16 @@ def get_transcriptomics():
 	Transcriptomics dataframe
 	"""
 	return data.get("transcriptomics")
+def get_phosphosites(gene):
+	"""
+	Parameters
+	gene: gene to get the phosphosites for
 
+	Returns
+	dataframe containing the phosphosites for the specified gene
+	"""
+	phosphoproteomics = get_phosphoproteomics()
+	return Utilities().get_phosphosites(phosphoproteomics, gene)
 def compare_gene(df1, df2, gene):
     """
     Parameters
@@ -134,10 +142,18 @@ def compare_clinical(omics_data, clinical_col):
     Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
     """
     return Utilities().compare_clinical(get_clinical(), omics_data, clinical_col)
+def compare_phosphosites(gene):
+	"""
+	Parameters
+	proteomics: the proteomics dataframe
+	phosphoproteomics: the phosphoproteomics dataframe
+	gene: proteomics gene to query phosphoproteomics dataframe
 
-#TODO: add wrapper functions
-"""
-def get_phosphosites():
-def compare_phosphosites():
-def compare_mutations():
-"""
+	Searches for any phosphosites on the gene provided
+
+	Returns
+	Dataframe with a column from proteomics for the gene specified, as well as columns for all phosphoproteomics columns beginning with the specified gene
+	"""
+	proteomics = get_proteomics()
+	phosphoproteomics = get_phosphoproteomics()
+	return Utilities().compare_phosphosites(proteomics, phosphoproteomics, gene)
