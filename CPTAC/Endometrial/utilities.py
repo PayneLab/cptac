@@ -193,7 +193,7 @@ class Utilities:
                 merged_somatic_full = self.merge_somatic(somatic, somaticGene, omics_gene_df)
                 merged_somatic = merged_somatic_full[[omicsGene, "Mutation", "Sample_Status"]]
                 merged_somatic = merged_somatic.drop(columns=['Patient_Id'])
-                merged_somatic = merged_somatic.fillna('Location':'No_mutation')
+                merged_somatic = merged_somatic.fillna(value={'Location':'No_mutation'})
                 merged_somatic.name = merged_somatic_full.name
         elif omics.name.split("_")[0] == "phosphoproteomics":
             phosphosites = self.get_phosphosites(omics, omicsGene)
