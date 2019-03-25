@@ -68,10 +68,10 @@ def get_miRNA():
 def get_mutation(binary = False):
 	"""
 	Parameters:
-	None
+	binary: boolean value to set whether the mutation data returned is normal or binary
 
 	Returns:
-	Mutation dataframe
+	Mutation dataframe (either binary or nonbinary)
 	"""
 	if binary:
 		return data.get("mutation_binary")
