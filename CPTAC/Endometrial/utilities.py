@@ -67,6 +67,8 @@ class Utilities:
             merge["Sample_Status"] = np.where(merge.index <= "S104", "Tumor", "Normal") #add patient type, setting all samples up to S104 as Tumor, others as normal.
             merge.loc[merge.Sample_Status == "Normal","Mutation"] = "Wildtype_Normal" #change all Wildtype for Normal samples to Wildtype_Normal
             merge.loc[merge.Mutation == "Wildtype","Mutation"] = "Wildtype_Tumor" #change all other Wildtype (should be for Tumor samples with imputed Wildtype value) to Wildtype_Tumor
+            merge = merge.drop(columns=['Patient_Id']) # We don't need this column
+            merge = merge.fillna(value={'Location':'No_mutation'}) # If there's no location, there wasn't a mutation--make it easier for people to understand what that means.
             merge.name = df_gene.columns[0] + " omics data with " + gene + " mutation data"
             return merge
         else:
@@ -210,8 +212,6 @@ class Utilities:
             return
         if merged_somatic is None:
             return
-        merged_somatic = merged_somatic.drop(columns=['Patient_Id'])
-        merged_somatic = merged_somatic.fillna(value={'Location':'No_mutation'})
         merged_somatic = merged_somatic.rename(columns={omicsGene:omicsGene + '_omics', 'Mutation':somaticGene + '_Mutation', 'Location':somaticGene + '_Location', 'Sample_Status':somaticGene + '_Sample_Status'}) # Add the gene name to the column headers, so that it's clear which gene the data is for.
         return merged_somatic
 
