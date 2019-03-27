@@ -159,23 +159,20 @@ class Utilities:
         Returns
         Dataframe of merged somatic and omics dataframes based on gene provided
         """
-        print('Somatic mutation maf file has not been added to our dataset yet. This function will not run properly until then.')
-        return
         if sum(somatic["Gene"] == gene) > 0:
             somatic_gene = somatic[somatic["Gene"] == gene] #select for all mutations for specified gene
             somatic_gene = somatic_gene.drop(columns = ["Gene"]) #drop the gene column due to every value being the same
-            somatic_gene = somatic_gene.set_index("Clinical_Patient_Key") #set index as TODO: INSERT PROPER COLUMN NAME FOR INDEX
+            somatic_gene = somatic_gene.set_index("SampleID") #set index as TODO: INSERT PROPER COLUMN NAME FOR INDEX
             if not multiple_mutations:
                 somatic_gene = self.add_mutation_hierarchy(somatic_gene) #appends hierachy for sorting so correct duplicate can be kept
-                somatic_gene = somatic_gene.sort_values(by = ["Clinical_Patient_Key","Mutation_Hierarchy"], ascending = [True,False]) #sorts by patient key, then by hierarchy so the duplicates will come with the higher number first TODO: INSERT PROPER COLUMN NAMES
+                somatic_gene = somatic_gene.sort_values(by = ["SampleID","Mutation_Hierarchy"], ascending = [True,False]) #sorts by patient key, then by hierarchy so the duplicates will come with the higher number first TODO: INSERT PROPER COLUMN NAMES
                 somatic_gene = somatic_gene[~somatic_gene.index.duplicated(keep="first")] #keeps first duplicate row if indices are the same
             merge = df_gene.join(somatic_gene, how = "left") #left join omics data and mutation data (left being the omics data)
             merge = merge.fillna(value = {'Mutation':"Wildtype"}) #fill in all Mutation NA values (no mutation data) as Wildtype
             #merge["index"] = merge.index #set index values as column
-            merge["Sample_Status"] = np.where(merge.index <= "S104", "Tumor", "Normal") #add patient type, setting all samples up to S104 as Tumor, others as normal. TODO: UDPATE TO REFLECT COLON SOMATIC MAF FILE FORMAT
+            #merge["Sample_Status"] = np.where(merge.index <= "S104", "Tumor", "Normal") #add patient type, setting all samples up to S104 as Tumor, others as normal. TODO: UDPATE TO REFLECT COLON SOMATIC MAF FILE FORMAT
             merge.loc[merge.Sample_Status == "Normal","Mutation"] = "Wildtype_Normal" #change all Wildtype for Normal samples to Wildtype_Normal
             merge.loc[merge.Mutation == "Wildtype","Mutation"] = "Wildtype_Tumor" #change all other Wildtype (should be for Tumor samples with imputed Wildtype value) to Wildtype_Tumor
-            merge = merge.drop(columns=['Patient_Id']) # We don't need this column
             merge = merge.fillna(value={'Location':'No_mutation'}) # If there's no location, there wasn't a mutation--make it easier for people to understand what that means.
             merge.name = df_gene.columns[0] + " omics data with " + gene + " mutation data"
             return merge
@@ -193,8 +190,6 @@ class Utilities:
         Returns
         Dataframe of merged omics and somatic data based on gene provided
         """
-        print('Somatic mutation maf file has not been added to our dataset yet. This function will not run properly until then.')
-        return
         if gene in omics.columns:
             omics_gene_df = omics[[gene]] #select omics data for specified gene
             if duplicates: #don't filter out duplicate sample mutations
@@ -232,8 +227,6 @@ class Utilities:
         Returns
         Dataframe of merged omics data (based on specific omicsGene) with somatic data (based on specific somaticGene)
         """
-        print('Somatic mutation maf file has not been added to our dataset yet. This function will not run properly until then.')
-        return
         merged_somatic = None
         if omicsGene in omics.columns:
             omics_gene_df = omics[[omicsGene]]
