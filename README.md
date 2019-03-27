@@ -6,6 +6,7 @@ Setup instructions can be found in <code>doc/setup.md</code>
 ## Tutorials
 Tutorials for this package are located under the <code>doc</code> folder and describe how to use the package for research. All the tutorials are written in python using the interactive jupyter notebooks. If you are unfamiliar with jupyter, follow the instructions given at jupyter.org/install to begin running jupyter on your machine. You will then be able to run our documentation as interactive, jupyter-based tutorials.
 <ul>
+  <li>Use Case 0: Exploring the data</li>
   <li>Use Case 1: Comparing transcriptomics and proteomics for a single gene</li>
 <li>Use Case 2: Looking for correlation between various clinical factors, such as BMI, diabetes, and cancer stage</li>
 <li>Use Case 3: Using statistical test to find genes significantly correlated with a clinical attribute</li>
