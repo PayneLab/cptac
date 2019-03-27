@@ -10,7 +10,7 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as mp
+import numpy as np
 
 class Utilities:
     def __init__(self):
