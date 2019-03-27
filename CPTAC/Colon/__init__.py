@@ -159,3 +159,31 @@ def compare_phosphosites(gene):
 	proteomics = get_proteomics()
 	phosphoproteomics = get_phosphoproteomics()
 	return Utilities().compare_phosphosites(proteomics, phosphoproteomics, gene)
+def compare_mutations(omics_data, omics_gene, mutations_gene = None):
+    """
+    Params
+    omics_data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
+    omics_gene: gene to select from omics data (used for mutation data if mutations_gene is left blank)
+    mutations_gene: gene to select from somatic mutation data
+
+    Returns
+    Dataframe containing two columns, the omics data and the somatic mutation type for the gene(s) provided
+    """
+    if mutations_gene: #compare omics data of omics gene to mutations of mutations_gene
+        return Utilities().merge_mutations_trans(omics_data, omics_gene, somatic_maf, mutations_gene)
+    else: #compare omics data to mutations for same gene
+        return Utilities().merge_mutations(omics_data, somatic_maf, omics_gene)
+def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):
+    """
+    Params
+    omics_data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
+    omics_gene: gene to select from omics data (used for somatic data if somatic_gene is left blank)
+    mutations_gene: gene to select from somatic mutation data
+
+    Returns
+    Dataframe containing numeric omics data and categorical somatic data (including patient ID, mutation type, and mutation location)
+    """
+    if mutations_gene: #compare omics data of omics gene to mutations of mutations_gene
+        return Utilities().merge_mutations_trans(omics_data, omics_gene, somatic_maf, mutations_gene, duplicates = True)
+    else: #compare omics data to mutations for same gene
+        return Utilities().merge_mutations(omics_data, somatic_maf, omics_gene, duplicates = True)
