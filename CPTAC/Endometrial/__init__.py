@@ -75,6 +75,7 @@ clinical_unfiltered = clinical_file_data[[
     'tumor_Stage-Pathological', 'FIGO_stage', 'LVSI', 'BMI', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site',
     'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm',   'Num_full_term_pregnancies']]
 clinical = clinical_unfiltered.drop(casesToDrop, errors = "ignore") #Drops all samples with Case_excluded == Yes
+clinical = clinical.drop(['Case_excluded'], axis=1)
 clinical_unfiltered.name = "clinical"
 clinical.name = clinical_unfiltered.name
 derived_molecular_u = clinical_file_data.drop(['Proteomics_Participant_ID', 'Case_excluded',  'Proteomics_Tumor_Normal',  'Country',
