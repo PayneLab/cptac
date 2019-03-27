@@ -1,5 +1,7 @@
 CPTAC help:
 
+Presented here is the javadoc summary for all functions available in this package.
+
   list():
     Lists the accessible data in the package
 
