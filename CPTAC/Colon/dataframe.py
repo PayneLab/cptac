@@ -47,7 +47,10 @@ class DataFrameLoader:
                 df = df.transpose()
                 df.name = self.name
             elif self.fileName.split(os.sep)[-1].split(".")[1] == "txt":
-                df = pd.read_csv(self.fileName, sep="\t").set_index("SampleID").sort_index()
+                df = pd.read_csv(self.fileName, sep="\t")#.set_index("SampleID").sort_index()
+                df = df.sort_values(by="SampleID")
+                df = df[["SampleID","Gene","Variant_Type","Protein_Change"]]
+                df = df.rename({"Variant_Type":"Mutation","Protein_Change":"Location"},axis="columns")
                 df.name = self.name
         else:
             error_message = "Error reading " + self.fileName
