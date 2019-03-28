@@ -1,47 +1,44 @@
-import pandas as pd
 import CPTAC.Colon as co
 
-class Basic:
-    def __init__(self):
-        pass
+prot = co.get_proteomics()
+phos = co.get_proteomics()
 
-    def evaluate_comparers(self):
-        # Load our data
-        prot = co.get_proteomics()
-        phos = co.get_phosphoproteomics()
+gene = 'TP53'
+gene2 = 'AURKA'
 
-        # Set our variables
-        gene_1 = 'TP53'
-        gene_2 = 'AURKA'
+compareds = []
 
-        # Test compare_mutations with one gene
-        comp_1 = co.compare_mutations(prot, gene_1)
-        comp_2 = co.compare_mutations(phos, gene_1)
+compareds.append(co.compare_mutations(prot, gene))
+compareds.append(co.compare_mutations(prot, gene2))
 
-        # Test compare_mutations with two genes. Should return omics data for first gene, with somatic mutation data for second gene
-        comp_3 = co.compare_mutations(prot, gene_1, gene_2)
-        comp_4 = co.compare_mutations(phos, gene_1, gene_2)
+compareds.append(co.compare_mutations(prot, gene, gene2))
+compareds.append(co.compare_mutations(prot, gene2, gene))
 
-        # Test compare_mutations_full with one gene
-        comp_5 = co.compare_mutations_full(prot, gene_1)
-        comp_6 = co.compare_mutations_full(phos, gene_1)
+compareds.append(co.compare_mutations_full(prot, gene))
+compareds.append(co.compare_mutations_full(prot, gene2))
 
-        # Test compare_mutations_full with two genes. Should return omics data for first gene, with somatic mutation data for second gene
-        comp_7 = co.compare_mutations_full(prot, gene_1, gene_2)
-        comp_8 = co.compare_mutations_full(phos, gene_1, gene_2)
+compareds.append(co.compare_mutations_full(prot, gene, gene2))
+compareds.append(co.compare_mutations_full(prot, gene2, gene))
 
-        print(comp_1)
-        print(comp_2)
-        print(comp_3)
-        print(comp_4)
-        print(comp_5)
-        print(comp_6)
-        print(comp_7)
-        print(comp_8)
+compareds.append(co.compare_mutations(phos, gene))
+compareds.append(co.compare_mutations(phos, gene2))
 
-        print('PASS')
+compareds.append(co.compare_mutations(phos, gene, gene2))
+compareds.append(co.compare_mutations(phos, gene2, gene))
 
-print("\nRunning tests:\n")
+compareds.append(co.compare_mutations_full(phos, gene))
+compareds.append(co.compare_mutations_full(phos, gene2))
 
-Basic().evaluate_comparers()
+compareds.append(co.compare_mutations_full(phos, gene, gene2))
+compareds.append(co.compare_mutations_full(phos, gene2, gene))
+
+# Test other utilities
+compareds.append(co.compare_clinical(prot, 'Subsite'))
+compareds.append(co.compare_phosphosites(gene))
+compareds.append(co.compare_gene(prot, phos, gene))
+
+for df in compareds:
+    print(df)
+
+print(len(compareds))
 

@@ -87,6 +87,7 @@ def get_phosphoproteomics():
 	tumor = data.get("phosphoproteomics_tumor")
 	normal = data.get("phosphoproteomics_normal") #normal entries are not marked
 	combined = tumor.append(normal)
+	combined.name = 'phosphoproteomics'
 	return combined
 def get_proteomics():
 	"""
