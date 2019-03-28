@@ -138,7 +138,7 @@ class Utilities:
         Retunrs
         Somatic mutation dataframe with added mutation hierarchy
         """
-        mutation_hierarchy = {"Missense_Mutation":0,"In_Frame_Del":0,"In_Frame_Ins":0,"Splice_Site":1,"Frame_Shift_Ins":1,"Nonsense_Mutation":1,"Frame_Shift_Del":1,"Nonstop_Mutation":1}
+        mutation_hierarchy = {"nonsynonymous SNV":0,"nonframeshift deletion":0,"nonframeshift insertion":0,"nonframeshift substitution":0,"framshift substitution":1,"framshift insertion":1,"stopgain":1,"framshift deletion":1,"stoploss":1}
         hierarchy = []
         for x in somatic["Mutation"]: #for every value in the Mutation column, append its value in the hard coded mutation hierarchy
             if x in mutation_hierarchy.keys():
@@ -170,10 +170,10 @@ class Utilities:
             merge = df_gene.join(somatic_gene, how = "left") #left join omics data and mutation data (left being the omics data)
             merge = merge.fillna(value = {'Mutation':"Wildtype"}) #fill in all Mutation NA values (no mutation data) as Wildtype
             #merge["index"] = merge.index #set index values as column
-            #merge["Sample_Status"] = np.where(merge.index <= "S104", "Tumor", "Normal") #add patient type, setting all samples up to S104 as Tumor, others as normal. TODO: UDPATE TO REFLECT COLON SOMATIC MAF FILE FORMAT
-            merge["Sample_Status"] = np.nan # For now
-            #merge.loc[merge.Sample_Status == "Normal","Mutation"] = "Wildtype_Normal" #change all Wildtype for Normal samples to Wildtype_Normal
-            #merge.loc[merge.Mutation == "Wildtype","Mutation"] = "Wildtype_Tumor" #change all other Wildtype (should be for Tumor samples with imputed Wildtype value) to Wildtype_Tumor
+            merge = merge.assign(Sample_Status = np.where(merge.index.str[-1] != "N", "Tumor", "Normal")) #add patient type, setting all samples labels not ending in "N" as Tumor, others as normal. TODO: UDPATE TO REFLECT COLON SOMATIC MAF FILE FORMAT
+            #merge["Sample_Status"] = np.nan # For now
+            merge.loc[merge.Sample_Status == "Normal","Mutation"] = "Wildtype_Normal" #change all Wildtype for Normal samples to Wildtype_Normal
+            merge.loc[merge.Mutation == "Wildtype","Mutation"] = "Wildtype_Tumor" #change all other Wildtype (should be for Tumor samples with imputed Wildtype value) to Wildtype_Tumor
             merge = merge.fillna(value={'Location':'No_mutation'}) # If there's no location, there wasn't a mutation--make it easier for people to understand what that means.
             merge.name = df_gene.columns[0] + " omics data with " + gene + " mutation data"
             return merge
