@@ -344,7 +344,7 @@ def evaluate_utilities(): #compare_**** functions
     else:
         print("FAIL")
 
-def test_merged_column(original_df, merged_df, original_header, merged_header, merged_df_name): # private
+def check_merged_column(original_df, merged_df, original_header, merged_header, merged_df_name): # private
     """
     Parameters
     original_df: the dataframe the column was taken from
@@ -367,7 +367,7 @@ def test_merged_column(original_df, merged_df, original_header, merged_header, m
 
     return PASS
 
-def test_merged_column_from_row(source_df, merged_df, ID_column, filter_column, filter_value, source_column, dest_column, merged_df_name):
+def check_merged_column_from_row(source_df, merged_df, ID_column, filter_column, filter_value, source_column, dest_column, merged_df_name):
     """
     Parameters
     source_df: dataframe the data came from
@@ -436,11 +436,11 @@ def evaluate_utilities_v2():
     A1BG_compared_name = 'A1BG_compared'
 
     ### Check the proteomics column
-    if not test_merged_column(proteomics, A1BG_compared, gene, A1BG_compared.columns.values[0], A1BG_compared_name):
+    if not check_merged_column(proteomics, A1BG_compared, gene, A1BG_compared.columns.values[0], A1BG_compared_name):
        PASS = False
 
     ### Check the transcriptomics column
-    if not test_merged_column(transcriptomics, A1BG_compared, gene, A1BG_compared.columns.values[1], A1BG_compared_name):
+    if not check_merged_column(transcriptomics, A1BG_compared, gene, A1BG_compared.columns.values[1], A1BG_compared_name):
        PASS = False
 
     # Test compare_gene, using a list of genes
@@ -451,12 +451,12 @@ def evaluate_utilities_v2():
 
     ### Test the data from the first dataframe, which are in the first three columns of the merged dataframe
     for i in range(3):
-        if not test_merged_column(proteomics, list_compared, sorted_gene_list[i], list_compared.columns.values[i], list_compared_name):
+        if not check_merged_column(proteomics, list_compared, sorted_gene_list[i], list_compared.columns.values[i], list_compared_name):
            PASS = False
 
     ### Test the data from the second dataframe, which are in the last three columns of the merged dataframe
     for i in range(3):
-        if not test_merged_column(transcriptomics, list_compared, sorted_gene_list[i], list_compared.columns.values[i + 3], list_compared_name):
+        if not check_merged_column(transcriptomics, list_compared, sorted_gene_list[i], list_compared.columns.values[i + 3], list_compared_name):
            PASS = False
 
     # Test compare_mutations, using functionality to compare a gene's omics data to its own somatic mutation data
@@ -465,7 +465,7 @@ def evaluate_utilities_v2():
     TP53_mutation_compared_name = 'TP53_mutation_compared'
 
     ### Test data in 'TP53' column, which is the proteomics data for TP53
-    if not test_merged_column(proteomics, TP53_mutation_compared, gene, gene, TP53_mutation_compared_name):
+    if not check_merged_column(proteomics, TP53_mutation_compared, gene, gene, TP53_mutation_compared_name):
         PASS = False
 
     ### Test data in 'Mutation' column, which is from the somatic mutation data for TP53
@@ -473,7 +473,7 @@ def evaluate_utilities_v2():
     somatic_filter_column = 'Gene'
     somatic_source_column = 'Mutation'
     somatic_dest_column = 'Mutation'
-    if not test_merged_column_from_row(somatic, TP53_mutation_compared, somatic_ID_column, somatic_filter_column, gene, somatic_source_column, somatic_dest_column, TP53_mutation_compared_name):
+    if not check_merged_column_from_row(somatic, TP53_mutation_compared, somatic_ID_column, somatic_filter_column, gene, somatic_source_column, somatic_dest_column, TP53_mutation_compared_name):
         PASS = False
 
     ### Test data in 'Sample_Status' column, which should be 'Tumor' for all samples up to and including S100, and 'Normal' for the remaining ones
