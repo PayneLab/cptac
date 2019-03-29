@@ -1,49 +1,16 @@
+#   Copyright 2018 Samuel Payne sam_payne@byu.edu
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#       http://www.apache.org/licenses/LICENSE-2.0
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 import pandas as pd
 import CPTAC.Colon as co
-
-prot = co.get_proteomics()
-phos = co.get_proteomics()
-
-gene = 'TP53'
-gene2 = 'AURKA'
-
-compareds = []
-
-compareds.append(co.compare_mutations(prot, gene))
-compareds.append(co.compare_mutations(prot, gene2))
-
-compareds.append(co.compare_mutations(prot, gene, gene2))
-compareds.append(co.compare_mutations(prot, gene2, gene))
-
-compareds.append(co.compare_mutations_full(prot, gene))
-compareds.append(co.compare_mutations_full(prot, gene2))
-
-compareds.append(co.compare_mutations_full(prot, gene, gene2))
-compareds.append(co.compare_mutations_full(prot, gene2, gene))
-
-compareds.append(co.compare_mutations(phos, gene))
-compareds.append(co.compare_mutations(phos, gene2))
-
-compareds.append(co.compare_mutations(phos, gene, gene2))
-compareds.append(co.compare_mutations(phos, gene2, gene))
-
-compareds.append(co.compare_mutations_full(phos, gene))
-compareds.append(co.compare_mutations_full(phos, gene2))
-
-compareds.append(co.compare_mutations_full(phos, gene, gene2))
-compareds.append(co.compare_mutations_full(phos, gene2, gene))
-
-# Test other utilities
-compareds.append(co.compare_clinical(prot, 'Subsite'))
-compareds.append(co.compare_phosphosites(gene))
-compareds.append(co.compare_gene(prot, phos, gene))
-
-for df in compareds:
-    print(df)
-
-print(len(compareds))
-
-# Above tests are temporary. Below are the real tests.
 
 def check_merged_column(original_df, merged_df, original_header, merged_header): # private
     """Checks that when a column was taken from one dataframe and added to another, no data was lost or changed.

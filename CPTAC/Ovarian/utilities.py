@@ -103,6 +103,7 @@ class Utilities:
         phosphosites = phosphoproteomics.filter(regex = (regex)) #find all columns that match the regular expression, aka, all phosphosites for the specified gene
         if len(phosphosites.columns) == 0:
             print("Gene",gene, "not found in phosphoproteomics data")
+        phosphosites.name = 'phosphosites_{}'.format(gene)
         return phosphosites
 
     def compare_phosphosites(self, proteomics, phosphoproteomics, gene):
