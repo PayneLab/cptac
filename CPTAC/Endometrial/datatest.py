@@ -117,37 +117,79 @@ def test_get_clinical_unfiltered():
     clinical_excluded_test_vals = ('Normal', 'No', '3')
 
     if check_dataframe(clinical_excluded_name, clinical_excluded_df, clinical_excluded_dim, clinical_excluded_headers, clinical_excluded_test_coord, clinical_excluded_test_vals):
-        print("The unfiltered data warning above was expected.") # To avoid confusion
         print('PASS')
     else:
-        print("The unfiltered data warning above was expected.") # To avoid confusion
         print('FAIL\n')
+        
+    print("The unfiltered data warning above was expected.") # To avoid confusion
 
 def test_get_derived_molecular_filtered():
     """Test get_derived_molecular() with default parameter unfiltered=False."""
 
     print('Testing get_derived_molecular() with default parameter unfiltered=False...')
-#   name = 
-#   df = en.get_derived_molecular()
-#   dimensions = 
+    name = 'derived_molecular'
+    df = en.get_derived_molecular()
+    dimensions = (144, 144) 
+    headers = ['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'Estrogen_Receptor', 'Estrogen_Receptor_%', 'Progesterone_Receptor', 'Progesterone_Receptor_%', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
+    test_coord = ((2, 3), (90, 143), (143, 4))
+    test_vals = ('C3L-00032-01', 'PASS', 'CPT0230460002,CPT0230460003,CPT0230460004,CPT0230470002,CPT0230470003,CPT0230470004,CPT0230480002,CPT0230480003,CPT0230480004')
+
+    if check_dataframe(name, df, dimensions, headers, test_coord, test_vals):
+        print('PASS')
+    else:
+        print('FAIL\n')
 
 def test_get_derived_molecular_unfiltered():
     """Test get_derived_molecular with parameter unfiltered=True."""
 
     print('Testing get_derived_molecular() with parameter unfiltered=True...')
-    print("UNDER CONSTRUCTION")
+    name = 'derived_molecular'
+    df = en.get_derived_molecular(unfiltered=True)
+    dimensions = (153, 144)
+    headers = ['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'Estrogen_Receptor', 'Estrogen_Receptor_%', 'Progesterone_Receptor', 'Progesterone_Receptor_%', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
+    test_coord = ((152, 2), (4, 143), (30, 60))
+    test_vals = ('130N', 'PASS', -0.13)
+
+    if check_dataframe(name, df, dimensions, headers, test_coord, test_vals):
+        print('PASS')
+    else:
+        print('FAIL\n')
+
+    print("The unfiltered data warning above was expected.") # To avoid confusion
 
 def test_get_acetylproteomics_filtered():
     """Test get_acetylproteomics() with default parameter unfiltered=False."""
 
     print('Test get_acetylproteomics() with default parameter unfiltered=False...')
-    print("UNDER CONSTRUCTION")
+    name = 'acetylproteomics'
+    df = en.get_acetylproteomics()
+    dimensions = (144, 10862)
+    headers = ['A2M-K1168', 'A2M-K1176', 'A2M-K135', 'A2M-K145', 'A2M-K516', 'A2M-K664', 'A2M-K682', 'AACS-K391', 'AAGAB-K290', 'AAK1-K201', 'ZSCAN31-K215', 'ZSCAN32-K659', 'ZW10-K634', 'ZYX-K24', 'ZYX-K25', 'ZYX-K265', 'ZYX-K272', 'ZYX-K279', 'ZYX-K533', 'ZZZ3-K117']
+    test_coord = ((1, 1), (12, 10861), (90, 5849))
+    test_vals = (0.47700000000000004, 0.16, 0.4098)
+
+    if check_dataframe(name, df, dimensions, headers, test_coord, test_vals):
+        print('PASS')
+    else:
+        print('FAIL\n')
 
 def test_get_acetylproteomics_unfiltered():
     """Test get_acetylproteomics with parameter unfiltered=True."""
 
     print('Testing get_acetylproteomics with parameter unfiltered=True...')
-    print("UNDER CONSTRUCTION")
+    name = 'acetylproteomics'
+    df = en.get_acetylproteomics(unfiltered=True)
+    dimensions = (153, 10862)
+    headers = ['A2M-K1168', 'A2M-K1176', 'A2M-K135', 'A2M-K145', 'A2M-K516', 'A2M-K664', 'A2M-K682', 'AACS-K391', 'AAGAB-K290', 'AAK1-K201', 'ZSCAN31-K215', 'ZSCAN32-K659', 'ZW10-K634', 'ZYX-K24', 'ZYX-K25', 'ZYX-K265', 'ZYX-K272', 'ZYX-K279', 'ZYX-K533', 'ZZZ3-K117']
+    test_coord = ((1, 1), (15, 10861), (90, 4399))
+    test_vals = (0.47700000000000004, 0.16, 0.6920000000000001)
+
+    if check_dataframe(name, df, dimensions, headers, test_coord, test_vals):
+        print('PASS')
+    else:
+        print('FAIL\n')
+
+    print("The unfiltered data warning above was expected.") # To avoid confusion
 
 def test_get_proteomics():
     """Test get_proteomics()."""
@@ -285,10 +327,11 @@ def test_get_phosphosites():
 
     print('Testing get_phosphosites...')
 
-    phosphosites_name = "Phosphosites for the AAK1-S14 gene"
-    phosphosites_df = en.get_phosphosites('AAK1-S14')
+    gene = 'AAK1-S14'
+    phosphosites_name = 'phosphosites_' + gene
+    phosphosites_df = en.get_phosphosites(gene)
     phosphosites_dim = (144, 1)
-    phosphosites_headers = ['AAK1-S14']
+    phosphosites_headers = [gene]
     phosphosites_test_coord = ((27, 0), (76, 0), (128, 0))
     phosphosites_test_vals = (0.603, -0.272, 0.1395)
 
