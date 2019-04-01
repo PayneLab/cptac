@@ -12,6 +12,26 @@
 import pandas as pd
 import CPTAC.Colon as co
 
+def check_df_name(df, expected_name):
+    """Checks that a dataframe has a "name" attribute, and that it has the proper value."""
+
+    PASS = True
+
+    # Check that the dataframe has a name
+    has_name = True
+    if not hasattr(df, 'name'):
+        print('Dataframe did not have a "name" attribute.')
+        has_name = False
+        PASS = False
+
+    # Check that the dataframe has the correct name
+    if has_name:
+        if df.name != expected_name:
+            print("Dataframe had incorrect name.\n\tExpected: {}\n\tActual: {}".format(expected_name, df.name))
+            PASS = False
+
+    return PASS
+
 def check_merged_column(original_df, merged_df, original_header, merged_header): # private
     """Checks that when a column was taken from one dataframe and added to another, no data was lost or changed.
 
@@ -26,17 +46,12 @@ def check_merged_column(original_df, merged_df, original_header, merged_header):
     """
     PASS = True
 
-    # Check that the merged dataframe has a name
-    if not hasattr(merged_df, 'name'):
-        print('Merged dataframe did not have a "name" attribute.')
-        PASS = False
-
     # For each sample, check that the value in the column in the merged dataframe specified by merged_header matches the value for that sample in the column in the source dataframe specified by original_header.
     for sample in merged_df.index.values:
         original_value = original_df.loc[sample, original_header]
         merged_value = merged_df.loc[sample, merged_header]
         if (merged_value != original_value) and (pd.notna(merged_value) or pd.notna(original_value)):
-            print("Merged dataframe had incorrect values.\n\tDataframe: {}\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}\n".format(merged_df.name, sample, merged_header, original_value, merged_value))
+            print("Merged dataframe had incorrect values.\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}\n".format(sample, merged_header, original_value, merged_value))
             PASS = False
 
     return PASS
@@ -90,6 +105,7 @@ def test_compare_gene_single():
     """Test compare_gene for one gene (we use TP53)."""
 
     print("Testing compare_gene for one gene (we use TP53)...")
+    PASS = True
 
     # Load our dataframes
     proteomics = co.get_proteomics()
@@ -101,9 +117,12 @@ def test_compare_gene_single():
     # Get our compared dataframe
     compared = co.compare_gene(proteomics, transcriptomics, gene)
 
-    # Check that data was preserved in the two columns in the dataframe (proteomics and transcriptomics)
-    PASS = True
+    # Check that our merged dataframe has a name, and that it's the correct name
+    expected_name = gene
+    if not check_df_name(compared, expected_name):
+        PASS = False
 
+    # Check that data was preserved in the two columns in the dataframe (proteomics and transcriptomics)
     if not check_merged_column(proteomics, compared, gene, compared.columns.values[0]):
         PASS = False
     if not check_merged_column(transcriptomics, compared, gene, compared.columns.values[1]):
@@ -115,9 +134,41 @@ def test_compare_gene_single():
     else:
         print('FAIL')
     
-
 def test_compare_gene_list():
     """Test compare_gene for a list of genes."""
+
+    print("Testing compare_gene for a list of genes...")
+    PASS = True
+
+    # Load our dataframes
+    proteomics = co.get_proteomics()
+    transcriptomics = co.get_transcriptomics()
+
+    # Create our gene list
+    gene_list = ['TP53', 'PIK3CA', 'AURKA']
+
+    # Get our compared dataframe
+    compared = co.compare_gene(proteomics, transcriptomics, gene_list)
+
+    # Check that our compared dataframe has a name, and that it's the correct name
+    expected_name = str(len(gene_list)) + ' Genes Combined'
+    if not check_df_name(compared, expected_name):
+        PASS = False
+
+    # Check that each column's data is accurate
+    sorted_gene_list = sorted(gene_list) # compare_gene should sort the list
+
+    for i in range(3):
+        if not check_merged_column(proteomics, compared, sorted_gene_list[i], compared.columns.values[i]): # The first 3 columns are the proteomics data for each gene, in order
+            PASS = False
+        if not check_merged_column(transcriptomics, compared, sorted_gene_list[i], compared.columns.values[i + 3]): # The second 3 columns are the transcriptomics for each gene, in order
+            PASS = False
+
+    # Print whether the test passed
+    if PASS: 
+        print('PASS')
+    else:
+        print('FAIL\n')
 
 def test_compare_clinical():
     """Test compare_clinical."""
@@ -138,3 +189,4 @@ def test_compare_mutations_full_trans():
     """Test compare_mutations_full with one gene for omics, and a different gene for mutation data."""
 
 test_compare_gene_single()
+test_compare_gene_list()
