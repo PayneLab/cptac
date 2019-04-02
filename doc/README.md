@@ -1,6 +1,6 @@
 # Tutorials
 
-Tutorials for this package describe how to use the package functions for research with the provided data. All the tutorials are written in python using the interactive jupyter notebooks. If you are unfamiliar with jupyter, follow the instructions given at jupyter.org/install to begin running jupyter on your machine. You will then be able to run our documentation as interactive, jupyter-based tutorials.
+Tutorials for this package describe how to use the package functions for research with the provided data. All the tutorials are written in Python using the interactive Jupyter notebooks. If you are unfamiliar with Jupyter, follow the instructions given at jupyter.org/install. You will then be able to run our tutorials as interactive, exploratory data analyses.
 
 <ul>
   <li>Use Case 0: Exploring the data</li>
