@@ -1,9 +1,9 @@
 CPTAC help:
 
-Presented here is the javadoc summary for all functions available in this package.
+Presented here is the docstring summary for all functions available in this package.
 
-  list():
-    Lists the accessible data in the package
+  list_data():
+    Lists the attributes of accessible data in the package
 
 get functions:
   get_clinical(excluded):
