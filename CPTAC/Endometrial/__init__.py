@@ -143,7 +143,7 @@ somatic_maf.name = "somatic MAF"
 #metaData = MetaData(clinical)
 #molecularData = MolecularData(proteomics, transcriptome, cna, phosphoproteomics)
 warning()
-def list():
+def list_data():
     """
     Parameters
     None
@@ -154,11 +154,23 @@ def list():
     None
     """
     print("Below are the available endometrial data frames contained in this package:")
-    data = [clinical, derived_molecular, acetylproteomics, proteomics, transcriptomics, cna, phosphoproteomics, somatic_binary, somatic_maf]
+    data = [clinical, derived_molecular, acetylproteomics, proteomics, transcriptomics, transcriptomics_circular, cna, phosphoproteomics, phosphoproteomics_gene, somatic_binary, somatic_maf]
     for dataframe in data:
         print("\t", dataframe.name)
         print("\t", "\t", "Dimensions:", dataframe.shape)
-    print("To access the data, use a get function with the data frame name, i.e. endometrial.get_proteomics()")
+    print("To find how to access the data, view the documentation with either list_api() or visit the github page with help().")
+def list_api():
+    """
+    Parameters
+    None
+
+    Prints docstrings for all accessible functions
+
+    Returns
+    None
+    """
+    #TODO: IMPLEMENT
+    #print(en.__doc__)
 def define(term):
     """
     Parameters
