@@ -37,7 +37,7 @@ def check_df_name(df, expected_name):
 
     return PASS
 
-def check_dataframe(df, name, exp_dim, exp_headers, coordinates, values): # private
+def check_dataframe(df, exp_dim, exp_headers, coordinates, values): # private
     """Test a dataframe's dimensions and headers, and three test values, then print whether it passed the test.
 
     Parameters
@@ -56,7 +56,7 @@ def check_dataframe(df, name, exp_dim, exp_headers, coordinates, values): # priv
     # Check dimensions
     act_dim = df.shape
     if exp_dim != act_dim:
-        print("{} dataframe dimensions did not match expected values.\n\tExpected: {}\n\tActual: {}\n".format(name, exp_dim, act_dim))
+        print("Dataframe dimensions did not match expected values.\n\tExpected: {}\n\tActual: {}\n".format(exp_dim, act_dim))
         PASS = False
 
     # Check headers
@@ -67,12 +67,12 @@ def check_dataframe(df, name, exp_dim, exp_headers, coordinates, values): # priv
         act_headers = act_headers_all[:10] + act_headers_all[-10:]
 
     if len(exp_headers) != len(act_headers):
-        print("Unexpected number of test headers in {} dataframe. Expected number of headers: {}. You passed {} headers.\n".format(name, len(act_headers), len(exp_headers)))
+        print("Unexpected number of test headers in dataframe. Expected number of headers: {}. You passed {} headers.\n".format(len(act_headers), len(exp_headers)))
         PASS = False
     else:
         for i, header in enumerate(exp_headers):
             if header != act_headers[i]:
-                print("{} dataframe header did not match expected value.\n\tExpected: {}\n\tActual: {}\n".format(name, header, act_headers[i]))
+                print("Dataframe header did not match expected value.\n\tExpected: {}\n\tActual: {}\n".format(header, act_headers[i]))
                 PASS = False
 
     # Check test values
@@ -84,7 +84,7 @@ def check_dataframe(df, name, exp_dim, exp_headers, coordinates, values): # priv
 
     for i, value in enumerate(values):
         if act_values[i] != value:
-            print("{} dataframe value did not match expected value.\n\tColumn: {}\n\tIndex: {}\n\tExpected: {}\n\tActual: {}\n".format(name, df.columns.values[coordinates[i][1]], df.index.values[coordinates[i][0]], value, act_values[i]))
+            print("Dataframe value did not match expected value.\n\tColumn: {}\n\tIndex: {}\n\tExpected: {}\n\tActual: {}\n".format(df.columns.values[coordinates[i][1]], df.index.values[coordinates[i][0]], value, act_values[i]))
             PASS = False
 
     # Return whether the dataframe passed the test
@@ -102,7 +102,7 @@ def test_get_clinical_filtered():
     test_coord = ((79, 16), (15, 25), (88, 2))
     test_vals = (77.0, '3', 'Poland')
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -119,7 +119,7 @@ def test_get_clinical_unfiltered():
     test_coord = ((23, 8), (151, 1), (32, 26))
     test_vals = ('Normal', 'No', '3')
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -138,7 +138,7 @@ def test_get_derived_molecular_filtered():
     test_coord = ((2, 3), (90, 143), (143, 4))
     test_vals = ('C3L-00032-01', 'PASS', 'CPT0230460002,CPT0230460003,CPT0230460004,CPT0230470002,CPT0230470003,CPT0230470004,CPT0230480002,CPT0230480003,CPT0230480004')
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -155,7 +155,7 @@ def test_get_derived_molecular_unfiltered():
     test_coord = ((152, 2), (4, 143), (30, 60))
     test_vals = ('130N', 'PASS', -0.13)
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -174,7 +174,7 @@ def test_get_acetylproteomics_filtered():
     test_coord = ((1, 1), (12, 10861), (90, 5849))
     test_vals = (0.47700000000000004, 0.16, 0.4098)
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -191,7 +191,7 @@ def test_get_acetylproteomics_unfiltered():
     test_coord = ((1, 1), (15, 10861), (90, 4399))
     test_vals = (0.47700000000000004, 0.16, 0.6920000000000001)
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -210,7 +210,7 @@ def test_get_proteomics():
     test_coord = ((34, 6003), (99, 9544), (143, 32))
     test_vals = (0.0461, 1.68, 0.904)
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -227,7 +227,7 @@ def test_get_transcriptomics_linear():
     test_coord = ((22, 25483), (108, 23), (101, 17748))
     test_vals = (0.82, 12.0, 6.19)
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -244,7 +244,7 @@ def test_get_transcriptomics_circular():
     test_coord = ((108, 1), (30, 4935), (73, 2003))
     test_vals = (9.08, 6.56, 0.0)
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -261,7 +261,7 @@ def test_get_transcriptomics_miRNA():
     test_coord = ((5, 0), (98, 1597), (54, 2231))
     test_vals = (1.79, 1.36, 0.26)
     
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -290,7 +290,7 @@ def test_get_CNA():
     test_coord = ((12, 27865), (60, 8), (94, 15439))
     test_vals = (-0.07, 0.01, 0.03)
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -307,7 +307,7 @@ def test_get_phosphoproteomics_site():
     test_coord = ((36, 46), (12, 72436), (96, 45361))
     test_vals = (0.579, 0.669, 0.156)
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -324,7 +324,7 @@ def test_get_phosphoproteomics_gene():
     test_coord =  ((2, 7999), (143, 1045), (71, 6543))
     test_vals = (-0.0879, 0.929, 0.153)
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -342,7 +342,7 @@ def test_get_phosphosites():
     test_coord = ((27, 0), (76, 0), (128, 0))
     test_vals = (0.603, -0.272, 0.1395)
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -359,7 +359,7 @@ def test_get_mutations_maf():
     test_coord = ((52000, 3), (12, 4), (34567, 0))
     test_vals = ('Missense_Mutation', 'p.T2121P', 'S059')
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -376,7 +376,7 @@ def test_get_mutations_binary():
     test_coord = ((94, 51558), (0, 0), (45, 25436))
     test_vals = (0, 0, 0)
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
@@ -393,7 +393,7 @@ def test_get_mutations_unparsed():
     test_coord = ((52265, 45), (12, 70), (27658, 1))
     test_vals = ('strelkasnv-varssnv-mutectsnv', 'UPI0000167B91', 0)
 
-    if check_dataframe(df, name, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
     else:
         print('\tFAIL\n')
