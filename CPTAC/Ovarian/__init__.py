@@ -170,9 +170,9 @@ def compare_mutations(omics_data, omics_gene, mutations_gene = None):
     Dataframe containing two columns, the omics data and the somatic mutation type for the gene(s) provided
     """
     if mutations_gene:
-        return Utilities().merge_mutations_trans(omics_data, omics_gene, get_somatic_mutations(), mutations_gene, key_id_map)
+        return Utilities().merge_mutations_trans(omics_data, omics_gene, get_mutations(), mutations_gene, key_id_map)
     else:
-        return Utilities().merge_mutations(omics_data, get_somatic_mutations(), omics_gene, key_id_map)
+        return Utilities().merge_mutations(omics_data, get_mutations(), omics_gene, key_id_map)
 def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):#doesn't work right now due to duplicate indices messing up the key_id_map
     """
     Params
@@ -184,9 +184,9 @@ def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):#doesn
     Dataframe containing numeric omics data and categorical somatic data (including patient ID, mutation type, and mutation location)
     """
     if mutations_gene:
-        return Utilities().merge_mutations_trans(omics_data, omics_gene, get_somatic_mutations(), mutations_gene,  key_id_map, duplicates = True)
+        return Utilities().merge_mutations_trans(omics_data, omics_gene, get_mutations(), mutations_gene,  key_id_map, duplicates = True)
     else:
-        return Utilities().merge_mutations(omics_data, get_somatic_mutations(), omics_gene, key_id_map, duplicates = True)
+        return Utilities().merge_mutations(omics_data, get_mutations(), omics_gene, key_id_map, duplicates = True)
 
 def embargo():
     """

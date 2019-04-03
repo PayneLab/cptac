@@ -171,9 +171,9 @@ def compare_mutations(omics_data, omics_gene, mutations_gene = None):
     Dataframe containing two columns, the omics data and the somatic mutation type for the gene(s) provided
     """
     if mutations_gene: #compare omics data of omics gene to mutations of mutations_gene
-        return Utilities().merge_mutations_trans(omics_data, omics_gene, get_mutation(), mutations_gene)
+        return Utilities().merge_mutations_trans(omics_data, omics_gene, get_mutations(), mutations_gene)
     else: #compare omics data to mutations for same gene
-        return Utilities().merge_mutations(omics_data, get_mutation(), omics_gene)
+        return Utilities().merge_mutations(omics_data, get_mutations(), omics_gene)
 def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):
     """
     Params
@@ -185,6 +185,6 @@ def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):
     Dataframe containing numeric omics data and categorical somatic data (including patient ID, mutation type, and mutation location)
     """
     if mutations_gene: #compare omics data of omics gene to mutations of mutations_gene
-        return Utilities().merge_mutations_trans(omics_data, omics_gene, get_mutation(), mutations_gene, duplicates = True)
+        return Utilities().merge_mutations_trans(omics_data, omics_gene, get_mutations(), mutations_gene, duplicates = True)
     else: #compare omics data to mutations for same gene
-        return Utilities().merge_mutations(omics_data, get_mutation(), omics_gene, duplicates = True)
+        return Utilities().merge_mutations(omics_data, get_mutations(), omics_gene, duplicates = True)
