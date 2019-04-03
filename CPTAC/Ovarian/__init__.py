@@ -109,7 +109,7 @@ def get_phosphoproteomics():
 def get_proteomics():
     return data.get("proteomics")
 
-def get_somatic_mutations(hg="38"):
+def get_mutations(hg="38"):
     if hg == "38":
         return data.get("somatic_38") #Defaulting to somatic_38
     elif hg == "19":

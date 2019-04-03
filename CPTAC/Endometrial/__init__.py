@@ -316,7 +316,7 @@ def get_phosphoproteomics(gene_level=False, unfiltered=False):
 def get_phosphosites(gene):
     """Returns dataframe with all phosphosites of specified gene name"""
     return Utilities().get_phosphosites(phosphoproteomics, gene)
-def get_somatic(binary=False, unparsed=False, unfiltered=False):
+def get_mutations(binary=False, unparsed=False, unfiltered=False):
     """
     Parameters
     binary: boolean indicating whether to retrieve the somatic mutations binary data
