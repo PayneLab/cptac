@@ -449,14 +449,13 @@ def evaluate_utilities(): #compare_**** functions
     else:
         print("\tFAIL\n")
 
-def check_merged_column(original_df, merged_df, original_header, merged_header, merged_df_name): # private
+def check_merged_column(original_df, merged_df, original_header, merged_header): # private
     """
     Parameters
     original_df: the dataframe the column was taken from
     merged_df: the merged dataframe with the column
     original_header: the column's header in the original dataframe
     merged_header: the column's header in the merged dataframe
-    merged_df_name: the name of the merged dataframe, in case we need to print an informative error message
 
     Returns
     bool indicating whether the column in the merged dataframe and the column in the original dataframe had the same values for each index
@@ -467,12 +466,12 @@ def check_merged_column(original_df, merged_df, original_header, merged_header, 
         original_value = original_df.loc[sample, original_header]
         merged_value = merged_df.loc[sample, merged_header]
         if (merged_value != original_value) and (pd.notna(merged_value) or pd.notna(original_value)):
-            print("Merged dataframe had incorrect values.\n\tDataframe: {}\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}\n".format(merged_df_name, sample, merged_header, original_value, merged_value))
+            print("Merged dataframe had incorrect values.\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}\n".format(sample, merged_header, original_value, merged_value))
             PASS = False
 
     return PASS
 
-def check_merged_column_from_row(source_df, merged_df, ID_column, filter_column, filter_value, source_column, dest_column, merged_df_name):
+def check_merged_column_from_row(source_df, merged_df, ID_column, filter_column, filter_value, source_column, dest_column): # Rename this--just somatic?
     """
     Parameters
     source_df: dataframe the data came from
@@ -482,7 +481,6 @@ def check_merged_column_from_row(source_df, merged_df, ID_column, filter_column,
     filter_value: the value in filter_column that indicates the data from source_column for that sample should go in merged_df
     source_column: string indicating the column in source_df from which data was taken
     dest_column: string indicating the column in merged_df where the data from source_df was put
-    merged_df_name: string with the name of the merged dataframe, in case we need to print an informative error message.
 
     Returns
     bool indicating whether, for each sample and filter value, the data in merged_df matched the data in source_df for that sample ID and filter value.
@@ -495,7 +493,7 @@ def check_merged_column_from_row(source_df, merged_df, ID_column, filter_column,
         original_values = source_filtered_df[source_column].values
 
         if len(original_values) == 0:
-            if source_df.name.startswith('somatic'):
+            if source_df.name.startswith('somatic'): # Replace this test with a boolean parameter?
                 if sample <= 'S104':
                     original_value = 'Wildtype_Tumor'
                 else:
@@ -504,16 +502,16 @@ def check_merged_column_from_row(source_df, merged_df, ID_column, filter_column,
                 original_value == float('NaN')
         elif len(original_values) == 1:
             original_value = original_values[0]
-        elif len(original_values) > 1 and source_df.name.startswith('somatic'):
+        elif len(original_values) > 1 and source_df.name.startswith('somatic'): # Replace this test with a boolean parameter?
             source_filtered_with_hierarchy = Utilities().add_mutation_hierarchy(source_filtered_df)
             source_filtered_with_hierarchy = source_filtered_with_hierarchy.sort_values(by = [ID_column, 'Mutation_Hierarchy'], ascending = [True,False]) #sorts by patient key, then by hierarchy so the duplicates will come with the lower number first
             original_value = source_filtered_with_hierarchy[source_column].iloc[0]
         else:
-            raise ValueError('Unexpected duplicate entries in source dataframe for merged dataframe.\n\tSource dataframe: {}\n\tMerged dataframe: {}\n\tSample: {}\n\tColumn: {}\n\tValues found: {}\n'.format(source_df.name, merged_df_name, sample, source_column, original_values))
+            raise ValueError('Unexpected duplicate entries in source dataframe for merged dataframe.\n\tSample: {}\n\tColumn: {}\n\tValues found: {}\n'.format(sample, source_column, original_values))
 
         merged_value = merged_df.loc[sample, dest_column]
         if (merged_value != original_value) and (pd.notna(merged_value) or pd.notna(original_value)):
-            print("Merged dataframe had incorrect value.\n\tDataframe: {}\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}\n".format(merged_df_name, sample, dest_column, original_value, merged_value))
+            print("Merged dataframe had incorrect value.\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}\n".format(sample, dest_column, original_value, merged_value))
             PASS = False
 
     return PASS
@@ -541,11 +539,11 @@ def evaluate_utilities_v2():
     A1BG_compared_name = 'A1BG_compared'
 
     ### Check the proteomics column
-    if not check_merged_column(proteomics, A1BG_compared, gene, A1BG_compared.columns.values[0], A1BG_compared_name):
+    if not check_merged_column(proteomics, A1BG_compared, gene, A1BG_compared.columns.values[0]):
        PASS = False
 
     ### Check the transcriptomics column
-    if not check_merged_column(transcriptomics, A1BG_compared, gene, A1BG_compared.columns.values[1], A1BG_compared_name):
+    if not check_merged_column(transcriptomics, A1BG_compared, gene, A1BG_compared.columns.values[1]):
        PASS = False
 
     # Test compare_gene, using a list of genes
@@ -556,12 +554,12 @@ def evaluate_utilities_v2():
 
     ### Test the data from the first dataframe, which are in the first three columns of the merged dataframe
     for i in range(3):
-        if not check_merged_column(proteomics, list_compared, sorted_gene_list[i], list_compared.columns.values[i], list_compared_name):
+        if not check_merged_column(proteomics, list_compared, sorted_gene_list[i], list_compared.columns.values[i]):
            PASS = False
 
     ### Test the data from the second dataframe, which are in the last three columns of the merged dataframe
     for i in range(3):
-        if not check_merged_column(transcriptomics, list_compared, sorted_gene_list[i], list_compared.columns.values[i + 3], list_compared_name):
+        if not check_merged_column(transcriptomics, list_compared, sorted_gene_list[i], list_compared.columns.values[i + 3]):
            PASS = False
 
     # Test compare_mutations, using functionality to compare a gene's omics data to its own somatic mutation data
@@ -570,7 +568,7 @@ def evaluate_utilities_v2():
     TP53_mutation_compared_name = 'TP53_mutation_compared'
 
     ### Test data in 'TP53' column, which is the proteomics data for TP53
-    if not check_merged_column(proteomics, TP53_mutation_compared, gene, gene, TP53_mutation_compared_name):
+    if not check_merged_column(proteomics, TP53_mutation_compared, gene, gene):
         PASS = False
 
     ### Test data in 'Mutation' column, which is from the somatic mutation data for TP53
@@ -578,7 +576,7 @@ def evaluate_utilities_v2():
     somatic_filter_column = 'Gene'
     somatic_source_column = 'Mutation'
     somatic_dest_column = 'Mutation'
-    if not check_merged_column_from_row(somatic, TP53_mutation_compared, somatic_ID_column, somatic_filter_column, gene, somatic_source_column, somatic_dest_column, TP53_mutation_compared_name):
+    if not check_merged_column_from_row(somatic, TP53_mutation_compared, somatic_ID_column, somatic_filter_column, gene, somatic_source_column, somatic_dest_column):
         PASS = False
 
     ### Test data in 'Sample_Status' column, which should be 'Tumor' for all samples up to and including S100, and 'Normal' for the remaining ones
