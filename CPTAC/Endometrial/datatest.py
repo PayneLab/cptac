@@ -471,7 +471,7 @@ def check_merged_column(original_df, merged_df, original_header, merged_header):
 
     return PASS
 
-def check_merged_column_from_row(source_df, merged_df, ID_column, filter_column, filter_value, source_column, dest_column): # Rename this--just somatic?
+def check_merged_column_from_somatic(source_df, merged_df, ID_column, filter_column, filter_value, source_column, dest_column):
     """
     Parameters
     source_df: dataframe the data came from
@@ -493,21 +493,16 @@ def check_merged_column_from_row(source_df, merged_df, ID_column, filter_column,
         original_values = source_filtered_df[source_column].values
 
         if len(original_values) == 0:
-            if source_df.name.startswith('somatic'): # Replace this test with a boolean parameter?
-                if sample <= 'S104':
-                    original_value = 'Wildtype_Tumor'
-                else:
-                    original_value = 'Wildtype_Normal'
+            if sample <= 'S104':
+                original_value = 'Wildtype_Tumor'
             else:
-                original_value == float('NaN')
+                original_value = 'Wildtype_Normal'
         elif len(original_values) == 1:
             original_value = original_values[0]
-        elif len(original_values) > 1 and source_df.name.startswith('somatic'): # Replace this test with a boolean parameter?
+        else:
             source_filtered_with_hierarchy = Utilities().add_mutation_hierarchy(source_filtered_df)
             source_filtered_with_hierarchy = source_filtered_with_hierarchy.sort_values(by = [ID_column, 'Mutation_Hierarchy'], ascending = [True,False]) #sorts by patient key, then by hierarchy so the duplicates will come with the lower number first
             original_value = source_filtered_with_hierarchy[source_column].iloc[0]
-        else:
-            raise ValueError('Unexpected duplicate entries in source dataframe for merged dataframe.\n\tSample: {}\n\tColumn: {}\n\tValues found: {}\n'.format(sample, source_column, original_values))
 
         merged_value = merged_df.loc[sample, dest_column]
         if (merged_value != original_value) and (pd.notna(merged_value) or pd.notna(original_value)):
@@ -576,7 +571,7 @@ def evaluate_utilities_v2():
     somatic_filter_column = 'Gene'
     somatic_source_column = 'Mutation'
     somatic_dest_column = 'Mutation'
-    if not check_merged_column_from_row(somatic, TP53_mutation_compared, somatic_ID_column, somatic_filter_column, gene, somatic_source_column, somatic_dest_column):
+    if not check_merged_column_from_somatic(somatic, TP53_mutation_compared, somatic_ID_column, somatic_filter_column, gene, somatic_source_column, somatic_dest_column):
         PASS = False
 
     ### Test data in 'Sample_Status' column, which should be 'Tumor' for all samples up to and including S100, and 'Normal' for the remaining ones
