@@ -158,7 +158,7 @@ def list_data():
     for dataframe in data:
         print("\t", dataframe.name)
         print("\t", "\t", "Dimensions:", dataframe.shape)
-    print("To find how to access the data, view the documentation with either list_api() or visit the github page with help().")
+    #print("To find how to access the data, view the documentation with either list_api() or visit the github page with help().")
 def list_api():
     """
     Parameters
