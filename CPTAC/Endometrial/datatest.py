@@ -17,12 +17,32 @@ from scipy import stats
 import CPTAC.Endometrial as en
 from utilities import *
 
-def check_dataframe(name, df, exp_dim, exp_headers, coordinates, values): # private
+def check_df_name(df, expected_name):
+    """Checks that a dataframe has a "name" attribute, and that it has the proper value."""
+
+    PASS = True
+
+    # Check that the dataframe has a name
+    has_name = True
+    if not hasattr(df, 'name'):
+        print('Dataframe did not have a "name" attribute.')
+        has_name = False
+        PASS = False
+
+    # Check that the dataframe has the correct name
+    if has_name:
+        if df.name != expected_name:
+            print("Dataframe had incorrect name.\n\tExpected: {}\n\tActual: {}".format(expected_name, df.name))
+            PASS = False
+
+    return PASS
+
+def check_dataframe(df, exp_dim, exp_headers, coordinates, values): # private
     """Test a dataframe's dimensions and headers, and three test values, then print whether it passed the test.
 
     Parameters
-    name: string containing the name of the dataframe gotten by the getter we're testing
     df: the dataframe gotten by the getter we are testing
+    name: string containing the name of the dataframe gotten by the getter we're testing
     exp_dim: a tuple containing the expected dimensions of the dataframe, in the format (rows, columns)
     exp_headers: if the dataframe has up to 20 columns, all of the headers for the dataframe, in order. If it has more than 20 columns, then a list containing the first ten and last ten headers, in order.
     coordinates: a tuple with three elements, each element being a tuple with two elements, the first element being the int index of the row of a test value, and the second element being the int index of the column of a test value
@@ -33,27 +53,10 @@ def check_dataframe(name, df, exp_dim, exp_headers, coordinates, values): # priv
     """
     PASS = True
 
-    # Check that we actually got a dataframe
-    if df is None:
-        print("Error loading {} dataframe. Getter returned None.".format(name))
-
-    # Check that the merged dataframe has a name
-    has_name = True
-    if not hasattr(df, 'name'):
-        print('Dataframe did not have a "name" attribute.')
-        has_name = False
-        PASS = False
-
-    # Check that the merged dataframe has the correct name
-    if has_name:
-        if df.name != name:
-            print('Dataframe had incorrect name.\n\tExpected: {}\n\tActual: {}'.format(name, df.name))
-            PASS = False
-
     # Check dimensions
     act_dim = df.shape
     if exp_dim != act_dim:
-        print("{} dataframe dimensions did not match expected values.\n\tExpected: {}\n\tActual: {}\n".format(name, exp_dim, act_dim))
+        print("Dataframe dimensions did not match expected values.\n\tExpected: {}\n\tActual: {}\n".format(exp_dim, act_dim))
         PASS = False
 
     # Check headers
@@ -64,12 +67,12 @@ def check_dataframe(name, df, exp_dim, exp_headers, coordinates, values): # priv
         act_headers = act_headers_all[:10] + act_headers_all[-10:]
 
     if len(exp_headers) != len(act_headers):
-        print("Unexpected number of test headers in {} dataframe. Expected number of headers: {}. You passed {} headers.\n".format(name, len(act_headers), len(exp_headers)))
+        print("Unexpected number of test headers in dataframe. Expected number of headers: {}. You passed {} headers.\n".format(len(act_headers), len(exp_headers)))
         PASS = False
     else:
         for i, header in enumerate(exp_headers):
             if header != act_headers[i]:
-                print("{} dataframe header did not match expected value.\n\tExpected: {}\n\tActual: {}\n".format(name, header, act_headers[i]))
+                print("Dataframe header did not match expected value.\n\tExpected: {}\n\tActual: {}\n".format(header, act_headers[i]))
                 PASS = False
 
     # Check test values
@@ -81,246 +84,250 @@ def check_dataframe(name, df, exp_dim, exp_headers, coordinates, values): # priv
 
     for i, value in enumerate(values):
         if act_values[i] != value:
-            print("{} dataframe value did not match expected value.\n\tColumn: {}\n\tIndex: {}\n\tExpected: {}\n\tActual: {}\n".format(name, df.columns.values[coordinates[i][1]], df.index.values[coordinates[i][0]], value, act_values[i]))
+            print("Dataframe value did not match expected value.\n\tColumn: {}\n\tIndex: {}\n\tExpected: {}\n\tActual: {}\n".format(df.columns.values[coordinates[i][1]], df.index.values[coordinates[i][0]], value, act_values[i]))
             PASS = False
 
     # Return whether the dataframe passed the test
     return PASS
 
 def test_get_clinical_filtered():
-    """Test get_clinical() with the default parameter unfiltered=False."""
+    """Test get_clinical with the default parameter unfiltered=False."""
 
     print('Testing get_clinical with the default parameter unfiltered=False...')
 
-    clinical_name = "clinical"
-    clinical_df = en.get_clinical()
-    clinical_dim = (144, 26)
-    clinical_headers = ['Proteomics_Participant_ID', 'Proteomics_Tumor_Normal', 'Country', 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm', 'Num_full_term_pregnancies']
-    clinical_test_coord = ((79, 16), (15, 25), (88, 2))
-    clinical_test_vals = (77.0, '3', 'Poland')
+    df = en.get_clinical()
+    name = "clinical"
+    dimensions = (144, 26)
+    headers = ['Proteomics_Participant_ID', 'Proteomics_Tumor_Normal', 'Country', 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm', 'Num_full_term_pregnancies']
+    test_coord = ((79, 16), (15, 25), (88, 2))
+    test_vals = (77.0, '3', 'Poland')
 
-    if check_dataframe(clinical_name, clinical_df, clinical_dim, clinical_headers, clinical_test_coord, clinical_test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
 def test_get_clinical_unfiltered():
     """Test get_clinical with parameter unfiltered=True."""
 
     print('Testing get_clinical with parameter unfiltered=True...')
 
-    clinical_excluded_name = "clinical"
-    clinical_excluded_df = en.get_clinical(unfiltered=True)
-    clinical_excluded_dim = (153, 27)
-    clinical_excluded_headers = ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_Tumor_Normal', 'Country', 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 'Path_Stage_Primary_Tumor-pT', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm', 'Num_full_term_pregnancies']
-    clinical_excluded_test_coord = ((23, 8), (151, 1), (32, 26))
-    clinical_excluded_test_vals = ('Normal', 'No', '3')
+    df = en.get_clinical(unfiltered=True)
+    name = "clinical"
+    dimensions = (153, 27)
+    headers = ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_Tumor_Normal', 'Country', 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 'Path_Stage_Primary_Tumor-pT', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm', 'Num_full_term_pregnancies']
+    test_coord = ((23, 8), (151, 1), (32, 26))
+    test_vals = ('Normal', 'No', '3')
 
-    if check_dataframe(clinical_excluded_name, clinical_excluded_df, clinical_excluded_dim, clinical_excluded_headers, clinical_excluded_test_coord, clinical_excluded_test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
         
     print("The unfiltered data warning above was expected.") # To avoid confusion
 
 def test_get_derived_molecular_filtered():
-    """Test get_derived_molecular() with default parameter unfiltered=False."""
+    """Test get_derived_molecular with default parameter unfiltered=False."""
 
-    print('Testing get_derived_molecular() with default parameter unfiltered=False...')
-    name = 'derived_molecular'
+    print('Testing get_derived_molecular with default parameter unfiltered=False...')
+
     df = en.get_derived_molecular()
+    name = 'derived_molecular'
     dimensions = (144, 144) 
     headers = ['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'Estrogen_Receptor', 'Estrogen_Receptor_%', 'Progesterone_Receptor', 'Progesterone_Receptor_%', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
     test_coord = ((2, 3), (90, 143), (143, 4))
     test_vals = ('C3L-00032-01', 'PASS', 'CPT0230460002,CPT0230460003,CPT0230460004,CPT0230470002,CPT0230470003,CPT0230470004,CPT0230480002,CPT0230480003,CPT0230480004')
 
-    if check_dataframe(name, df, dimensions, headers, test_coord, test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
 def test_get_derived_molecular_unfiltered():
     """Test get_derived_molecular with parameter unfiltered=True."""
 
-    print('Testing get_derived_molecular() with parameter unfiltered=True...')
-    name = 'derived_molecular'
+    print('Testing get_derived_molecular with parameter unfiltered=True...')
+
     df = en.get_derived_molecular(unfiltered=True)
+    name = 'derived_molecular'
     dimensions = (153, 144)
     headers = ['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'Estrogen_Receptor', 'Estrogen_Receptor_%', 'Progesterone_Receptor', 'Progesterone_Receptor_%', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
     test_coord = ((152, 2), (4, 143), (30, 60))
     test_vals = ('130N', 'PASS', -0.13)
 
-    if check_dataframe(name, df, dimensions, headers, test_coord, test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
     print("The unfiltered data warning above was expected.") # To avoid confusion
 
 def test_get_acetylproteomics_filtered():
-    """Test get_acetylproteomics() with default parameter unfiltered=False."""
+    """Test get_acetylproteomics with default parameter unfiltered=False."""
 
-    print('Test get_acetylproteomics() with default parameter unfiltered=False...')
-    name = 'acetylproteomics'
+    print('Test get_acetylproteomics with default parameter unfiltered=False...')
+
     df = en.get_acetylproteomics()
+    name = 'acetylproteomics'
     dimensions = (144, 10862)
     headers = ['A2M-K1168', 'A2M-K1176', 'A2M-K135', 'A2M-K145', 'A2M-K516', 'A2M-K664', 'A2M-K682', 'AACS-K391', 'AAGAB-K290', 'AAK1-K201', 'ZSCAN31-K215', 'ZSCAN32-K659', 'ZW10-K634', 'ZYX-K24', 'ZYX-K25', 'ZYX-K265', 'ZYX-K272', 'ZYX-K279', 'ZYX-K533', 'ZZZ3-K117']
     test_coord = ((1, 1), (12, 10861), (90, 5849))
     test_vals = (0.47700000000000004, 0.16, 0.4098)
 
-    if check_dataframe(name, df, dimensions, headers, test_coord, test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
 def test_get_acetylproteomics_unfiltered():
     """Test get_acetylproteomics with parameter unfiltered=True."""
 
     print('Testing get_acetylproteomics with parameter unfiltered=True...')
-    name = 'acetylproteomics'
+
     df = en.get_acetylproteomics(unfiltered=True)
+    name = 'acetylproteomics'
     dimensions = (153, 10862)
     headers = ['A2M-K1168', 'A2M-K1176', 'A2M-K135', 'A2M-K145', 'A2M-K516', 'A2M-K664', 'A2M-K682', 'AACS-K391', 'AAGAB-K290', 'AAK1-K201', 'ZSCAN31-K215', 'ZSCAN32-K659', 'ZW10-K634', 'ZYX-K24', 'ZYX-K25', 'ZYX-K265', 'ZYX-K272', 'ZYX-K279', 'ZYX-K533', 'ZZZ3-K117']
     test_coord = ((1, 1), (15, 10861), (90, 4399))
     test_vals = (0.47700000000000004, 0.16, 0.6920000000000001)
 
-    if check_dataframe(name, df, dimensions, headers, test_coord, test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
     print("The unfiltered data warning above was expected.") # To avoid confusion
 
 def test_get_proteomics():
-    """Test get_proteomics()."""
+    """Test get_proteomics."""
 
-    print('Testing get_proteomics()...')
+    print('Testing get_proteomics...')
 
-    proteomics_name = "proteomics"
-    proteomics_df = en.get_proteomics()
-    proteomics_dim = (144, 10999)
-    proteomics_headers = ['A1BG', 'A2M', 'A2ML1', 'A4GALT', 'AAAS', 'AACS', 'AADAT', 'AAED1', 'AAGAB', 'AAK1', 'ZSWIM8', 'ZSWIM9', 'ZW10', 'ZWILCH', 'ZWINT', 'ZXDC', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3']
-    proteomics_test_coord = ((34, 6003), (99, 9544), (143, 32))
-    proteomics_test_vals = (0.0461, 1.68, 0.904)
+    df = en.get_proteomics()
+    name = "proteomics"
+    dimensions = (144, 10999)
+    headers = ['A1BG', 'A2M', 'A2ML1', 'A4GALT', 'AAAS', 'AACS', 'AADAT', 'AAED1', 'AAGAB', 'AAK1', 'ZSWIM8', 'ZSWIM9', 'ZW10', 'ZWILCH', 'ZWINT', 'ZXDC', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3']
+    test_coord = ((34, 6003), (99, 9544), (143, 32))
+    test_vals = (0.0461, 1.68, 0.904)
 
-    if check_dataframe(proteomics_name, proteomics_df, proteomics_dim, proteomics_headers, proteomics_test_coord, proteomics_test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
 def test_get_transcriptomics_linear():
-    """Test get_transcriptomics() with default parameter data_type="linear"."""
+    """Test get_transcriptomics with default parameter data_type="linear"."""
 
-    print('Testing get_transcriptomics() with default parameter data_type="linear"...')
+    print('Testing get_transcriptomics with default parameter data_type="linear"...')
 
-    transcriptomics_linear_name = "transcriptomics_linear"
-    transcriptomics_linear_df = en.get_transcriptomics()
-    transcriptomics_linear_dim = (109, 28057)
-    transcriptomics_linear_headers = ['A1BG', 'A1BG-AS1', 'A1CF', 'A2M', 'A2M-AS1', 'A2ML1', 'A2MP1', 'A3GALT2', 'A4GALT', 'A4GNT', 'ZWILCH', 'ZWINT', 'ZXDA', 'ZXDB', 'ZXDC', 'ZYG11A', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3']
-    transcriptomics_linear_test_coord = ((22, 25483), (108, 23), (101, 17748))
-    transcriptomics_linear_test_vals = (0.82, 12.0, 6.19)
+    df = en.get_transcriptomics()
+    name = "transcriptomics_linear"
+    dimensions = (109, 28057)
+    headers = ['A1BG', 'A1BG-AS1', 'A1CF', 'A2M', 'A2M-AS1', 'A2ML1', 'A2MP1', 'A3GALT2', 'A4GALT', 'A4GNT', 'ZWILCH', 'ZWINT', 'ZXDA', 'ZXDB', 'ZXDC', 'ZYG11A', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3']
+    test_coord = ((22, 25483), (108, 23), (101, 17748))
+    test_vals = (0.82, 12.0, 6.19)
 
-    if check_dataframe(transcriptomics_linear_name, transcriptomics_linear_df, transcriptomics_linear_dim, transcriptomics_linear_headers, transcriptomics_linear_test_coord, transcriptomics_linear_test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
 def test_get_transcriptomics_circular():
-    """Test get_transcriptomics() with parameter data_type="circular"."""
+    """Test get_transcriptomics with parameter data_type="circular"."""
 
-    print('Testing get_transcriptomics() with parameter data_type="circular"...')
+    print('Testing get_transcriptomics with parameter data_type="circular"...')
 
-    transcriptomics_circular_name = "transcriptomics_circular"
-    transcriptomics_circular_df = en.get_transcriptomics(data_type="circular")
-    transcriptomics_circular_dim = (109, 4945)
-    transcriptomics_circular_headers = ['circ_chr10_100260218_100262063_CWF19L1', 'circ_chr10_100923975_100926019_SLF2', 'circ_chr10_100923978_100926019_SLF2', 'circ_chr10_100937402_100944128_SLF2', 'circ_chr10_100937402_100950753_SLF2', 'circ_chr10_101584602_101586156_POLL', 'circ_chr10_101667886_101676436_FBXW4', 'circ_chr10_101672915_101676436_FBXW4', 'circ_chr10_101792839_101807901_OGA', 'circ_chr10_101792839_101810314_OGA', 'circ_chrX_80288906_80310233_CHMP1B2P', 'circ_chrX_80289664_80310233_CHMP1B2P', 'circ_chrX_80707427_80719656_BRWD3', 'circ_chrX_80791854_80793772_BRWD3', 'circ_chrX_84096194_84164387_RPS6KA6', 'circ_chrX_84134782_84164387_RPS6KA6', 'circ_chrX_85067127_85074391_APOOL', 'circ_chrX_85978767_85981809_CHM', 'circ_chrX_91414904_91418871_PABPC5-AS1', 'circ_chrX_9691579_9693419_TBL1X']
-    transcriptomics_circular_test_coord = ((108, 1), (30, 4935), (73, 2003))
-    transcriptomics_circular_test_vals = (9.08, 6.56, 0.0)
+    df = en.get_transcriptomics(data_type="circular")
+    name = "transcriptomics_circular"
+    dimensions = (109, 4945)
+    headers = ['circ_chr10_100260218_100262063_CWF19L1', 'circ_chr10_100923975_100926019_SLF2', 'circ_chr10_100923978_100926019_SLF2', 'circ_chr10_100937402_100944128_SLF2', 'circ_chr10_100937402_100950753_SLF2', 'circ_chr10_101584602_101586156_POLL', 'circ_chr10_101667886_101676436_FBXW4', 'circ_chr10_101672915_101676436_FBXW4', 'circ_chr10_101792839_101807901_OGA', 'circ_chr10_101792839_101810314_OGA', 'circ_chrX_80288906_80310233_CHMP1B2P', 'circ_chrX_80289664_80310233_CHMP1B2P', 'circ_chrX_80707427_80719656_BRWD3', 'circ_chrX_80791854_80793772_BRWD3', 'circ_chrX_84096194_84164387_RPS6KA6', 'circ_chrX_84134782_84164387_RPS6KA6', 'circ_chrX_85067127_85074391_APOOL', 'circ_chrX_85978767_85981809_CHM', 'circ_chrX_91414904_91418871_PABPC5-AS1', 'circ_chrX_9691579_9693419_TBL1X']
+    test_coord = ((108, 1), (30, 4935), (73, 2003))
+    test_vals = (9.08, 6.56, 0.0)
 
-    if check_dataframe(transcriptomics_circular_name, transcriptomics_circular_df, transcriptomics_circular_dim, transcriptomics_circular_headers, transcriptomics_circular_test_coord, transcriptomics_circular_test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
 def test_get_transcriptomics_miRNA():
-    """Test get_transcriptomics() with parameter data_type="miRNA"."""
+    """Test get_transcriptomics with parameter data_type="miRNA"."""
 
-    print('Testing get_transcriptomics() with parameter data_type="miRNA"...')
+    print('Testing get_transcriptomics with parameter data_type="miRNA"...')
 
-    mirna_name = "miRNA"
-    mirna_df = en.get_transcriptomics(data_type="miRNA")
-    mirna_dim = (99, 2337)
-    mirna_headers = ['hsa-let-7a-2-3p', 'hsa-let-7a-3p', 'hsa-let-7a-5p', 'hsa-let-7b-3p', 'hsa-let-7b-5p', 'hsa-let-7c-3p', 'hsa-let-7c-5p', 'hsa-let-7d-3p', 'hsa-let-7d-5p', 'hsa-let-7e-3p', 'hsa-miR-9901', 'hsa-miR-9902', 'hsa-miR-9903', 'hsa-miR-9983-3p', 'hsa-miR-9985', 'hsa-miR-9986', 'hsa-miR-99a-3p', 'hsa-miR-99a-5p', 'hsa-miR-99b-3p', 'hsa-miR-99b-5p']
-    mirna_test_coord = ((5, 0), (98, 1597), (54, 2231))
-    mirna_test_vals = (1.79, 1.36, 0.26)
+    df = en.get_transcriptomics(data_type="miRNA")
+    name = "miRNA"
+    dimensions = (99, 2337)
+    headers = ['hsa-let-7a-2-3p', 'hsa-let-7a-3p', 'hsa-let-7a-5p', 'hsa-let-7b-3p', 'hsa-let-7b-5p', 'hsa-let-7c-3p', 'hsa-let-7c-5p', 'hsa-let-7d-3p', 'hsa-let-7d-5p', 'hsa-let-7e-3p', 'hsa-miR-9901', 'hsa-miR-9902', 'hsa-miR-9903', 'hsa-miR-9983-3p', 'hsa-miR-9985', 'hsa-miR-9986', 'hsa-miR-99a-3p', 'hsa-miR-99a-5p', 'hsa-miR-99b-3p', 'hsa-miR-99b-5p']
+    test_coord = ((5, 0), (98, 1597), (54, 2231))
+    test_vals = (1.79, 1.36, 0.26)
     
-    if check_dataframe(mirna_name, mirna_df, mirna_dim, mirna_headers, mirna_test_coord, mirna_test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
 def test_get_transcriptomics_with_invalid():
-    """Test get_transcriptomics() with an invalid parameter, and make sure that it raises an exception."""
+    """Test get_transcriptomics with an invalid parameter, and make sure that it raises an exception."""
 
-    print("Testing get_transcriptomics() with an invalid parameter, to make sure that it raises an exception...")
+    print("Testing get_transcriptomics with an invalid parameter, to make sure that it raises an exception...")
 
     try:
         en.get_transcriptomics("gobbledegook")
     except ValueError:
-        print("PASS")
+        print('\tPASS')
     else:
-        print("get_transcriptomics() did not raise ValueError as expected, when given invalid parameter.\nFAIL\n")
+        print("get_transcriptomics did not raise ValueError as expected, when given invalid parameter.\nFAIL\n")
 
 def test_get_CNA():
-    """Test get_CNA()."""
+    """Test get_CNA."""
 
-    print('Testing get_CNA()...')
+    print('Testing get_CNA...')
 
-    cna_name = "CNA"
-    cna_df = en.get_CNA()
-    cna_dim = (95, 28057)
-    cna_headers = ['MFSD14A', 'SASS6', 'TRMT13', 'LRRC39', 'DBT', 'RTCA-AS1', 'RTCA', 'MIR553', 'UBE4B', 'CDC14A', 'TSPY8', 'FAM197Y2', 'FAM197Y4', 'FAM197Y5', 'FAM197Y7', 'FAM197Y8', 'FAM197Y6', 'FAM197Y3', 'RBMY3AP', 'TTTY22']
-    cna_test_coord = ((12, 27865), (60, 8), (94, 15439))
-    cna_test_vals = (-0.07, 0.01, 0.03)
+    df = en.get_CNA()
+    name = "CNA"
+    dimensions = (95, 28057)
+    headers = ['MFSD14A', 'SASS6', 'TRMT13', 'LRRC39', 'DBT', 'RTCA-AS1', 'RTCA', 'MIR553', 'UBE4B', 'CDC14A', 'TSPY8', 'FAM197Y2', 'FAM197Y4', 'FAM197Y5', 'FAM197Y7', 'FAM197Y8', 'FAM197Y6', 'FAM197Y3', 'RBMY3AP', 'TTTY22']
+    test_coord = ((12, 27865), (60, 8), (94, 15439))
+    test_vals = (-0.07, 0.01, 0.03)
 
-    if check_dataframe(cna_name, cna_df, cna_dim, cna_headers, cna_test_coord, cna_test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
 def test_get_phosphoproteomics_site():
-    """Test get_phosphoproteomics() with default parameter gene_level=False."""
+    """Test get_phosphoproteomics with default parameter gene_level=False."""
 
-    print('Testing get_phosphoproteomics() with default parameter gene_level=False...')
+    print('Testing get_phosphoproteomics with default parameter gene_level=False...')
 
-    phosphoproteomics_site_name = "phosphoproteomics_site"
-    phosphoproteomics_site_df =  en.get_phosphoproteomics()
-    phosphoproteomics_site_dim = (144, 73212)
-    phosphoproteomics_site_headers = ['AAAS-S495', 'AAAS-S541', 'AAAS-Y485', 'AACS-S618', 'AAED1-S12', 'AAGAB-S310', 'AAGAB-S311', 'AAK1-S14', 'AAK1-S18', 'AAK1-S20', 'ZZZ3-S397', 'ZZZ3-S411', 'ZZZ3-S420', 'ZZZ3-S424', 'ZZZ3-S426', 'ZZZ3-S468', 'ZZZ3-S89', 'ZZZ3-T415', 'ZZZ3-T418', 'ZZZ3-Y399']
-    phosphoproteomics_site_test_coord = ((36, 46), (12, 72436), (96, 45361))
-    phosphoproteomics_site_test_vals = (0.579, 0.669, 0.156)
+    df =  en.get_phosphoproteomics()
+    name = "phosphoproteomics_site"
+    dimensions = (144, 73212)
+    headers = ['AAAS-S495', 'AAAS-S541', 'AAAS-Y485', 'AACS-S618', 'AAED1-S12', 'AAGAB-S310', 'AAGAB-S311', 'AAK1-S14', 'AAK1-S18', 'AAK1-S20', 'ZZZ3-S397', 'ZZZ3-S411', 'ZZZ3-S420', 'ZZZ3-S424', 'ZZZ3-S426', 'ZZZ3-S468', 'ZZZ3-S89', 'ZZZ3-T415', 'ZZZ3-T418', 'ZZZ3-Y399']
+    test_coord = ((36, 46), (12, 72436), (96, 45361))
+    test_vals = (0.579, 0.669, 0.156)
 
-    if check_dataframe(phosphoproteomics_site_name, phosphoproteomics_site_df, phosphoproteomics_site_dim, phosphoproteomics_site_headers, phosphoproteomics_site_test_coord, phosphoproteomics_site_test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
 def test_get_phosphoproteomics_gene():
-    """Test get_phosphoproteomics() with parameter gene_level=True."""
+    """Test get_phosphoproteomics with parameter gene_level=True."""
 
-    print('Testing get_phosphoproteomics() with parameter gene_level=True...')
+    print('Testing get_phosphoproteomics with parameter gene_level=True...')
 
-    phosphoproteomics_gene_name = "phosphoproteomics_gene"
-    phosphoproteomics_gene_df = en.get_phosphoproteomics(gene_level=True)
-    phosphoproteomics_gene_dim = (144, 8466)
-    phosphoproteomics_gene_headers = ['AAAS', 'AACS', 'AAED1', 'AAGAB', 'AAK1', 'AAMDC', 'AARS', 'AASDH', 'AATF', 'ABCA1', 'ZSCAN5C', 'ZSWIM3', 'ZSWIM8', 'ZUP1', 'ZW10', 'ZXDA', 'ZXDC', 'ZYX', 'ZZEF1', 'ZZZ3']
-    phosphoproteomics_gene_test_coord =  ((2, 7999), (143, 1045), (71, 6543))
-    phosphoproteomics_gene_test_vals = (-0.0879, 0.929, 0.153)
+    df = en.get_phosphoproteomics(gene_level=True)
+    name = "phosphoproteomics_gene"
+    dimensions = (144, 8466)
+    headers = ['AAAS', 'AACS', 'AAED1', 'AAGAB', 'AAK1', 'AAMDC', 'AARS', 'AASDH', 'AATF', 'ABCA1', 'ZSCAN5C', 'ZSWIM3', 'ZSWIM8', 'ZUP1', 'ZW10', 'ZXDA', 'ZXDC', 'ZYX', 'ZZEF1', 'ZZZ3']
+    test_coord =  ((2, 7999), (143, 1045), (71, 6543))
+    test_vals = (-0.0879, 0.929, 0.153)
 
-    if check_dataframe(phosphoproteomics_gene_name, phosphoproteomics_gene_df, phosphoproteomics_gene_dim, phosphoproteomics_gene_headers, phosphoproteomics_gene_test_coord, phosphoproteomics_gene_test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
 def test_get_phosphosites():
     """Test get_phosphosites."""
@@ -328,68 +335,68 @@ def test_get_phosphosites():
     print('Testing get_phosphosites...')
 
     gene = 'AAK1-S14'
-    phosphosites_name = 'phosphosites_' + gene
-    phosphosites_df = en.get_phosphosites(gene)
-    phosphosites_dim = (144, 1)
-    phosphosites_headers = [gene]
-    phosphosites_test_coord = ((27, 0), (76, 0), (128, 0))
-    phosphosites_test_vals = (0.603, -0.272, 0.1395)
+    df = en.get_phosphosites(gene)
+    name = 'phosphosites_' + gene
+    dimensions = (144, 1)
+    headers = [gene]
+    test_coord = ((27, 0), (76, 0), (128, 0))
+    test_vals = (0.603, -0.272, 0.1395)
 
-    if check_dataframe(phosphosites_name, phosphosites_df, phosphosites_dim, phosphosites_headers, phosphosites_test_coord, phosphosites_test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
-def test_get_somatic_maf():
-    """Test get_somatic() with default parameters binary=False, unparsed=False (this will return the Somatic Maf dataframe)."""
+def test_get_mutations_maf():
+    """Test get_mutations with default parameters binary=False, unparsed=False."""
 
-    print('Testing get_somatic() with default parameters binary=False, unparsed=False (this will return the Somatic Maf dataframe)...')
+    print('Testing get_mutations with default parameters binary=False, unparsed=False...')
 
-    somatic_name = "somatic MAF"
-    somatic_df = en.get_somatic()
-    somatic_dim = (52560, 5)
-    somatic_headers = ['Clinical_Patient_Key', 'Patient_Id', 'Gene', 'Mutation', 'Location']
-    somatic_test_coord = ((52000, 3), (12, 4), (34567, 0))
-    somatic_test_vals = ('Missense_Mutation', 'p.T2121P', 'S059')
+    df = en.get_mutations()
+    name = "somatic MAF"
+    dimensions = (52560, 5)
+    headers = ['Clinical_Patient_Key', 'Patient_Id', 'Gene', 'Mutation', 'Location']
+    test_coord = ((52000, 3), (12, 4), (34567, 0))
+    test_vals = ('Missense_Mutation', 'p.T2121P', 'S059')
 
-    if check_dataframe(somatic_name, somatic_df, somatic_dim, somatic_headers, somatic_test_coord, somatic_test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
-def test_get_somatic_binary():
-    """Test get_somatic with parameter binary=True and therefore unparsed=False."""
+def test_get_mutations_binary():
+    """Test get_mutations with parameter binary=True and therefore unparsed=False."""
 
-    print('Testing get_somatic with parameter binary=True and therefore unparsed=False...')
+    print('Testing get_mutations with parameter binary=True and therefore unparsed=False...')
 
-    somatic_binary_name = "somatic binary"
-    somatic_binary_df = en.get_somatic(binary=True)
-    somatic_binary_dim = (95, 51559)
-    somatic_binary_headers = ['A1BG_p.E298K', 'A1BG_p.S181N', 'A1CF_p.F487L', 'A1CF_p.S236Y', 'A2ML1_p.A8V', 'A2ML1_p.G1306D', 'A2ML1_p.L1347F', 'A2ML1_p.L82I', 'A2ML1_p.P712S', 'A2ML1_p.R443Q', 'ZYG11A_p.Q442H', 'ZYG11B_p.H315R', 'ZYG11B_p.R495M', 'ZYG11B_p.R728C', 'ZYX_p.C447Y', 'ZZEF1_p.A2723V', 'ZZEF1_p.D845Y', 'ZZEF1_p.K1251E', 'ZZEF1_p.K2387Sfs*40', 'ZZZ3_p.Y891C']
-    somatic_binary_test_coord = ((94, 51558), (0, 0), (45, 25436))
-    somatic_binary_test_vals = (0, 0, 0)
+    df = en.get_mutations(binary=True)
+    name = "somatic binary"
+    dimensions = (95, 51559)
+    headers = ['A1BG_p.E298K', 'A1BG_p.S181N', 'A1CF_p.F487L', 'A1CF_p.S236Y', 'A2ML1_p.A8V', 'A2ML1_p.G1306D', 'A2ML1_p.L1347F', 'A2ML1_p.L82I', 'A2ML1_p.P712S', 'A2ML1_p.R443Q', 'ZYG11A_p.Q442H', 'ZYG11B_p.H315R', 'ZYG11B_p.R495M', 'ZYG11B_p.R728C', 'ZYX_p.C447Y', 'ZZEF1_p.A2723V', 'ZZEF1_p.D845Y', 'ZZEF1_p.K1251E', 'ZZEF1_p.K2387Sfs*40', 'ZZZ3_p.Y891C']
+    test_coord = ((94, 51558), (0, 0), (45, 25436))
+    test_vals = (0, 0, 0)
 
-    if check_dataframe(somatic_binary_name, somatic_binary_df, somatic_binary_dim, somatic_binary_headers, somatic_binary_test_coord, somatic_binary_test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
-def test_get_somatic_unparsed():
-    """Test get_somatic with parameter unparsed=True and therefore binary=False."""
+def test_get_mutations_unparsed():
+    """Test get_mutations with parameter unparsed=True and therefore binary=False."""
 
-    print('Testing get_somatic with parameter unparsed=True and therefore binary=False...')
+    print('Testing get_mutations with parameter unparsed=True and therefore binary=False...')
 
-    somatic_unparsed_name = "somatic MAF unparsed"
-    somatic_unparsed_df = en.get_somatic(unparsed=True)
-    somatic_unparsed_dim = (53101, 124)
-    somatic_unparsed_headers = ['Hugo_Symbol', 'Entrez_Gene_Id', 'Center', 'NCBI_Build', 'Chromosome', 'Start_Position', 'End_Position', 'Strand', 'Variant_Classification', 'Variant_Type', 'ExAC_AC_AN_Adj', 'ExAC_AC_AN', 'ExAC_AC_AN_AFR', 'ExAC_AC_AN_AMR', 'ExAC_AC_AN_EAS', 'ExAC_AC_AN_FIN', 'ExAC_AC_AN_NFE', 'ExAC_AC_AN_OTH', 'ExAC_AC_AN_SAS', 'ExAC_FILTER']
-    somatic_unparsed_test_coord = ((52265, 45), (12, 70), (27658, 1))
-    somatic_unparsed_test_vals = ('strelkasnv-varssnv-mutectsnv', 'UPI0000167B91', 0)
+    df = en.get_mutations(unparsed=True)
+    name = "somatic MAF unparsed"
+    dimensions = (53101, 124)
+    headers = ['Hugo_Symbol', 'Entrez_Gene_Id', 'Center', 'NCBI_Build', 'Chromosome', 'Start_Position', 'End_Position', 'Strand', 'Variant_Classification', 'Variant_Type', 'ExAC_AC_AN_Adj', 'ExAC_AC_AN', 'ExAC_AC_AN_AFR', 'ExAC_AC_AN_AMR', 'ExAC_AC_AN_EAS', 'ExAC_AC_AN_FIN', 'ExAC_AC_AN_NFE', 'ExAC_AC_AN_OTH', 'ExAC_AC_AN_SAS', 'ExAC_FILTER']
+    test_coord = ((52265, 45), (12, 70), (27658, 1))
+    test_vals = ('strelkasnv-varssnv-mutectsnv', 'UPI0000167B91', 0)
 
-    if check_dataframe(somatic_unparsed_name, somatic_unparsed_df, somatic_unparsed_dim, somatic_unparsed_headers, somatic_unparsed_test_coord, somatic_unparsed_test_vals):
-        print('PASS')
+    if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
+        print('\tPASS')
     else:
-        print('FAIL\n')
+        print('\tFAIL\n')
 
 def evaluate_special_getters():
     print("Evaluating special getters...")
@@ -413,9 +420,9 @@ def evaluate_special_getters():
             print("Error with get",functions[x+1], "function")
             PASS = False
     if PASS:
-        print("PASS")
+        print('\tPASS')
     else:
-        print("FAIL\n")
+        print("\tFAIL\n")
 def evaluate_utilities(): #compare_**** functions
     print("Evaluating utilities...")
     results = []
@@ -438,9 +445,9 @@ def evaluate_utilities(): #compare_**** functions
             print("Error with",functions[x+1],"function")
             PASS = False
     if PASS:
-        print("PASS")
+        print('\tPASS')
     else:
-        print("FAIL\n")
+        print("\tFAIL\n")
 
 def check_merged_column(original_df, merged_df, original_header, merged_header, merged_df_name): # private
     """
@@ -449,7 +456,7 @@ def check_merged_column(original_df, merged_df, original_header, merged_header, 
     merged_df: the merged dataframe with the column
     original_header: the column's header in the original dataframe
     merged_header: the column's header in the merged dataframe
-    merged_name: the name of the merged dataframe, in case we need to print an informative error message
+    merged_df_name: the name of the merged dataframe, in case we need to print an informative error message
 
     Returns
     bool indicating whether the column in the merged dataframe and the column in the original dataframe had the same values for each index
@@ -526,7 +533,7 @@ def evaluate_utilities_v2():
     phosphoproteomics = en.get_phosphoproteomics()
     transcriptomics = en.get_transcriptomics()
     cna = en.get_CNA()
-    somatic = en.get_somatic()
+    somatic = en.get_mutations()
 
     # Test compare_gene, using the A1BG gene
     gene = 'A1BG'
@@ -616,9 +623,9 @@ def evaluate_utilities_v2():
 
     # Indicate whether the overall test passed
     if PASS:
-        print("PASS")
+        print('\tPASS')
     else:
-        print("FAIL\n")
+        print("\tFAIL\n")
 
 class Stats:
     def __init__(self):
@@ -638,9 +645,9 @@ class Stats:
                 significantTests.append(spearmanrTest)
                 significantGenes.append(gene)
         if len(significantGenes) > 0:
-            return "PASS"
+            return '\tPASS'
         else:
-            return "FAIL\n"
+            return "\tFAIL\n"
 class Plotter:
     def __init__(self):
         pass
@@ -675,9 +682,9 @@ test_get_CNA()
 test_get_phosphoproteomics_site()
 test_get_phosphoproteomics_gene()
 test_get_phosphosites()
-test_get_somatic_maf()
-test_get_somatic_binary()
-test_get_somatic_unparsed()
+test_get_mutations_maf()
+test_get_mutations_binary()
+test_get_mutations_unparsed()
 
 #evaluate_special_getters()
 #evaluate_utilities()
@@ -689,7 +696,7 @@ test_get_somatic_unparsed()
 #Plotter().plot(en.get_proteomics(), "A1BG","PTEN","scatterplot")
 #Plotter().plot(en.get_clinical(), "Diabetes","BMI","barplot")
 #Plotter().plot(en.get_clinical(), "Diabetes","BMI","boxplot")
-#print("PASS")
+#print('\tPASS')
 
 #print("Running statistics...")
 #message = Stats().evaluate(en.get_proteomics(), "Tumor_Size_cm")

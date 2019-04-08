@@ -158,7 +158,7 @@ def list_data():
     for dataframe in data:
         print("\t", dataframe.name)
         print("\t", "\t", "Dimensions:", dataframe.shape)
-    print("To find how to access the data, view the documentation with either list_api() or visit the github page with help().")
+    #print("To find how to access the data, view the documentation with either list_api() or visit the github page with help().")
 def list_api():
     """
     Parameters
@@ -316,7 +316,7 @@ def get_phosphoproteomics(gene_level=False, unfiltered=False):
 def get_phosphosites(gene):
     """Returns dataframe with all phosphosites of specified gene name"""
     return Utilities().get_phosphosites(phosphoproteomics, gene)
-def get_somatic(binary=False, unparsed=False, unfiltered=False):
+def get_mutations(binary=False, unparsed=False, unfiltered=False):
     """
     Parameters
     binary: boolean indicating whether to retrieve the somatic mutations binary data
