@@ -547,6 +547,40 @@ def compare_phosphosites(gene):
     """
     return Utilities().compare_phosphosites(proteomics, phosphoproteomics, gene)
 
+def compare_omics(omics_df_1, df_1_cols, omics_df_2, df_2_cols):
+
+    # Make sure it's the right kind of dataframe
+    valid_dfs = [
+        'acetylproteomics',
+        'proteomics',
+        'transcriptomics_linear',
+        'transcriptomics_circular',
+        'CNA',
+        'phosphoproteomics_site',
+        'phosphoproteomics_gene']
+    invalid = False
+    if (omics_df_1.name not in valid_dfs):
+        invalid = True
+        print("{} is not a valid dataframe for this function.".format(omics_df_1.name))
+    if (omics_df_2.name not in valid_dfs):
+        print("{} is not a valid dataframe for this function.".format(omics_df_2.name))
+    if invalid:
+        print("Valid dataframe options:")
+        for df in valid_dfs:
+            print(df)
+
+    # Here we would normally use a utility, but none of them match what we need. Put new functionality in utilities.py?
+        
+
+def append_clinical_to_omics(clinical_cols, omics_df, omics_cols=None):
+    pass
+
+def append_derived_molecular_to_omics(derived_molecular_cols, omics_df, omics_cols=None):
+    pass
+
+def append_mutation_to_omics(mutation_genes, omics_df, omics_genes=None):
+    pass
+
 def help():
     """
     Parameters
