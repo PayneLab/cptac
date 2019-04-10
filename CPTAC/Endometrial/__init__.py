@@ -547,8 +547,18 @@ def compare_phosphosites(gene):
     """
     return Utilities().compare_phosphosites(proteomics, phosphoproteomics, gene)
 
-def compare_omics(omics_df_1, df_1_cols, omics_df_2, df_2_cols):
+def compare_omics(omics_df1, df1_cols, omics_df2, df2_cols):
+    """Take specified column(s) from one omics dataframe, and merge with specified columns(s) from another omics dataframe.
 
+    Parameters:
+    omics_df1 (pandas.core.frame.DataFrame): First omics dataframe to select columns from.
+    df1_cols (str or list): Column(s) to select from omics_df1. str if one gene, list if multiple.  
+    omics_df2 (pandas.core.frame.DataFrame): Second omics dataframe to select columns from.
+    df2_cols (str or list): Column(s) to select from omics_df2. str if one gene, list if multiple.
+
+    Returns:
+    pandas.core.frame.DataFrame: The selected columns from omics_df1 and omics_df2, merged into one dataframe.
+    """
     # Make sure it's the right kind of dataframe
     valid_dfs = [
         'acetylproteomics',
@@ -559,11 +569,14 @@ def compare_omics(omics_df_1, df_1_cols, omics_df_2, df_2_cols):
         'phosphoproteomics_site',
         'phosphoproteomics_gene']
     invalid = False
-    if (omics_df_1.name not in valid_dfs):
+    if (omics_df1.name not in valid_dfs):
         invalid = True
-        print("{} is not a valid dataframe for this function.".format(omics_df_1.name))
-    if (omics_df_2.name not in valid_dfs):
-        print("{} is not a valid dataframe for this function.".format(omics_df_2.name))
+        print("{} is not a valid dataframe for this function.".format(omics_df1.name))
+
+    if (omics_df2.name not in valid_dfs):
+        invalid = True
+        print("{} is not a valid dataframe for this function.".format(omics_df2.name))
+
     if invalid:
         print("Valid dataframe options:")
         for df in valid_dfs:
@@ -573,12 +586,43 @@ def compare_omics(omics_df_1, df_1_cols, omics_df_2, df_2_cols):
         
 
 def append_clinical_to_omics(clinical_cols, omics_df, omics_cols=None):
+    """Append columns from clinical dataframe to part or all of an omics dataframe.
+
+    Parameters:
+    clinical_cols (str or list): Column(s) to select from the clinical dataframe. str if one gene, list if multiple.
+    omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the clinical columns to.
+    omics_cols (str or list, optional): Column(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
+
+    Returns:
+    pandas.core.frame.DataFrame: The selected clinical columns, merged with all or part of the omics dataframe.
+    """
     pass
 
-def append_derived_molecular_to_omics(derived_molecular_cols, omics_df, omics_cols=None):
+def append_derived_molecular_to_omics(derived_molecular_cols, omics_df, omics_cols=None, show_location=True):
+    """Append columns from derived_molecular dataframe to all or part of an omics dataframe.
+
+    Parameters:
+    derived_molecular_cols (str or list): Column(s) to select from the derived_molecular dataframe. str if one gene, list if multiple. 
+    omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the derived_molecular columns to.
+    omics_cols (str or list, optional): Column(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
+    show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
+
+    Returns:
+    pandas.core.frame.DataFrame: The selected derived_molecular columns, merged with all or part of the omics dataframe.
+    """
     pass
 
 def append_mutation_to_omics(mutation_genes, omics_df, omics_genes=None):
+    """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
+
+    Parameters:
+    mutation_genes (str or list): The gene(s) to get mutation data for. str if one gene, list if multiple. 
+    omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the mutation data to.
+    omics_genes (str or list, optional): Gene(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
+
+    Returns:
+    pandas.core.frame.DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe.
+    """
     pass
 
 def help():
