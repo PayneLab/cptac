@@ -547,14 +547,14 @@ def compare_phosphosites(gene):
     """
     return Utilities().compare_phosphosites(proteomics, phosphoproteomics, gene)
 
-def compare_omics(omics_df1, df1_cols, omics_df2, df2_cols):
+def compare_omics(omics_df1, cols1, omics_df2, cols2):
     """Take specified column(s) from one omics dataframe, and merge with specified columns(s) from another omics dataframe.
 
     Parameters:
     omics_df1 (pandas.core.frame.DataFrame): First omics dataframe to select columns from.
-    df1_cols (str or list): Column(s) to select from omics_df1. str if one gene, list if multiple.  
+    cols1 (str or list): Column(s) to select from omics_df1. str if one key, list if multiple.  
     omics_df2 (pandas.core.frame.DataFrame): Second omics dataframe to select columns from.
-    df2_cols (str or list): Column(s) to select from omics_df2. str if one gene, list if multiple.
+    cols2 (str or list): Column(s) to select from omics_df2. str if one key, list if multiple.
 
     Returns:
     pandas.core.frame.DataFrame: The selected columns from omics_df1 and omics_df2, merged into one dataframe.

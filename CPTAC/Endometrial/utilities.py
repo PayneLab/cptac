@@ -88,15 +88,17 @@ class Utilities:
             print("Gene",gene, "not found in phosphoproteomics data")
         phosphosites.name = 'phosphosites_{}'.format(gene)
         return phosphosites
-    def compare_gene(self, df1, df2, gene):
-        """
-        Parameters
-        df1: omics dataframe (proteomics) to be selected from
-        df2: other omics dataframe (transcriptomics) to be selected from
-        gene: gene to select from each of the dataframes
+    def compare_omics_single(self, df1, col1, df2, col2):
+        """Select data for one key from one omics dataframe, and data for another key from another omics dataframe, and join them into one dataframe.
 
-        Returns
-        Dataframe containing two columns. Each column is the data for the specified gene from the two specified dataframes
+        Parameters:
+        df1 (pandas.core.frame.DataFrame): first omics dataframe to select from.
+        col1 (str): key for column(s) to select from the first omics dataframe.
+        df2 (pandas.core.frame.DataFrame): second omics dataframe to select from.
+        col2 (str): key for column(s) to select from the second omics dataframe.
+
+        Returns:
+        pandas.core.frame.DataFrame: The data from the selected columns from each dataframe, joined into one dataframe.
         """
         if gene in df1.columns and gene in df2.columns: #check provided gene is in both provided dataframes
             common = df1.index.intersection(df2.index) #get rows common to df1 and df2
@@ -120,7 +122,7 @@ class Utilities:
                     print(gene, "not found in", df2.name, "dataframe. Please check that the specified gene is included in both of the provided dataframes.")
                 else: #Shouldn't reach this branch
                     print("Error asserting",gene,"in",df1.name,"and",df2.name,"dataframes.")
-    def compare_genes(self, df1, df2, genes):
+    def compare_omics_list(self, df1, cols1, df2, cols2):
         """
         Parameters
         df1: omics dataframe (proteomics) to be selected from
