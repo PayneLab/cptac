@@ -99,7 +99,7 @@ class Utilities:
         Returns
         dataframe containing the phosphosites for the specified gene
         """
-        regex = gene + ".*" #set regular expression using specified gene
+        regex = gene + "-.*" #set regular expression using specified gene
         phosphosites = phosphoproteomics.filter(regex = (regex)) #find all columns that match the regular expression, aka, all phosphosites for the specified gene
         if len(phosphosites.columns) == 0:
             print("Gene",gene, "not found in phosphoproteomics data")
