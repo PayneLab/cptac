@@ -563,8 +563,7 @@ def compare_omics(omics_df1, cols1, omics_df2, cols2):
     valid_dfs = [
         'acetylproteomics',
         'proteomics',
-        'transcriptomics_linear',
-        'transcriptomics_circular',
+        'transcriptomics_linear', # circular has incompatible column names
         'CNA',
         'phosphoproteomics_site',
         'phosphoproteomics_gene']
