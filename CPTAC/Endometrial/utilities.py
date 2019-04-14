@@ -73,21 +73,22 @@ class Utilities:
             return merge
         else:
             print("Gene", gene, "not found in somatic mutations.")
-    def get_phosphosites(self, phosphoproteomics, gene):
-        """
-        Parameters
-        phosphoproteomics: the phosphoproteomics dataframe
-        gene: the gene we want to get the phosphosites for
-
-        Returns
-        dataframe containing the phosphosites for the specified gene
-        """
-        regex = gene + "-.*" #set regular expression using specified gene
-        phosphosites = phosphoproteomics.filter(regex = (regex)) #find all columns that match the regular expression, aka, all phosphosites for the specified gene
-        if len(phosphosites.columns) == 0:
-            print("Gene",gene, "not found in phosphoproteomics data")
-        phosphosites.name = 'phosphosites_{}'.format(gene)
-        return phosphosites
+# Obsolete. Replaced by get_col_from_omics.
+#    def get_phosphosites(self, phosphoproteomics, gene):
+#        """
+#        Parameters
+#        phosphoproteomics: the phosphoproteomics dataframe
+#        gene: the gene we want to get the phosphosites for
+#
+#        Returns
+#        dataframe containing the phosphosites for the specified gene
+#        """
+#        regex = gene + "-.*" #set regular expression using specified gene
+#        phosphosites = phosphoproteomics.filter(regex = (regex)) #find all columns that match the regular expression, aka, all phosphosites for the specified gene
+#        if len(phosphosites.columns) == 0:
+#            print("Gene",gene, "not found in phosphoproteomics data")
+#        phosphosites.name = 'phosphosites_{}'.format(gene)
+#        return phosphosites
 
     def get_col_from_omics(omics_df, key): # private
         """Based on a single key, select a column or columns from an omics dataframe. Handles key parsing if needed, based on dataframe name.
@@ -101,17 +102,13 @@ class Utilities:
         """
         if omics_df.name == ('phosphoproteomics_site' or 'acetylproteomics'): # These are the dataframes that require us to parse the key
             regex = key + "-.*" # Build a regex to get all columns that match the key
-            selected = omics_df.filter(regex = (regex)) # Find all columns that match the key
-            if len(selected.columns) == 0: # If none of the columns matched the key, print an error message and return None.
-                print('{} did not match any columns in {} dataframe. Please double check that it is included in the dataframe.'.format(key, omics_df.name))
-                return
         else:
-            if key in omics_df.columns: # If the key matches at least one of the column names...
-                selected = omics_df[key] # select all of those columns
-            else: # Print an error message and return None
-                print('{} did not match any columns in {} dataframe. Please double check that it is included in the dataframe.'.format(key, omics_df.name))
-                return
+            regex = key
 
+        selected = omics_df.filter(regex = (regex)) # Find all columns that match the key. If only one column matches, DataFrame.filter will still return a dataframe, not a series :)
+        if len(selected.columns) == 0: # If none of the columns matched the key, print an error message and return None.
+            print('{} did not match any columns in {} dataframe. Please double check that it is included in the dataframe.'.format(key, omics_df.name))
+            return
         selected.name = "{} for {}".format(omics_df.name, key) # Give it a name!
         return selected
 
@@ -166,14 +163,9 @@ class Utilities:
         selected1 = select_omics_from_str_or_list(df1, keys1)
         selected2 = select_omics_from_str_or_list(df2, keys2)
 
-        if (selected1 is not None) and (selected2 is not None): # If seletor returned None, the key didn't match any columns, and it printed an informative error message already.
-            common = selected1.index.intersection(selected2.index) # Get rows common to selected1 and selected2
-            selected1_matched = selected1.loc[common] # Select all common rows in selected1
-            selected1_matched = selected1_matched.sort_index() # Sort rows in ascending order
-            selected2_matched = selected2.loc[common] # Select all common rows in selected2
-            selected2_matched = selected2_matched.sort_index() # Sort rows in ascending order
-            dict = {selected1.name:selected1_matched, selected2.name:selected2_matched} # Create prep dictionary for dataframe mapping name to specified column
-            df = pd.DataFrame(dict, index=selected1_matched.index) # Create dataframe with common rows as rows, and dataframe name to specified column as columns
+        if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the key(s) didn't match any columns, and it printed an informative error message already. We'll return None.
+            df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
+            df = df.sort_index() # Sort rows in ascending order
             df.name = "{} with {}".format(selected1.name, selected2.name) # Give it a nice name identifying the data in it.
             return df
 
@@ -198,7 +190,7 @@ class Utilities:
                 merged.name = merged_with_duplicates.name
                 return merged
         elif omics.name.split("_")[0] == "phosphoproteomics":
-            phosphosites = self.get_phosphosites(omics, gene)
+            phosphosites = self.get_col_from_omics(omics, gene)
             if len(phosphosites.columns) > 0:
                 if duplicates:#don't filter out duplicate sample mutations
                     return self.merge_somatic(somatic, gene, phosphosites, multiple_mutations = True)
@@ -234,7 +226,7 @@ class Utilities:
                 merged_somatic = merged_somatic_full[[omicsGene, "Mutation", "Sample_Status"]]
                 merged_somatic.name = merged_somatic_full.name
         elif omics.name.split("_")[0] == "phosphoproteomics":
-            phosphosites = self.get_phosphosites(omics, omicsGene)
+            phosphosites = self.get_col_from_omics(omics, omicsGene)
             if len(phosphosites.columns) > 0:
                 if duplicates:
                     merged_somatic = self.merge_somatic(somatic, somaticGene, phosphosites, multiple_mutations = True)
@@ -287,22 +279,23 @@ class Utilities:
             return df
         else:
             print(dm_col, "not found in derived_molecular dataframe. You can check the available columns using get_derived_molecular_cols()")
-    def compare_phosphosites(self, proteomics, phosphoproteomics, gene):
-        """
-        Parameters
-        gene: proteomics gene to query phosphoproteomics dataframe
-
-        Searches for any phosphosites on the gene provided
-
-        Returns
-        Dataframe with a column from proteomics for the gene specified, as well as columns for all phosphoproteomics columns beginning with the specified gene
-        """
-        if gene in proteomics.columns:
-            df = proteomics[[gene]] #select proteomics data for specified gene
-            phosphosites = self.get_phosphosites(phosphoproteomics, gene) #gets phosphosites for specified gene
-            if len(phosphosites.columns) > 0:
-                df = df.add(phosphosites, fill_value=0) #adds phosphosites columns to proteomics data for specified gene
-                df.name = gene + " proteomics and phosphoproteomics"
-                return df
-        else:
-            print(gene, "not found in proteomics dataframe. Available genes can be checked using get_proteomics().columns")
+# Obsolete. Replaced by compare_omics.
+#    def compare_phosphosites(self, proteomics, phosphoproteomics, gene):
+#        """
+#        Parameters
+#        gene: proteomics gene to query phosphoproteomics dataframe
+#
+#        Searches for any phosphosites on the gene provided
+#
+#        Returns
+#        Dataframe with a column from proteomics for the gene specified, as well as columns for all phosphoproteomics columns beginning with the specified gene
+#        """
+#        if gene in proteomics.columns:
+#            df = proteomics[[gene]] #select proteomics data for specified gene
+#            phosphosites = self.get_col_from_omics(phosphoproteomics, gene) #gets phosphosites for specified gene
+#            if len(phosphosites.columns) > 0:
+#                df = df.add(phosphosites, fill_value=0) #adds phosphosites columns to proteomics data for specified gene
+#                df.name = gene + " proteomics and phosphoproteomics"
+#                return df
+#        else:
+#            print(gene, "not found in proteomics dataframe. Available genes can be checked using get_proteomics().columns")

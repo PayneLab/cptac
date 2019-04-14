@@ -315,7 +315,7 @@ def get_phosphoproteomics(gene_level=False, unfiltered=False):
     return phosphoproteomics
 def get_phosphosites(gene):
     """Returns dataframe with all phosphosites of specified gene name"""
-    return Utilities().get_phosphosites(phosphoproteomics, gene)
+    return Utilities().get_col_from_omics(phosphoproteomics, gene)
 def get_mutations(binary=False, unparsed=False, unfiltered=False):
     """
     Parameters
@@ -473,20 +473,21 @@ def convert(snp_or_sap):
     """
     #TODO implement
     return Utilities().convert(snp_or_sap)
-def compare_gene(df1, df2, gene):
-    """
-    Parameters
-    df1: omics dataframe (proteomics) to be selected from
-    df2: other omics dataframe (transcriptomics) to be selected from
-    gene: gene or array of genes to select from each of the dataframes
-
-    Returns
-    Dataframe containing common rows between provided dataframes and columns for the specified gene (or genes) from provided dataframes.
-    """
-    if isinstance(gene, str): #simple way to check for single gene string
-        return Utilities().compare_gene(df1, df2, gene)
-    else: #if not single gene string, then assuming an array was provided
-        return Utilities().compare_genes(df1, df2, gene)
+# Obsolete. Replaced by compare_omics.
+#def compare_gene(df1, df2, gene):
+#    """
+#    Parameters
+#    df1: omics dataframe (proteomics) to be selected from
+#    df2: other omics dataframe (transcriptomics) to be selected from
+#    gene: gene or array of genes to select from each of the dataframes
+#
+#    Returns
+#    Dataframe containing common rows between provided dataframes and columns for the specified gene (or genes) from provided dataframes.
+#    """
+#    if isinstance(gene, str): #simple way to check for single gene string
+#        return Utilities().compare_gene(df1, df2, gene)
+#    else: #if not single gene string, then assuming an array was provided
+#        return Utilities().compare_genes(df1, df2, gene)
 def compare_mutations(omics_data, omics_gene, mutations_gene = None):
     """
     Params
@@ -535,17 +536,18 @@ def compare_derived_molecular(omics_data, molecular_col):
     Dataframe with specififed column from molecular dataframe added to specified datafarme (i.e., proteomics) for comparison and easy plotting
     """
     return Utilities().compare_derived_molecular(derived_molecular, omics_data, molecular_col)
-def compare_phosphosites(gene):
-    """
-    Parameters
-    gene: proteomics gene to query phosphoproteomics dataframe
-
-    Searches for any phosphosites on the gene provided
-
-    Returns
-    Dataframe with a column from proteomics for the gene specified, as well as columns for all phosphoproteomics columns beginning with the specified gene
-    """
-    return Utilities().compare_phosphosites(proteomics, phosphoproteomics, gene)
+# Obsolete. Replaced by compare_omics.
+#def compare_phosphosites(gene):
+#    """
+#    Parameters
+#    gene: proteomics gene to query phosphoproteomics dataframe
+#
+#    Searches for any phosphosites on the gene provided
+#
+#    Returns
+#    Dataframe with a column from proteomics for the gene specified, as well as columns for all phosphoproteomics columns beginning with the specified gene
+#    """
+#    return Utilities().compare_phosphosites(proteomics, phosphoproteomics, gene)
 
 def compare_omics(omics_df1, cols1, omics_df2, cols2):
     """Take specified column(s) from one omics dataframe, and merge with specified columns(s) from another omics dataframe.
@@ -563,7 +565,7 @@ def compare_omics(omics_df1, cols1, omics_df2, cols2):
     valid_dfs = [
         'acetylproteomics',
         'proteomics',
-        'transcriptomics_linear', # circular has incompatible column names
+        'transcriptomics_linear', # But not transcriptomics_circular or miRNA--they have incompatible column names.
         'CNA',
         'phosphoproteomics_site',
         'phosphoproteomics_gene']
@@ -571,18 +573,17 @@ def compare_omics(omics_df1, cols1, omics_df2, cols2):
     if (omics_df1.name not in valid_dfs):
         invalid = True
         print("{} is not a valid dataframe for this function.".format(omics_df1.name))
-
     if (omics_df2.name not in valid_dfs):
         invalid = True
         print("{} is not a valid dataframe for this function.".format(omics_df2.name))
-
     if invalid:
         print("Valid dataframe options:")
-        for df in valid_dfs:
-            print(df)
+        for df_name in valid_dfs:
+            print('\t' + df_name)
+        return
 
-    # Here we would normally use a utility, but none of them match what we need. Put new functionality in utilities.py?
-        
+    # Return the merge.
+    return Utilities().compare_omics(omics_df1, cols1, omics_df2, cols2)
 
 def append_clinical_to_omics(clinical_cols, omics_df, omics_cols=None):
     """Append columns from clinical dataframe to part or all of an omics dataframe.
