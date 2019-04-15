@@ -90,80 +90,84 @@ class Utilities:
 #        phosphosites.name = 'phosphosites_{}'.format(gene)
 #        return phosphosites
 
-    def get_col_from_omics(omics_df, key): # private
-        """Based on a single key, select a column or columns from an omics dataframe. Handles key parsing if needed, based on dataframe name.
+    def get_col_from_omics(omics_df, gene): # private
+        """Based on a single gene, select a column or columns from an omics dataframe. If dataframe is phospho- or acetylproteomics, grabs all columns that match the gene.
 
         Parameters:
         omics_df (pandas.core.frame.DataFrame): omics dataframe to select colum(s) from.
-        key (str): key to use to select column(s). 
+        gene (str): gene to use to select column(s). 
 
         Returns: 
         pandas.core.frame.DataFrame: The selected column(s) from the dataframe.
         """
-        if omics_df.name == ('phosphoproteomics_site' or 'acetylproteomics'): # These are the dataframes that require us to parse the key
-            regex = key + "-.*" # Build a regex to get all columns that match the key
+        if omics_df.name == ('phosphoproteomics_site' or 'acetylproteomics'):
+            regex = gene + "-.*" # Build a regex to get all columns that match the gene
         else:
-            regex = key
+            regex = gene
 
-        selected = omics_df.filter(regex = (regex)) # Find all columns that match the key. If only one column matches, DataFrame.filter will still return a dataframe, not a series :)
-        if len(selected.columns) == 0: # If none of the columns matched the key, print an error message and return None.
-            print('{} did not match any columns in {} dataframe. Please double check that it is included in the dataframe.'.format(key, omics_df.name))
+        selected = omics_df.filter(regex = (regex)) # Find all columns that match the gene. If only one column matches, DataFrame.filter will still return a dataframe, not a series :)
+        if len(selected.columns) == 0: # If none of the columns matched the gene, print an error message and return None.
+            print('{} did not match any columns in {} dataframe. Please double check that it is included in the dataframe.'.format(gene, omics_df.name))
             return
-        selected.name = "{} for {}".format(omics_df.name, key) # Give it a name!
+        selected = selected.rename(columns=lambda x:'{}_{}'.format(x, omics_df.name)) # Append dataframe name to end of each column header, to preserve info when we merge dataframes
+        selected.name = "{} for {}".format(gene, omics_df.name) # Give the dataframe a name!
         return selected
 
-    def get_cols_from_omics(omics_df, keys): # private
-        """Based on a list of keys, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
+    def get_cols_from_omics(omics_df, genes): # private
+        """Based on a list of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
 
         Parameters:
         omics_df (pandas.core.frame.DataFrame): omics dataframe to select column(s) from.
-        keys (list): list of keys, as strings, to use to select columns.
+        genes (list): list of genes, as strings, to use to select columns.
 
         Returns:
         pandas.core.frame.DataFrame: The selected columns from the dataframe.
         """
-        df = pd.DataFrame(index=omics_df.index) # Create an empty dataframe, which we'll fill with the columns we select using our keys, and then return.
-        for key in keys:
-            selected = self.get_col_from_omics(omics_df, key) # Get the columns for that key from the dataframe
+        df = pd.DataFrame(index=omics_df.index) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
+        for gene in genes:
+            selected = self.get_col_from_omics(omics_df, gene) # Get the columns for that gene from the dataframe
             if selected is None: # If it didn't match any columns, get_col_from_omics will have printed an error message. Return None.
                 return
             df = df.add(selected, fill_value=0) # Otherwise, append the columns to our dataframe we'll return.
-        df.name = "{} for {} genes".format(omics_df.name, len(keys)) # NAME the dataFRAME!
+        df.name = "{} for {} genes".format(omics_df.name, len(genes)) # Name the dataframe!
         return df
 
-    def select_omics_from_str_or_list(omics_df, keys):
-        """Determines whether you passed it a single key or a list of keys, selects the corresponding columns from the omics dataframe, and returns them.
+    def select_omics_from_str_or_list(omics_df, genes):
+        """Determines whether you passed it a single gene or a list of genes, selects the corresponding columns from the omics dataframe, and returns them.
 
         Parameters:
         omics_df (pandas.core.frame.DataFrame): omics dataframe to select columns from
-        keys (str or list): key(s) to use to select columns from omics_df. str if one key, list if multiple.
+        genes (str or list): gene(s) to use to select columns from omics_df. str if one gene, list if multiple.
 
         Returns:
-        pandas.core.frame.DataFrame: the columns from omics_df corresponding to the key(s), as a dataframe.
+        pandas.core.frame.DataFrame: the columns from omics_df corresponding to the gene(s), as a dataframe.
         """
-        if isinstance(keys, str): # If it's a single key, feed it to the proper function
-            return self.get_col_from_omics(omics_df, keys) 
-        elif isinstance(keys, list): # If it's a list of keys, feed it to the proper function
-            return self.get_cols_from_omics(omics_df, keys)
-        else: # If it's neither, they done messed up. Tell 'em.
-            print("Keys parameter {} is of invalid type {}. Valid types: str or list.".format(keys, type(keys)))
+        if isinstance(genes, str): # If it's a single gene, feed it to the proper function
+            return self.get_col_from_omics(omics_df, genes) 
+        elif isinstance(genes, list): # If it's a list of genes, feed it to the proper function
+            return self.get_cols_from_omics(omics_df, genes)
+        elif genes is None: # If it's the default of None, rename columns and return the entire dataframe
+            omics_df = omics_df.rename(columns=lambda x:'{}_{}'.format(x, omics_df.name)) # Append dataframe name to end of each column header, to preserve info when we merge dataframes
+            return omics_df
+        else: # If it's none of those, they done messed up. Tell 'em.
+            print("Genes parameter {} is of invalid type {}. Valid types: str, list, or NoneType.".format(genes, type(genes)))
 
-    def compare_omics(self, df1, keys1, df2, keys2):
-        """Select columns for one key or a list of keys from one omics dataframe, and columns for another key or list of keys from another omics dataframe, and join them into one dataframe.
+    def compare_omics(self, df1, df2, genes1, genes2):
+        """Select columns for one gene or a list of genes from one omics dataframe, and columns for another gene or list of genes from another omics dataframe, and join them into one dataframe.
 
         Parameters:
         df1 (pandas.core.frame.DataFrame): first omics dataframe to select from.
-        keys1 (str or list): key(s) for column(s) to select from the first omics dataframe. str if one key, list of strings if multiple keys.
+        genes1 (str or list): gene(s) for column(s) to select from the first omics dataframe. str if one gene, list of strings if multiple genes.
         df2 (pandas.core.frame.DataFrame): second omics dataframe to select from.
-        keys2 (str or list): key(s) for column(s) to select from the second omics dataframe. str if one key, list of strings if multiple keys.
+        genes2 (str or list): gene(s) for column(s) to select from the second omics dataframe. str if one gene, list of strings if multiple genes.
 
         Returns:
         pandas.core.frame.DataFrame: The data from the selected columns from the two dataframes, joined into one dataframe.
         """
-        selected1 = select_omics_from_str_or_list(df1, keys1)
-        selected2 = select_omics_from_str_or_list(df2, keys2)
+        selected1 = select_omics_from_str_or_list(df1, genes1)
+        selected2 = select_omics_from_str_or_list(df2, genes2)
 
-        if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the key(s) didn't match any columns, and it printed an informative error message already. We'll return None.
+        if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the gene(s) didn't match any columns, and it printed an informative error message already. We'll return None.
             df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
             df = df.sort_index() # Sort rows in ascending order
             df.name = "{} with {}".format(selected1.name, selected2.name) # Give it a nice name identifying the data in it.

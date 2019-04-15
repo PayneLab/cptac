@@ -557,14 +557,14 @@ def compare_derived_molecular(omics_data, molecular_col):
 #    """
 #    return Utilities().compare_phosphosites(proteomics, phosphoproteomics, gene)
 
-def compare_omics(omics_df1, cols1, omics_df2, cols2):
+def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     """Take specified column(s) from one omics dataframe, and merge with specified columns(s) from another omics dataframe.
 
     Parameters:
     omics_df1 (pandas.core.frame.DataFrame): First omics dataframe to select columns from.
-    cols1 (str or list): Column(s) to select from omics_df1. str if one key, list if multiple.  
     omics_df2 (pandas.core.frame.DataFrame): Second omics dataframe to select columns from.
-    cols2 (str or list): Column(s) to select from omics_df2. str if one key, list if multiple.
+    cols1 (str or list, optional): Column(s) to select from omics_df1. str if one key, list if multiple. Defaults to None, in which case we'll select the entire dataframe.
+    cols2 (str or list, optional): Column(s) to select from omics_df2. str if one key, list if multiple. Defaults to None, in which case we'll select the entire dataframe.
 
     Returns:
     pandas.core.frame.DataFrame: The selected columns from omics_df1 and omics_df2, merged into one dataframe.
@@ -591,7 +591,7 @@ def compare_omics(omics_df1, cols1, omics_df2, cols2):
         return
 
     # Return the merge.
-    return Utilities().compare_omics(omics_df1, cols1, omics_df2, cols2)
+    return Utilities().compare_omics(omics_df1, omics_df2, cols1, cols2)
 
 def append_clinical_to_omics(clinical_cols, omics_df, omics_cols=None):
     """Append columns from clinical dataframe to part or all of an omics dataframe.
