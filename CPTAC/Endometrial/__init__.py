@@ -154,7 +154,7 @@ def list_data():
     None
     """
     print("Below are the available endometrial data frames contained in this package:")
-    data = [clinical, derived_molecular, acetylproteomics, proteomics, transcriptomics, transcriptomics_circular, cna, phosphoproteomics, phosphoproteomics_gene, somatic_binary, somatic_maf]
+    data = [clinical, derived_molecular, acetylproteomics, proteomics, transcriptomics, transcriptomics_circular, miRNA, cna, phosphoproteomics, phosphoproteomics_gene, somatic_binary, somatic_maf]
     for dataframe in data:
         print("\t", dataframe.name)
         print("\t", "\t", "Dimensions:", dataframe.shape)
@@ -313,9 +313,17 @@ def get_phosphoproteomics(gene_level=False, unfiltered=False):
         unfiltered_warning()
         return phosphoproteomics_u
     return phosphoproteomics
-def get_phosphosites(gene):
-    """Returns dataframe with all phosphosites of specified gene name"""
-    return Utilities().get_col_from_omics(phosphoproteomics, gene)
+def get_phosphosites(keys):
+    """Returns dataframe with all phosphosites of specified key or list of keys.
+
+    Parameters:
+    keys (str or list): key or list of keys to use to select phosphosites. str if single, list if multiple.
+
+    Returns:
+    pandas.core.frame.DataFrame: The phosphoproteomics for the specified keys.
+    """
+    return Utilities().select_omics_from_str_or_list(phosphoproteomics, keys)
+
 def get_mutations(binary=False, unparsed=False, unfiltered=False):
     """
     Parameters

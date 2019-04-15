@@ -131,7 +131,7 @@ class Utilities:
         df.name = "{} for {} genes".format(omics_df.name, len(keys)) # NAME the dataFRAME!
         return df
 
-    def select_omics_from_str_or_list(omics_df, keys): # private
+    def select_omics_from_str_or_list(omics_df, keys):
         """Determines whether you passed it a single key or a list of keys, selects the corresponding columns from the omics dataframe, and returns them.
 
         Parameters:
