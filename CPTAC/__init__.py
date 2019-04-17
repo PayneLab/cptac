@@ -1,7 +1,7 @@
 import webbrowser
 import textwrap
 import os
-def list():
+def list_data():
     """Parameters
     None
 
@@ -14,18 +14,17 @@ def list():
     print("Endometrial")
     print("Ovarian")
     print("Colon")
-def help():
+def list_api():
     """
     Parameters
     None
 
-    Opens github help page
+    Prints docstrings for all accessible functions
 
     Returns
     None
     """
-    print("Opening help.txt in web browser...")
-    webbrowser.open("https://github.com/PayneLab/CPTAC/blob/master/doc/help.txt")
+    help(__name__)
 def embargo():
     """
     Parameters
