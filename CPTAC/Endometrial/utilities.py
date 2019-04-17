@@ -73,6 +73,103 @@ class Utilities:
             return merge
         else:
             print("Gene", gene, "not found in somatic mutations.")
+
+    def get_mutations_for_gene(self, somatic, gene, multiple_mutations):
+        """Gets all the mutations for a specific gene, for all patients.
+
+        Parameters:
+        somatic (pandas.core.frame.DataFrame): The somatic mutation dataframe that we'll grab the mutation data from.
+        gene (str): The gene to grab mutations for.
+        multiple_mutations (bool): Whether to keep multiple mutations on the gene for each patient, or only report the highest priority mutation per patient. 
+
+        Returns:
+        pandas.core.frame.DataFrame: The mutations in each patient for the specified gene.
+        """
+        mutations = somatic["Gene"] == gene
+
+        if len(mutations) == 0: # If the gene doesn't match any in the dataframe, tell them, and return None.
+            print("{} gene not found in somatic mutations data.".format(gene))
+            return
+        
+        mutations = mutations.drop(columns = ["Gene"]) # Drop the gene column due to every value being the same
+        mutations = mutations.set_index("Clinical_Patient_Key") # Set index as S*** number for merging
+        mutations = mutations.drop(columns=['Patient_Id']) # We don't need this column
+        if not multiple_mutations: # Filter out multiple mutations for a single sample
+            mutations = self.add_mutation_hierarchy(mutations) # Appends hierachy for sorting so correct duplicate can be kept
+            mutations = mutations.sort_values(by = ["Clinical_Patient_Key","Mutation_Hierarchy"], ascending = [True,False]) # Sorts by patient key, then by hierarchy so the duplicates will come with the higher number first
+            mutations = mutations[~mutations.index.duplicated(keep="first")] # Keeps first duplicate row if indices are the same
+        selected = selected.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Append gene name to end beginning of each column header, to preserve info when we merge dataframes
+        return mutations
+
+    def get_mutations_for_genes(self, somatic, genes, multiple_mutations):
+        """Gets all the mutations for a list of genes, for all patients.
+
+        Parameters:
+        somatic (pandas.core.frame.DataFrame): The somatic mutation dataframe that we'll grab the mutation data from.
+        genes (list): The genes, as strings, to grab mutations for.
+        multiple_mutations (bool): Whether to keep multiple mutations on a single gene for each patient, or only report the highest priority mutation per patient. 
+
+        Returns:
+        pandas.core.frame.DataFrame: The mutations in each patient for the specified genes.
+        """
+        df = pd.DataFrame(index=somatic.index) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
+        for gene in genes:
+            selected = self.get_mutations_for_gene(somatic, gene, multiple_mutations) # Get the mutations for our gene
+            if selected is None: # If there's no mutation data for that gene, get_mutations_for_gene will have printed an error message. Return None.
+                return
+            df = df.add(selected, fill_value=0) # Otherwise, append the columns to our dataframe we'll return.
+        df.name = "Somatic mutation data for {} genes".format(len(genes)) # Name the dataframe!
+        return df
+
+    def select_mutations_from_str_or_list(self, somatic, genes, multiple_mutations):
+        """Determines whether you passed it a single gene or a list of genes, selects the corresponding mutations from the somatic mutation dataframe, and returns them.
+
+        Parameters:
+        somatic (pandas.core.frame.DataFrame): The somatic mutation dataframe we'll grab the mutation data from.
+        genes (str or list): gene(s) to select mutations for. str if one gene, list if multiple.
+
+        Returns:
+        pandas.core.frame.DataFrame: the mutation data corresponding to the gene(s), as a dataframe.
+        """
+        if isinstance(genes, str): # If it's a single gene, feed it to the proper function
+            return self.get_mutations_for_gene(somatic, genes, multiple_mutations) 
+        elif isinstance(genes, list): # If it's a list of genes, feed it to the proper function
+            return self.get_mutations_for_genes(somatic, genes, multiple_mutations)
+        else: # If it's neither of those, they done messed up. Tell 'em.
+            print("Genes parameter {} is of invalid type {}. Valid types: str, list, or NoneType.".format(genes, type(genes)))
+
+    def append_mutations_to_omics(somatic, omics_df, mutation_genes, omics_genes, multiple_mutations):
+        """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
+
+        Parameters:
+        somatic (pandas.core.frame.DataFrame): Somatic mutation dataframe we'll get the dataframe.
+        omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the mutation data to.
+        mutation_genes (str or list): The gene(s) to get mutation data for. str if one gene, list if multiple.
+        omics_genes (str or list): Gene(s) to select from the omics dataframe. str if one gene, list if multiple.
+
+
+        Returns:
+        pandas.core.frame.DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe.
+        """
+        omics = select_omics_from_str_or_list(omics_df, omics_genes)
+        mutations = select_mutations_from_str_or_list(somatic, mutations_genes, multiple_mutations)
+
+        if (omics is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, and an error message was printed. We'll return None.
+            merge = omics.join(mutations, how = "left") # Left join omics data and mutation data (left being the omics data)
+
+            # TODO: Make this work with edited column names.
+#           merge = merge.fillna(value = {'Mutation':"Wildtype"}) # Fill in all Mutation NA values (no mutation data) as Wildtype
+
+            merge["Sample_Status"] = np.where(merge.index <= "S104", "Tumor", "Normal") # Add patient type, setting all samples up to S104 as Tumor, others as normal.
+            merge.loc[merge.Sample_Status == "Normal","Mutation"] = "Wildtype_Normal" # Change all Wildtype for Normal samples to Wildtype_Normal
+
+            # TODO: Make these lines work with edited column names.
+#           merge.loc[merge.Mutation == "Wildtype","Mutation"] = "Wildtype_Tumor" # Change all other Wildtype (should be for Tumor samples with imputed Wildtype value) to Wildtype_Tumor
+#           merge = merge.fillna(value={'Location':'No_mutation'}) # If there's no location, there wasn't a mutation--make it easier for people to understand what that means.
+
+            merge.name = "{} with {}".format(omics.name, mutations.name) # Give it a name identifying the data in it
+            return merge
+
 # Obsolete. Replaced by get_col_from_omics.
 #    def get_phosphosites(self, phosphoproteomics, gene):
 #        """
@@ -90,7 +187,7 @@ class Utilities:
 #        phosphosites.name = 'phosphosites_{}'.format(gene)
 #        return phosphosites
 
-    def get_col_from_omics(omics_df, gene): # private
+    def get_col_from_omics(self, omics_df, gene): # private
         """Based on a single gene, select a column or columns from an omics dataframe. If dataframe is phospho- or acetylproteomics, grabs all columns that match the gene.
 
         Parameters:
@@ -113,7 +210,7 @@ class Utilities:
         selected.name = "{} for {}".format(gene, omics_df.name) # Give the dataframe a name!
         return selected
 
-    def get_cols_from_omics(omics_df, genes): # private
+    def get_cols_from_omics(self, omics_df, genes): # private
         """Based on a list of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
 
         Parameters:
@@ -132,7 +229,7 @@ class Utilities:
         df.name = "{} for {} genes".format(omics_df.name, len(genes)) # Name the dataframe!
         return df
 
-    def select_omics_from_str_or_list(omics_df, genes):
+    def select_omics_from_str_or_list(self, omics_df, genes):
         """Determines whether you passed it a single gene or a list of genes, selects the corresponding columns from the omics dataframe, and returns them.
 
         Parameters:

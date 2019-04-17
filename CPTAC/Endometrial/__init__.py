@@ -620,7 +620,7 @@ def append_derived_molecular_to_omics(derived_molecular_cols, omics_df, omics_co
     """
     pass
 
-def append_mutation_to_omics(mutation_genes, omics_df, omics_genes=None):
+def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None):
     """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
 
     Parameters:
