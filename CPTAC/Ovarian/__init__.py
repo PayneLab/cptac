@@ -78,7 +78,7 @@ key_id_map = align_indices(data) #creates map for all unique indices to S number
 data = map_ids(data, key_id_map) #adds S number to all indicies for all data
 warning() #displays warning
 
-def list():
+def list_data():
     """
     Parameters
     None
@@ -94,7 +94,17 @@ def list():
         print("\t", data[dataframe].name)
         print("\t", "\t", "Dimensions:", data[dataframe].shape)
     print("To access the data, use a get function with the data frame name, i.e. ovarian.get_proteomics()")
+def list_api():
+    """
+    Parameters
+    None
 
+    Prints docstrings for all accessible functions
+
+    Returns
+    None
+    """
+    help(__name__)
 def get_data():
     return data
 def get_clinical():

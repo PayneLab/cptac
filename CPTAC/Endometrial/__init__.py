@@ -10,6 +10,7 @@
 #   limitations under the License.
 
 import os
+import sys
 import webbrowser
 import textwrap
 import pandas as pd
@@ -169,8 +170,7 @@ def list_api():
     Returns
     None
     """
-    #TODO: IMPLEMENT
-    #print(en.__doc__)
+    help(__name__)
 def define(term):
     """
     Parameters
@@ -546,19 +546,6 @@ def compare_phosphosites(gene):
     Dataframe with a column from proteomics for the gene specified, as well as columns for all phosphoproteomics columns beginning with the specified gene
     """
     return Utilities().compare_phosphosites(proteomics, phosphoproteomics, gene)
-
-def help():
-    """
-    Parameters
-    None
-
-    Opens github help page
-
-    Returns
-    None
-    """
-    print("Opening help.txt in web browser...")
-    webbrowser.open("https://github.com/PayneLab/CPTAC/blob/master/doc/help.txt")
 def embargo():
     """
     Parameters

@@ -31,7 +31,7 @@ for file in files: #loops through files variable
         print("Error reading", file)
         print("Check that all file names coincide with DataFrameLoader specs")
 
-def list():
+def list_data():
 	"""
 	Parameters:
 	None
@@ -47,6 +47,18 @@ def list():
 		print("\t", data[dataframe].name)
 		print("\t", "\t", "Dimensions:", data[dataframe].shape)
 	print("To access the data, use a get function with the data frame name, i.e. colon.get_proteomics()")
+def list_api():
+    """
+    Parameters
+    None
+
+    Prints docstrings for all accessible functions
+
+    Returns
+    None
+    """
+    help(__name__)
+
 def get_clinical():
 	"""
 	Parameters:
