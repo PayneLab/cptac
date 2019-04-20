@@ -620,18 +620,19 @@ def append_derived_molecular_to_omics(derived_molecular_cols, omics_df, omics_co
     """
     pass
 
-def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None):
+def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multiple_mutations=False):
     """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
 
     Parameters:
     mutation_genes (str or list): The gene(s) to get mutation data for. str if one gene, list if multiple. 
     omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the mutation data to.
     omics_genes (str or list, optional): Gene(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
+    multiple_mutations (bool, optional): Whether to keep multiple mutations on the same gene for one sample, or only report the highest priority mutation.
 
     Returns:
     pandas.core.frame.DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe.
     """
-    pass
+    return Utilities.append_mutations_to_omics(somatic, omics_df, mutation_genes, omics_genes, multiple_mutations)
 
 def help():
     """
