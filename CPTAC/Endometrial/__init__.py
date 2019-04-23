@@ -632,6 +632,21 @@ def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multip
     Returns:
     pandas.core.frame.DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe.
     """
+    # Make sure it's the right kind of dataframe
+    valid_dfs = [
+        'acetylproteomics',
+        'proteomics',
+        'transcriptomics_linear', # But not transcriptomics_circular or miRNA--they have incompatible column names.
+        'CNA',
+        'phosphoproteomics_site',
+        'phosphoproteomics_gene']
+    if (omics_df.name not in valid_dfs):
+        print("{} is not a valid dataframe for this function. Valid options:".format(omics_df.name))
+        for df_name in valid_dfs:
+            print('\t' + df_name)
+        return
+
+    # Return the merge.
     return Utilities.append_mutations_to_omics(somatic, omics_df, mutation_genes, omics_genes, multiple_mutations)
 
 def help():

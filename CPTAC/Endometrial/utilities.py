@@ -154,14 +154,14 @@ class Utilities:
         somatic (pandas.core.frame.DataFrame): Somatic mutation dataframe we'll get the dataframe.
         omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the mutation data to.
         mutation_genes (str or list): The gene(s) to get mutation data for. str if one gene, list if multiple.
-        omics_genes (str or list): Gene(s) to select from the omics dataframe. str if one gene, list if multiple.
+        omics_genes (str or list): Gene(s) to select from the omics dataframe. str if one gene, list if multiple. Passing None will select the entire omics dataframe.
         multiple_mutations (bool): Whether to keep multiple mutations on the gene for each patient, or only report the highest priority mutation per patient. 
 
         Returns:
         pandas.core.frame.DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe.
         """
-        omics = get_omics_from_str_or_list(omics_df, omics_genes)
-        mutations = get_mutations_from_str_or_list(somatic, mutations_genes, multiple_mutations)
+        omics = self.get_omics_from_str_or_list(omics_df, omics_genes)
+        mutations = self.get_mutations_from_str_or_list(somatic, mutations_genes, multiple_mutations)
 
         if (omics is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, and an error message was printed. We'll return None.
             merge = omics.join(mutations, how = "left") # Left join omics data and mutation data (left being the omics data)
@@ -246,7 +246,7 @@ class Utilities:
 
         Parameters:
         omics_df (pandas.core.frame.DataFrame): omics dataframe to select columns from
-        genes (str or list): gene(s) to use to select columns from omics_df. str if one gene, list if multiple.
+        genes (str or list): gene(s) to use to select columns from omics_df. str if one gene, list if multiple. Passing None will select the entire omics dataframe.
 
         Returns:
         pandas.core.frame.DataFrame: the columns from omics_df corresponding to the gene(s), as a dataframe.
@@ -266,15 +266,15 @@ class Utilities:
 
         Parameters:
         df1 (pandas.core.frame.DataFrame): first omics dataframe to select from.
-        genes1 (str or list): gene(s) for column(s) to select from the first omics dataframe. str if one gene, list of strings if multiple genes.
+        genes1 (str or list): gene(s) for column(s) to select from the first omics dataframe. str if one gene, list of strings if multiple genes. Passing None will select the entire omics dataframe.
         df2 (pandas.core.frame.DataFrame): second omics dataframe to select from.
-        genes2 (str or list): gene(s) for column(s) to select from the second omics dataframe. str if one gene, list of strings if multiple genes.
+        genes2 (str or list): gene(s) for column(s) to select from the second omics dataframe. str if one gene, list of strings if multiple genes. Passing None will select the entire omics dataframe.
 
         Returns:
         pandas.core.frame.DataFrame: The data from the selected columns from the two dataframes, joined into one dataframe.
         """
-        selected1 = get_omics_from_str_or_list(df1, genes1)
-        selected2 = get_omics_from_str_or_list(df2, genes2)
+        selected1 = self.get_omics_from_str_or_list(df1, genes1)
+        selected2 = self.get_omics_from_str_or_list(df2, genes2)
 
         if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the gene(s) didn't match any columns, and it printed an informative error message already. We'll return None.
             df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
@@ -358,6 +358,81 @@ class Utilities:
 #            return
 #        merged_somatic = merged_somatic.rename(columns={omicsGene:omicsGene + '_omics', 'Mutation':somaticGene + '_Mutation', 'Location':somaticGene + '_Location'}) # Add the gene name to the column headers, so that it's clear which gene the data is for.
 #        return merged_somatic
+
+    def get_col_from_clinical_or_derived_molecular(self, df, col):
+        """Get a single column from the clinical or derived_molecular dataframe.
+
+        Parameters:
+        df (pandas.core.frame.DataFrame): The dataframe to select the column from. Either clinical or derived_molecular.
+        col (str): The column to select from the dataframe.
+
+        Returns:
+        pandas.core.frame.DataFrame: The specified column from the given dataframe. We return it as a dataframe for easy merging later.
+        """
+        if col not in df.columns.values: # If they didn't give us one of the actual columns, tell them and return None.
+            print('{} column not found in {} dataframe. Please double check that it is included in the dataframe.'.format(col, df.name))
+            return
+        
+        selected = df.loc[:, [col]] # Select the column from the dataframe, keeping it as a dataframe
+        selected.name = '{} from {}'.format(col, df.name) # Give it a name, identifying which dataframe it came from
+        return selected
+
+    def get_cols_from_clinical_or_derived_molecular(self, df, cols):
+        """Select several columns, given as a list, from either the clinical or derived_molecular dataframe.
+
+        Parameters:
+        df (pandas.core.frame.DataFrame): The dataframe to select the column from. Either clinical derived_molecular.
+        cols (list): A list of the columns, as strings, to select from the dataframe.
+
+        Returns:
+        pandas.core.frame.DataFrame: The specified columns from the given dataframe.
+        """
+        return_df = pd.DataFrame(index=df.index) # Create an empty dataframe, which we'll fill with the columns we select, and then return.
+        for col in cols:
+            selected = self.get_col_from_clinical_or_derived_molecular(df, col) # Get the columns from the given dataframe
+            if selected is None: # If it didn't match any columns, get_col_from_omics will have printed an error message. Return None.
+                return
+            return_df = return_df.add(selected, fill_value=0) # Otherwise, append the columns to our dataframe we'll return.
+        return_df.name = "{} columns from {}".format(len(cols), df.name) # Name the dataframe!
+        return return_df
+
+    def get_clinical_or_derived_molecular_from_str_or_list(self, df, cols):
+        """Determines whether you passed it a single column or a list of columns, then selects them from the given dataframe, and returns them.
+
+        Parameters:
+        df (pandas.core.frame.DataFrame): The dataframe to select column(s) from. Either clinical or derived_molecular.
+        cols (str or list): Column(s) to select from the dataframe. str if one, list if multiple.
+
+        Returns:
+        pandas.core.frame.DataFrame: The specificed columns from the given dataframe.
+        """
+        if isinstance(cols, str): # If it's a single column, feed it to the proper function
+            return self.get_col_from_clinical_or_derived_molecular(df, cols)
+        elif isinstance(cols, list): # If it's a list of columns, feed it to the proper function
+            return self.get_cols_from_clinical_or_derived_molecular(df, cols)
+        else: # If it's neither of those, they done messed up. Tell 'em.
+            print("Columns parameter {} is of invalid type {}. Valid types: str or list.".format(cols, type(cols)))
+
+    def append_clinical_or_derived_molecular_to_omics(self, df, omics_df, df_cols, omics_cols):
+        """Selected the specified columns from either the clinical or derived_molecular dataframe, and append to all or part of the given omics dataframe.
+
+        Parameters:
+        df (pandas.core.frame.DataFrame): Either the clinical or derived_molecular dataframe, from which we'll select our columns to append.
+        omics_df (pandas.core.frame.DataFrame): The omics dataframe to append to.
+        df_cols (str or list): Column(s) to select from the clinical or derived_molecular dataframe. str if one column, list of strings if multiple.
+        omics_cols (str or list): Gene(s) to select data for from the omics dataframe. Passing None will select the entire omics dataframe.
+
+        Returns:
+        pandas.core.frame.DataFrame: The selected columns from the clinical or derived_molecular dataframe, appended to the selected columns from the omics dataframe.
+        """  
+        df_selected = self.get_clinical_or_derived_molecular_from_str_or_list(df, df_cols)
+        omics_selected = self.get_omics_from_str_or_list(omics_df, omics_cols)
+
+        if (df_selected is not None) and (omics_selected is not None): # If either selector returned None, the key(s) didn't match any columns, and it printed an informative error message already. We'll return None.
+            df = df_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
+            df = df.sort_index() # Sort rows in ascending order
+            df.name = "{} with {}".format(df_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
+            return df
 
     def compare_clinical(self, clinical, data, clinical_col):
         """
