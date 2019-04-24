@@ -90,7 +90,7 @@ class Utilities:
         Returns:
         pandas.core.frame.DataFrame: The mutations in each patient for the specified gene.
         """
-        mutations = [somatic["Gene"] == gene]
+        mutations = somatic[somatic["Gene"] == gene]
 
         if len(mutations) == 0: # If the gene doesn't match any in the dataframe, tell them, and return None.
             print("{} gene not found in somatic mutations data.".format(gene))
