@@ -147,7 +147,7 @@ class Utilities:
         else: # If it's neither of those, they done messed up. Tell 'em.
             print("Genes parameter {} is of invalid type {}. Valid types: str or list.".format(genes, type(genes)))
 
-    def append_mutations_to_omics(self, somatic, omics_df, mutation_genes, omics_genes, multiple_mutations):
+    def append_mutations_to_omics(self, somatic, omics_df, mutation_genes, omics_genes, multiple_mutations, show_location):
         """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
 
         Parameters:
@@ -156,6 +156,7 @@ class Utilities:
         mutation_genes (str or list): The gene(s) to get mutation data for. str if one gene, list if multiple.
         omics_genes (str or list): Gene(s) to select from the omics dataframe. str if one gene, list if multiple. Passing None will select the entire omics dataframe.
         multiple_mutations (bool): Whether to keep multiple mutations on the gene for each patient, or only report the highest priority mutation per patient. 
+        show_location (bool): Whether to include the Location column from the mutation dataframe.
 
         Returns:
         pandas.core.frame.DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe.
@@ -177,7 +178,10 @@ class Utilities:
             location_regex = r'.*_Location' # Construct regex to find all location columns
             location_cols = [col for col in merge.columns.values if re.match(location_regex, col)] # Get a list of all location columns
             for location_col in location_cols:
-                merge = merge.fillna(value={location_col:'No_mutation'}) # If there's no location, there wasn't a mutation--make it easier for people to understand what that means.
+                if show_location:
+                    merge = merge.fillna(value={location_col:'No_mutation'}) # If there's no location, there wasn't a mutation--make it easier for people to understand what that means.
+                else:
+                    merge = merge.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
 
             merge.name = "{}, with {}".format(omics.name, mutations.name) # Give it a name identifying the data in it
             return merge
