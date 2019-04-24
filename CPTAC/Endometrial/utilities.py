@@ -120,16 +120,12 @@ class Utilities:
         Returns:
         pandas.core.frame.DataFrame: The mutations in each patient for the specified genes.
         """
-        df = pd.DataFrame(index=somatic.index) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
+        df = pd.DataFrame(index=somatic['Clinical_Patient_Key'].drop_duplicates()) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
         for gene in genes:
             selected = self.get_mutations_for_gene(somatic, gene, multiple_mutations) # Get the mutations for our gene
             if selected is None: # If there's no mutation data for that gene, get_mutations_for_gene will have printed an error message. Return None.
                 return
-            print(selected)
-            print(df)
-            print('start')
             df = df.join(selected, how='left') # Otherwise, append the columns to our dataframe we'll return.
-            print('end')
         df.name = "Somatic mutation data for {} genes".format(len(genes)) # Name the dataframe!
         return df
 
