@@ -219,7 +219,7 @@ class Utilities:
             print('{} did not match any columns in {} dataframe. Please double check that it is included in the dataframe.'.format(gene, omics_df.name))
             return
         selected = selected.rename(columns=lambda x:'{}_{}'.format(x, omics_df.name)) # Append dataframe name to end of each column header, to preserve info when we merge dataframes
-        selected.name = "{} for {}".format(gene, omics_df.name) # Give the dataframe a name!
+        selected.name = "{} for {}".format(omics_df.name, gene) # Give the dataframe a name!
         return selected
 
     def get_cols_from_omics(self, omics_df, genes): # private
@@ -393,7 +393,7 @@ class Utilities:
             selected = self.get_col_from_clinical_or_derived_molecular(df, col) # Get the columns from the given dataframe
             if selected is None: # If it didn't match any columns, get_col_from_omics will have printed an error message. Return None.
                 return
-            return_df = return_df.add(selected, fill_value=0) # Otherwise, append the columns to our dataframe we'll return.
+            return_df = return_df.add(selected) # Otherwise, append the columns to our dataframe we'll return.
         return_df.name = "{} columns from {}".format(len(cols), df.name) # Name the dataframe!
         return return_df
 
@@ -432,7 +432,7 @@ class Utilities:
         if (df_selected is not None) and (omics_selected is not None): # If either selector returned None, the key(s) didn't match any columns, and it printed an informative error message already. We'll return None.
             df = df_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
             df = df.sort_index() # Sort rows in ascending order
-            df.name = "{} with {}".format(df_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
+            df.name = "{} dataframe, with {}".format(df_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
             return df
 
 # Obsolete. Replaced by append_clinical_or_derived_molecular_to_omics.

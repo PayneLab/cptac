@@ -617,7 +617,7 @@ def append_clinical_to_omics(clinical_cols, omics_df, omics_cols=None):
         'phosphoproteomics_site',
         'phosphoproteomics_gene']
     if (omics_df.name not in valid_dfs):
-        print("{} is not a valid dataframe for this function. Valid options:".format(omics_df.name))
+        print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))
         for df_name in valid_dfs:
             print('\t' + df_name)
         return
@@ -646,7 +646,7 @@ def append_derived_molecular_to_omics(derived_molecular_cols, omics_df, omics_co
         'phosphoproteomics_site',
         'phosphoproteomics_gene']
     if (omics_df.name not in valid_dfs):
-        print("{} is not a valid dataframe for this function. Valid options:".format(omics_df.name))
+        print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))
         for df_name in valid_dfs:
             print('\t' + df_name)
         return
@@ -675,7 +675,7 @@ def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multip
         'phosphoproteomics_site',
         'phosphoproteomics_gene']
     if (omics_df.name not in valid_dfs):
-        print("{} is not a valid dataframe for this function. Valid options:".format(omics_df.name))
+        print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))
         for df_name in valid_dfs:
             print('\t' + df_name)
         return
