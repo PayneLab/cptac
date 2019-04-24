@@ -125,7 +125,7 @@ class Utilities:
             selected = self.get_mutations_for_gene(somatic, gene, multiple_mutations) # Get the mutations for our gene
             if selected is None: # If there's no mutation data for that gene, get_mutations_for_gene will have printed an error message. Return None.
                 return
-            df = df.add(selected, fill_value=0) # Otherwise, append the columns to our dataframe we'll return.
+            df = df.add(selected) # Otherwise, append the columns to our dataframe we'll return.
         df.name = "Somatic mutation data for {} genes".format(len(genes)) # Name the dataframe!
         return df
 
