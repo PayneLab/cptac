@@ -212,7 +212,7 @@ class Utilities:
         if omics_df.name == ('phosphoproteomics_site' or 'acetylproteomics'):
             regex = gene + "-.*" # Build a regex to get all columns that match the gene
         else:
-            regex = gene
+            regex = '^{}$'.format(gene)
 
         selected = omics_df.filter(regex = (regex)) # Find all columns that match the gene. If only one column matches, DataFrame.filter will still return a dataframe, not a series :)
         if len(selected.columns) == 0: # If none of the columns matched the gene, print an error message and return None.
