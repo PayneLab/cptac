@@ -147,7 +147,7 @@ class Utilities:
         else: # If it's neither of those, they done messed up. Tell 'em.
             print("Genes parameter {} is of invalid type {}. Valid types: str or list.".format(genes, type(genes)))
 
-    def append_mutations_to_omics(somatic, omics_df, mutation_genes, omics_genes, multiple_mutations):
+    def append_mutations_to_omics(self, somatic, omics_df, mutation_genes, omics_genes, multiple_mutations):
         """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
 
         Parameters:
