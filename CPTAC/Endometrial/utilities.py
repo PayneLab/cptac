@@ -179,7 +179,7 @@ class Utilities:
             for location_col in location_cols:
                 merge = merge.fillna(value={location_col:'No_mutation'}) # If there's no location, there wasn't a mutation--make it easier for people to understand what that means.
 
-            merge.name = "{} with {}".format(omics.name, mutations.name) # Give it a name identifying the data in it
+            merge.name = "{}, with {}".format(omics.name, mutations.name) # Give it a name identifying the data in it
             return merge
 
 # Obsolete. Replaced by get_col_from_omics.
@@ -280,7 +280,7 @@ class Utilities:
         if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the gene(s) didn't match any columns, and it printed an informative error message already. We'll return None.
             df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
             df = df.sort_index() # Sort rows in ascending order
-            df.name = "{} with {}".format(selected1.name, selected2.name) # Give it a nice name identifying the data in it.
+            df.name = "{}, with {}".format(selected1.name, selected2.name) # Give it a nice name identifying the data in it.
             return df
 
 # Obsolete. Replaced by append_mutations_to_omics
@@ -432,7 +432,7 @@ class Utilities:
         if (df_selected is not None) and (omics_selected is not None): # If either selector returned None, the key(s) didn't match any columns, and it printed an informative error message already. We'll return None.
             df = df_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
             df = df.sort_index() # Sort rows in ascending order
-            df.name = "{} dataframe, with {}".format(df_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
+            df.name = "{}, with {}".format(df_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
             return df
 
 # Obsolete. Replaced by append_clinical_or_derived_molecular_to_omics.
