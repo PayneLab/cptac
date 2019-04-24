@@ -625,14 +625,13 @@ def append_clinical_to_omics(clinical_cols, omics_df, omics_cols=None):
     # Return the merge.
     return Utilities().append_clinical_or_derived_molecular_to_omics(clinical, omics_df, clinical_cols, omics_cols)
 
-def append_derived_molecular_to_omics(derived_molecular_cols, omics_df, omics_cols=None, show_location=True):
+def append_derived_molecular_to_omics(derived_molecular_cols, omics_df, omics_cols=None):
     """Append columns from derived_molecular dataframe to all or part of an omics dataframe.
 
     Parameters:
     derived_molecular_cols (str or list): Column(s) to select from the derived_molecular dataframe. str if one gene, list if multiple. 
     omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the derived_molecular columns to.
     omics_cols (str or list, optional): Column(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
-    show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
 
     Returns:
     pandas.core.frame.DataFrame: The selected derived_molecular columns, merged with all or part of the omics dataframe.
@@ -654,7 +653,7 @@ def append_derived_molecular_to_omics(derived_molecular_cols, omics_df, omics_co
     # Return the merge.
     return Utilities().append_clinical_or_derived_molecular_to_omics(derived_molecular, omics_df, derived_molecular_cols, omics_cols)
 
-def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multiple_mutations=False):
+def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multiple_mutations=False, show_location=True):
     """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
 
     Parameters:
@@ -662,6 +661,7 @@ def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multip
     omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the mutation data to.
     omics_genes (str or list, optional): Gene(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
     multiple_mutations (bool, optional): Whether to keep multiple mutations on the same gene for one sample, or only report the highest priority mutation.
+    show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
 
     Returns:
     pandas.core.frame.DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe.
@@ -681,7 +681,7 @@ def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multip
         return
 
     # Return the merge.
-    return Utilities().append_mutations_to_omics(somatic_maf, omics_df, mutation_genes, omics_genes, multiple_mutations)
+    return Utilities().append_mutations_to_omics(somatic_maf, omics_df, mutation_genes, omics_genes, multiple_mutations, show_location)
 
 def help():
     """
