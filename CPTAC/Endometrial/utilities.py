@@ -147,7 +147,7 @@ class Utilities:
         else: # If it's neither of those, they done messed up. Tell 'em.
             print("Genes parameter {} is of invalid type {}. Valid types: str or list.".format(genes, type(genes)))
 
-    def append_mutations_to_omics(self, somatic, omics_df, mutation_genes, omics_genes, multiple_mutations):
+    def append_mutations_to_omics(self, somatic, omics_df, self, mutation_genes, omics_genes, multiple_mutations):
         """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
 
         Parameters:
@@ -161,7 +161,7 @@ class Utilities:
         pandas.core.frame.DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe.
         """
         omics = self.get_omics_from_str_or_list(omics_df, omics_genes)
-        mutations = self.get_mutations_from_str_or_list(somatic, mutations_genes, multiple_mutations)
+        mutations = self.get_mutations_from_str_or_list(somatic, mutation_genes, multiple_mutations)
 
         if (omics is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, and an error message was printed. We'll return None.
             merge = omics.join(mutations, how = "left") # Left join omics data and mutation data (left being the omics data)
