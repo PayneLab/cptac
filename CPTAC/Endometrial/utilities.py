@@ -168,14 +168,14 @@ class Utilities:
 
             merge["Sample_Status"] = np.where(merge.index <= "S104", "Tumor", "Normal") # Add Sample_Status column indicating sample type. Set all samples up to S104 as Tumor, others as normal.
 
-            mutation_regex = r'*_Mutation' # Construct regex to find all mutation columns
+            mutation_regex = r'.*_Mutation' # Construct regex to find all mutation columns
             mutation_cols = [col for col in merge.columns.values if re.match(mutation_regex, col)] # Get a list of all mutation columns
             for mutation_col in mutation_cols:
-                merge.loc[(merge['Sample_Status'] == "Normal") & (math.isnan(merge[mutation_col])), mutation_col] = "Wildtype_Normal" # Change all NaN mutation values (i.e., no mutation data for that sample) for Normal samples to Wildtype_Normal
-                merge.loc[(merge['Sample_Status'] == "Tumor") & (math.isnan(merge[mutation_col])), mutation_col] = "Wildtype_Tumor" # Change all NaN mutation values (i.e., no mutation data for that sample) for Tumor samples to Wildtype_Tumor
+                merge.loc[(merge['Sample_Status'] == "Normal") & (pd.isnull(merge[mutation_col])), mutation_col] = "Wildtype_Normal" # Change all NaN mutation values (i.e., no mutation data for that sample) for Normal samples to Wildtype_Normal
+                merge.loc[(merge['Sample_Status'] == "Tumor") & (pd.isnull(merge[mutation_col])), mutation_col] = "Wildtype_Tumor" # Change all NaN mutation values (i.e., no mutation data for that sample) for Tumor samples to Wildtype_Tumor
 
-            location_regex = r'*_Location' # Construct regex to find all location columns
-            location_cols = [col for col in merge.columns.vales if re.match(location_regex, col)] # Get a list of all location columns
+            location_regex = r'.*_Location' # Construct regex to find all location columns
+            location_cols = [col for col in merge.columns.values if re.match(location_regex, col)] # Get a list of all location columns
             for location_col in location_cols:
                 merge = merge.fillna(value={location_col:'No_mutation'}) # If there's no location, there wasn't a mutation--make it easier for people to understand what that means.
 
