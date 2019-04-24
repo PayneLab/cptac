@@ -434,40 +434,41 @@ class Utilities:
             df.name = "{} with {}".format(df_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
             return df
 
-    def compare_clinical(self, clinical, data, clinical_col):
-        """
-        Parameters
-        clinical: clinical dataframe for omics data to be appended with
-        data: omics data for clinical data to be appended with
-        clinical_col: column in clinical dataframe to be inserted into provided omics data
-
-        Returns
-        Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
-        """
-        if clinical_col in clinical:
-            df = data[data.columns] #new df variable prevents insert function overwriting the original data
-            df.insert(0, clinical_col, clinical[clinical_col]) #insert specified clinical column into specified omics data
-            df.name = data.name + " with " + clinical_col
-            return df
-        else:
-            print(clinical_col, "not found in clinical dataframe. You can check the available columns using get_clinical_cols()")
-    def compare_derived_molecular(self, derived_molecular, data, dm_col):
-        """
-        Parameters
-        derived_molecular: derived molecular dataframe for omics data to be appended with
-        data: omics data for derived molecular data to be appended with
-        dm_col: column in derived molecular dataframe to be inserted into provided omics data
-
-        Returns
-        Dataframe with specified column from derived molecular dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
-        """
-        if dm_col in derived_molecular:
-            df = data[data.columns]
-            df.insert(0, dm_col, derived_molecular[dm_col])
-            df.name = data.name + " with " + dm_col
-            return df
-        else:
-            print(dm_col, "not found in derived_molecular dataframe. You can check the available columns using get_derived_molecular_cols()")
+# Obsolete. Replaced by append_clinical_or_derived_molecular_to_omics.
+#    def compare_clinical(self, clinical, data, clinical_col):
+#        """
+#        Parameters
+#        clinical: clinical dataframe for omics data to be appended with
+#        data: omics data for clinical data to be appended with
+#        clinical_col: column in clinical dataframe to be inserted into provided omics data
+#
+#        Returns
+#        Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
+#        """
+#        if clinical_col in clinical:
+#            df = data[data.columns] #new df variable prevents insert function overwriting the original data
+#            df.insert(0, clinical_col, clinical[clinical_col]) #insert specified clinical column into specified omics data
+#            df.name = data.name + " with " + clinical_col
+#            return df
+#        else:
+#            print(clinical_col, "not found in clinical dataframe. You can check the available columns using get_clinical_cols()")
+#    def compare_derived_molecular(self, derived_molecular, data, dm_col):
+#        """
+#        Parameters
+#        derived_molecular: derived molecular dataframe for omics data to be appended with
+#        data: omics data for derived molecular data to be appended with
+#        dm_col: column in derived molecular dataframe to be inserted into provided omics data
+#
+#        Returns
+#        Dataframe with specified column from derived molecular dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
+#        """
+#        if dm_col in derived_molecular:
+#            df = data[data.columns]
+#            df.insert(0, dm_col, derived_molecular[dm_col])
+#            df.name = data.name + " with " + dm_col
+#            return df
+#        else:
+#            print(dm_col, "not found in derived_molecular dataframe. You can check the available columns using get_derived_molecular_cols()")
 # Obsolete. Replaced by compare_omics.
 #    def compare_phosphosites(self, proteomics, phosphoproteomics, gene):
 #        """

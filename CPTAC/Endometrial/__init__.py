@@ -496,54 +496,58 @@ def convert(snp_or_sap):
 #        return Utilities().compare_gene(df1, df2, gene)
 #    else: #if not single gene string, then assuming an array was provided
 #        return Utilities().compare_genes(df1, df2, gene)
-def compare_mutations(omics_data, omics_gene, mutations_gene = None):
-    """
-    Params
-    omics_data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
-    omics_gene: gene to select from omics data (used for mutation data if mutations_gene is left blank)
-    mutations_gene: gene to select from somatic mutation data
 
-    Returns
-    Dataframe containing two columns, the omics data and the somatic mutation type for the gene(s) provided
-    """
-    if mutations_gene: #compare omics data of omics gene to mutations of mutations_gene
-        return Utilities().merge_mutations_trans(omics_data, omics_gene, somatic_maf, mutations_gene)
-    else: #compare omics data to mutations for same gene
-        return Utilities().merge_mutations(omics_data, somatic_maf, omics_gene)
-def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):
-    """
-    Params
-    omics_data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
-    omics_gene: gene to select from omics data (used for somatic data if somatic_gene is left blank)
-    mutations_gene: gene to select from somatic mutation data
+# Obsolete. Replaced by append_mutations_to_omics.
+#def compare_mutations(omics_data, omics_gene, mutations_gene = None):
+#    """
+#    Params
+#    omics_data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
+#    omics_gene: gene to select from omics data (used for mutation data if mutations_gene is left blank)
+#    mutations_gene: gene to select from somatic mutation data
+#
+#    Returns
+#    Dataframe containing two columns, the omics data and the somatic mutation type for the gene(s) provided
+#    """
+#    if mutations_gene: #compare omics data of omics gene to mutations of mutations_gene
+#        return Utilities().merge_mutations_trans(omics_data, omics_gene, somatic_maf, mutations_gene)
+#    else: #compare omics data to mutations for same gene
+#        return Utilities().merge_mutations(omics_data, somatic_maf, omics_gene)
+#def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):
+#    """
+#    Params
+#    omics_data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
+#    omics_gene: gene to select from omics data (used for somatic data if somatic_gene is left blank)
+#    mutations_gene: gene to select from somatic mutation data
+#
+#    Returns
+#    Dataframe containing numeric omics data and categorical somatic data (including patient ID, mutation type, and mutation location)
+#    """
+#    if mutations_gene: #compare omics data of omics gene to mutations of mutations_gene
+#        return Utilities().merge_mutations_trans(omics_data, omics_gene, somatic_maf, mutations_gene, duplicates = True)
+#    else: #compare omics data to mutations for same gene
+#        return Utilities().merge_mutations(omics_data, somatic_maf, omics_gene, duplicates = True)
 
-    Returns
-    Dataframe containing numeric omics data and categorical somatic data (including patient ID, mutation type, and mutation location)
-    """
-    if mutations_gene: #compare omics data of omics gene to mutations of mutations_gene
-        return Utilities().merge_mutations_trans(omics_data, omics_gene, somatic_maf, mutations_gene, duplicates = True)
-    else: #compare omics data to mutations for same gene
-        return Utilities().merge_mutations(omics_data, somatic_maf, omics_gene, duplicates = True)
-def compare_clinical(omics_data, clinical_col):
-    """
-    Parameters
-    data: omics data for clinical data to be appended with
-    clinical_col: column in clinical dataframe to be inserted into provided omics data
-
-    Returns
-    Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
-    """
-    return Utilities().compare_clinical(clinical, omics_data, clinical_col)
-def compare_derived_molecular(omics_data, molecular_col):
-    """
-    Parameters
-    omics_data: omics data for derived molecular data to be appended with
-    molecular_col: column in derived molecular dataframe to be inserted into provided omics data
-
-    Returns
-    Dataframe with specififed column from molecular dataframe added to specified datafarme (i.e., proteomics) for comparison and easy plotting
-    """
-    return Utilities().compare_derived_molecular(derived_molecular, omics_data, molecular_col)
+# Obsolete. Replaced by append_clinical_to_omics and append_derived_molecular_to_omics.
+#def compare_clinical(omics_data, clinical_col):
+#    """
+#    Parameters
+#    data: omics data for clinical data to be appended with
+#    clinical_col: column in clinical dataframe to be inserted into provided omics data
+#
+#    Returns
+#    Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
+#    """
+#    return Utilities().compare_clinical(clinical, omics_data, clinical_col)
+#def compare_derived_molecular(omics_data, molecular_col):
+#    """
+#    Parameters
+#    omics_data: omics data for derived molecular data to be appended with
+#    molecular_col: column in derived molecular dataframe to be inserted into provided omics data
+#
+#    Returns
+#    Dataframe with specififed column from molecular dataframe added to specified datafarme (i.e., proteomics) for comparison and easy plotting
+#    """
+#    return Utilities().compare_derived_molecular(derived_molecular, omics_data, molecular_col)
 # Obsolete. Replaced by compare_omics.
 #def compare_phosphosites(gene):
 #    """
@@ -604,35 +608,7 @@ def append_clinical_to_omics(clinical_cols, omics_df, omics_cols=None):
     Returns:
     pandas.core.frame.DataFrame: The selected clinical columns, merged with all or part of the omics dataframe.
     """
-    pass
-
-def append_derived_molecular_to_omics(derived_molecular_cols, omics_df, omics_cols=None, show_location=True):
-    """Append columns from derived_molecular dataframe to all or part of an omics dataframe.
-
-    Parameters:
-    derived_molecular_cols (str or list): Column(s) to select from the derived_molecular dataframe. str if one gene, list if multiple. 
-    omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the derived_molecular columns to.
-    omics_cols (str or list, optional): Column(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
-    show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
-
-    Returns:
-    pandas.core.frame.DataFrame: The selected derived_molecular columns, merged with all or part of the omics dataframe.
-    """
-    pass
-
-def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multiple_mutations=False):
-    """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
-
-    Parameters:
-    mutation_genes (str or list): The gene(s) to get mutation data for. str if one gene, list if multiple. 
-    omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the mutation data to.
-    omics_genes (str or list, optional): Gene(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
-    multiple_mutations (bool, optional): Whether to keep multiple mutations on the same gene for one sample, or only report the highest priority mutation.
-
-    Returns:
-    pandas.core.frame.DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe.
-    """
-    # Make sure it's the right kind of dataframe
+    # Make sure omics_df is the right kind of dataframe
     valid_dfs = [
         'acetylproteomics',
         'proteomics',
@@ -647,7 +623,65 @@ def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multip
         return
 
     # Return the merge.
-    return Utilities.append_mutations_to_omics(somatic, omics_df, mutation_genes, omics_genes, multiple_mutations)
+    return Utilities().append_clinical_or_derived_molecular_to_omics(clinical, omics_df, clinical_cols, omics_cols)
+
+def append_derived_molecular_to_omics(derived_molecular_cols, omics_df, omics_cols=None, show_location=True):
+    """Append columns from derived_molecular dataframe to all or part of an omics dataframe.
+
+    Parameters:
+    derived_molecular_cols (str or list): Column(s) to select from the derived_molecular dataframe. str if one gene, list if multiple. 
+    omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the derived_molecular columns to.
+    omics_cols (str or list, optional): Column(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
+    show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
+
+    Returns:
+    pandas.core.frame.DataFrame: The selected derived_molecular columns, merged with all or part of the omics dataframe.
+    """
+    # Make sure omics_df is the right kind of dataframe
+    valid_dfs = [
+        'acetylproteomics',
+        'proteomics',
+        'transcriptomics_linear', # But not transcriptomics_circular or miRNA--they have incompatible column names.
+        'CNA',
+        'phosphoproteomics_site',
+        'phosphoproteomics_gene']
+    if (omics_df.name not in valid_dfs):
+        print("{} is not a valid dataframe for this function. Valid options:".format(omics_df.name))
+        for df_name in valid_dfs:
+            print('\t' + df_name)
+        return
+
+    # Return the merge.
+    return Utilities().append_clinical_or_derived_molecular_to_omics(derived_molecular, omics_df, derived_molecular_cols, omics_cols)
+
+def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multiple_mutations=False):
+    """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
+
+    Parameters:
+    mutation_genes (str or list): The gene(s) to get mutation data for. str if one gene, list if multiple. 
+    omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the mutation data to.
+    omics_genes (str or list, optional): Gene(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
+    multiple_mutations (bool, optional): Whether to keep multiple mutations on the same gene for one sample, or only report the highest priority mutation.
+
+    Returns:
+    pandas.core.frame.DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe.
+    """
+    # Make sure omics_df is the right kind of dataframe
+    valid_dfs = [
+        'acetylproteomics',
+        'proteomics',
+        'transcriptomics_linear', # But not transcriptomics_circular or miRNA--they have incompatible column names.
+        'CNA',
+        'phosphoproteomics_site',
+        'phosphoproteomics_gene']
+    if (omics_df.name not in valid_dfs):
+        print("{} is not a valid dataframe for this function. Valid options:".format(omics_df.name))
+        for df_name in valid_dfs:
+            print('\t' + df_name)
+        return
+
+    # Return the merge.
+    return Utilities().append_mutations_to_omics(somatic, omics_df, mutation_genes, omics_genes, multiple_mutations)
 
 def help():
     """
