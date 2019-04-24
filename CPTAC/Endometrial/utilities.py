@@ -256,8 +256,9 @@ class Utilities:
         elif isinstance(genes, list): # If it's a list of genes, feed it to the proper function
             return self.get_cols_from_omics(omics_df, genes)
         elif genes is None: # If it's the default of None, rename columns and return the entire dataframe
-            omics_df = omics_df.rename(columns=lambda x:'{}_{}'.format(x, omics_df.name)) # Append dataframe name to end of each column header, to preserve info when we merge dataframes
-            return omics_df
+            return_df = omics_df.rename(columns=lambda x:'{}_{}'.format(x, omics_df.name)) # Append dataframe name to end of each column header, to preserve info when we merge dataframes
+            return_df.name = omics_df.name # Name the return dataframe
+            return return_df
         else: # If it's none of those, they done messed up. Tell 'em.
             print("Genes parameter {} is of invalid type {}. Valid types: str, list, or NoneType.".format(genes, type(genes)))
 
