@@ -125,7 +125,9 @@ class Utilities:
             selected = self.get_mutations_for_gene(somatic, gene, multiple_mutations) # Get the mutations for our gene
             if selected is None: # If there's no mutation data for that gene, get_mutations_for_gene will have printed an error message. Return None.
                 return
-            df = df.add(selected) # Otherwise, append the columns to our dataframe we'll return.
+            print('start')
+            df = df.join(selected, how='left') # Otherwise, append the columns to our dataframe we'll return.
+            print('end')
         df.name = "Somatic mutation data for {} genes".format(len(genes)) # Name the dataframe!
         return df
 
@@ -237,7 +239,7 @@ class Utilities:
             selected = self.get_col_from_omics(omics_df, gene) # Get the columns for that gene from the dataframe
             if selected is None: # If it didn't match any columns, get_col_from_omics will have printed an error message. Return None.
                 return
-            df = df.add(selected, fill_value=0) # Otherwise, append the columns to our dataframe we'll return.
+            df = df.join(selected, how='left') # Otherwise, append the columns to our dataframe we'll return.
         df.name = "{} for {} genes".format(omics_df.name, len(genes)) # Name the dataframe!
         return df
 
@@ -393,7 +395,7 @@ class Utilities:
             selected = self.get_col_from_clinical_or_derived_molecular(df, col) # Get the columns from the given dataframe
             if selected is None: # If it didn't match any columns, get_col_from_omics will have printed an error message. Return None.
                 return
-            return_df = return_df.add(selected) # Otherwise, append the columns to our dataframe we'll return.
+            return_df = return_df.join(selected, how='left') # Otherwise, append the columns to our dataframe we'll return.
         return_df.name = "{} columns from {}".format(len(cols), df.name) # Name the dataframe!
         return return_df
 
