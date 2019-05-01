@@ -278,7 +278,6 @@ class Utilities:
 
         mutations = mutations.drop(columns=["Gene"]) # Drop the gene column due to every value being the same
         mutations = mutations.set_index("SampleID") # Set index as SampleID for merging
-        mutations = mutations.drop(columns=['Patient_Id']) # We don't need this column
         if not multiple_mutations: # Filter out multiple mutations for a single sample
             mutations = self.add_mutation_hierarchy(mutations) # Appends hierachy for sorting so correct duplicate can be kept
             mutations = mutations.sort_values(by = ["SampleID","Mutation_Hierarchy"], ascending = [True,False]) # Sorts by patient key, then by hierarchy so the duplicates will come with the higher number first
