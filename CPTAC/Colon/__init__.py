@@ -274,4 +274,5 @@ def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multip
         return
 
     # Return the merge.
-    return Utilities().append_mutations_to_omics(somatic_maf, omics_df, mutation_genes, omics_genes, multiple_mutations, show_location)
+    mutations = get_mutations()
+    return Utilities().append_mutations_to_omics(mutations, omics_df, mutation_genes, omics_genes, multiple_mutations, show_location)
