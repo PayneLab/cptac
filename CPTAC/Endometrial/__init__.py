@@ -322,7 +322,7 @@ def get_phosphosites(keys):
     Returns:
     pandas.core.frame.DataFrame: The phosphoproteomics for the specified keys.
     """
-    return Utilities().select_omics_from_str_or_list(phosphoproteomics, keys)
+    return Utilities().get_omics_from_str_or_list(phosphoproteomics, keys)
 
 def get_mutations(binary=False, unparsed=False, unfiltered=False):
     """

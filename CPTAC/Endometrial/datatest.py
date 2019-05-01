@@ -113,6 +113,8 @@ def test_get_clinical_unfiltered():
     print('Testing get_clinical with parameter unfiltered=True...')
 
     df = en.get_clinical(unfiltered=True)
+    print("(The unfiltered data warning above was expected.)") # To avoid confusion
+
     name = "clinical"
     dimensions = (153, 27)
     headers = ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_Tumor_Normal', 'Country', 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 'Path_Stage_Primary_Tumor-pT', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm', 'Num_full_term_pregnancies']
@@ -123,8 +125,6 @@ def test_get_clinical_unfiltered():
         print('\tPASS')
     else:
         print('\tFAIL\n')
-        
-    print("The unfiltered data warning above was expected.") # To avoid confusion
 
 def test_get_derived_molecular_filtered():
     """Test get_derived_molecular with default parameter unfiltered=False."""
@@ -149,6 +149,8 @@ def test_get_derived_molecular_unfiltered():
     print('Testing get_derived_molecular with parameter unfiltered=True...')
 
     df = en.get_derived_molecular(unfiltered=True)
+    print("(The unfiltered data warning above was expected.)") # To avoid confusion
+
     name = 'derived_molecular'
     dimensions = (153, 144)
     headers = ['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'Estrogen_Receptor', 'Estrogen_Receptor_%', 'Progesterone_Receptor', 'Progesterone_Receptor_%', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
@@ -159,8 +161,6 @@ def test_get_derived_molecular_unfiltered():
         print('\tPASS')
     else:
         print('\tFAIL\n')
-
-    print("The unfiltered data warning above was expected.") # To avoid confusion
 
 def test_get_acetylproteomics_filtered():
     """Test get_acetylproteomics with default parameter unfiltered=False."""
@@ -185,6 +185,8 @@ def test_get_acetylproteomics_unfiltered():
     print('Testing get_acetylproteomics with parameter unfiltered=True...')
 
     df = en.get_acetylproteomics(unfiltered=True)
+    print("(The unfiltered data warning above was expected.)") # To avoid confusion
+
     name = 'acetylproteomics'
     dimensions = (153, 10862)
     headers = ['A2M-K1168', 'A2M-K1176', 'A2M-K135', 'A2M-K145', 'A2M-K516', 'A2M-K664', 'A2M-K682', 'AACS-K391', 'AAGAB-K290', 'AAK1-K201', 'ZSCAN31-K215', 'ZSCAN32-K659', 'ZW10-K634', 'ZYX-K24', 'ZYX-K25', 'ZYX-K265', 'ZYX-K272', 'ZYX-K279', 'ZYX-K533', 'ZZZ3-K117']
@@ -195,8 +197,6 @@ def test_get_acetylproteomics_unfiltered():
         print('\tPASS')
     else:
         print('\tFAIL\n')
-
-    print("The unfiltered data warning above was expected.") # To avoid confusion
 
 def test_get_proteomics():
     """Test get_proteomics."""
