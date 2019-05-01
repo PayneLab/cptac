@@ -452,7 +452,7 @@ class Utilities:
             return df
 
 # Next 4 functions are for working with clinical and derived molecular data
-    def get_col_from_clinical_or_derived_molecular(self, df, col):
+    def get_col_from_clinical(self, df, col):
         """Get a single column from the clinical or derived_molecular dataframe.
 
         Parameters:
@@ -470,7 +470,7 @@ class Utilities:
         selected.name = '{} from {}'.format(col, df.name) # Give it a name, identifying which dataframe it came from
         return selected
 
-    def get_cols_from_clinical_or_derived_molecular(self, df, cols):
+    def get_cols_from_clinical(self, df, cols):
         """Select several columns, given as a list, from either the clinical or derived_molecular dataframe.
 
         Parameters:
@@ -482,14 +482,14 @@ class Utilities:
         """
         return_df = pd.DataFrame(index=df.index) # Create an empty dataframe, which we'll fill with the columns we select, and then return.
         for col in cols:
-            selected = self.get_col_from_clinical_or_derived_molecular(df, col) # Get the columns from the given dataframe
+            selected = self.get_col_from_clinical(df, col) # Get the columns from the given dataframe
             if selected is None: # If it didn't match any columns, get_col_from_omics will have printed an error message. Return None.
                 return
             return_df = return_df.join(selected, how='left') # Otherwise, append the columns to our dataframe we'll return.
         return_df.name = "{} columns from {}".format(len(cols), df.name) # Name the dataframe!
         return return_df
 
-    def get_clinical_or_derived_molecular_from_str_or_list(self, df, cols):
+    def get_clinical_from_str_or_list(self, df, cols):
         """Determines whether you passed it a single column or a list of columns, then selects them from the given dataframe, and returns them.
 
         Parameters:
@@ -500,13 +500,13 @@ class Utilities:
         pandas.core.frame.DataFrame: The specificed columns from the given dataframe.
         """
         if isinstance(cols, str): # If it's a single column, feed it to the proper function
-            return self.get_col_from_clinical_or_derived_molecular(df, cols)
+            return self.get_col_from_clinical(df, cols)
         elif isinstance(cols, list): # If it's a list of columns, feed it to the proper function
-            return self.get_cols_from_clinical_or_derived_molecular(df, cols)
+            return self.get_cols_from_clinical(df, cols)
         else: # If it's neither of those, they done messed up. Tell 'em.
             print("Columns parameter {} is of invalid type {}. Valid types: str or list.".format(cols, type(cols)))
 
-    def append_clinical_or_derived_molecular_to_omics(self, df, omics_df, df_cols, omics_cols):
+    def append_clinical_to_omics(self, df, omics_df, df_cols, omics_cols):
         """Selected the specified columns from either the clinical or derived_molecular dataframe, and append to all or part of the given omics dataframe.
 
         Parameters:
@@ -518,7 +518,7 @@ class Utilities:
         Returns:
         pandas.core.frame.DataFrame: The selected columns from the clinical or derived_molecular dataframe, appended to the selected columns from the omics dataframe.
         """
-        df_selected = self.get_clinical_or_derived_molecular_from_str_or_list(df, df_cols)
+        df_selected = self.get_clinical_from_str_or_list(df, df_cols)
         omics_selected = self.get_omics_from_str_or_list(omics_df, omics_cols)
 
         if (df_selected is not None) and (omics_selected is not None): # If either selector returned None, the key(s) didn't match any columns, and it printed an informative error message already. We'll return None.
