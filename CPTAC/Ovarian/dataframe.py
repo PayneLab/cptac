@@ -21,8 +21,11 @@ class DataFrameLoader:
             df = pd.read_csv(self.fileName,sep="\t", index_col = 0)
             df = df[df["hgnc_symbol"].notnull()] #drops all nan values in hgnc_symbol column
             df = df.set_index("hgnc_symbol")
-            df = df.transpose()
             df = df.sort_index()
+            df = df.transpose()
+            c_index = df.index[0:83].str[1:] #drops letter off all indices with "C"
+            index = c_index.append(df.index[83:])
+            df = df.set_index(index)
             df.name = self.name
             return df
         elif self.name == "clinical":
@@ -38,6 +41,9 @@ class DataFrameLoader:
             df = df.set_index("site")
             df = df.sort_index()
             df = df.transpose()
+            c_index = df.index[0:83].str[1:] #drops letter off all indices with "C"
+            index = c_index.append(df.index[83:])
+            df = df.set_index(index)
             df.name = self.name
             return df
         elif self.name == "transcriptomics":
