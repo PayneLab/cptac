@@ -188,3 +188,126 @@ def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):
         return Utilities().merge_mutations_trans(omics_data, omics_gene, get_mutations(), mutations_gene, duplicates = True)
     else: #compare omics data to mutations for same gene
         return Utilities().merge_mutations(omics_data, get_mutations(), omics_gene, duplicates = True)
+
+# New merge functions
+def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
+    """Take specified column(s) from one omics dataframe, and merge with specified columns(s) from another omics dataframe.
+
+    Parameters:
+    omics_df1 (pandas.core.frame.DataFrame): First omics dataframe to select columns from.
+    omics_df2 (pandas.core.frame.DataFrame): Second omics dataframe to select columns from.
+    cols1 (str or list, optional): Column(s) to select from omics_df1. str if one key, list if multiple. Defaults to None, in which case we'll select the entire dataframe.
+    cols2 (str or list, optional): Column(s) to select from omics_df2. str if one key, list if multiple. Defaults to None, in which case we'll select the entire dataframe.
+
+    Returns:
+    pandas.core.frame.DataFrame: The selected columns from omics_df1 and omics_df2, merged into one dataframe.
+    """
+    # Make sure it's the right kind of dataframe
+    valid_dfs = [
+        'acetylproteomics',
+        'proteomics',
+        'transcriptomics_linear', # But not transcriptomics_circular or miRNA--they have incompatible column names.
+        'CNA',
+        'phosphoproteomics_site',
+        'phosphoproteomics_gene']
+    invalid = False
+    if (omics_df1.name not in valid_dfs):
+        invalid = True
+        print("{} is not a valid dataframe for this function.".format(omics_df1.name))
+    if (omics_df2.name not in valid_dfs):
+        invalid = True
+        print("{} is not a valid dataframe for this function.".format(omics_df2.name))
+    if invalid:
+        print("Valid dataframe options:")
+        for df_name in valid_dfs:
+            print('\t' + df_name)
+        return
+
+    # Return the merge.
+    return Utilities().compare_omics(omics_df1, omics_df2, cols1, cols2)
+
+def append_clinical_to_omics(clinical_cols, omics_df, omics_cols=None):
+    """Append columns from clinical dataframe to part or all of an omics dataframe.
+
+    Parameters:
+    clinical_cols (str or list): Column(s) to select from the clinical dataframe. str if one gene, list if multiple.
+    omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the clinical columns to.
+    omics_cols (str or list, optional): Column(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
+
+    Returns:
+    pandas.core.frame.DataFrame: The selected clinical columns, merged with all or part of the omics dataframe.
+    """
+    # Make sure omics_df is the right kind of dataframe
+    valid_dfs = [
+        'acetylproteomics',
+        'proteomics',
+        'transcriptomics_linear', # But not transcriptomics_circular or miRNA--they have incompatible column names.
+        'CNA',
+        'phosphoproteomics_site',
+        'phosphoproteomics_gene']
+    if (omics_df.name not in valid_dfs):
+        print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))
+        for df_name in valid_dfs:
+            print('\t' + df_name)
+        return
+
+    # Return the merge.
+    return Utilities().append_clinical_or_derived_molecular_to_omics(clinical, omics_df, clinical_cols, omics_cols)
+
+def append_derived_molecular_to_omics(derived_molecular_cols, omics_df, omics_cols=None):
+    """Append columns from derived_molecular dataframe to all or part of an omics dataframe.
+
+    Parameters:
+    derived_molecular_cols (str or list): Column(s) to select from the derived_molecular dataframe. str if one gene, list if multiple.
+    omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the derived_molecular columns to.
+    omics_cols (str or list, optional): Column(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
+
+    Returns:
+    pandas.core.frame.DataFrame: The selected derived_molecular columns, merged with all or part of the omics dataframe.
+    """
+    # Make sure omics_df is the right kind of dataframe
+    valid_dfs = [
+        'acetylproteomics',
+        'proteomics',
+        'transcriptomics_linear', # But not transcriptomics_circular or miRNA--they have incompatible column names.
+        'CNA',
+        'phosphoproteomics_site',
+        'phosphoproteomics_gene']
+    if (omics_df.name not in valid_dfs):
+        print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))
+        for df_name in valid_dfs:
+            print('\t' + df_name)
+        return
+
+    # Return the merge.
+    return Utilities().append_clinical_or_derived_molecular_to_omics(derived_molecular, omics_df, derived_molecular_cols, omics_cols)
+
+def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multiple_mutations=False, show_location=True):
+    """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
+
+    Parameters:
+    mutation_genes (str or list): The gene(s) to get mutation data for. str if one gene, list if multiple.
+    omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the mutation data to.
+    omics_genes (str or list, optional): Gene(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
+    multiple_mutations (bool, optional): Whether to keep multiple mutations on the same gene for one sample, or only report the highest priority mutation.
+    show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
+
+    Returns:
+    pandas.core.frame.DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe.
+    """
+    # Make sure omics_df is the right kind of dataframe
+    valid_dfs = [
+        'acetylproteomics',
+        'proteomics',
+        'transcriptomics_linear', # But not transcriptomics_circular or miRNA--they have incompatible column names.
+        'CNA',
+        'phosphoproteomics_site',
+        'phosphoproteomics_gene']
+    if (omics_df.name not in valid_dfs):
+        print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))
+        for df_name in valid_dfs:
+            print('\t' + df_name)
+        return
+
+    # Return the merge.
+    return Utilities().append_mutations_to_omics(somatic_maf, omics_df, mutation_genes, omics_genes, multiple_mutations, show_location)
