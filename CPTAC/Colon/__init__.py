@@ -246,6 +246,7 @@ def append_clinical_to_omics(clinical_cols, omics_df, omics_cols=None):
         return
 
     # Return the merge.
+    clinical = get_clinical()
     return Utilities().append_clinical_to_omics(clinical, omics_df, clinical_cols, omics_cols)
 
 def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multiple_mutations=False, show_location=True):
