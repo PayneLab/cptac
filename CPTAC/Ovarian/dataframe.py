@@ -27,7 +27,8 @@ class DataFrameLoader:
             index = c_index.append(df.index[83:])
             df = df.set_index(index)
             df.name = self.name
-            return df
+            return_df = df.copy() # To avoid setting with copy warnings
+            return return_df
         elif self.name == "clinical":
             df = pd.read_csv(self.fileName, sep="\t")
             df = df.set_index("PPID")
@@ -45,7 +46,8 @@ class DataFrameLoader:
             index = c_index.append(df.index[83:])
             df = df.set_index(index)
             df.name = self.name
-            return df
+            return_df = df.copy() # To avoid setting with copy warnings
+            return return_df
         elif self.name == "transcriptomics":
             df = pd.read_csv(self.fileName, sep="\t", index_col=0)
             df = df.sort_index()
