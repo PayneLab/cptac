@@ -462,12 +462,10 @@ def test_get_mutations_unparsed():
         print('\tFAIL\n')
 
 # Test merging and appending functions
-
-def test_compare_omics():
-    """Tests the compare_omics function."""
-    # TODO: MAKE SURE TO RUN NAME TEST ON EACH MERGED DF
-
-    PASS = False
+def test_compare_omics_source_preservation():
+    """Tests that compare_omics does not alter the dataframes it pulls data from."""
+    print("Running test_compare_omics_source_preservation...")
+    PASS = True
 
     # Load the source dataframes
     prot = en.get_proteomics()
@@ -477,26 +475,60 @@ def test_compare_omics():
     prot_copy = prot.copy()
     acet_copy = acet.copy()
 
-    # Test with default parameters cols1=None and cols2=None
-
-    # Test with single genes for cols1 and cols2
-
-    # Test with lists of genes for cols1 and cols2
-
-    # Test that it won't accept invalid dataframes
-
-    # Test that it handles single invalid key values gracefully
-
-    # Test that it gracefully handles one invalid key in a list of valid keys
-
-    # Test that it handles invalid key types gracefully
-
-    # Test that it gracefully handles one key of an invalid type in a list of keys of the valid type
+    # Call compare_omics on the dataframes, and make sure it doesn't return None.
+    compared = en.compare_omics(prot, acet)
+    if compared is None:
+        print('compare_omics returned None.')
+        PASS = False
 
     # Use the copies we made at the beginning to make sure that compare_omics didn't alter the source dataframes
-    if not prot.equals(prot_copy) or acet.equals(acet_copy):
-        print("Source dataframes were altered by compare_omics.")
+    if not prot.equals(prot_copy):
+        print("Proteomics dataframe was altered by compare_omics.")
         PASS = False
+
+    if not acet.equals(acet_copy):
+        print("Acetylproteomics dataframe was altered by compare_omics.")
+        PASS = False
+
+    # Indicate whether the test passed.
+    if PASS:
+        print('\tPASS')
+    else:
+        print('\tFAIL\n')
+
+def test_compare_omics_default_parameters():
+    """Tests compare_omics with default parameters cols1=None and cols2=None."""
+    print("Running test_compare_omics_default_parameters...")
+    PASS = True
+
+    # Load the source dataframes
+    prot = en.get_proteomics()
+    acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure compare_omics can grab all those values.
+
+    # Run the function, make sure it didn't return None
+    compared = en.compare_omics(prot, acet) 
+    if compared is None:
+        PASS = False
+        print('compare_omics returned None.\n\tFAIL\n')
+        return
+
+    # Test that values for each gene and sample in merged dataframe equal those in source dataframes
+    for column in prot.columns.values.tolist():
+        pass
+
+# Test with single genes for cols1 and cols2
+
+# Test with lists of genes for cols1 and cols2
+
+# Test that it won't accept invalid dataframes
+
+# Test that it handles single invalid key values gracefully
+
+# Test that it gracefully handles one invalid key in a list of valid keys
+
+# Test that it handles invalid key types gracefully
+
+# Test that it gracefully handles one key of an invalid type in a list of keys of the valid type
 
 
 def evaluate_special_getters():
