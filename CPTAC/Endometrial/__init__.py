@@ -469,18 +469,6 @@ def get_tumor_ids(tumor_type, query_type, value): #TODO: implement
     #"""
     dataframe = None #TODO what should the dataframe be?
     return Queries(dataframe).query(tumor_type, query_type, value)
-def get_gene_mapping():
-    """
-    Under construction
-    """
-    #TODO implement
-    return Utilities().get_gene_mapping()
-def convert(snp_or_sap):
-    """
-    Under construction
-    """
-    #TODO implement
-    return Utilities().convert(snp_or_sap)
 
 def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     """Take specified column(s) from one omics dataframe, and merge with specified columns(s) from another omics dataframe.

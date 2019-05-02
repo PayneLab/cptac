@@ -34,6 +34,7 @@ class Utilities:
                 hierarchy.append(float('NaN'))
         somatic = somatic.assign(Mutation_Hierarchy =  hierarchy)
         return somatic
+
 # Next 4 functions are for working with omics data
     def get_col_from_omics(self, omics_df, gene): # private
         """Based on a single gene, select a column or columns from an omics dataframe. If dataframe is phospho- or acetylproteomics, grabs all columns that match the gene.

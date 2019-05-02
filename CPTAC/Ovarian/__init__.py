@@ -90,73 +90,17 @@ def get_mutations(hg="38"):
 def get_transcriptomics():
     return data.get("transcriptomics")
 
-def compare_gene(df1, df2, gene):
-    """
-    Parameters
-    df1: omics dataframe (proteomics) to be selected from
-    df2: other omics dataframe (transcriptomics) to be selected from
-    gene: gene or list of genes to select from each of the dataframes
+def get_phosphosites(genes):
+    """Returns dataframe with all phosphosites for a gene or list of genes.
 
-    Returns
-    Dataframe containing common rows between provided dataframes and columns for the specified gene (or genes) from provided dataframes.
-    """
-    if isinstance(gene, str): #simple way to check for single gene string
-        return Utilities().compare_gene(df1, df2, gene)
-    else: #if not single gene string, then assuming an array was provided
-        return Utilities().compare_genes(df1, df2, gene)
+    Parameters:
+    genes (str or list): The gene(s) to get phosphosites for. str if single, list if multiple.
 
-def compare_clinical(omics_data, clinical_col):
+    Returns:
+    pandas.core.frame.DataFrame: The phosphosites for the specified gene(s).
     """
-    Parameters
-    data: omics data for clinical data to be appended with
-    clinical_col: column in clinical dataframe to be inserted into provided omics data
-
-    Returns
-    Dataframe with specified column from clinical dataframe added to specified dataframe (i.e., proteomics) for comparison and easy plotting
-    """
-    return Utilities().compare_clinical(get_clinical(), omics_data, clinical_col)
-def get_phosphosites(gene):
-    """Returns dataframe with all phosphosites of specified gene name"""
-    return Utilities().get_phosphosites(get_phosphoproteomics(), gene)
-def compare_phosphosites(gene):
-    """
-    Parameters
-    gene: proteomics gene to query phosphoproteomics dataframe
-
-    Searches for any phosphosites on the gene provided
-
-    Returns
-    Dataframe with a column from proteomics for the gene specified, as well as columns for all phosphoproteomics columns beginning with the specified gene
-    """
-    return Utilities().compare_phosphosites(get_proteomics(), get_phosphoproteomics(), gene)
-def compare_mutations(omics_data, omics_gene, mutations_gene = None):
-    """
-    Params
-    omics_data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
-    omics_gene: gene to select from omics data (used for somatic data if somatic_gene is left blank)
-    mutations_gene: gene to select from somatic mutation data
-
-    Returns
-    Dataframe containing two columns, the omics data and the somatic mutation type for the gene(s) provided
-    """
-    if mutations_gene:
-        return Utilities().merge_mutations_trans(omics_data, omics_gene, get_mutations(), mutations_gene)
-    else:
-        return Utilities().merge_mutations(omics_data, get_mutations(), omics_gene)
-def compare_mutations_full(omics_data, omics_gene, mutations_gene = None):#doesn't work right now due to duplicate indices messing up the key_id_map
-    """
-    Params
-    omics_data: omics dataframe (i.e. proteomics, phosphoproteomics, transcriptomics)
-    omics_gene: gene to select from omics data (used for somatic data if somatic_gene is left blank)
-    mutations_gene: gene to select from somatic mutation data
-
-    Returns
-    Dataframe containing numeric omics data and categorical somatic data (including patient ID, mutation type, and mutation location)
-    """
-    if mutations_gene:
-        return Utilities().merge_mutations_trans(omics_data, omics_gene, get_mutations(), mutations_gene, duplicates = True)
-    else:
-        return Utilities().merge_mutations(omics_data, get_mutations(), omics_gene, duplicates = True)
+    phosphoproteomics = get_phosphoproteomics()
+    return Utilities().get_omics_from_str_or_list(phosphoproteomics, genes)
 
 def embargo():
     """
