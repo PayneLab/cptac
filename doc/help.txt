@@ -45,16 +45,11 @@ get functions:
     Returns data frame of mutation data matching specified patient ID.
 
 Utilities:
-  compare_gene(df1, df2, gene):
-    Selects for specified gene from two provided data frames. Returns data frame
-    with two columns for intersection of indices between both data frames.
-  compare_clinical(data, clinical_col):
-    Selects specified clinical column and adds it to the specified data, i.e.
-    proteomics, CNA etc., returning a data frame of the combined data.
-  compare_phosphosites(gene):
-    Selects column from proteomics for the gene specified,
-    as well as columns for all phosphoproteomics columns beginning with the specified gene
-  compare_mutations(data, gene, somatic_gene):
-    Merges mutation data with specific omics data based on specified gene.
-    Can be merged for single gene between both data sets or can be merged on respective
-    genes for each data set.
+  compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
+    Take specified column(s) from one omics dataframe, and merge with specified columns(s) from another omics dataframe.
+  append_clinical_to_omics(clinical_cols, omics_df, omics_cols=None):
+    Append columns from clinical dataframe to part or all of an omics dataframe.
+  append_derived_molecular_to_omics(derived_molecular_cols, omics_df, omics_cols=None):
+    Append columns from derived_molecular dataframe to all or part of an omics dataframe.
+  append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multiple_mutations=False, show_location=True):
+    Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
