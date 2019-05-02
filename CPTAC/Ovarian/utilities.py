@@ -45,7 +45,7 @@ class Utilities:
         Returns:
         pandas.core.frame.DataFrame: The selected column(s) from the dataframe.
         """
-        if omics_df.name == ('phosphoproteomics_site' or 'acetylproteomics'):
+        if omics_df.name == 'phosphoproteomics':
             regex = gene + "-.*" # Build a regex to get all columns that match the gene
         else:
             regex = '^{}$'.format(gene)
