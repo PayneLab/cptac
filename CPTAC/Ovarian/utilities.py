@@ -216,7 +216,7 @@ class Utilities:
         mutations = mutations.drop(columns=["Gene"]) # Drop the gene column due to every value being the same
         if not multiple_mutations: # Filter out multiple mutations for a single sample
             mutations = self.add_mutation_hierarchy(mutations) # Appends hierachy for sorting so correct duplicate can be kept
-            mutations = mutations.sort_values(by = ["Clinical_Patient_Key","Mutation_Hierarchy"], ascending = [True,False]) # Sorts by patient key, then by hierarchy so the duplicates will come with the higher number first
+            mutations = mutations.sort_values(by = ["Patient_Id","Mutation_Hierarchy"], ascending = [True,False]) # Sorts by patient key, then by hierarchy so the duplicates will come with the higher number first
             mutations = mutations[~mutations.index.duplicated(keep="first")] # Keeps first duplicate row if indices are the same
             mutations = mutations.drop(columns=['Mutation_Hierarchy']) # Drop the Mutation_Hierarchy now that we've dropped the duplicates
 
