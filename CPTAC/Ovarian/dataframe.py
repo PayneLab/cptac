@@ -26,6 +26,9 @@ class DataFrameLoader:
             c_index = df.index[0:83].str[1:] #drops letter off all indices with "C"
             index = c_index.append(df.index[83:])
             df = df.set_index(index)
+            idx = df.index.values.tolist()
+            idx_to_drop = [id for id in idx if id.startswith('OV_QC')]
+            df = df.drop(idx_to_drop) # Drop all OV_QC* samples--they're quality control samples not relevant for data analysis
             df.name = self.name
             return df
         elif self.name == "clinical":
@@ -44,6 +47,9 @@ class DataFrameLoader:
             c_index = df.index[0:83].str[1:] #drops letter off all indices with "C"
             index = c_index.append(df.index[83:])
             df = df.set_index(index)
+            idx = df.index.values.tolist()
+            idx_to_drop = [id for id in idx if id.startswith('OV_QC')]
+            df = df.drop(idx_to_drop) # Drop all OV_QC* samples--they're quality control samples not relevant for data analysis
             df.name = self.name
             return df
         elif self.name == "transcriptomics":
