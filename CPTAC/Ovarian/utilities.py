@@ -294,9 +294,7 @@ class Utilities:
             location_cols = [col for col in merge.columns.values if re.match(location_regex, col)] # Get a list of all location columns
             for location_col in location_cols:
                 if show_location:
-                    print("Got 'em!")
-                    merge = merge.fillna(value={location_col:'No_mutation'}) # If there's no location, there wasn't a mutation--make it easier for people to understand what that means.
-                    print("Not a chance!")
+                    merge.loc[pd.isnull(merge[location_col]), location_col] = "No_mutation"
                 else:
                     merge = merge.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
 
