@@ -26,8 +26,8 @@ class DataFrameLoader:
             c_index = df.index[0:83].str[1:] #drops letter off all indices with "C"
             index = c_index.append(df.index[83:])
             df = df.set_index(index)
-            df.name = self.name
             return_df = df.copy() # To avoid setting with copy warnings
+            return_df.name = self.name
             return return_df
         elif self.name == "clinical":
             df = pd.read_csv(self.fileName, sep="\t")
@@ -45,8 +45,8 @@ class DataFrameLoader:
             c_index = df.index[0:83].str[1:] #drops letter off all indices with "C"
             index = c_index.append(df.index[83:])
             df = df.set_index(index)
-            df.name = self.name
             return_df = df.copy() # To avoid setting with copy warnings
+            return_df.name = self.name
             return return_df
         elif self.name == "transcriptomics":
             df = pd.read_csv(self.fileName, sep="\t", index_col=0)
