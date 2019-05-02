@@ -296,6 +296,7 @@ class Utilities:
                 if show_location:
                     print("Got 'em!")
                     merge = merge.fillna(value={location_col:'No_mutation'}) # If there's no location, there wasn't a mutation--make it easier for people to understand what that means.
+                    print("Not a chance!")
                 else:
                     merge = merge.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
 
