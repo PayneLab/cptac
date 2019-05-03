@@ -399,11 +399,11 @@ def test_get_phosphosites():
 
     gene = 'AAK1'
     df = en.get_phosphosites(gene)
-    name = 'phosphosites_' + gene
+    name = 'phosphoproteomics_site for ' + gene
     dimensions = (144, 37)
-    headers = [gene]
-    test_coord = ((27, 0), (76, 0), (128, 0))
-    test_vals = (0.603, -0.272, 0.1395)
+    headers = ['AAK1-S14_phosphoproteomics_site', 'AAK1-S18_phosphoproteomics_site', 'AAK1-S20_phosphoproteomics_site', 'AAK1-S21_phosphoproteomics_site', 'AAK1-S26_phosphoproteomics_site', 'AAK1-S618_phosphoproteomics_site', 'AAK1-S623_phosphoproteomics_site', 'AAK1-S624_phosphoproteomics_site', 'AAK1-S637_phosphoproteomics_site', 'AAK1-S642_phosphoproteomics_site', 'AAK1-T448_phosphoproteomics_site', 'AAK1-T606_phosphoproteomics_site', 'AAK1-T620_phosphoproteomics_site', 'AAK1-T640_phosphoproteomics_site', 'AAK1-T653_phosphoproteomics_site', 'AAK1-T674_phosphoproteomics_site', 'AAK1-T681_phosphoproteomics_site', 'AAK1-T694_phosphoproteomics_site', 'AAK1-T848_phosphoproteomics_site', 'AAK1-Y687_phosphoproteomics_site']
+    test_coord = ((5, 33), (64, 14), (128, 0))
+    test_vals = (0.547, -0.5379999999999999, 0.1395)
 
     if check_dataframe(df, dimensions, headers, test_coord, test_vals) and check_df_name(df, name):
         print('\tPASS')
