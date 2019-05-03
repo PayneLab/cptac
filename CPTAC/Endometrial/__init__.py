@@ -357,7 +357,7 @@ def get_phosphoproteomics(gene_level=False, unfiltered=False):
         return phosphoproteomics_u
     return phosphoproteomics
 
-def get_phosphoproteomics_site():
+def get_phosphoproteomics_site(unfiltered=False):
     """Gets the phosphoproteomics_site dataframe.
 
     Parameters:
@@ -371,7 +371,7 @@ def get_phosphoproteomics_site():
         return phosphoproteomics_u
     return phosphoproteomics
 
-def get_phosphoproteomics_gene():
+def get_phosphoproteomics_gene(unfiltered=False):
     """Gets the phosphoproteomics_gene dataframe.
 
     Parameters:
