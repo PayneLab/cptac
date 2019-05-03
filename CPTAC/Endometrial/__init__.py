@@ -283,6 +283,49 @@ def get_transcriptomics(data_type="linear", unfiltered=False):
         return miRNA
     else:
         raise ValueError("Invalid value for get_transcriptomics() data_type parameter.\n\tYou passed: '{}'\n\tOptions: 'linear', 'circular', or 'miRNA'".format(data_type))
+
+def get_transcriptomics_linear(unfiltered=False):
+    """Gets transcriptomics_linear dataframe.
+
+    Parameters:
+    unfiltered (bool, optional): Whether to include excluded samples. Default is false.
+
+    Returns:
+    pandas.core.frame.DataFrame: The transcriptomics_linear dataframe.
+    """
+    if unfiltered:
+        unfiltered_warning()
+        return transcriptomics_u
+    return transcriptomics
+
+def get_transcriptomics_circular(unfiltered=False):
+    """Gets transcriptomics_circular dataframe.
+
+    Parameters:
+    unfiltered (bool, optional): Whether to include excluded samples. Default is false.
+
+    Returns:
+    pandas.core.frame.DataFrame: The transcriptomics_circular dataframe.
+    """
+    if unfiltered:
+        unfiltered_warning()
+        return transcriptomics_circular_u
+    return transcriptomics_circular
+
+def get_miRNA(unfiltered=False):
+    """Gets miRNA dataframe.
+
+    Parameters:
+    unfiltered (bool, optional): Whether to include excluded samples. Default is false.
+
+    Returns:
+    pandas.core.frame.DataFrame: The miRNA dataframe.
+    """
+    if unfiltered:
+        unfiltered_warning()
+        return miRNA_u
+    return miRNA
+
 def get_CNA(unfiltered=False):
     """
     Parameters
