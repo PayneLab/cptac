@@ -279,11 +279,11 @@ def test_get_proteomics():
         print('\tFAIL\n')
 
 def test_get_transcriptomics_linear():
-    """Test get_transcriptomics with default parameter data_type="linear"."""
+    """Test get_transcriptomics_linear."""
 
-    print('Testing get_transcriptomics with default parameter data_type="linear"...')
+    print('Testing get_transcriptomics_linear...')
 
-    df = en.get_transcriptomics()
+    df = en.get_transcriptomics_linear()
     name = "transcriptomics_linear"
     dimensions = (109, 28057)
     headers = ['A1BG', 'A1BG-AS1', 'A1CF', 'A2M', 'A2M-AS1', 'A2ML1', 'A2MP1', 'A3GALT2', 'A4GALT', 'A4GNT', 'ZWILCH', 'ZWINT', 'ZXDA', 'ZXDB', 'ZXDC', 'ZYG11A', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3']
@@ -296,11 +296,11 @@ def test_get_transcriptomics_linear():
         print('\tFAIL\n')
 
 def test_get_transcriptomics_circular():
-    """Test get_transcriptomics with parameter data_type="circular"."""
+    """Test get_transcriptomics_circular."""
 
-    print('Testing get_transcriptomics with parameter data_type="circular"...')
+    print('Testing get_transcriptomics_circular...')
 
-    df = en.get_transcriptomics(data_type="circular")
+    df = en.get_transcriptomics_circular()
     name = "transcriptomics_circular"
     dimensions = (109, 4945)
     headers = ['circ_chr10_100260218_100262063_CWF19L1', 'circ_chr10_100923975_100926019_SLF2', 'circ_chr10_100923978_100926019_SLF2', 'circ_chr10_100937402_100944128_SLF2', 'circ_chr10_100937402_100950753_SLF2', 'circ_chr10_101584602_101586156_POLL', 'circ_chr10_101667886_101676436_FBXW4', 'circ_chr10_101672915_101676436_FBXW4', 'circ_chr10_101792839_101807901_OGA', 'circ_chr10_101792839_101810314_OGA', 'circ_chrX_80288906_80310233_CHMP1B2P', 'circ_chrX_80289664_80310233_CHMP1B2P', 'circ_chrX_80707427_80719656_BRWD3', 'circ_chrX_80791854_80793772_BRWD3', 'circ_chrX_84096194_84164387_RPS6KA6', 'circ_chrX_84134782_84164387_RPS6KA6', 'circ_chrX_85067127_85074391_APOOL', 'circ_chrX_85978767_85981809_CHM', 'circ_chrX_91414904_91418871_PABPC5-AS1', 'circ_chrX_9691579_9693419_TBL1X']
@@ -312,12 +312,12 @@ def test_get_transcriptomics_circular():
     else:
         print('\tFAIL\n')
 
-def test_get_transcriptomics_miRNA():
-    """Test get_transcriptomics with parameter data_type="miRNA"."""
+def test_get_miRNA():
+    """Test get_miRNA."""
 
-    print('Testing get_transcriptomics with parameter data_type="miRNA"...')
+    print('Testing get_miRNA...')
 
-    df = en.get_transcriptomics(data_type="miRNA")
+    df = en.get_miRNA()
     name = "miRNA"
     dimensions = (99, 2337)
     headers = ['hsa-let-7a-2-3p', 'hsa-let-7a-3p', 'hsa-let-7a-5p', 'hsa-let-7b-3p', 'hsa-let-7b-5p', 'hsa-let-7c-3p', 'hsa-let-7c-5p', 'hsa-let-7d-3p', 'hsa-let-7d-5p', 'hsa-let-7e-3p', 'hsa-miR-9901', 'hsa-miR-9902', 'hsa-miR-9903', 'hsa-miR-9983-3p', 'hsa-miR-9985', 'hsa-miR-9986', 'hsa-miR-99a-3p', 'hsa-miR-99a-5p', 'hsa-miR-99b-3p', 'hsa-miR-99b-5p']
@@ -328,18 +328,6 @@ def test_get_transcriptomics_miRNA():
         print('\tPASS')
     else:
         print('\tFAIL\n')
-
-def test_get_transcriptomics_with_invalid():
-    """Test get_transcriptomics with an invalid parameter, and make sure that it raises an exception."""
-
-    print("Testing get_transcriptomics with an invalid parameter, to make sure that it raises an exception...")
-
-    try:
-        en.get_transcriptomics("gobbledegook")
-    except ValueError:
-        print('\tPASS')
-    else:
-        print("get_transcriptomics did not raise ValueError as expected, when given invalid parameter.\nFAIL\n")
 
 def test_get_CNA():
     """Test get_CNA."""
@@ -359,11 +347,11 @@ def test_get_CNA():
         print('\tFAIL\n')
 
 def test_get_phosphoproteomics_site():
-    """Test get_phosphoproteomics with default parameter gene_level=False."""
+    """Test get_phosphoproteomics_site."""
 
-    print('Testing get_phosphoproteomics with default parameter gene_level=False...')
+    print('Testing get_phosphoproteomics_site...')
 
-    df =  en.get_phosphoproteomics()
+    df =  en.get_phosphoproteomics_site()
     name = "phosphoproteomics_site"
     dimensions = (144, 73212)
     headers = ['AAAS-S495', 'AAAS-S541', 'AAAS-Y485', 'AACS-S618', 'AAED1-S12', 'AAGAB-S310', 'AAGAB-S311', 'AAK1-S14', 'AAK1-S18', 'AAK1-S20', 'ZZZ3-S397', 'ZZZ3-S411', 'ZZZ3-S420', 'ZZZ3-S424', 'ZZZ3-S426', 'ZZZ3-S468', 'ZZZ3-S89', 'ZZZ3-T415', 'ZZZ3-T418', 'ZZZ3-Y399']
@@ -376,11 +364,11 @@ def test_get_phosphoproteomics_site():
         print('\tFAIL\n')
 
 def test_get_phosphoproteomics_gene():
-    """Test get_phosphoproteomics with parameter gene_level=True."""
+    """Test get_phosphoproteomics_gene."""
 
-    print('Testing get_phosphoproteomics with parameter gene_level=True...')
+    print('Testing get_phosphoproteomics_gene...')
 
-    df = en.get_phosphoproteomics(gene_level=True)
+    df = en.get_phosphoproteomics_gene()
     name = "phosphoproteomics_gene"
     dimensions = (144, 8466)
     headers = ['AAAS', 'AACS', 'AAED1', 'AAGAB', 'AAK1', 'AAMDC', 'AARS', 'AASDH', 'AATF', 'ABCA1', 'ZSCAN5C', 'ZSWIM3', 'ZSWIM8', 'ZUP1', 'ZW10', 'ZXDA', 'ZXDC', 'ZYX', 'ZZEF1', 'ZZZ3']
@@ -631,8 +619,7 @@ test_get_acetylproteomics_unfiltered()
 test_get_proteomics()
 test_get_transcriptomics_linear()
 test_get_transcriptomics_circular()
-test_get_transcriptomics_miRNA()
-test_get_transcriptomics_with_invalid()
+test_get_miRNA()
 test_get_CNA()
 test_get_phosphoproteomics_site()
 test_get_phosphoproteomics_gene()

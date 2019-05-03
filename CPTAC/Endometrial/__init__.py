@@ -288,7 +288,7 @@ def get_transcriptomics_linear(unfiltered=False):
     """Gets transcriptomics_linear dataframe.
 
     Parameters:
-    unfiltered (bool, optional): Whether to include excluded samples. Default is false.
+    unfiltered (bool, optional): Whether to include unfiltered samples. Default is false.
 
     Returns:
     pandas.core.frame.DataFrame: The transcriptomics_linear dataframe.
@@ -302,7 +302,7 @@ def get_transcriptomics_circular(unfiltered=False):
     """Gets transcriptomics_circular dataframe.
 
     Parameters:
-    unfiltered (bool, optional): Whether to include excluded samples. Default is false.
+    unfiltered (bool, optional): Whether to include unfiltered samples. Default is false.
 
     Returns:
     pandas.core.frame.DataFrame: The transcriptomics_circular dataframe.
@@ -316,7 +316,7 @@ def get_miRNA(unfiltered=False):
     """Gets miRNA dataframe.
 
     Parameters:
-    unfiltered (bool, optional): Whether to include excluded samples. Default is false.
+    unfiltered (bool, optional): Whether to include unfiltered samples. Default is false.
 
     Returns:
     pandas.core.frame.DataFrame: The miRNA dataframe.
@@ -356,16 +356,45 @@ def get_phosphoproteomics(gene_level=False, unfiltered=False):
         unfiltered_warning()
         return phosphoproteomics_u
     return phosphoproteomics
-def get_phosphosites(keys):
-    """Returns dataframe with all phosphosites of specified key or list of keys.
+
+def get_phosphoproteomics_site():
+    """Gets the phosphoproteomics_site dataframe.
 
     Parameters:
-    keys (str or list): key or list of keys to use to select phosphosites. str if single, list if multiple.
+    unfiltered (bool, optional): Whether to include unfiltered samples. Default is false.
 
     Returns:
-    pandas.core.frame.DataFrame: The phosphoproteomics for the specified keys.
+    pandas.core.frame.DataFrame: The phosphoproteomics_site dataframe.
     """
-    return Utilities().get_omics_from_str_or_list(phosphoproteomics, keys)
+    if unfiltered:
+        unfiltered_warning()
+        return phosphoproteomics_u
+    return phosphoproteomics
+
+def get_phosphoproteomics_gene():
+    """Gets the phosphoproteomics_gene dataframe.
+
+    Parameters:
+    unfiltered (bool, optional): Whether to include unfiltered samples. Default is false.
+
+    Returns:
+    pandas.core.frame.DataFrame: The phosphoproteomics_gene dataframe.
+    """
+    if unfiltered:
+        unfiltered_warning()
+        return phosphoproteomics_gene_u
+    return phosphoproteomics_gene
+
+def get_phosphosites(genes):
+    """Returns dataframe with all phosphosites of specified gene or list of genes.
+
+    Parameters:
+    genes (str or list): gene or list of genes to use to select phosphosites. str if single, list if multiple.
+
+    Returns:
+    pandas.core.frame.DataFrame: The phosphoproteomics for the specified genes.
+    """
+    return Utilities().get_omics_from_str_or_list(phosphoproteomics, genes)
 
 def get_mutations(binary=False, unparsed=False, unfiltered=False):
     """
