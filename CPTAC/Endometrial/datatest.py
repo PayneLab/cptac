@@ -600,9 +600,66 @@ def test_compare_omics_single_gene():
     # Print whether the test passed
     print_test_result(PASS)
 
-# Test with single genes for cols1 and cols2
+def test_compare_omics_multiple_genes():
+    """Tests compare_omics with lists of genes for cols1 and cols2."""
+    print("Running test_compare_omics_multiple_genes...")
+    PASS = True
 
-# Test with lists of genes for cols1 and cols2
+    # Load the source dataframes
+    prot = en.get_proteomics()
+    acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure compare_omics can grab all those values.
+
+    # Run the function, make sure it returned properly
+    prot_genes = ['A4GALT', 'TP53', 'ZSCAN30']
+    acet_genes = ['AAGAB', 'AACS', 'ZW10', 'ZYX']
+    compared = en.compare_omics(prot, acet, prot_genes, acet_genes) 
+    if not check_returned_is_df(compared):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip other tests, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = "{} for {} genes, with {} for {} genes".format(prot.name, len(prot_genes), acet.name, len(acet_genes))
+    if not check_df_name(compared, exp_name):
+        PASS = False
+
+    # Figure out which columns from proteomics correspond to prot_gene (should be the same number as number of genes in prot_genes)
+    prot_regex = "^(" # Build a regex to grab all columns that match any of the genes
+    for gene in prot_genes:
+        prot_regex = prot_regex + gene + '|'
+    prot_regex = prot_regex[:-1] + ')$'
+    prot_cols = prot.filter(regex=prot_regex) # Use the regex to get all matching columns
+    if len(prot_cols.columns) != len(prot_genes):
+        print("Unexpected number of matching proteomics columns in test.\n\tExpected: {}\n\tActual: {}".format(len(prot_genes), len(prot_cols.columns)))
+        PASS = False
+
+    # Figure out which columns from acetylproteomics correspond to acet_gene
+    acet_regex = '^(' # Build a regex to grab all columns that match any of the genes
+    for gene in acet_genes:
+        acet_regex = acet_regex + gene + '|'
+    acet_regex = acet_regex[:-1] + ')-.*$'
+    acet_cols = acet.filter(regex=acet_regex) # Use the regex to get all matching columns
+
+    # Check dataframe shape
+    exp_num_cols = len(prot_cols.columns) + len(acet_cols.columns)
+    exp_num_rows = len(prot.index.intersection(acet.index))
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(compared, exp_shape):
+        PASS = False
+
+    # Check column values
+    for col in prot_cols.columns.values.tolist():
+        merged_col = col + '_' + prot.name
+        if not check_merged_column(prot, compared, col, merged_col):
+            PASS = False
+
+    for col in acet_cols.columns.values.tolist():
+        merged_col = col + '_' + acet.name
+        if not check_merged_column(acet, compared, col, merged_col):
+            PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
 
 # Test that it won't accept invalid dataframes
 
@@ -728,6 +785,7 @@ print("\nTesting compare and append functions...")
 test_compare_omics_source_preservation()
 test_compare_omics_default_parameters()
 test_compare_omics_single_gene()
+test_compare_omics_multiple_genes()
 
 #evaluate_special_getters()
 #evaluate_utilities()
