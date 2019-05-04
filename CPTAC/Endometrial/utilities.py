@@ -47,11 +47,11 @@ class Utilities:
         pandas.core.frame.DataFrame: The selected column(s) from the dataframe.
         """
         if omics_df.name == ('phosphoproteomics_site' or 'acetylproteomics'):
-            regex = gene + "-.*" # Build a regex to get all columns that match the gene
+            col_regex = gene + "-.*" # Build a regex to get all columns that match the gene
         else:
-            regex = '^{}$'.format(gene)
+            col_regex = '^{}$'.format(gene)
 
-        selected = omics_df.filter(regex = (regex)) # Find all columns that match the gene. If only one column matches, DataFrame.filter will still return a dataframe, not a series :)
+        selected = omics_df.filter(regex=col_regex) # Find all columns that match the gene. If only one column matches, DataFrame.filter will still return a dataframe, not a series :)
         if len(selected.columns) == 0: # If none of the columns matched the gene, print an error message and return None.
             print('{} did not match any columns in {} dataframe. Please double check that it is included in the dataframe.'.format(gene, omics_df.name))
             return

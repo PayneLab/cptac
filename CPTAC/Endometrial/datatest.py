@@ -158,7 +158,7 @@ def check_merged_column(original_df, merged_df, original_header, merged_header):
     original_column = original_df[original_header]
     merged_column = merged_df[merged_header]
 
-    # Sort columns, so that they'll be in the same order--if order was changed, that's fine.
+    # Sort columns. If they're in different orders in the dataframes, that's fine as long as the right samples are with the right data. But we do need them in the same order for series.equal.
     original_column = original_column.sort_index()
     merged_column = merged_column.sort_index()
     
@@ -512,7 +512,7 @@ def test_compare_omics_default_parameters():
     prot = en.get_proteomics()
     acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure compare_omics can grab all those values.
 
-    # Run the function, make sure it didn't return None
+    # Run the function, make sure it returned properly
     compared = en.compare_omics(prot, acet) 
     if not check_returned_is_df(compared):
         PASS = False
@@ -538,6 +538,61 @@ def test_compare_omics_default_parameters():
             PASS = False
 
     for col in acet.columns.values.tolist():
+        merged_col = col + '_' + acet.name
+        if not check_merged_column(acet, compared, col, merged_col):
+            PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+def test_compare_omics_single_gene():
+    """Tests compare_omics with single genes for cols1 and cols2."""
+    print("Running test_compare_omics_singe_gene...")
+    PASS = True
+
+    # Load the source dataframes
+    prot = en.get_proteomics()
+    acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure compare_omics can grab all those values.
+
+    # Run the function, make sure it returned properly
+    prot_gene = 'TP53'
+    acet_gene = 'AARS'
+    compared = en.compare_omics(prot, acet, prot_gene, acet_gene) 
+    if not check_returned_is_df(compared):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip other tests, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = prot.name + ', with ' + acet.name
+    if not check_df_name(compared, exp_name):
+        PASS = False
+
+    # Figure out which columns from proteomics correspond to prot_gene (should be just one)
+    prot_regex = "^{}$".format(gene)
+    prot_cols = prot.filter(regex=prot_regex)
+    if len(prot_cols) != 1:
+        print("Unexpected number of matching proteomics columns in test.\n\tExpected: 1\n\tActual: {}".format(len(prot_cols)))
+        PASS = False
+
+    # Figure out which columns from acetylproteomics correspond to acet_gene
+    acet_regex = acet_gene + "-.*"
+    acet_cols = acet.filter(regex=acet_regex)
+
+    # Check dataframe shape
+    exp_num_cols = len(prot_cols) + len(acet_cols)
+    exp_num_rows = len(prot.index.intersection(acet.index))
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(compared, exp_shape):
+        PASS = False
+
+    # Check column values
+    for col in prot_cols.columns.values.tolist():
+        merged_col = col + '_' + prot.name
+        if not check_merged_column(prot, compared, col, merged_col):
+            PASS = False
+
+    for col in acet_cols.columns.values.tolist():
         merged_col = col + '_' + acet.name
         if not check_merged_column(acet, compared, col, merged_col):
             PASS = False
