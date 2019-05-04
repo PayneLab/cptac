@@ -422,6 +422,49 @@ def get_mutations(binary=False, unparsed=False, unfiltered=False):
         unfiltered_warning()
         return somatic_maf_u
     return somatic_maf
+
+def get_mutations_maf(unfiltered=False):
+    """Gets the somatic_maf mutations dataframe.
+
+    Parameters:
+    unfiltered (bool, optional): Whether to include unfiltered samples. Default is false.
+
+    Returns:
+    pandas.core.frame.DataFrame: The somatic_maf mutations dataframe.
+    """
+    if unfiltered:
+        unfiltered_warning()
+        return somatic_maf_u
+    return somatic_maf
+
+def get_mutations_binary(unfiltered=False):
+    """Gets the somatic_binary mutations dataframe.
+
+    Parameters:
+    unfiltered (bool, optional): Whether to include unfiltered samples. Default is false.
+
+    Returns:
+    pandas.core.frame.DataFrame: The somatic_binary mutations dataframe.
+    """
+    if unfiltered:
+        unfiltered_warning()
+        return somatic_binary_u
+    return somatic_binary
+
+def get_mutations_unparsed(unfiltered=False):
+    """Gets the somatic_unparsed mutations dataframe.
+
+    Parameters:
+    unfiltered (bool, optional): Whether to include unfiltered samples. Default is false.
+
+    Returns:
+    pandas.core.frame.DataFrame: The somatic_unparsed mutations dataframe.
+    """
+    if unfiltered:
+        unfiltered_warning()
+        return somatic_unparsed_u
+    return somatic_unparsed
+
 def get_clinical_cols():
     """
     Parameters
