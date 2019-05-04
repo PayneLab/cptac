@@ -547,7 +547,7 @@ def test_compare_omics_default_parameters():
 
 def test_compare_omics_single_gene():
     """Tests compare_omics with single genes for cols1 and cols2."""
-    print("Running test_compare_omics_singe_gene...")
+    print("Running test_compare_omics_single_gene...")
     PASS = True
 
     # Load the source dataframes
@@ -556,7 +556,7 @@ def test_compare_omics_single_gene():
 
     # Run the function, make sure it returned properly
     prot_gene = 'TP53'
-    acet_gene = 'AARS'
+    acet_gene = 'A2M'
     compared = en.compare_omics(prot, acet, prot_gene, acet_gene) 
     if not check_returned_is_df(compared):
         PASS = False
@@ -564,23 +564,23 @@ def test_compare_omics_single_gene():
         return # Skip other tests, since they won't work if it's not a dataframe.
 
     # Check dataframe name
-    exp_name = prot.name + ', with ' + acet.name
+    exp_name = "{} for {}, with {} for {}".format(prot.name, prot_gene, acet.name, acet_gene)
     if not check_df_name(compared, exp_name):
         PASS = False
 
     # Figure out which columns from proteomics correspond to prot_gene (should be just one)
-    prot_regex = "^{}$".format(gene)
+    prot_regex = "^{}$".format(prot_gene)
     prot_cols = prot.filter(regex=prot_regex)
-    if len(prot_cols) != 1:
+    if len(prot_cols.columns) != 1:
         print("Unexpected number of matching proteomics columns in test.\n\tExpected: 1\n\tActual: {}".format(len(prot_cols)))
         PASS = False
 
     # Figure out which columns from acetylproteomics correspond to acet_gene
-    acet_regex = acet_gene + "-.*"
+    acet_regex = "{}-.*".format(acet_gene)
     acet_cols = acet.filter(regex=acet_regex)
 
     # Check dataframe shape
-    exp_num_cols = len(prot_cols) + len(acet_cols)
+    exp_num_cols = len(prot_cols.columns) + len(acet_cols.columns)
     exp_num_rows = len(prot.index.intersection(acet.index))
     exp_shape = (exp_num_rows, exp_num_cols)
     if not check_df_shape(compared, exp_shape):
@@ -727,6 +727,7 @@ test_get_mutations_unparsed()
 print("\nTesting compare and append functions...")
 test_compare_omics_source_preservation()
 test_compare_omics_default_parameters()
+test_compare_omics_single_gene()
 
 #evaluate_special_getters()
 #evaluate_utilities()
