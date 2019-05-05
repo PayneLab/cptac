@@ -230,7 +230,7 @@ def test_get_clinical_unfiltered():
     print('Running test_get_clinical with parameter unfiltered=True...')
 
     df = en.get_clinical(unfiltered=True)
-    print("(The unfiltered data warning above was expected.)") # To avoid confusion
+    print("(NOTE: The unfiltered data warning above was expected.)") # To avoid confusion
 
     name = "clinical"
     dimensions = (153, 27)
@@ -262,7 +262,7 @@ def test_get_derived_molecular_unfiltered():
     print('Running test_get_derived_molecular with parameter unfiltered=True...')
 
     df = en.get_derived_molecular(unfiltered=True)
-    print("(The unfiltered data warning above was expected.)") # To avoid confusion
+    print("(NOTE: The unfiltered data warning above was expected.)") # To avoid confusion
 
     name = 'derived_molecular'
     dimensions = (153, 144)
@@ -294,7 +294,7 @@ def test_get_acetylproteomics_unfiltered():
     print('Running test_get_acetylproteomics with parameter unfiltered=True...')
 
     df = en.get_acetylproteomics(unfiltered=True)
-    print("(The unfiltered data warning above was expected.)") # To avoid confusion
+    print("(NOTE: The unfiltered data warning above was expected.)") # To avoid confusion
 
     name = 'acetylproteomics'
     dimensions = (153, 10862)
@@ -661,11 +661,85 @@ def test_compare_omics_multiple_genes():
     # Print whether the test passed
     print_test_result(PASS)
 
-# Test that it won't accept invalid dataframes
+def test_compare_omics_invalid_dfs():
+    """Test that compare_omics will not accept non-omics dataframes, and not accept omics dataframes of the wrong format."""
+    print("Running test_compare_omics_invalid_dfs...")
+    PASS = True
 
-# Test that it handles single invalid key values gracefully
+    # Load our dataframes to test with
+    prot = en.get_proteomics() # We want to try a mix of valid and invalid dataframes, so we need to load this valid dataframe
+    clin = en.get_clinical()
+    tran_cir = en.get_transcriptomics_circular() # Although transcriptomics_circular is an omics dataframe, it's of the wrong format to work with compare_omics
 
-# Test that it gracefully handles one invalid key in a list of valid keys
+    # Test with one valid dataframe and one invalid one
+    comp = en.compare_omics(prot, tran_cir)
+    if comp is not None:
+        print("compare_omics should have returned None when passed the {} dataframe, but instead returned a {}".format(tran_cir.name, type(comp)))
+        PASS = False
+    else:
+        print("(NOTE: The invalid dataframe message above was expected.)")
+
+    # Test with two invalid dataframes
+    comp = en.compare_omics(clin, tran_cir)
+    if comp is not None:
+        print("compare_omics should have returned None when passed the {} and {} dataframes, but instead returned a {}".format(clin.name, tran_cir.name, type(comp)))
+        PASS = False
+    else:
+        print("(NOTE: The invalid dataframe message above was expected.)")
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+def test_compare_omics_invalid_keys():
+    """Test that compare_omics will gracefully handle an invalid key, either alone or in a list of valid keys."""
+    print("Running test_compare_omics_single_key_invalid...")
+    PASS = True
+
+    # Load dataframes to test with, and set keys to use
+    prot = en.get_proteomics()
+    acet = en.get_acetylproteomics()
+    invalid = 'gobbledegook'
+    acet_valid = 'AACS' 
+    prot_valid_list = ['A4GALT', 'TP53', 'ZSCAN30']
+    acet_valid_list = ['AAGAB', 'AACS', 'ZW10', 'ZYX']
+    prot_invalid_list = prot_valid_list.append(invalid)
+    acet_invalid_list = acet_valid_list.append(invalid)
+
+    # Test one invalid key and one valid key
+    comp = en.compare_omics(prot, acet, invalid, acet_valid)
+    if comp is not None:
+        print("compare_omics should have returned None when passed one invalid key and one valid key, but instead returned a {}".format(type(comp)))
+        PASS = False
+    else:
+        print("NOTE: The invalid key message above was expected.")
+
+    # Test two invalid keys
+    comp = en.compare_omics(prot, acet, invalid, invalid)
+    if comp is not None:
+        print("compare_omics should have returned None when passed two invalid keys, but instead returned a {}".format(type(comp)))
+        PASS = False
+    else:
+        print("NOTE: The invalid key messages above were expected.")
+
+    # Test one list of valid keys containing an invalid key, and one list of valid keys
+    comp = en.compare_omics(prot, acet, prot_invalid_list, acet_valid_list)
+    if comp is not None:
+        print("compare_omics should have returned None when passed a list of valid keys containing one invalid key, but instead returned a {}".format(type(comp)))
+        PASS = False
+    else:
+        print("NOTE: The invalid key message above was expected.")
+
+    # Test two lists of valid keys containing one invalid key each
+    comp = en.compare_omics(prot, acet, prot_invalid_list, acet_invalid_list)
+    if comp is not None:
+        print("compare_omics should have returned None when passed two lists of valid keys containing one invalid key each, but instead returned a {}".format(type(comp)))
+        print(comp)
+        PASS = False
+    else:
+        print("NOTE: The invalid key message above was expected.")
+
+    # Print whether the test passed
+    print_test_result(PASS)
 
 # Test that it handles invalid key types gracefully
 
@@ -786,6 +860,8 @@ test_compare_omics_source_preservation()
 test_compare_omics_default_parameters()
 test_compare_omics_single_gene()
 test_compare_omics_multiple_genes()
+test_compare_omics_invalid_dfs()
+test_compare_omics_invalid_keys()
 
 #evaluate_special_getters()
 #evaluate_utilities()
