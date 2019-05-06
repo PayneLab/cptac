@@ -88,6 +88,9 @@ def get_mutations(binary = False):
 	if binary:
 		return data.get("mutation_binary")
 	return data.get("mutation")
+def get_mutations_binary():
+    """Get the mutation_binary dataframe."""
+	return data.get("mutation_binary")
 def get_phosphoproteomics():
 	"""
 	Parameters:

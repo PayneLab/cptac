@@ -87,6 +87,14 @@ def get_mutations(hg="38"):
     else:
         print("Somatic",hg,"data not found, available options are somatic_19 and somatic_38")
 
+def get_mutations_38():
+    """Get the somatic_38 mutation dataframe."""
+    return data.get("somatic_38")
+
+def get_mutations_19():
+    """Get the somatic_19 mutation dataframe."""
+    return data.get("somatic_19")
+
 def get_transcriptomics():
     return data.get("transcriptomics")
 
