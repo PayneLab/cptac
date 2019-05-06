@@ -111,7 +111,7 @@ transcriptomics.name = transcriptomics_u.name
 transcriptomics_circular.name = transcriptomics_circular_u.name
 miRNA.name = miRNA_u.name
 
-print("Loading cna Data...")
+print("Loading CNA Data...")
 cna_u = DataFrameLoader(data_directory + "cna.cct.gz").createDataFrame()
 cna = cna_u.drop(casesToDrop, errors = "ignore")
 cna.name = cna_u.name
