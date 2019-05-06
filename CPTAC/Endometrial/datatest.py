@@ -365,13 +365,13 @@ def test_get_miRNA():
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
-def test_get_CNA():
-    """Test get_CNA."""
+def test_get_cna():
+    """Test get_cna."""
 
-    print('Running test_get_CNA...')
+    print('Running test_get_cna...')
 
-    df = en.get_CNA()
-    name = "CNA"
+    df = en.get_cna()
+    name = "cna"
     dimensions = (95, 28057)
     headers = ['MFSD14A', 'SASS6', 'TRMT13', 'LRRC39', 'DBT', 'RTCA-AS1', 'RTCA', 'MIR553', 'UBE4B', 'CDC14A', 'TSPY8', 'FAM197Y2', 'FAM197Y4', 'FAM197Y5', 'FAM197Y7', 'FAM197Y8', 'FAM197Y6', 'FAM197Y3', 'RBMY3AP', 'TTTY22']
     test_coord = ((12, 27865), (60, 8), (94, 15439))
@@ -931,7 +931,7 @@ test_get_proteomics()
 test_get_transcriptomics_linear()
 test_get_transcriptomics_circular()
 test_get_miRNA()
-test_get_CNA()
+test_get_cna()
 test_get_phosphoproteomics_site()
 test_get_phosphoproteomics_gene()
 test_get_phosphosites()

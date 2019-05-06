@@ -111,8 +111,8 @@ transcriptomics.name = transcriptomics_u.name
 transcriptomics_circular.name = transcriptomics_circular_u.name
 miRNA.name = miRNA_u.name
 
-print("Loading CNA Data...")
-cna_u = DataFrameLoader(data_directory + "CNA.cct.gz").createDataFrame()
+print("Loading cna Data...")
+cna_u = DataFrameLoader(data_directory + "cna.cct.gz").createDataFrame()
 cna = cna_u.drop(casesToDrop, errors = "ignore")
 cna.name = cna_u.name
 
@@ -326,13 +326,13 @@ def get_miRNA(unfiltered=False):
         return miRNA_u
     return miRNA
 
-def get_CNA(unfiltered=False):
+def get_cna(unfiltered=False):
     """
     Parameters
-    unfiltered: boolean indicating whether to return unfiltered CNA data
+    unfiltered: boolean indicating whether to return unfiltered cna data
 
     Returns
-    CNA dataframe
+    cna dataframe
     """
     if unfiltered:
         unfiltered_warning()
@@ -540,10 +540,10 @@ def get_cohort_transcriptomics(columns):
 def get_cohort_cna(columns):
     """
     Parameters
-    columns: single column name or array of column names to select for in the CNA dataframe
+    columns: single column name or array of column names to select for in the cna dataframe
 
     Returns
-    Dataframe of specified columns (or Series if one column) of CNA data
+    Dataframe of specified columns (or Series if one column) of cna data
     """
     return cna[columns]
 def get_cohort_phosphoproteomics(columns):
@@ -602,7 +602,7 @@ def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
         'acetylproteomics',
         'proteomics',
         'transcriptomics_linear', # But not transcriptomics_circular or miRNA--they have incompatible column names.
-        'CNA',
+        'cna',
         'phosphoproteomics_site',
         'phosphoproteomics_gene']
     invalid = False
@@ -637,7 +637,7 @@ def append_clinical_to_omics(clinical_cols, omics_df, omics_cols=None):
         'acetylproteomics',
         'proteomics',
         'transcriptomics_linear', # But not transcriptomics_circular or miRNA--they have incompatible column names.
-        'CNA',
+        'cna',
         'phosphoproteomics_site',
         'phosphoproteomics_gene']
     if (omics_df.name not in valid_dfs):
@@ -665,7 +665,7 @@ def append_derived_molecular_to_omics(derived_molecular_cols, omics_df, omics_co
         'acetylproteomics',
         'proteomics',
         'transcriptomics_linear', # But not transcriptomics_circular or miRNA--they have incompatible column names.
-        'CNA',
+        'cna',
         'phosphoproteomics_site',
         'phosphoproteomics_gene']
     if (omics_df.name not in valid_dfs):
@@ -695,7 +695,7 @@ def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multip
         'acetylproteomics',
         'proteomics',
         'transcriptomics_linear', # But not transcriptomics_circular or miRNA--they have incompatible column names.
-        'CNA',
+        'cna',
         'phosphoproteomics_site',
         'phosphoproteomics_gene']
     if (omics_df.name not in valid_dfs):
