@@ -146,6 +146,7 @@ def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     valid_dfs = [
         'phosphoproteomics',
         'proteomics',
+        'cnv',
         'transcriptomics']
     invalid = False
     if (omics_df1.name not in valid_dfs):
@@ -178,6 +179,7 @@ def append_clinical_to_omics(clinical_cols, omics_df, omics_cols=None):
     valid_dfs = [
         'phosphoproteomics',
         'proteomics',
+        'cnv',
         'transcriptomics']
     if (omics_df.name not in valid_dfs):
         print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))
@@ -206,6 +208,7 @@ def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multip
     valid_dfs = [
         'phosphoproteomics',
         'proteomics',
+        'cnv',
         'transcriptomics']
     if (omics_df.name not in valid_dfs):
         print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))

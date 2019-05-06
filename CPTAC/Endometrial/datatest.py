@@ -793,6 +793,43 @@ def test_compare_omics_invalid_key_types():
     # Print whether the test passed
     print_test_result(PASS)
 
+def test_append_mutations_to_omics_source_preservation():
+    """Test that append_mutations_to_omics does not alter the dataframes it pulls data from."""
+    print("Running test_append_mutations_
+
+# All omics, one mutation gene
+
+# All omics, multiple mutation genes
+
+# Single omics, one mutation gene
+
+# Single omics, multiple mutation genes
+
+# Multiple omics, one mutation gene
+
+# Multiple omics, multiple mutatation genes
+
+# Multiple mutations, one mutation gene
+
+# Multiple mutations, multiple mutation genes
+
+# Show location, one mutation gene
+
+# Show location, multiple mutation genes
+
+# Show location, multiple mutations, one mutation genes
+
+# Show location, multiple mutations, multiple mutation genes, all omics
+
+# Show location, multiple mutations, multiple mutation genes, one omics
+
+# Show location, multiple mutations, multiple mutation genes, multiple omics
+
+# Invalid mutations keys (single and in list)
+
+# Invalid mutation key types
+
+
 def evaluate_special_getters():
     print("Evaluating special getters...")
     results = []
