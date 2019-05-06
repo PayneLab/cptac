@@ -795,7 +795,21 @@ def test_compare_omics_invalid_key_types():
 
 def test_append_mutations_to_omics_source_preservation():
     """Test that append_mutations_to_omics does not alter the dataframes it pulls data from."""
-    print("Running test_append_mutations_
+    print("Running test_append_mutations_to_omics_source_preservation...")
+
+    # Load the source dataframe, set our variables
+    acet = en.get_acetylproteomics()
+    mutation_gene = 'TP53'
+    mutation_genes = ['TP53', 'PIK3CA']
+    acet_gene = 'AAGAB'
+    acet_genes = ['AACS', 'ZW10']
+
+    # Copy the source dataframe, to compare at the end
+
+    # Call append_mutations_to_omics a bunch of times
+
+    #
+
 
 # All omics, one mutation gene
 
