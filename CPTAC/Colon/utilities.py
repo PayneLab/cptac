@@ -300,6 +300,6 @@ class Utilities:
                 else:
                     merge = merge.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
 
-            merge = merge.sort_values(by = ["Sample_Status","index"], ascending = [False,True]) # Sorts by Sample_Status, then by SampleID, so all normal samples are at the end.
+            merge = merge.sort_values(by = ["Sample_Status", merge.index.name], ascending = [False,True]) # Sorts by Sample_Status, then by SampleID, so all normal samples are at the end.
             merge.name = "{}, with {}".format(omics.name, mutations.name) # Give it a name identifying the data in it
             return merge
