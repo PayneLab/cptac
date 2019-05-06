@@ -97,7 +97,7 @@ class Utilities:
             return_df.name = omics_df.name # Name the return dataframe
             return return_df
         else: # If it's none of those, they done messed up. Tell 'em.
-            print("Genes parameter {} is of invalid type {}. Valid types: str, list, or NoneType.".format(genes, type(genes)))
+            print("Genes parameter \n{}\n is of invalid type {}. Valid types: str, list, or NoneType.".format(genes, type(genes)))
 
     def compare_omics(self, df1, df2, genes1, genes2):
         """Select columns for one gene or a list of genes from one omics dataframe, and columns for another gene or list of genes from another omics dataframe, and join them into one dataframe.

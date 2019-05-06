@@ -699,11 +699,10 @@ def test_compare_omics_invalid_keys():
     prot = en.get_proteomics()
     acet = en.get_acetylproteomics()
     invalid = 'gobbledegook'
+    prot_invalid_list = ['A4GALT', 'TP53', 'ZSCAN30', 'gobbledegook']
     acet_valid = 'AACS' 
-    prot_valid_list = ['A4GALT', 'TP53', 'ZSCAN30']
     acet_valid_list = ['AAGAB', 'AACS', 'ZW10', 'ZYX']
-    prot_invalid_list = prot_valid_list.append(invalid)
-    acet_invalid_list = acet_valid_list.append(invalid)
+    acet_invalid_list = ['AAGAB', 'AACS', 'ZW10', 'ZYX', 'gobbledegook']
 
     # Test one invalid key and one valid key
     comp = en.compare_omics(prot, acet, invalid, acet_valid)
@@ -711,7 +710,7 @@ def test_compare_omics_invalid_keys():
         print("compare_omics should have returned None when passed one invalid key and one valid key, but instead returned a {}".format(type(comp)))
         PASS = False
     else:
-        print("NOTE: The invalid key message above was expected.")
+        print("(NOTE: The invalid key message above was expected.)")
 
     # Test two invalid keys
     comp = en.compare_omics(prot, acet, invalid, invalid)
@@ -719,7 +718,7 @@ def test_compare_omics_invalid_keys():
         print("compare_omics should have returned None when passed two invalid keys, but instead returned a {}".format(type(comp)))
         PASS = False
     else:
-        print("NOTE: The invalid key messages above were expected.")
+        print("(NOTE: The invalid key messages above were expected.)")
 
     # Test one list of valid keys containing an invalid key, and one list of valid keys
     comp = en.compare_omics(prot, acet, prot_invalid_list, acet_valid_list)
@@ -727,24 +726,72 @@ def test_compare_omics_invalid_keys():
         print("compare_omics should have returned None when passed a list of valid keys containing one invalid key, but instead returned a {}".format(type(comp)))
         PASS = False
     else:
-        print("NOTE: The invalid key message above was expected.")
+        print("(NOTE: The invalid key message above was expected.)")
 
     # Test two lists of valid keys containing one invalid key each
     comp = en.compare_omics(prot, acet, prot_invalid_list, acet_invalid_list)
     if comp is not None:
         print("compare_omics should have returned None when passed two lists of valid keys containing one invalid key each, but instead returned a {}".format(type(comp)))
-        print(comp)
         PASS = False
     else:
-        print("NOTE: The invalid key message above was expected.")
+        print("(NOTE: The invalid key messages above were expected.)")
 
     # Print whether the test passed
     print_test_result(PASS)
 
-# Test that it handles invalid key types gracefully
+def test_compare_omics_invalid_key_types():
+    """Tests that compare_omics will gracefully handle a key of an invalid type."""
+    print("Running test_compare_omics_invalid_key_types...")
+    PASS = True
 
-# Test that it gracefully handles one key of an invalid type in a list of keys of the valid type
+    # Load our dataframes
+    prot = en.get_proteomics()
+    acet = en.get_acetylproteomics()
 
+    # Set our keys to use
+    prot_valid = 'TP53'
+    acet_valid = 'AACS'
+    int_key = 100
+    prot_valid_list = ['TP53', 'AURKA', 'PIK3CA']
+    prot_dict = {0:'TP53', 1:'AURKA', 2:'PIK3CA'} # Create a prep dict for our series we'll use
+    prot_series = pd.Series(prot_dict)
+    acet_dict = {0:'AAGAB', 1:'AACS', 2:'ZW10'} # Create a prep dict for our series we'll use
+    acet_series = pd.Series(acet_dict)
+
+    # Test a key of type int
+    comp = en.compare_omics(prot, acet, prot_valid, int_key)
+    if comp is not None:
+        print("compare_omics should have returned None when passed a key of type int, but instead returned a {}".format(type(comp)))
+        PASS = False
+    else:
+        print("(NOTE: The invalid key message above was expected.)")
+
+    # Test two keys of type int
+    comp = en.compare_omics(prot, acet, int_key, int_key)
+    if comp is not None:
+        print("compare_omics should have returned None when passed two keys of type int, but instead returned a {}".format(type(comp)))
+        PASS = False
+    else:
+        print("(NOTE: The invalid key messages above were expected.)")
+
+    # Test a key of type pandas.core.series.Series
+    comp = en.compare_omics(prot, acet, prot_valid_list, acet_series)
+    if comp is not None:
+        print("compare_omics should have returned None when passed a pandas.core.series.Series, but instead returned a {}".format(type(comp)))
+        PASS = False
+    else:
+        print("(NOTE: The invalid key message above was expected.)")
+
+    # Test two keys of type pandas.core.series.Series
+    comp = en.compare_omics(prot, acet, prot_series, acet_series)
+    if comp is not None:
+        print("compare_omics should have returned None when passed two pandas.core.series.Series, but instead returned a {}".format(type(comp)))
+        PASS = False
+    else:
+        print("(NOTE: The invalid key messages above were expected.)")
+
+    # Print whether the test passed
+    print_test_result(PASS)
 
 def evaluate_special_getters():
     print("Evaluating special getters...")
@@ -862,6 +909,7 @@ test_compare_omics_single_gene()
 test_compare_omics_multiple_genes()
 test_compare_omics_invalid_dfs()
 test_compare_omics_invalid_keys()
+test_compare_omics_invalid_key_types()
 
 #evaluate_special_getters()
 #evaluate_utilities()
