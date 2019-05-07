@@ -171,39 +171,76 @@ def check_merged_column(original_df, merged_df, original_header, merged_header):
                 print("Merged dataframe had incorrect values.\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}\n".format(idx, merged_header, original_value, merged_value))
     return PASS
 
-def check_mutation_column(somatic, merged_df, gene):
+def check_mutation_column(mutations, merged_df, gene, multiple_mutations):
     """
     Parameters
-    somatic (pandas.core.frame.DataFrame): The somatic dataframe.
+    mutations (pandas.core.frame.DataFrame): The somatic mutations dataframe.
     merged_df (pandas.core.frame.DataFrame): The merged datframe.
     gene (str): The gene the mutation data was collected for.
+    multiple_mutations (bool): Whether multiple mutations for one sample were included in the column.
 
     Returns
-    bool: Indicates whether the mutation data for that gene and each sample in the merged dataframe matched the data in the somatic dataframe.
+    bool: Indicates whether the mutation data for that gene and each sample in the merged dataframe matched the data in the somatic mutations dataframe.
     """
     PASS = True
-    mutation_col = gene + '_Mutation'
+
+    # Set our column names for use later
+    patient_col = 'Clinical_Patient_Key'
+    gene_col = 'Gene'
+    location_col = 'Location'
+    mutation_col = 'Mutation'
+    status_col = 'Sample_Status'
+    merged_location_col = gene + '_' + location_col
+    merged_mutation_col = gene + '_' + mutation_col
+
+    # Load all the mutations for the gene
+    gene_df = mutations.loc[mutations[gene_col] == gene] 
+    gene_df = gene_df.set_index(patient_col)
 
     for sample in merged_df.index.values:
-        sample_df = somatic.loc[somatic['Clinical_Patient_Key'] == sample] # Load a dataframe with all just the values from somatic for this sample
-        sample_df_filtered = sample_df.loc[sample_df['Gene'] == gene]
-        original_values = sample_df_filtered['Mutation'].values
+        # Get the rows for just this sample from our two dataframes
+        sample_df = gene_df.loc[gene_df.index == sample]
+        merged_sample_df = merged_df.loc[merged_df.index == sample]
 
-        if len(original_values) == 0:
+        if len(sample_df.index) == 0: # There were no mutations for that gene in this sample
+            original_location = 'No_mutation'
             if sample <= 'S104':
-                original_value = 'Wildtype_Tumor'
+                original_mutation = 'Wildtype_Tumor'
             else:
-                original_value = 'Wildtype_Normal'
-        elif len(original_values) == 1:
-            original_value = original_values[0]
-        else:
-            source_filtered_with_hierarchy = Utilities().add_mutation_hierarchy(sample_df_filtered)
-            source_filtered_with_hierarchy = source_filtered_with_hierarchy.sort_values(by=['Clinical_Patient_Key', 'Mutation_Hierarchy'], ascending=[True,False]) #sorts by patient key, then by hierarchy so the duplicates will come with the lower number first
-            original_value = source_filtered_with_hierarchy['Mutation'].iloc[0]
+                original_mutation = 'Wildtype_Normal'
+            sample_dict = { # Create a prep dictionary with what the values for the different columns should be
+                patient_col:sample,
+                location_col:original_location,
+                mutation_col:original_mutation} 
+            sample_df = pd.DataFrame(data=sample_dict, index=patient_col) # Make that dict a dataframe, and set it as our sample_df
 
-        merged_value = merged_df.loc[sample, mutation_col]
-        if (merged_value != original_value) and (pd.notna(merged_value) or pd.notna(original_value)):
-            print("Merged dataframe had incorrect value.\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}\n".format(sample, mutation_col, original_value, merged_value))
+        elif len(sample_df.index) == 1: # There was one mutation for that gene in this sample
+            pass # sample_df and merged_sample_df are already ready for the check_merged_column calls
+
+        else: # There were multiple mutations for that gene in this sample
+            if multiple_mutations:
+                # Since there are multiple rows in our two dataframes, sort by location for consistency
+                sample_df = sample_df.sort_values(by=location_col)
+                merged_sample_df = merged_sample_df.sort_values(by=merged_location_col) 
+            else:
+                # Get just the mutation we care about
+                sample_df = Utilities().add_mutation_hierarchy(sample_df)
+                sample_df = sample_df.sort_values(by=[patient_col, 'Mutation_Hierarchy'], ascending=[True,False]) # Sorts by patient key, then by hierarchy so the duplicates will come with the lower number first
+                sample_df = sample_df.iloc[[0]]
+
+        # Test our location and mutation columns
+        if not check_merged_column(sample_df, merged_sample_df, location_col, merged_location_col):
+            PASS = False
+        if not check_merged_column(sample_df, merged_sample_df, mutation_col, merged_mutation_col):
+            PASS = False
+
+        # Test our Sample_Status column
+        if sample <= 'S104': # Figure out what our sample status should be
+            original_status = 'Tumor'
+        else:
+            original_status = 'Normal'
+        sample_df = sample_df.assign(**{status_col:original_status}) # Append a Sample_Status column to our original values dataframe, with what the value should be, for comparison to the merged dataframe.
+        if not check_merged_column(sample_df, merged_sample_df, status_col, status_col):
             PASS = False
 
     return PASS
@@ -897,8 +934,17 @@ def test_append_mutations_to_omics_single_mut_all_omics():
         PASS = False
 
     # Check values in columns
+    for col in phos.columns.values.tolist():
+        merged_col = col + '_' + phos.name
+        if not check_merged_column(phos, appended, col, merged_col):
+            PASS = False
+
+    mutations = en.get_mutations() # Load the somatic mutations dataframe, which the mutation data was drawn from
+    if not check_mutation_column(mutations, appended, mut_gene):
+        PASS = False
 
     # Print whether the test passed
+    print_test_result(PASS)
 
 # All omics, multiple mutation genes
 
@@ -910,21 +956,21 @@ def test_append_mutations_to_omics_single_mut_all_omics():
 
 # Multiple omics, multiple mutatation genes
 
-# Multiple mutations, one mutation gene
+# Multiple mutations, one mutation gene. Use PIK3CA
 
-# Multiple mutations, multiple mutation genes
+# Multiple mutations, multiple mutation genes. Use PIK3CA
 
 # Show location, one mutation gene
 
 # Show location, multiple mutation genes
 
-# Show location, multiple mutations, one mutation gene
+# Show location, multiple mutations, one mutation gene. Use PIK3CA
 
-# Show location, multiple mutations, multiple mutation genes, all omics
+# Show location, multiple mutations, multiple mutation genes, all omics. Use PIK3CA
 
-# Show location, multiple mutations, multiple mutation genes, one omics
+# Show location, multiple mutations, multiple mutation genes, one omics. Use PIK3CA
 
-# Show location, multiple mutations, multiple mutation genes, multiple omics
+# Show location, multiple mutations, multiple mutation genes, multiple omics. Use PIK3CA
 
 # Invalid mutations keys (single and in list)
 
