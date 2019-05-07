@@ -525,8 +525,8 @@ def test_compare_omics_default_parameters():
         PASS = False
 
     # Check dataframe shape
-    exp_num_cols = len(prot.columns) + len(acet.columns)
     exp_num_rows = len(prot.index.intersection(acet.index))
+    exp_num_cols = len(prot.columns) + len(acet.columns)
     exp_shape = (exp_num_rows, exp_num_cols)
     if not check_df_shape(compared, exp_shape):
         PASS = False
@@ -580,8 +580,8 @@ def test_compare_omics_single_gene():
     acet_cols = acet.filter(regex=acet_regex)
 
     # Check dataframe shape
-    exp_num_cols = len(prot_cols.columns) + len(acet_cols.columns)
     exp_num_rows = len(prot.index.intersection(acet.index))
+    exp_num_cols = len(prot_cols.columns) + len(acet_cols.columns)
     exp_shape = (exp_num_rows, exp_num_cols)
     if not check_df_shape(compared, exp_shape):
         PASS = False
@@ -616,7 +616,7 @@ def test_compare_omics_multiple_genes():
     if not check_returned_is_df(compared):
         PASS = False
         print_test_result(PASS)
-        return # Skip other tests, since they won't work if it's not a dataframe.
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = "{} for {} genes, with {} for {} genes".format(prot.name, len(prot_genes), acet.name, len(acet_genes))
@@ -641,8 +641,8 @@ def test_compare_omics_multiple_genes():
     acet_cols = acet.filter(regex=acet_regex) # Use the regex to get all matching columns
 
     # Check dataframe shape
-    exp_num_cols = len(prot_cols.columns) + len(acet_cols.columns)
     exp_num_rows = len(prot.index.intersection(acet.index))
+    exp_num_cols = len(prot_cols.columns) + len(acet_cols.columns)
     exp_shape = (exp_num_rows, exp_num_cols)
     if not check_df_shape(compared, exp_shape):
         PASS = False
@@ -657,6 +657,40 @@ def test_compare_omics_multiple_genes():
         merged_col = col + '_' + acet.name
         if not check_merged_column(acet, compared, col, merged_col):
             PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+def test_compare_omics_all_dfs():
+    """Test that compare_omics works will all dataframes that are valid for the function."""
+    print("Running test_compare_omics_all_dfs...")
+    PASS = True
+
+    # Load our dataframes to test, and set our genes. We call individual parameters, to make sure the columns are formatted properly.
+    acet = en.get_acetylproteomics()
+    cna = en.get_cna()
+    phosg = en.get_phosphoproteomics_gene()
+    phoss = en.get_phosphoproteomics_site()
+    prot = en.get_proteomics()
+    tran = en.get_transcriptomics_linear()
+    gene1 = 'TP53'
+    gene2 = 'AAGAB'
+
+    # Call compare_omics on the dataframes
+    acet_cna = en.compare_omics(acet, cna, gene1, gene2)
+    phosg_phoss = en.compare_omics(phosg, phoss, gene1, gene2)
+    prot_tran = en.compare_omics(prot, tran, gene1, gene2)
+
+    # Check the return values
+    if not check_returned_is_df(acet_cna):
+        print("Dataframes compared: acetylproetomics and cna.")
+        PASS = False
+    if not check_returned_is_df(phosg_phoss):
+        print("Dataframes compared: phosphoproteomics_gene and phosphoproteomics_site.")
+        PASS = False
+    if not check_returned_is_df(prot_tran):
+        print("Dataframes compared: proteomics and transcriptomics.")
+        PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
@@ -796,22 +830,75 @@ def test_compare_omics_invalid_key_types():
 def test_append_mutations_to_omics_source_preservation():
     """Test that append_mutations_to_omics does not alter the dataframes it pulls data from."""
     print("Running test_append_mutations_to_omics_source_preservation...")
+    PASS = True
 
-    # Load the source dataframe, set our variables
+    # Load the source dataframes, set our variables
+    mut = en.get_mutations()
     acet = en.get_acetylproteomics()
-    mutation_gene = 'TP53'
-    mutation_genes = ['TP53', 'PIK3CA']
+    mut_gene = 'TP53'
+    mut_genes = ['TP53', 'PIK3CA']
     acet_gene = 'AAGAB'
     acet_genes = ['AACS', 'ZW10']
 
-    # Copy the source dataframe, to compare at the end
+    # Copy the source dataframes, to compare at the end
+    mut_copy = mut.copy()
+    acet_copy = acet.copy()
 
     # Call append_mutations_to_omics a bunch of times
+    en.append_mutations_to_omics(mut_gene, acet)
+    en.append_mutations_to_omics(mut_genes, acet)
+    en.append_mutations_to_omics(mut_gene, acet, acet_gene)
+    en.append_mutations_to_omics(mut_gene, acet, acet_genes)
+    en.append_mutations_to_omics(mut_genes, acet, acet_gene)
+    en.append_mutations_to_omics(mut_genes, acet, acet_genes)
+    en.append_mutations_to_omics(mut_genes, acet, acet_genes, multiple_mutations=True)
+    en.append_mutations_to_omics(mut_genes, acet, acet_genes, show_location=False)
+    en.append_mutations_to_omics(mut_genes, acet, acet_genes, multiple_mutations=True, show_location=False)
 
-    #
+    # Check that the source dataframes weren't changed
+    if not mut.equals(mut_copy):
+        print("Mutations dataframe was altered by append_mutations_to_omics.")
+        PASS = False
 
+    if not acet.equals(acet_copy):
+        print("Acetylproteomics dataframe was altered by append_mutations_to_omics.")
+        PASS = False
+
+    # Indicate whether the test passed
+    print_test_result(PASS)
 
 # All omics, one mutation gene
+def test_append_mutations_to_omics_single_mut_all_omics():
+    """Test append_mutations_to_omics with one mutation gene, and the default parameter of None for the omics gene, which should give the entire omics dataframe."""
+    print("Running test_append_mutations_to_omics_single_mut_all_omics...")
+    PASS = True
+
+    # Load the source dataframe and set our keys
+    phos = en.get_phosphoproteomics_site()
+    mut_gene = 'PIK3CA'
+
+    # Run the function, make sure it returned properly
+    appended = en.append_mutations_to_omics(mut_gene, phos)
+    if not check_returned_is_df(appended):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = 'Somatic mutation data for {} gene, with {}'.format(mut_gene, phos.name)
+    if not check_df_name(appended, exp_name):
+        PASS = False
+
+    # Check dataframe shape
+    exp_num_rows = len(prot.index)
+    exp_num_cols = len(prot.columns) + 1
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(appended, exp_shape):
+        PASS = False
+
+    # Check values in columns
+
+    # Print whether the test passed
 
 # All omics, multiple mutation genes
 
@@ -831,7 +918,7 @@ def test_append_mutations_to_omics_source_preservation():
 
 # Show location, multiple mutation genes
 
-# Show location, multiple mutations, one mutation genes
+# Show location, multiple mutations, one mutation gene
 
 # Show location, multiple mutations, multiple mutation genes, all omics
 
@@ -869,32 +956,6 @@ def evaluate_special_getters():
         print('\tPASS')
     else:
         print("\tFAIL\n")
-def evaluate_utilities(): #compare_**** functions
-    print("Evaluating utilities...")
-    results = []
-    functions = {}
-    results.append(en.compare_gene(en.get_proteomics(), en.get_transcriptomics(), "A1BG")); functions[len(results)] = "compare_gene"
-    results.append(en.compare_gene(en.get_proteomics(), en.get_transcriptomics(), ["A1BG","RPL11"])); functions[len(results)] = "compare_genes"
-    results.append(en.compare_clinical(en.get_proteomics(), "BMI")); functions[len(results)] = "compare_clinical"
-    results.append(en.compare_mutations(en.get_proteomics(),"TP53")); functions[len(results)] = "compare_mutations(Proteomics)"
-    results.append(en.compare_mutations(en.get_proteomics(),"TP53","AURKA")); functions[len(results)] = "compare_mutations(Proteomics with Somatic)"
-    results.append(en.compare_mutations(en.get_phosphoproteomics(), "IRS2")); functions[len(results)] = "compare_mutations(Phosphoproteomics)"
-    results.append(en.compare_mutations(en.get_phosphoproteomics(), "IRS2","PIK3CA")); functions[len(results)] = "compare_mutations(Phosphoproteomics with Somatic)"
-    results.append(en.compare_mutations_full(en.get_proteomics(),"TP53")); functions[len(results)] = "compare_mutations_full(Proteomics)"
-    results.append(en.compare_mutations_full(en.get_proteomics(),"TP53","AURKA")); functions[len(results)] = "compare_mutations_full(Proteomics with Somatic)"
-    results.append(en.compare_mutations_full(en.get_phosphoproteomics(), "IRS2")); functions[len(results)] = "compare_mutations_full(Phosphoproteomics)"
-    results.append(en.compare_mutations_full(en.get_phosphoproteomics(), "IRS2","PIK3CA")); functions[len(results)] = "compare_mutations_full(Phosphoproteomics with Somatic)"
-    results.append(en.compare_phosphosites("TP53")); functions[len(results)] = "compare_phosphosites"
-    PASS = True
-    for x in range(0,len(results)):
-        if results[x] is None:
-            print("Error with",functions[x+1],"function")
-            PASS = False
-    if PASS:
-        print('\tPASS')
-    else:
-        print("\tFAIL\n")
-
 class Stats:
     def __init__(self):
         pass
@@ -958,13 +1019,13 @@ test_compare_omics_source_preservation()
 test_compare_omics_default_parameters()
 test_compare_omics_single_gene()
 test_compare_omics_multiple_genes()
+test_compare_omics_all_dfs()
 test_compare_omics_invalid_dfs()
 test_compare_omics_invalid_keys()
 test_compare_omics_invalid_key_types()
+test_append_mutations_to_omics_source_preservation()
 
 #evaluate_special_getters()
-#evaluate_utilities()
-#evaluate_utilities_v2()
 
 # The below tests are not so necessary anymore, now that we have better tests above.
 
