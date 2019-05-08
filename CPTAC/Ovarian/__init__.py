@@ -79,15 +79,7 @@ def get_phosphoproteomics():
 def get_proteomics():
     return data.get("proteomics")
 
-def get_mutations(hg="38"):
-    if hg == "38":
-        return data.get("somatic_38") #Defaulting to somatic_38
-    elif hg == "19":
-        return data.get("somatic_19")
-    else:
-        print("Somatic",hg,"data not found, available options are somatic_19 and somatic_38")
-
-def get_mutations_38():
+def get_mutations():
     """Get the somatic_38 mutation dataframe."""
     return data.get("somatic_38")
 
@@ -102,7 +94,7 @@ def get_phosphosites(genes):
     """Returns dataframe with all phosphosites for a gene or list of genes.
 
     Parameters:
-    genes (str or list): The gene(s) to get phosphosites for. str if single, list if multiple.
+    genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): The gene(s) to get phosphosites for. str if single, list or pandas.core.series.Series or pandas.core.indexes.base.Index if multiple.
 
     Returns:
     pandas.core.frame.DataFrame: The phosphosites for the specified gene(s).
@@ -144,8 +136,8 @@ def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     Parameters:
     omics_df1 (pandas.core.frame.DataFrame): First omics dataframe to select columns from.
     omics_df2 (pandas.core.frame.DataFrame): Second omics dataframe to select columns from.
-    cols1 (str or list, optional): Column(s) to select from omics_df1. str if one key, list if multiple. Defaults to None, in which case we'll select the entire dataframe.
-    cols2 (str or list, optional): Column(s) to select from omics_df2. str if one key, list if multiple. Defaults to None, in which case we'll select the entire dataframe.
+    cols1 (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index, optional): Column(s) to select from omics_df1. str if one key, list or pandas.core.series.Series or pandas.core.indexes.base.Index if multiple. Defaults to None, in which case we'll select the entire dataframe.
+    cols2 (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index, optional): Column(s) to select from omics_df2. str if one key, list or pandas.core.series.Series or pandas.core.indexes.base.Index if multiple. Defaults to None, in which case we'll select the entire dataframe.
 
     Returns:
     pandas.core.frame.DataFrame: The selected columns from omics_df1 and omics_df2, merged into one dataframe.
@@ -172,13 +164,13 @@ def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     # Return the merge.
     return Utilities().compare_omics(omics_df1, omics_df2, cols1, cols2)
 
-def append_clinical_to_omics(clinical_cols, omics_df, omics_cols=None):
+def append_clinical_to_omics(omics_df, clinical_cols=None, omics_cols=None):
     """Append columns from clinical dataframe to part or all of an omics dataframe.
 
     Parameters:
-    clinical_cols (str or list): Column(s) to select from the clinical dataframe. str if one gene, list if multiple.
     omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the clinical columns to.
-    omics_cols (str or list, optional): Column(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
+    clinical_cols (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index, optional): Column(s) to select from the clinical dataframe. str if one gene, list or pandas.core.series.Series or pandas.core.indexes.base.Index if multiple. Default of None will select all columns in the dataframe.
+    omics_cols (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index, optional): Column(s) to select from the omics dataframe. str if one gene, list or pandas.core.series.Series or pandas.core.indexes.base.Index if multiple. Default will select entire dataframe.
 
     Returns:
     pandas.core.frame.DataFrame: The selected clinical columns, merged with all or part of the omics dataframe.
@@ -199,13 +191,13 @@ def append_clinical_to_omics(clinical_cols, omics_df, omics_cols=None):
     clinical = get_clinical()
     return Utilities().append_clinical_to_omics(clinical, omics_df, clinical_cols, omics_cols)
 
-def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multiple_mutations=False, show_location=True):
+def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, multiple_mutations=False, show_location=True):
     """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
 
     Parameters:
-    mutation_genes (str or list): The gene(s) to get mutation data for. str if one gene, list if multiple.
     omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the mutation data to.
-    omics_genes (str or list, optional): Gene(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
+    mutation_genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): The gene(s) to get mutation data for. str if one gene, list or pandas.core.series.Series or pandas.core.indexes.base.Index if multiple.
+    omics_genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index, optional): Gene(s) to select from the omics dataframe. str if one gene, list or pandas.core.series.Series or pandas.core.indexes.base.Index if multiple. Default will select entire dataframe.
     multiple_mutations (bool, optional): Whether to keep multiple mutations on the same gene for one sample, or only report the highest priority mutation.
     show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
 

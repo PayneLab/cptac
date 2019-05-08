@@ -60,11 +60,11 @@ class Utilities:
         return selected
 
     def get_cols_from_omics(self, omics_df, genes): # private
-        """Based on a list or pandas.core.series.Series or pandas.core.indexes.base.Index of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
+        """Based on a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
 
         Parameters:
         omics_df (pandas.core.frame.DataFrame): omics dataframe to select column(s) from.
-        genes (list or pandas.core.series.Series or pandas.core.indexes.base.Index): list or pandas.core.series.Series or pandas.core.indexes.base.Index of genes, as strings, to use to select columns.
+        genes (list or pandas.core.series.Series or pandas.core.indexes.base.Index): list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes, as strings, to use to select columns.
 
         Returns:
         pandas.core.frame.DataFrame: The selected columns from the dataframe.
@@ -79,11 +79,11 @@ class Utilities:
         return df
 
     def get_omics_from_str_or_list(self, omics_df, genes):
-        """Determines whether you passed it a single gene or a list or pandas.core.series.Series or pandas.core.indexes.base.Index of genes, selects the corresponding columns from the omics dataframe, and returns them.
+        """Determines whether you passed it a single gene or a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes, selects the corresponding columns from the omics dataframe, and returns them.
 
         Parameters:
         omics_df (pandas.core.frame.DataFrame): omics dataframe to select columns from
-        genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): gene(s) to use to select columns from omics_df. str if one gene, list or pandas.core.series.Series or pandas.core.indexes.base.Index if multiple. Passing None will select the entire omics dataframe.
+        genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): gene(s) to use to select columns from omics_df. str if one gene, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) if multiple. Passing None will select the entire omics dataframe.
 
         Returns:
         pandas.core.frame.DataFrame: the columns from omics_df corresponding to the gene(s), as a dataframe.
@@ -100,13 +100,13 @@ class Utilities:
             print("Genes parameter \n{}\nis of invalid type {}. Valid types: str, list, or NoneType.".format(genes, type(genes)))
 
     def compare_omics(self, df1, df2, genes1, genes2):
-        """Select columns for one gene or a list or pandas.core.series.Series or pandas.core.indexes.base.Index of genes from one omics dataframe, and columns for another gene or list or pandas.core.series.Series or pandas.core.indexes.base.Index or pandas.core.series.Series or pandas.core.indexes.base.Index of genes from another omics dataframe, and join them into one dataframe.
+        """Select columns for one gene or a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes from one omics dataframe, and columns for another gene or list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes from another omics dataframe, and join them into one dataframe.
 
         Parameters:
         df1 (pandas.core.frame.DataFrame): first omics dataframe to select from.
-        genes1 (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): gene(s) for column(s) to select from the first omics dataframe. str if one gene, list or pandas.core.series.Series or pandas.core.indexes.base.Index of strings if multiple genes. Passing None will select the entire omics dataframe.
+        genes1 (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): gene(s) for column(s) to select from the first omics dataframe. str if one gene, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of strings if multiple genes. Passing None will select the entire omics dataframe.
         df2 (pandas.core.frame.DataFrame): second omics dataframe to select from.
-        genes2 (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): gene(s) for column(s) to select from the second omics dataframe. str if one gene, list or pandas.core.series.Series or pandas.core.indexes.base.Index of strings if multiple genes. Passing None will select the entire omics dataframe.
+        genes2 (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): gene(s) for column(s) to select from the second omics dataframe. str if one gene, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of strings if multiple genes. Passing None will select the entire omics dataframe.
 
         Returns:
         pandas.core.frame.DataFrame: The data from the selected columns from the two dataframes, joined into one dataframe.
@@ -144,7 +144,7 @@ class Utilities:
 
         Parameters:
         df (pandas.core.frame.DataFrame): The dataframe to select the column from. Either clinical, derived_molecular, or experimental_setup.
-        cols (list or pandas.core.series.Series or pandas.core.indexes.base.Index): A list or pandas.core.series.Series or pandas.core.indexes.base.Index of the columns, as strings, to select from the dataframe.
+        cols (list or pandas.core.series.Series or pandas.core.indexes.base.Index): A list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of the columns, as strings, to select from the dataframe.
 
         Returns:
         pandas.core.frame.DataFrame: The specified columns from the given dataframe.
@@ -159,11 +159,11 @@ class Utilities:
         return return_df
 
     def get_metadata_from_str_or_list(self, df, cols):
-        """Determines whether you passed it a single column or a list or pandas.core.series.Series or pandas.core.indexes.base.Index of columns, then selects them from the given dataframe, and returns them.
+        """Determines whether you passed it a single column or a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of columns, then selects them from the given dataframe, and returns them.
 
         Parameters:
         df (pandas.core.frame.DataFrame): The dataframe to select column(s) from. Either clinical, derived_molecular, or experimental_setup.
-        cols (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): Column(s) to select from the dataframe. str if one, list or pandas.core.series.Series or pandas.core.indexes.base.Index if multiple.
+        cols (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): Column(s) to select from the dataframe. str if one, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) if multiple.
 
         Returns:
         pandas.core.frame.DataFrame: The specificed columns from the given dataframe.
@@ -183,7 +183,7 @@ class Utilities:
         Parameters:
         df (pandas.core.frame.DataFrame): Either the clinical, derived_molecular, or experimental_setup dataframe, from which we'll select our columns to append.
         omics_df (pandas.core.frame.DataFrame): The omics dataframe to append to.
-        df_cols (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): Column(s) to select from the clinical, derived_molecular, or experimental_setup dataframe. str if one column, list or pandas.core.series.Series or pandas.core.indexes.base.Index of strings if multiple.
+        df_cols (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): Column(s) to select from the clinical, derived_molecular, or experimental_setup dataframe. str if one column, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of strings if multiple.
         omics_cols (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): Gene(s) to select data for from the omics dataframe. Passing None will select the entire omics dataframe.
 
         Returns:
@@ -230,7 +230,7 @@ class Utilities:
         return mutations
 
     def get_mutations_for_genes(self, somatic, genes, multiple_mutations):
-        """Gets all the mutations for a list or pandas.core.series.Series or pandas.core.indexes.base.Index of genes, for all patients.
+        """Gets all the mutations for a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes, for all patients.
 
         Parameters:
         somatic (pandas.core.frame.DataFrame): The somatic mutation dataframe that we'll grab the mutation data from.
@@ -250,11 +250,11 @@ class Utilities:
         return df
 
     def get_mutations_from_str_or_list(self, somatic, genes, multiple_mutations):
-        """Determines whether you passed it a single gene or a list or pandas.core.series.Series or pandas.core.indexes.base.Index of genes, selects the corresponding mutations from the somatic mutation dataframe, and returns them.
+        """Determines whether you passed it a single gene or a list (or pandas.core.series.Series or pandas.core.indexes.base.Index of genes), selects the corresponding mutations from the somatic mutation dataframe, and returns them.
 
         Parameters:
         somatic (pandas.core.frame.DataFrame): The somatic mutation dataframe we'll grab the mutation data from.
-        genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): gene(s) to select mutations for. str if one gene, list or pandas.core.series.Series or pandas.core.indexes.base.Index if multiple.
+        genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): gene(s) to select mutations for. str if one gene, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) if multiple.
         multiple_mutations (bool): Whether to keep multiple mutations on the gene for each patient, or only report the highest priority mutation per patient. 
 
         Returns:
@@ -273,8 +273,8 @@ class Utilities:
         Parameters:
         somatic (pandas.core.frame.DataFrame): Somatic mutation dataframe we'll get the dataframe.
         omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the mutation data to.
-        mutation_genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): The gene(s) to get mutation data for. str if one gene, list or pandas.core.series.Series or pandas.core.indexes.base.Index if multiple.
-        omics_genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): Gene(s) to select from the omics dataframe. str if one gene, list or pandas.core.series.Series or pandas.core.indexes.base.Index if multiple. Passing None will select the entire omics dataframe.
+        mutation_genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): The gene(s) to get mutation data for. str if one gene, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) if multiple.
+        omics_genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): Gene(s) to select from the omics dataframe. str if one gene, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) if multiple. Passing None will select the entire omics dataframe.
         multiple_mutations (bool): Whether to keep multiple mutations on the gene for each patient, or only report the highest priority mutation per patient. 
         show_location (bool): Whether to include the Location column from the mutation dataframe.
 

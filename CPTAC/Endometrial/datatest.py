@@ -892,15 +892,15 @@ def test_append_mutations_source_preservation():
     acet_copy = acet.copy()
 
     # Call append_mutations_to_omics a bunch of times
-    en.append_mutations_to_omics(mut_gene, acet)
-    en.append_mutations_to_omics(mut_genes, acet)
-    en.append_mutations_to_omics(mut_gene, acet, acet_gene)
-    en.append_mutations_to_omics(mut_gene, acet, acet_genes)
-    en.append_mutations_to_omics(mut_genes, acet, acet_gene)
-    en.append_mutations_to_omics(mut_genes, acet, acet_genes)
-    en.append_mutations_to_omics(mut_genes, acet, acet_genes, multiple_mutations=True)
-    en.append_mutations_to_omics(mut_genes, acet, acet_genes, show_location=False)
-    en.append_mutations_to_omics(mut_genes, acet, acet_genes, multiple_mutations=True, show_location=False)
+    en.append_mutations_to_omics(acet, mut_gene)
+    en.append_mutations_to_omics(acet, mut_genes)
+    en.append_mutations_to_omics(acet, mut_gene, acet_gene)
+    en.append_mutations_to_omics(acet, mut_gene, acet_genes)
+    en.append_mutations_to_omics(acet, mut_genes, acet_gene)
+    en.append_mutations_to_omics(acet, mut_genes, acet_genes)
+    en.append_mutations_to_omics(acet, mut_genes, acet_genes, multiple_mutations=True)
+    en.append_mutations_to_omics(acet, mut_genes, acet_genes, show_location=False)
+    en.append_mutations_to_omics(acet, mut_genes, acet_genes, multiple_mutations=True, show_location=False)
 
     # Check that the source dataframes weren't changed
     if not mut.equals(mut_copy):
@@ -924,7 +924,7 @@ def test_append_mutations_one_mut_all_omics():
     mut_gene = 'PIK3CA'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(mut_gene, phos)
+    appended = en.append_mutations_to_omics(phos, mut_gene)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -963,7 +963,7 @@ def test_append_mutations_three_mut_all_omics():
     mut_genes = ['PIK3CA', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(mut_genes, phos)
+    appended = en.append_mutations_to_omics(phos, mut_genes)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1003,7 +1003,7 @@ def test_append_mutations_one_mut_one_omics():
     mut_gene = 'PIK3CA'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(mut_gene, phos, omics_genes=phos_gene)
+    appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_gene)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1048,7 +1048,7 @@ def test_append_mutations_three_mut_one_omics():
     mut_genes = ['PIK3CA', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(mut_genes, phos, omics_genes=phos_gene)
+    appended = en.append_mutations_to_omics(phos, mut_genes, omics_genes=phos_gene)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1093,7 +1093,7 @@ def test_append_mutations_one_mut_three_omics():
     mut_gene = 'PIK3CA'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(mut_gene, phos, omics_genes=phos_genes)
+    appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_genes)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1138,7 +1138,7 @@ def test_append_mutations_three_mut_three_omics():
     mut_genes = ['PIK3CA', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(mut_genes, phos, omics_genes=phos_genes)
+    appended = en.append_mutations_to_omics(phos, mut_genes, omics_genes=phos_genes)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1182,7 +1182,7 @@ def test_append_mutations_one_mut_all_omics_no_location():
     mut_gene = 'PIK3CA'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(mut_gene, phos, show_location=False)
+    appended = en.append_mutations_to_omics(phos, mut_gene, show_location=False)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1221,7 +1221,7 @@ def test_append_mutations_three_mut_all_omics_no_location():
     mut_genes = ['PIK3CA', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(mut_genes, phos, show_location=False)
+    appended = en.append_mutations_to_omics(phos, mut_genes, show_location=False)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1274,7 +1274,7 @@ def test_append_mutations_invalid_key():
     invalid_list = ['PIK3CA', 'TAF1', 'GP6', 'lorem ipsum']
 
     # Test one invalid key
-    appended = en.append_mutations_to_omics(invalid, acet)
+    appended = en.append_mutations_to_omics(acet, invalid)
     if appended is not None:
         print("append_mutations_to_omics should have returned None when passed an invalid key, but instead returned a {}".format(type(appended)))
         PASS = False
@@ -1282,7 +1282,7 @@ def test_append_mutations_invalid_key():
         print("(NOTE: The invalid key message above was expected.)")
 
     # Test one invalid key in a list of valid keys
-    appended = en.append_mutations_to_omics(invalid_list, acet)
+    appended = en.append_mutations_to_omics(acet, invalid_list)
     if appended is not None:
         print("append_mutations_to_omics should have returned None when passed a list of valid keys containing one invalid key, but instead returned a {}".format(type(appended)))
         PASS = False
