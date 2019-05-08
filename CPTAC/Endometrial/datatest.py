@@ -417,12 +417,12 @@ def test_get_proteomics():
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
-def test_get_transcriptomics_linear():
-    """Test get_transcriptomics_linear."""
+def test_get_transcriptomics():
+    """Test get_transcriptomics."""
 
-    print('Running test_get_transcriptomics_linear...')
+    print('Running test_get_transcriptomics...')
 
-    df = en.get_transcriptomics_linear()
+    df = en.get_transcriptomics()
     name = "transcriptomics_linear"
     dimensions = (109, 28057)
     headers = ['A1BG', 'A1BG-AS1', 'A1CF', 'A2M', 'A2M-AS1', 'A2ML1', 'A2MP1', 'A3GALT2', 'A4GALT', 'A4GNT', 'ZWILCH', 'ZWINT', 'ZXDA', 'ZXDB', 'ZXDC', 'ZYG11A', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3']
@@ -477,12 +477,12 @@ def test_get_cna():
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
-def test_get_phosphoproteomics_site():
-    """Test get_phosphoproteomics_site."""
+def test_get_phosphoproteomics():
+    """Test get_phosphoproteomics."""
 
-    print('Running test_get_phosphoproteomics_site...')
+    print('Running test_get_phosphoproteomics...')
 
-    df =  en.get_phosphoproteomics_site()
+    df =  en.get_phosphoproteomics()
     name = "phosphoproteomics_site"
     dimensions = (144, 73212)
     headers = ['AAAS-S495', 'AAAS-S541', 'AAAS-Y485', 'AACS-S618', 'AAED1-S12', 'AAGAB-S310', 'AAGAB-S311', 'AAK1-S14', 'AAK1-S18', 'AAK1-S20', 'ZZZ3-S397', 'ZZZ3-S411', 'ZZZ3-S420', 'ZZZ3-S424', 'ZZZ3-S426', 'ZZZ3-S468', 'ZZZ3-S89', 'ZZZ3-T415', 'ZZZ3-T418', 'ZZZ3-Y399']
@@ -523,12 +523,12 @@ def test_get_phosphosites():
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
-def test_get_mutations_maf():
-    """Test get_mutations_maf."""
+def test_get_mutations():
+    """Test get_mutations."""
 
-    print('Running test_get_mutations_maf...')
+    print('Running test_get_mutations...')
 
-    df = en.get_mutations_maf()
+    df = en.get_mutations()
     name = "somatic MAF"
     dimensions = (52560, 5)
     headers = ['Clinical_Patient_Key', 'Patient_Id', 'Gene', 'Mutation', 'Location']
@@ -549,21 +549,6 @@ def test_get_mutations_binary():
     headers = ['A1BG_p.E298K', 'A1BG_p.S181N', 'A1CF_p.F487L', 'A1CF_p.S236Y', 'A2ML1_p.A8V', 'A2ML1_p.G1306D', 'A2ML1_p.L1347F', 'A2ML1_p.L82I', 'A2ML1_p.P712S', 'A2ML1_p.R443Q', 'ZYG11A_p.Q442H', 'ZYG11B_p.H315R', 'ZYG11B_p.R495M', 'ZYG11B_p.R728C', 'ZYX_p.C447Y', 'ZZEF1_p.A2723V', 'ZZEF1_p.D845Y', 'ZZEF1_p.K1251E', 'ZZEF1_p.K2387Sfs*40', 'ZZZ3_p.Y891C']
     test_coord = ((94, 51558), (0, 0), (45, 25436))
     test_vals = (0, 0, 0)
-
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
-    print_test_result(PASS)
-
-def test_get_mutations_unparsed():
-    """Test get_mutations_unparsed."""
-
-    print('Running test_get_mutations_unparsed...')
-
-    df = en.get_mutations_unparsed()
-    name = "somatic MAF unparsed"
-    dimensions = (53101, 124)
-    headers = ['Hugo_Symbol', 'Entrez_Gene_Id', 'Center', 'NCBI_Build', 'Chromosome', 'Start_Position', 'End_Position', 'Strand', 'Variant_Classification', 'Variant_Type', 'ExAC_AC_AN_Adj', 'ExAC_AC_AN', 'ExAC_AC_AN_AFR', 'ExAC_AC_AN_AMR', 'ExAC_AC_AN_EAS', 'ExAC_AC_AN_FIN', 'ExAC_AC_AN_NFE', 'ExAC_AC_AN_OTH', 'ExAC_AC_AN_SAS', 'ExAC_FILTER']
-    test_coord = ((52265, 45), (12, 70), (27658, 1))
-    test_vals = ('strelkasnv-varssnv-mutectsnv', 'UPI0000167B91', 0)
 
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
@@ -751,10 +736,10 @@ def test_compare_omics_all_dfs():
     # Load our dataframes to test, and set our genes. We call individual parameters, to make sure the columns are formatted properly.
     acet = en.get_acetylproteomics()
     cna = en.get_cna()
-    phosg = en.get_phosphoproteomics_gene()
+    phosg = en.get_phosphoproteomics()
     phoss = en.get_phosphoproteomics_site()
     prot = en.get_proteomics()
-    tran = en.get_transcriptomics_linear()
+    tran = en.get_transcriptomics()
     gene1 = 'TP53'
     gene2 = 'AAGAB'
 
@@ -869,10 +854,6 @@ def test_compare_omics_invalid_key_types():
     acet_valid = 'AACS'
     int_key = 100
     prot_valid_list = ['TP53', 'AURKA', 'PIK3CA']
-    prot_dict = {0:'TP53', 1:'AURKA', 2:'PIK3CA'} # Create a prep dict for our series we'll use
-    prot_series = pd.Series(prot_dict)
-    acet_dict = {0:'AAGAB', 1:'AACS', 2:'ZW10'} # Create a prep dict for our series we'll use
-    acet_series = pd.Series(acet_dict)
 
     # Test a key of type int
     comp = en.compare_omics(prot, acet, prot_valid, int_key)
@@ -886,22 +867,6 @@ def test_compare_omics_invalid_key_types():
     comp = en.compare_omics(prot, acet, int_key, int_key)
     if comp is not None:
         print("compare_omics should have returned None when passed two keys of type int, but instead returned a {}".format(type(comp)))
-        PASS = False
-    else:
-        print("(NOTE: The invalid key messages above were expected.)")
-
-    # Test a key of type pandas.core.series.Series
-    comp = en.compare_omics(prot, acet, prot_valid_list, acet_series)
-    if comp is not None:
-        print("compare_omics should have returned None when passed a pandas.core.series.Series, but instead returned a {}".format(type(comp)))
-        PASS = False
-    else:
-        print("(NOTE: The invalid key message above was expected.)")
-
-    # Test two keys of type pandas.core.series.Series
-    comp = en.compare_omics(prot, acet, prot_series, acet_series)
-    if comp is not None:
-        print("compare_omics should have returned None when passed two pandas.core.series.Series, but instead returned a {}".format(type(comp)))
         PASS = False
     else:
         print("(NOTE: The invalid key messages above were expected.)")
@@ -955,7 +920,7 @@ def test_append_mutations_one_mut_all_omics():
     PASS = True
 
     # Load the source dataframe and set our keys
-    phos = en.get_phosphoproteomics_site()
+    phos = en.get_phosphoproteomics()
     mut_gene = 'PIK3CA'
 
     # Run the function, make sure it returned properly
@@ -994,7 +959,7 @@ def test_append_mutations_three_mut_all_omics():
     PASS = True
 
     # Load the source dataframe and set our keys
-    phos = en.get_phosphoproteomics_site()
+    phos = en.get_phosphoproteomics()
     mut_genes = ['PIK3CA', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
@@ -1033,7 +998,7 @@ def test_append_mutations_one_mut_one_omics():
     PASS = True
 
     # Load the source dataframe and set our keys
-    phos = en.get_phosphoproteomics_site()
+    phos = en.get_phosphoproteomics()
     phos_gene = 'AAGAB'
     mut_gene = 'PIK3CA'
 
@@ -1078,7 +1043,7 @@ def test_append_mutations_three_mut_one_omics():
     PASS = True
 
     # Load the source dataframe and set our keys
-    phos = en.get_phosphoproteomics_site()
+    phos = en.get_phosphoproteomics()
     phos_gene = 'AAGAB'
     mut_genes = ['PIK3CA', 'TP53', 'AURKA']
 
@@ -1123,7 +1088,7 @@ def test_append_mutations_one_mut_three_omics():
     PASS = True
 
     # Load the source dataframe and set our keys
-    phos = en.get_phosphoproteomics_site()
+    phos = en.get_phosphoproteomics()
     phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
     mut_gene = 'PIK3CA'
 
@@ -1168,7 +1133,7 @@ def test_append_mutations_three_mut_three_omics():
     PASS = True
 
     # Load the source dataframe and set our keys
-    phos = en.get_phosphoproteomics_site()
+    phos = en.get_phosphoproteomics()
     phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
     mut_genes = ['PIK3CA', 'TP53', 'AURKA']
 
@@ -1213,7 +1178,7 @@ def test_append_mutations_one_mut_all_omics_no_location():
     PASS = True
 
     # Load the source dataframe and set our keys
-    phos = en.get_phosphoproteomics_site()
+    phos = en.get_phosphoproteomics()
     mut_gene = 'PIK3CA'
 
     # Run the function, make sure it returned properly
@@ -1252,7 +1217,7 @@ def test_append_mutations_three_mut_all_omics_no_location():
     PASS = True
 
     # Load the source dataframe and set our keys
-    phos = en.get_phosphoproteomics_site()
+    phos = en.get_phosphoproteomics()
     mut_genes = ['PIK3CA', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
@@ -1412,16 +1377,15 @@ print("\nRunning tests:\n")
 #test_get_acetylproteomics_filtered()
 #test_get_acetylproteomics_unfiltered()
 #test_get_proteomics()
-#test_get_transcriptomics_linear()
+#test_get_transcriptomics()
 #test_get_transcriptomics_circular()
 #test_get_miRNA()
 #test_get_cna()
-#test_get_phosphoproteomics_site()
+#test_get_phosphoproteomics()
 #test_get_phosphoproteomics_gene()
 #test_get_phosphosites()
-#test_get_mutations_maf()
+#test_get_mutations()
 #test_get_mutations_binary()
-#test_get_mutations_unparsed()
 #
 #print("\nTesting compare and append functions...")
 #test_compare_omics_source_preservation()

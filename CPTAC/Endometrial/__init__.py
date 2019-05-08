@@ -129,9 +129,6 @@ print("Loading Somatic Mutation Data...")
 somatic_binary_u = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
 somatic_binary = somatic_binary_u.drop(casesToDrop, errors = "ignore")
 somatic_binary.name = "somatic binary"
-somatic_unparsed_u = pd.read_csv(data_directory + "somatic.maf.gz", sep = "\t")
-somatic_unparsed = somatic_unparsed_u.drop(casesToDrop, errors = "ignore")
-somatic_unparsed.name = "somatic MAF unparsed"
 somatic_maf_u = DataFrameLoader(data_directory + "somatic.maf.gz").createDataFrame()
 patient_ids = create_patient_ids(clinical_unfiltered) #maps C3L-**** number to S*** number
 somatic_maf_u = link_patient_ids(patient_ids, somatic_maf_u) #adds S*** number to somatic mutations dataframe
@@ -257,34 +254,8 @@ def get_proteomics(unfiltered=False):
         unfiltered_warning()
         return proteomics_u
     return proteomics
-def get_transcriptomics(data_type="linear", unfiltered=False):
-    """
-    Parameters
-    data_type: either "linear", "circular", or "miRNA". Indicates which transcriptomics dataframe you want.
-    unfiltered: boolean indicating whether to return unfiltered transcriptomics data
 
-    Returns
-    Transcriptomics dataframe
-    """
-    if data_type == "linear":
-        if unfiltered:
-            unfiltered_warning()
-            return transcriptomics_u
-        return transcriptomics
-    elif data_type == "circular":
-        if unfiltered:
-            unfiltered_warning()
-            return transcriptomics_circular_u
-        return transcriptomics_circular
-    elif data_type == "miRNA":
-        if unfiltered:
-            unfiltered_warning()
-            return miRNA_u
-        return miRNA
-    else:
-        raise ValueError("Invalid value for get_transcriptomics() data_type parameter.\n\tYou passed: '{}'\n\tOptions: 'linear', 'circular', or 'miRNA'".format(data_type))
-
-def get_transcriptomics_linear(unfiltered=False):
+def get_transcriptomics(unfiltered=False):
     """Gets transcriptomics_linear dataframe.
 
     Parameters:
@@ -338,26 +309,8 @@ def get_cna(unfiltered=False):
         unfiltered_warning()
         return cna_u
     return cna
-def get_phosphoproteomics(gene_level=False, unfiltered=False):
-    """
-    Parameters
-    gene_level: boolean indicating whether to return gene level phosphoproteomics (returns site level if false)
-    unfiltered: boolean indicating whether to return unfiltered phosphoproteomics data
 
-    Returns
-    Phosphoproteomics dataframe
-    """
-    if gene_level:
-        if unfiltered:
-            unfiltered_warning()
-            return phosphoproteomics_gene_u
-        return phosphoproteomics_gene
-    if unfiltered:
-        unfiltered_warning()
-        return phosphoproteomics_u
-    return phosphoproteomics
-
-def get_phosphoproteomics_site(unfiltered=False):
+def get_phosphoproteomics(unfiltered=False):
     """Gets the phosphoproteomics_site dataframe.
 
     Parameters:
@@ -372,7 +325,7 @@ def get_phosphoproteomics_site(unfiltered=False):
     return phosphoproteomics
 
 def get_phosphoproteomics_gene(unfiltered=False):
-    """Gets the phosphoproteomics_gene dataframe.
+    """Gets the phosphoproteomics_gene dataframe. This dataframe contains aggregated phosphoproteomic data for each gene.
 
     Parameters:
     unfiltered (bool, optional): Whether to include unfiltered samples. Default is false.
@@ -392,38 +345,11 @@ def get_phosphosites(genes):
     genes (str or list): gene or list of genes to use to select phosphosites. str if single, list if multiple.
 
     Returns:
-    pandas.core.frame.DataFrame: The phosphoproteomics for the specified genes.
+    pandas.core.frame.DataFrame: The phosphoproteomics for the specified gene(s).
     """
     return Utilities().get_omics_from_str_or_list(phosphoproteomics, genes)
 
-def get_mutations(binary=False, unparsed=False, unfiltered=False):
-    """
-    Parameters
-    binary: boolean indicating whether to retrieve the somatic mutations binary data
-    unparsed: boolean indicating whether to retrieve unparsed somatic mutations maf data
-    unfiltered: boolean indicating whether to return unfiltered somatic data
-
-    Default behavior is to return parsed somatic mutations maf data
-
-    Returns
-    Somatic mutations dataframe corresponding with parameters provided
-    """
-    if binary:
-        if unfiltered:
-            unfiltered_warning()
-            return somatic_binary_u
-        return somatic_binary
-    if unparsed:
-        if unfiltered:
-            unfiltered_warning()
-            return somatic_unparsed_u
-        return somatic_unparsed
-    if unfiltered:
-        unfiltered_warning()
-        return somatic_maf_u
-    return somatic_maf
-
-def get_mutations_maf(unfiltered=False):
+def get_mutations(unfiltered=False):
     """Gets the somatic_maf mutations dataframe.
 
     Parameters:
@@ -438,7 +364,7 @@ def get_mutations_maf(unfiltered=False):
     return somatic_maf
 
 def get_mutations_binary(unfiltered=False):
-    """Gets the somatic_binary mutations dataframe.
+    """Gets the somatic_binary mutations dataframe, which has a binary value indicating, for each location on each gene, whether there was a mutation in that gene at that location, for each sample.
 
     Parameters:
     unfiltered (bool, optional): Whether to include unfiltered samples. Default is false.
@@ -450,20 +376,6 @@ def get_mutations_binary(unfiltered=False):
         unfiltered_warning()
         return somatic_binary_u
     return somatic_binary
-
-def get_mutations_unparsed(unfiltered=False):
-    """Gets the somatic_unparsed mutations dataframe.
-
-    Parameters:
-    unfiltered (bool, optional): Whether to include unfiltered samples. Default is false.
-
-    Returns:
-    pandas.core.frame.DataFrame: The somatic_unparsed mutations dataframe.
-    """
-    if unfiltered:
-        unfiltered_warning()
-        return somatic_unparsed_u
-    return somatic_unparsed
 
 def get_clinical_cols():
     """
@@ -621,61 +533,45 @@ def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     # Return the merge.
     return Utilities().compare_omics(omics_df1, omics_df2, cols1, cols2)
 
-def append_clinical_to_omics(clinical_cols, omics_df, omics_cols=None):
-    """Append columns from clinical dataframe to part or all of an omics dataframe.
+def append_metadata_to_omics(metadata_df, omics_df, metadata_cols=None, omics_cols=None):
+    """Append columns from either the clinical, derived_molecular, or experimental_setup dataframe to part or all of an omics dataframe.
 
     Parameters:
-    clinical_cols (str or list): Column(s) to select from the clinical dataframe. str if one gene, list if multiple.
-    omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the clinical columns to.
+    metadata_df (pandas.core.frame.DataFrame): Metadata dataframe to select columns from. Either clinical, derived_molecular, or experimental_setup.
+    omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the metadata columns to.
+    metadata_cols (str or list): Column(s) to select from the metadata dataframe. str if one gene, list if multiple.
     omics_cols (str or list, optional): Column(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
 
     Returns:
-    pandas.core.frame.DataFrame: The selected clinical columns, merged with all or part of the omics dataframe.
+    pandas.core.frame.DataFrame: The selected metadata columns, merged with all or part of the omics dataframe.
     """
+    # Make sure metadata_df is the right kind of dataframe
+    valid_metadata_dfs = [
+        'clinical',
+        'derived_molecular',
+        'experimental_setup']
+    if (metadata_df.name not in valid_metadata_dfs):
+        print("{} is not a valid dataframe for metadata_df parameter. Valid options:".format(metadata_df.name))
+        for df_name in valid_metadata_dfs:
+            print('\t' + df_name)
+        return
+
     # Make sure omics_df is the right kind of dataframe
-    valid_dfs = [
+    valid_omics_dfs = [
         'acetylproteomics',
         'proteomics',
         'transcriptomics_linear', # But not transcriptomics_circular or miRNA--they have incompatible column names.
         'cna',
         'phosphoproteomics_site',
         'phosphoproteomics_gene']
-    if (omics_df.name not in valid_dfs):
+    if (omics_df.name not in valid_omics_dfs):
         print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))
-        for df_name in valid_dfs:
+        for df_name in valid_omics_dfs:
             print('\t' + df_name)
         return
 
     # Return the merge.
-    return Utilities().append_clinical_or_derived_molecular_to_omics(clinical, omics_df, clinical_cols, omics_cols)
-
-def append_derived_molecular_to_omics(derived_molecular_cols, omics_df, omics_cols=None):
-    """Append columns from derived_molecular dataframe to all or part of an omics dataframe.
-
-    Parameters:
-    derived_molecular_cols (str or list): Column(s) to select from the derived_molecular dataframe. str if one gene, list if multiple.
-    omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the derived_molecular columns to.
-    omics_cols (str or list, optional): Column(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
-
-    Returns:
-    pandas.core.frame.DataFrame: The selected derived_molecular columns, merged with all or part of the omics dataframe.
-    """
-    # Make sure omics_df is the right kind of dataframe
-    valid_dfs = [
-        'acetylproteomics',
-        'proteomics',
-        'transcriptomics_linear', # But not transcriptomics_circular or miRNA--they have incompatible column names.
-        'cna',
-        'phosphoproteomics_site',
-        'phosphoproteomics_gene']
-    if (omics_df.name not in valid_dfs):
-        print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))
-        for df_name in valid_dfs:
-            print('\t' + df_name)
-        return
-
-    # Return the merge.
-    return Utilities().append_clinical_or_derived_molecular_to_omics(derived_molecular, omics_df, derived_molecular_cols, omics_cols)
+    return Utilities().append_metadata_to_omics(metadata_df, omics_df, metadata_cols, omics_cols)
 
 def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multiple_mutations=False, show_location=True):
     """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
