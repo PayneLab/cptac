@@ -89,7 +89,7 @@ class Utilities:
         """
         if isinstance(genes, str): # If it's a single gene, feed it to the proper function
             return self.get_col_from_omics(omics_df, genes)
-        elif isinstance(genes, list or pandas.core.series.Series or pandas.core.indexes.base.Index): # If it's a list or pandas.core.series.Series or pandas.core.indexes.base.Index of genes, feed it to the proper function
+        elif isinstance(genes, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's a list or pandas.core.series.Series or pandas.core.indexes.base.Index of genes, feed it to the proper function
             return self.get_cols_from_omics(omics_df, genes)
         elif genes is None: # If it's the default of None, rename columns and return the entire dataframe
             return_df = omics_df.rename(columns=lambda x:'{}_{}'.format(x, omics_df.name)) # Append dataframe name to end of each column header, to preserve info when we merge dataframes
@@ -169,7 +169,7 @@ class Utilities:
         """
         if isinstance(cols, str): # If it's a single column, feed it to the proper function
             return self.get_col_from_clinical(df, cols)
-        elif isinstance(cols, list or pandas.core.series.Series or pandas.core.indexes.base.Index): # If it's a list or pandas.core.series.Series or pandas.core.indexes.base.Index of columns, feed it to the proper function
+        elif isinstance(cols, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's a list or pandas.core.series.Series or pandas.core.indexes.base.Index of columns, feed it to the proper function
             return self.get_cols_from_clinical(df, cols)
         elif cols is None: # If it's the default of None, return the entire dataframe.
             return df
@@ -259,7 +259,7 @@ class Utilities:
         """
         if isinstance(genes, str): # If it's a single gene, feed it to the proper function
             return self.get_mutations_for_gene(somatic, genes, multiple_mutations)
-        elif isinstance(genes, list or pandas.core.series.Series or pandas.core.indexes.base.Index): # If it's a list or pandas.core.series.Series or pandas.core.indexes.base.Index of genes, feed it to the proper function
+        elif isinstance(genes, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's a list or pandas.core.series.Series or pandas.core.indexes.base.Index of genes, feed it to the proper function
             return self.get_mutations_for_genes(somatic, genes, multiple_mutations)
         else: # If it's neither of those, they done messed up. Tell 'em.
             print("Genes parameter {} is of invalid type {}. Valid types: str or list or pandas.core.series.Series or pandas.core.indexes.base.Index.".format(genes, type(genes)))
