@@ -28,19 +28,22 @@ def print_test_result(PASS):
     else:
         print('\tFAIL\n')
 
-def build_omics_regex(genes):
+def build_omics_regex(genes, suffix=""):
     """Builds a regex from a list of genes to grab all columns corresponding to those genes from the acetylproteomics or phosphoproteomics dataframes.
 
     Parameters:
-    genes (list): List of the genes, as strings
+    genes (str or list): one gene as a string, or a list of the genes, as strings
+    suffix (str, optional): a suffix to put on the end of the regex, if needed. Default is empty string.
 
     Returns:
     str: regex to get the columns for those genes.
     """
     regex = '^('
-    for gene in acet_genes:
+    if isinstance(genes, str):
+        genes = [genes]
+    for gene in genes:
         regex = regex + gene + '|'
-    regex = regex[:-1] + ')-.*$'
+    regex = regex[:-1] + ')' + suffix + '$'
     return regex
 
 def check_returned_is_df(returned):
@@ -622,14 +625,15 @@ def test_compare_omics_single_gene():
         PASS = False
 
     # Figure out which columns from proteomics correspond to prot_gene (should be just one)
-    prot_regex = "^{}$".format(prot_gene)
+    prot_regex = build_omics_regex(prot_gene)
     prot_cols = prot.filter(regex=prot_regex)
     if len(prot_cols.columns) != 1:
         print("Unexpected number of matching proteomics columns in test.\n\tExpected: 1\n\tActual: {}".format(len(prot_cols)))
         PASS = False
 
     # Figure out which columns from acetylproteomics correspond to acet_gene
-    acet_regex = "{}-.*".format(acet_gene)
+    acet_suffix = "-.*"
+    acet_regex = build_omics_regex(acet_gene, suffix=acet_suffix)
     acet_cols = acet.filter(regex=acet_regex)
 
     # Check dataframe shape
@@ -677,16 +681,15 @@ def test_compare_omics_multiple_genes():
         PASS = False
 
     # Figure out which columns from proteomics correspond to prot_gene (should be the same number as number of genes in prot_genes)
-    prot_regex = "^(" # Build a regex to grab all columns that match any of the genes
-    for gene in prot_genes:
-        prot_regex = prot_regex + gene + '|'
-    prot_regex = prot_regex[:-1] + ')$'
+    prot_regex = build_omics_regex(prot_genes)
     prot_cols = prot.filter(regex=prot_regex) # Use the regex to get all matching columns
     if len(prot_cols.columns) != len(prot_genes):
         print("Unexpected number of matching proteomics columns in test.\n\tExpected: {}\n\tActual: {}".format(len(prot_genes), len(prot_cols.columns)))
         PASS = False
 
     # Figure out which columns from acetylproteomics correspond to acet_gene
+    acet_suffix = '-.*'
+    acet_regex = build_omics_regex(acet_genes, suffix=acet_suffix)
     acet_cols = acet.filter(regex=acet_regex) # Use the regex to get all matching columns
 
     # Check dataframe shape
@@ -1021,21 +1024,73 @@ def test_append_mutations_to_omics_one_mut_one_omics():
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
-    exp_name = '{}, with Somatic mutation data for {} gene'.format(phos.name, mut_gene)
+    exp_name = '{} for {}, with Somatic mutation data for {} gene'.format(phos.name, phos_gene, mut_gene)
     if not check_df_name(appended, exp_name):
         PASS = False
 
-    # Figure out which phosphoproteomic columns should have been grabbed
+    # Figure out which phosphoproteomics columns should have been grabbed
+    phos_suffix = '-.*'
+    phos_regex = build_omics_regex(phos_gene, suffix=phos_suffix)
+    phos_cols = phos.filter(regex=phos_regex) # Use the regex to get all matching columns
 
     # Check dataframe shape
     exp_num_rows = len(phos.index)
-    exp_num_cols = len(phos.columns) + 3
+    exp_num_cols = len(phos_cols.columns) + 3
     exp_shape = (exp_num_rows, exp_num_cols)
     if not check_df_shape(appended, exp_shape):
         PASS = False
 
     # Check values in columns
-    for col in phos.columns.values.tolist():
+    for col in phos_cols.columns.values.tolist():
+        merged_col = col + '_' + phos.name
+        if not check_merged_column(phos, appended, col, merged_col):
+            PASS = False
+
+    mutations = en.get_mutations() # Load the somatic mutations dataframe, which the mutation data was drawn from
+    multiple_mutations = False
+    if not check_mutation_column(mutations, appended, mut_gene, multiple_mutations):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+# Single omics, three mutation genes
+def test_append_mutations_to_omics_three_mut_one_omics():
+    """Test append_mutations_to_omics with three mutation genes and one omics gene."""
+    print("Running test_append_mutations_to_omics_three_mut_one_omics...")
+    PASS = True
+
+    # Load the source dataframe and set our keys
+    phos = en.get_phosphoproteomics_site()
+    phos_gene = 'AAGAB'
+    mut_genes = ['PIK3CA', 'TP53', 'AURKA']
+
+    # Run the function, make sure it returned properly
+    appended = en.append_mutations_to_omics(mut_genes, phos, omics_genes=phos_gene)
+    if not check_returned_is_df(appended):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = '{} for {}, with Somatic mutation data for {} genes'.format(phos.name, phos_gene, len(mut_genes))
+    if not check_df_name(appended, exp_name):
+        PASS = False
+
+    # Figure out which phosphoproteomics columns should have been grabbed
+    phos_suffix = '-.*'
+    phos_regex = build_omics_regex(phos_gene, suffix=phos_suffix)
+    phos_cols = phos.filter(regex=phos_regex) # Use the regex to get all matching columns
+
+    # Check dataframe shape
+    exp_num_rows = len(phos.index)
+    exp_num_cols = len(phos_cols.columns) + 7
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(appended, exp_shape):
+        PASS = False
+
+    # Check values in columns
+    for col in phos_cols.columns.values.tolist():
         merged_col = col + '_' + phos.name
         if not check_merged_column(phos, appended, col, merged_col):
             PASS = False
@@ -1049,19 +1104,64 @@ def test_append_mutations_to_omics_one_mut_one_omics():
     # Print whether the test passed
     print_test_result(PASS)
 
-# Single omics, three mutation genes
-
 # Multiple omics, one mutation gene
+def test_append_mutations_to_omics_one_mut_three_omics():
+    """Test append_mutations_to_omics with one mutation gene and three omics genes."""
+    print("Running test_append_mutations_to_omics_one_mut_three_omics...")
+    PASS = True
+
+    # Load the source dataframe and set our keys
+    phos = en.get_phosphoproteomics_site()
+    phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
+    mut_gene = 'PIK3CA'
+
+    # Run the function, make sure it returned properly
+    appended = en.append_mutations_to_omics(mut_gene, phos, omics_genes=phos_genes)
+    if not check_returned_is_df(appended):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = '{} for {} genes, with Somatic mutation data for {} gene'.format(phos.name, len(phos_genes), mut_gene)
+    if not check_df_name(appended, exp_name):
+        PASS = False
+
+    # Figure out which phosphoproteomics columns should have been grabbed
+    phos_suffix = '-.*'
+    phos_regex = build_omics_regex(phos_genes, suffix=phos_suffix)
+    phos_cols = phos.filter(regex=phos_regex) # Use the regex to get all matching columns
+
+    # Check dataframe shape
+    exp_num_rows = len(phos.index)
+    exp_num_cols = len(phos_cols.columns) + 3
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(appended, exp_shape):
+        PASS = False
+
+    # Check values in columns
+    for col in phos_cols.columns.values.tolist():
+        merged_col = col + '_' + phos.name
+        if not check_merged_column(phos, appended, col, merged_col):
+            PASS = False
+
+    mutations = en.get_mutations() # Load the somatic mutations dataframe, which the mutation data was drawn from
+    multiple_mutations = False
+    if not check_mutation_column(mutations, appended, mut_gene, multiple_mutations):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+# Show location, one mutation gene
+
+# Show location, three mutation genes
 
 # Multiple omics, three mutatation genes
 
 # Multiple mutations, one mutation gene. Use PIK3CA
 
 # Multiple mutations, three mutation genes. Use PIK3CA
-
-# Show location, one mutation gene
-
-# Show location, three mutation genes
 
 # Show location, multiple mutations, one mutation gene. Use PIK3CA
 
@@ -1170,7 +1270,10 @@ print("\nRunning tests:\n")
 #test_compare_omics_invalid_key_types()
 #test_append_mutations_to_omics_source_preservation()
 #test_append_mutations_to_omics_one_mut_all_omics()
-test_append_mutations_to_omics_three_mut_all_omics()
+#test_append_mutations_to_omics_three_mut_all_omics()
+#test_append_mutations_to_omics_one_mut_one_omics()
+#test_append_mutations_to_omics_three_mut_one_omics()
+test_append_mutations_to_omics_one_mut_three_omics()
 
 #evaluate_special_getters()
 
