@@ -503,8 +503,8 @@ def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     Parameters:
     omics_df1 (pandas.core.frame.DataFrame): First omics dataframe to select columns from.
     omics_df2 (pandas.core.frame.DataFrame): Second omics dataframe to select columns from.
-    cols1 (str or list, optional): Column(s) to select from omics_df1. str if one key, list if multiple. Defaults to None, in which case we'll select the entire dataframe.
-    cols2 (str or list, optional): Column(s) to select from omics_df2. str if one key, list if multiple. Defaults to None, in which case we'll select the entire dataframe.
+    cols1 (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index, optional): Column(s) to select from omics_df1. str if one key, list if multiple. Defaults to None, in which case we'll select the entire dataframe.
+    cols2 (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index, optional): Column(s) to select from omics_df2. str if one key, list if multiple. Defaults to None, in which case we'll select the entire dataframe.
 
     Returns:
     pandas.core.frame.DataFrame: The selected columns from omics_df1 and omics_df2, merged into one dataframe.
@@ -539,8 +539,8 @@ def append_metadata_to_omics(metadata_df, omics_df, metadata_cols=None, omics_co
     Parameters:
     metadata_df (pandas.core.frame.DataFrame): Metadata dataframe to select columns from. Either clinical, derived_molecular, or experimental_setup.
     omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the metadata columns to.
-    metadata_cols (str or list): Column(s) to select from the metadata dataframe. str if one gene, list if multiple.
-    omics_cols (str or list, optional): Column(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
+    metadata_cols (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index, optional): Column(s) to select from the metadata dataframe. str if one gene, list if multiple. Default is None, which will select the entire metadata dataframe.
+    omics_cols (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index, optional): Column(s) to select from the omics dataframe. str if one gene, list if multiple. Default is None, which will select entire dataframe.
 
     Returns:
     pandas.core.frame.DataFrame: The selected metadata columns, merged with all or part of the omics dataframe.
@@ -573,13 +573,13 @@ def append_metadata_to_omics(metadata_df, omics_df, metadata_cols=None, omics_co
     # Return the merge.
     return Utilities().append_metadata_to_omics(metadata_df, omics_df, metadata_cols, omics_cols)
 
-def append_mutations_to_omics(mutation_genes, omics_df, omics_genes=None, multiple_mutations=False, show_location=True):
+def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, multiple_mutations=False, show_location=True):
     """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
 
     Parameters:
-    mutation_genes (str or list): The gene(s) to get mutation data for. str if one gene, list if multiple.
     omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the mutation data to.
-    omics_genes (str or list, optional): Gene(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
+    mutation_genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): The gene(s) to get mutation data for. str if one gene, list if multiple.
+    omics_genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index, optional): Gene(s) to select from the omics dataframe. str if one gene, list if multiple. Default will select entire dataframe.
     multiple_mutations (bool, optional): Whether to keep multiple mutations on the same gene for one sample, or only report the highest priority mutation.
     show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
 
