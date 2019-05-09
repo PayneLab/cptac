@@ -165,7 +165,7 @@ def list_data():
     None
     """
     print("Below are the available endometrial data frames contained in this package:")
-    data = [clinical, derived_molecular, acetylproteomics, proteomics, transcriptomics, transcriptomics_circular, miRNA, cna, phosphoproteomics, phosphoproteomics_gene, somatic_binary, somatic_maf]
+    data = [clinical, derived_molecular, experimental_setup, acetylproteomics, proteomics, transcriptomics, transcriptomics_circular, miRNA, cna, phosphoproteomics, phosphoproteomics_gene, somatic_binary, somatic_maf]
     for dataframe in data:
         print("\t", dataframe.name)
         print("\t", "\t", "Dimensions:", dataframe.shape)
