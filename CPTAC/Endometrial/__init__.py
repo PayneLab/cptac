@@ -532,7 +532,7 @@ def get_tumor_ids(tumor_type, query_type, value): #TODO: implement
     return Queries(dataframe).query(tumor_type, query_type, value)
 
 def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
-    """Take specified column(s) from one omics dataframe, and merge with specified columns(s) from another omics dataframe.
+    """Take specified column(s) from one omics dataframe, and append to specified columns(s) from another omics dataframe. Intersection (inner join) of indicies is used.
 
     Parameters:
     omics_df1 (pandas.core.frame.DataFrame): First omics dataframe to select columns from.
@@ -568,7 +568,7 @@ def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     return Utilities().compare_omics(omics_df1, omics_df2, cols1, cols2)
 
 def append_metadata_to_omics(metadata_df, omics_df, metadata_cols=None, omics_cols=None):
-    """Append columns from either the clinical, derived_molecular, or experimental_setup dataframe to part or all of an omics dataframe.
+    """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_setup) to part or all of an omics dataframe. Intersection (inner join) of indicies is used.
 
     Parameters:
     metadata_df (pandas.core.frame.DataFrame): Metadata dataframe to select columns from. Either clinical, derived_molecular, or experimental_setup.
@@ -608,7 +608,7 @@ def append_metadata_to_omics(metadata_df, omics_df, metadata_cols=None, omics_co
     return Utilities().append_metadata_to_omics(metadata_df, omics_df, metadata_cols, omics_cols)
 
 def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, multiple_mutations=False, show_location=True):
-    """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
+    """Select all mutations for specified gene(s), and appends them to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
 
     Parameters:
     omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the mutation data to.

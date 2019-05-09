@@ -99,7 +99,7 @@ class Utilities:
             print("Genes parameter {} is of invalid type {}. Valid types: str, list or pandas.core.series.Series or pandas.core.indexes.base.Index, or NoneType.".format(genes, type(genes)))
 
     def compare_omics(self, df1, df2, genes1, genes2):
-        """Select columns for one gene or a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes from one omics dataframe, and columns for another gene or list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes from another omics dataframe, and join them into one dataframe.
+        """Select columns for one gene or a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes from one omics dataframe, and columns for another gene or list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes from another omics dataframe, and join them into one dataframe. Intersection (inner join) of indicies is used.
 
         Parameters:
         df1 (pandas.core.frame.DataFrame): first omics dataframe to select from.
@@ -177,7 +177,7 @@ class Utilities:
             print("Columns parameter {} is of invalid type {}. Valid types: str or list or pandas.core.series.Series or pandas.core.indexes.base.Index.".format(cols, type(cols)))
 
     def append_clinical_to_omics(self, df, omics_df, df_cols, omics_cols):
-        """Selected the specified columns from either the clinical or derived_molecular dataframe, and append to all or part of the given omics dataframe.
+        """Selected the specified columns from either the clinical or derived_molecular dataframe, and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
 
         Parameters:
         df (pandas.core.frame.DataFrame): Either the clinical or derived_molecular dataframe, from which we'll select our columns to append.
@@ -265,7 +265,7 @@ class Utilities:
             print("Genes parameter {} is of invalid type {}. Valid types: str or list or pandas.core.series.Series or pandas.core.indexes.base.Index.".format(genes, type(genes)))
 
     def append_mutations_to_omics(self, somatic, omics_df, mutation_genes, omics_genes, multiple_mutations, show_location):
-        """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
+        """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
 
         Parameters:
         somatic (pandas.core.frame.DataFrame): Somatic mutation dataframe we'll get the dataframe.

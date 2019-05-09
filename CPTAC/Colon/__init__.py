@@ -139,7 +139,7 @@ def get_phosphosites(genes):
 	return Utilities().get_omics_from_str_or_list(phosphoproteomics, genes)
 
 def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
-    """Take specified column(s) from one omics dataframe, and merge with specified columns(s) from another omics dataframe.
+    """Take specified column(s) from one omics dataframe, and merge with specified columns(s) from another omics dataframe. Intersection (inner join) of indicies is used.
 
     Parameters:
     omics_df1 (pandas.core.frame.DataFrame): First omics dataframe to select columns from.
@@ -172,7 +172,7 @@ def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     return Utilities().compare_omics(omics_df1, omics_df2, cols1, cols2)
 
 def append_clinical_to_omics(omics_df, clinical_cols=None, omics_cols=None):
-    """Append columns from clinical dataframe to part or all of an omics dataframe.
+    """Append columns from clinical dataframe to part or all of an omics dataframe. Intersection (inner join) of indicies is used.
 
     Parameters:
     omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the clinical columns to.
@@ -198,7 +198,7 @@ def append_clinical_to_omics(omics_df, clinical_cols=None, omics_cols=None):
     return Utilities().append_clinical_to_omics(clinical, omics_df, clinical_cols, omics_cols)
 
 def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, multiple_mutations=False, show_location=True):
-    """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe.
+    """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
 
     Parameters:
     omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the mutation data to.
