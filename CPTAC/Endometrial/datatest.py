@@ -423,7 +423,7 @@ def test_get_transcriptomics():
     print('Running test_get_transcriptomics...')
 
     df = en.get_transcriptomics()
-    name = "transcriptomics_linear"
+    name = "transcriptomics"
     dimensions = (109, 28057)
     headers = ['A1BG', 'A1BG-AS1', 'A1CF', 'A2M', 'A2M-AS1', 'A2ML1', 'A2MP1', 'A3GALT2', 'A4GALT', 'A4GNT', 'ZWILCH', 'ZWINT', 'ZXDA', 'ZXDB', 'ZXDC', 'ZYG11A', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3']
     test_coord = ((22, 25483), (108, 23), (101, 17748))
@@ -432,13 +432,13 @@ def test_get_transcriptomics():
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
-def test_get_transcriptomics_circular():
-    """Test get_transcriptomics_circular."""
+def test_get_circular_RNA():
+    """Test get_circular_RNA."""
 
-    print('Running test_get_transcriptomics_circular...')
+    print('Running test_get_circular_RNA...')
 
-    df = en.get_transcriptomics_circular()
-    name = "transcriptomics_circular"
+    df = en.get_circular_RNA()
+    name = "circular_RNA"
     dimensions = (109, 4945)
     headers = ['circ_chr10_100260218_100262063_CWF19L1', 'circ_chr10_100923975_100926019_SLF2', 'circ_chr10_100923978_100926019_SLF2', 'circ_chr10_100937402_100944128_SLF2', 'circ_chr10_100937402_100950753_SLF2', 'circ_chr10_101584602_101586156_POLL', 'circ_chr10_101667886_101676436_FBXW4', 'circ_chr10_101672915_101676436_FBXW4', 'circ_chr10_101792839_101807901_OGA', 'circ_chr10_101792839_101810314_OGA', 'circ_chrX_80288906_80310233_CHMP1B2P', 'circ_chrX_80289664_80310233_CHMP1B2P', 'circ_chrX_80707427_80719656_BRWD3', 'circ_chrX_80791854_80793772_BRWD3', 'circ_chrX_84096194_84164387_RPS6KA6', 'circ_chrX_84134782_84164387_RPS6KA6', 'circ_chrX_85067127_85074391_APOOL', 'circ_chrX_85978767_85981809_CHM', 'circ_chrX_91414904_91418871_PABPC5-AS1', 'circ_chrX_9691579_9693419_TBL1X']
     test_coord = ((108, 1), (30, 4935), (73, 2003))
@@ -770,7 +770,7 @@ def test_compare_omics_invalid_dfs():
     # Load our dataframes to test with
     prot = en.get_proteomics() # We want to try a mix of valid and invalid dataframes, so we need to load this valid dataframe
     clin = en.get_clinical()
-    tran_cir = en.get_transcriptomics_circular() # Although transcriptomics_circular is an omics dataframe, it's of the wrong format to work with compare_omics
+    tran_cir = en.get_circular_RNA() # Although circular_RNA is an omics dataframe, it's of the wrong format to work with compare_omics
 
     # Test with one valid dataframe and one invalid one
     comp = en.compare_omics(prot, tran_cir)
@@ -1378,7 +1378,7 @@ test_get_acetylproteomics_filtered()
 test_get_acetylproteomics_unfiltered()
 test_get_proteomics()
 test_get_transcriptomics()
-test_get_transcriptomics_circular()
+test_get_circular_RNA()
 test_get_miRNA()
 test_get_cna()
 test_get_phosphoproteomics()
