@@ -483,7 +483,7 @@ def test_get_phosphoproteomics():
     print('Running test_get_phosphoproteomics...')
 
     df =  en.get_phosphoproteomics()
-    name = "phosphoproteomics_site"
+    name = "phosphoproteomics"
     dimensions = (144, 73212)
     headers = ['AAAS-S495', 'AAAS-S541', 'AAAS-Y485', 'AACS-S618', 'AAED1-S12', 'AAGAB-S310', 'AAGAB-S311', 'AAK1-S14', 'AAK1-S18', 'AAK1-S20', 'ZZZ3-S397', 'ZZZ3-S411', 'ZZZ3-S420', 'ZZZ3-S424', 'ZZZ3-S426', 'ZZZ3-S468', 'ZZZ3-S89', 'ZZZ3-T415', 'ZZZ3-T418', 'ZZZ3-Y399']
     test_coord = ((36, 46), (12, 72436), (96, 45361))
@@ -514,9 +514,9 @@ def test_get_phosphosites():
 
     gene = 'AAK1'
     df = en.get_phosphosites(gene)
-    name = 'phosphoproteomics_site for ' + gene
+    name = 'phosphoproteomics for ' + gene
     dimensions = (144, 37)
-    headers = ['AAK1-S14_phosphoproteomics_site', 'AAK1-S18_phosphoproteomics_site', 'AAK1-S20_phosphoproteomics_site', 'AAK1-S21_phosphoproteomics_site', 'AAK1-S26_phosphoproteomics_site', 'AAK1-S618_phosphoproteomics_site', 'AAK1-S623_phosphoproteomics_site', 'AAK1-S624_phosphoproteomics_site', 'AAK1-S637_phosphoproteomics_site', 'AAK1-S642_phosphoproteomics_site', 'AAK1-T448_phosphoproteomics_site', 'AAK1-T606_phosphoproteomics_site', 'AAK1-T620_phosphoproteomics_site', 'AAK1-T640_phosphoproteomics_site', 'AAK1-T653_phosphoproteomics_site', 'AAK1-T674_phosphoproteomics_site', 'AAK1-T681_phosphoproteomics_site', 'AAK1-T694_phosphoproteomics_site', 'AAK1-T848_phosphoproteomics_site', 'AAK1-Y687_phosphoproteomics_site']
+    headers = ['AAK1-S14_phosphoproteomics', 'AAK1-S18_phosphoproteomics', 'AAK1-S20_phosphoproteomics', 'AAK1-S21_phosphoproteomics', 'AAK1-S26_phosphoproteomics', 'AAK1-S618_phosphoproteomics', 'AAK1-S623_phosphoproteomics', 'AAK1-S624_phosphoproteomics', 'AAK1-S637_phosphoproteomics', 'AAK1-S642_phosphoproteomics', 'AAK1-T448_phosphoproteomics', 'AAK1-T606_phosphoproteomics', 'AAK1-T620_phosphoproteomics', 'AAK1-T640_phosphoproteomics', 'AAK1-T653_phosphoproteomics', 'AAK1-T674_phosphoproteomics', 'AAK1-T681_phosphoproteomics', 'AAK1-T694_phosphoproteomics', 'AAK1-T848_phosphoproteomics', 'AAK1-Y687_phosphoproteomics']
     test_coord = ((5, 33), (64, 14), (128, 0))
     test_vals = (0.547, -0.5379999999999999, 0.1395)
 
@@ -753,7 +753,7 @@ def test_compare_omics_all_dfs():
         print("Dataframes compared: acetylproetomics and cna.")
         PASS = False
     if not check_returned_is_df(phosg_phoss):
-        print("Dataframes compared: phosphoproteomics_gene and phosphoproteomics_site.")
+        print("Dataframes compared: phosphoproteomics_gene and phosphoproteomics.")
         PASS = False
     if not check_returned_is_df(prot_tran):
         print("Dataframes compared: proteomics and transcriptomics.")
