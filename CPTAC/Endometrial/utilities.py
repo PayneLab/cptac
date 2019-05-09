@@ -225,29 +225,30 @@ class Utilities:
             return
         
         mutations = mutations.set_index(patient_key_col) # Set index as S*** number for merging
-        mutations = mutations.drop(columns=[gene_col, patient_id_col) # Gene column is same for every sample, and we don't need Patient_Id anymore.
+        mutations = mutations.drop(columns=[gene_col, patient_id_col]) # Gene column is same for every sample, and we don't need Patient_Id anymore.
         if multiple_mutations:
-            # Create a prep dataframe
-            prep_index = mutations[patient_key_col].drop_duplicates()
-            prep_columns = mutations.columns
-            mutation_lists = pd.DataFrame(index=prep_index, columns=prep_columns)
-
-            for sample in mutation_lists.index:
-                # Get mutation(s) for the sample
-                sample_data = mutations.loc[sample]
-                sample_mutations = sample_data[mutation_col]
-                sample_locations = sample_data[location_col]
-
-                # Make them a list (even if there's only one)
-                sample_mutations_list = sample_mutations.tolist()
-                sample_locations_list = sample_mutations.tolist()
-
-                # Put in our template dataframe
-                mutation_lists.at[sample, mutation_col] = sample_mutations
-                mutation_lists.at[sample, location_col] = sample_locations
-
-                # Set mutations as mutation_lists
-#               mutations = mutation_lists
+            pass
+#            # Create a prep dataframe
+#            prep_index = mutations[patient_key_col].drop_duplicates()
+#            prep_columns = mutations.columns
+#            mutation_lists = pd.DataFrame(index=prep_index, columns=prep_columns)
+#
+#            for sample in mutation_lists.index:
+#                # Get mutation(s) for the sample
+#                sample_data = mutations.loc[sample]
+#                sample_mutations = sample_data[mutation_col]
+#                sample_locations = sample_data[location_col]
+#
+#                # Make them a list (even if there's only one)
+#                sample_mutations_list = sample_mutations.tolist()
+#                sample_locations_list = sample_mutations.tolist()
+#
+#                # Put in our template dataframe
+#                mutation_lists.at[sample, mutation_col] = sample_mutations
+#                mutation_lists.at[sample, location_col] = sample_locations
+#
+#                # Set mutations as mutation_lists
+#                mutations = mutation_lists
 
         else: # Filter out multiple mutations for a single sample
             mutations = self.add_mutation_hierarchy(mutations) # Appends hierachy for sorting so correct duplicate can be kept
