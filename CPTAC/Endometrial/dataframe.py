@@ -53,7 +53,7 @@ class DataFrameLoader:
             parsedDf = parsedDf.rename({"Tumor_Sample_Barcode":"Patient_Id","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
             f = self.fileName.split(os.sep)
             f = f[len(f) - 1]
-            parsedDf.name = f.split(".")[0] + " MAF"
+            parsedDf.name = f.split(".")[0] + "_maf"
             return parsedDf
         else:
             print("Error reading", self.fileName)

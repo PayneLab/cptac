@@ -135,7 +135,7 @@ somatic_maf_u = link_patient_ids(patient_ids, somatic_maf_u) #adds S*** number t
 somatic_maf_u = somatic_maf_u.set_index("Clinical_Patient_Key")
 somatic_maf = somatic_maf_u.drop(casesToDrop, errors = "ignore")
 somatic_maf = somatic_maf.reset_index()
-somatic_maf.name = "somatic MAF"
+somatic_maf.name = "somatic_maf"
 
 
 #metaData = MetaData(clinical)

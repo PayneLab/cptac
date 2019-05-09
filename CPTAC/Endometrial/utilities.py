@@ -210,20 +210,50 @@ class Utilities:
         Returns:
         pandas.core.frame.DataFrame: The mutations in each patient for the specified gene.
         """
-        mutations = somatic[somatic["Gene"] == gene]
+        # Set some column names for use later
+        gene_col = "Gene"
+        patient_key_col = "Clinical_Patient_Key"
+        patient_id_col = "Patient_Id"
+        mutation_col = "Mutation"
+        location_col = "Location"
+        hierarchy_col = "Mutation_Hierarchy"
+
+        mutations = somatic[somatic[gene_col] == gene]
 
         if len(mutations) == 0: # If the gene doesn't match any in the dataframe, tell them, and return None.
             print("{} gene not found in somatic mutations data.".format(gene))
             return
         
-        mutations = mutations.drop(columns=["Gene"]) # Drop the gene column due to every value being the same
-        mutations = mutations.set_index("Clinical_Patient_Key") # Set index as S*** number for merging
-        mutations = mutations.drop(columns=['Patient_Id']) # We don't need this column
-        if not multiple_mutations: # Filter out multiple mutations for a single sample
+        mutations = mutations.set_index(patient_key_col) # Set index as S*** number for merging
+        mutations = mutations.drop(columns=[gene_col, patient_id_col) # Gene column is same for every sample, and we don't need Patient_Id anymore.
+        if multiple_mutations:
+            # Create a prep dataframe
+            prep_index = mutations[patient_key_col].drop_duplicates()
+            prep_columns = mutations.columns
+            mutation_lists = pd.DataFrame(index=prep_index, columns=prep_columns)
+
+            for sample in mutation_lists.index:
+                # Get mutation(s) for the sample
+                sample_data = mutations.loc[sample]
+                sample_mutations = sample_data[mutation_col]
+                sample_locations = sample_data[location_col]
+
+                # Make them a list (even if there's only one)
+                sample_mutations_list = sample_mutations.tolist()
+                sample_locations_list = sample_mutations.tolist()
+
+                # Put in our template dataframe
+                mutation_lists.at[sample, mutation_col] = sample_mutations
+                mutation_lists.at[sample, location_col] = sample_locations
+
+                # Set mutations as mutation_lists
+#               mutations = mutation_lists
+
+        else: # Filter out multiple mutations for a single sample
             mutations = self.add_mutation_hierarchy(mutations) # Appends hierachy for sorting so correct duplicate can be kept
-            mutations = mutations.sort_values(by = ["Clinical_Patient_Key","Mutation_Hierarchy"], ascending = [True,False]) # Sorts by patient key, then by hierarchy so the duplicates will come with the higher number first
+            mutations = mutations.sort_values(by = [patient_key_col, hierarchy_col], ascending = [True,False]) # Sorts by patient key, then by hierarchy so the duplicates will come with the higher number first
             mutations = mutations[~mutations.index.duplicated(keep="first")] # Keeps first duplicate row if indices are the same
-            mutations = mutations.drop(columns=['Mutation_Hierarchy']) # Drop the Mutation_Hierarchy now that we've dropped the duplicates
+            mutations = mutations.drop(columns=[hierarchy_col]) # Drop the Mutation_Hierarchy now that we've dropped the duplicates
 
         mutations = mutations.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Add the gene name to end beginning of each column header, to preserve info when we merge dataframes
         mutations.name = 'Somatic mutation data for {} gene'.format(gene)
