@@ -83,10 +83,21 @@ derived_molecular_u = clinical_file_data.drop(['Proteomics_Participant_ID', 'Cas
     'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity',
     'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Clin_Stage_Dist_Mets-cM', 'Path_Stage_Dist_Mets-pM',
     'tumor_Stage-Pathological', 'FIGO_stage', 'LVSI', 'BMI', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site',
-    'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm',   'Num_full_term_pregnancies'], axis=1)
+    'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm',   'Num_full_term_pregnancies', 
+    'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs',
+    'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'WXS_tumor_filename',
+    'WXS_tumor_UUID', 'WGS_normal_sample_type', 'WGS_normal_UUID', 'WGS_tumor_sample_type', 'WGS_tumor_UUID', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID',
+    'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'], axis=1)
 derived_molecular = derived_molecular_u.drop(casesToDrop, errors = "ignore")
 derived_molecular_u.name = "derived_molecular"
 derived_molecular.name = derived_molecular_u.name
+experimental_setup_u = clinical_file_data[['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs',
+    'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'WXS_tumor_filename',
+    'WXS_tumor_UUID', 'WGS_normal_sample_type', 'WGS_normal_UUID', 'WGS_tumor_sample_type', 'WGS_tumor_UUID', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID',
+    'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']]
+experimental_setup = experimental_setup_u.drop(casesToDrop, errors = "ignore")
+experimental_setup_u.name = "experimental_setup"
+experimental_setup.name = experimental_setup_u.name
 
 print("Loading Acetylation Proteomics Data...")
 acetylproteomics_u = DataFrameLoader(data_directory + "acetylproteomics.cct").createDataFrame()
@@ -232,6 +243,18 @@ def get_derived_molecular(unfiltered=False):
         unfiltered_warning()
         return derived_molecular_u
     return derived_molecular
+def get_experimental_setup(unfiltered=False):
+    """
+    Parameters
+    unfiltered: boolean indicating whether to return unfiltered experimental setup data
+
+    Returns
+    Experimental Setup dataframe
+    """
+    if unfiltered:
+        unfiltered_warning()
+        return experimental_setup_u
+    return experimental_setup
 def get_acetylproteomics(unfiltered=False):
     """
     Parameters
@@ -397,6 +420,15 @@ def get_derived_molecular_cols():
     List of derived molecular dataframe columns
     """
     return derived_molecular.columns
+def get_experimental_setup_cols():
+    """
+    Parameters
+    None
+
+    Returns
+    List of experimental setup dataframe columns
+    """
+    return experimental_setup.columns
 def get_proteomics_cols():
     """
     Parameters
