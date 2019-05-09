@@ -173,7 +173,7 @@ class Utilities:
             return self.get_cols_from_clinical(df, cols)
         elif cols is None: # If it's the default of None, return the entire dataframe.
             return df
-        else: # If it's neither of those, they done messed up. Tell 'em.
+        else: # If it's none of those, they done messed up. Tell 'em.
             print("Columns parameter {} is of invalid type {}. Valid types: str or list or pandas.core.series.Series or pandas.core.indexes.base.Index.".format(cols, type(cols)))
 
     def append_clinical_to_omics(self, df, omics_df, df_cols, omics_cols):
