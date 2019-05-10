@@ -234,7 +234,7 @@ class Utilities:
             mutation_lists.at[sample, mutation_col] = sample_mutations_list
             mutation_lists.at[sample, location_col] = sample_locations_list
 
-        mutation_lists = mutation_lists.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Add the gene name to end beginning of each column header, to preserve info when we merge dataframes
+        mutation_lists = mutation_lists.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Add the gene name to end beginning of each column header, to preserve info when we merge dataframes.
         mutation_lists.name = 'Somatic mutation data for {} gene'.format(gene)
         return mutation_lists
 
@@ -275,7 +275,7 @@ class Utilities:
             print("Genes parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(genes, type(genes)))
 
     def append_mutations_to_omics(self, somatic_mutation, omics_df, mutation_genes, omics_genes, show_location):
-        """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
+        """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
         somatic_mutation (pandas DataFrame): Somatic mutation dataframe we'll get the dataframe.
@@ -285,7 +285,7 @@ class Utilities:
         show_location (bool): Whether to include the Location column from the mutation dataframe.
 
         Returns:
-        pandas DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe.
+        pandas DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
         """
         omics = self.get_omics_from_str_or_list(omics_df, omics_genes)
         mutations = self.get_mutations_from_str_or_list(somatic_mutation, mutation_genes)

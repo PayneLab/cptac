@@ -474,16 +474,16 @@ def append_metadata_to_omics(metadata_df, omics_df, metadata_cols=None, omics_co
     return Utilities().append_metadata_to_omics(metadata_df, omics_df, metadata_cols, omics_cols)
 
 def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, show_location=True):
-    """Select all mutations for specified gene(s), and appends them to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
+    """Select all mutations for specified gene(s), and appends them to all or part of the given omics dataframe. Intersection (inner join) of indicies is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
     Parameters:
     omics_df (pandas DataFrame): Omics dataframe to append the mutation data to.
     mutation_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
     omics_genes (str, or list or array-like of str, optional): Gene(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
-    show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
+    show_location (bool, optional): Whether to include the Locations column from the mutation dataframe. Defaults to True.
 
     Returns:
-    pandas DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe.
+    pandas DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
     """
     # Make sure omics_df is the right kind of dataframe
     valid_dfs = [
