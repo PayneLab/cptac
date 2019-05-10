@@ -17,23 +17,6 @@ class Utilities:
 
     def __init__(self):
         pass
-    def add_mutation_hierarchy(self, somatic_mutation): #private
-        """
-        Parameters
-        somatic_mutation: somatic_mutation data to add mutation hierarchy to
-
-        Returns
-        Somatic mutation dataframe with added mutation hierarchy
-        """
-        mutation_hierarchy = {"Missense_Mutation":0,"In_Frame_Del":0,"In_Frame_Ins":0,"Splice_Site":1,"Frame_Shift_Ins":1,"Nonsense_Mutation":1,"Frame_Shift_Del":1,"Nonstop_Mutation":1}
-        hierarchy = []
-        for x in somatic_mutation["Mutation"]: #for every value in the Mutation column, append its value in the hard coded mutation hierarchy
-            if x in mutation_hierarchy.keys():
-                hierarchy.append(mutation_hierarchy[x])
-            else:
-                hierarchy.append(float('NaN'))
-        somatic_mutation = somatic_mutation.assign(Mutation_Hierarchy =  hierarchy)
-        return somatic_mutation
 
 # Next 4 functions are for working with omics data
     def get_col_from_omics(self, omics_df, gene): # private
@@ -199,13 +182,12 @@ class Utilities:
             return df
 
 # Next 4 functions are for working with mutation data
-    def get_mutations_for_gene(self, somatic_mutation, gene, multiple_mutations):
+    def get_mutations_for_gene(self, mutations, gene):
         """Gets all the mutations for a specific gene, for all patients.
 
         Parameters:
-        somatic_mutation (pandas DataFrame): The somatic_mutation dataframe that we'll grab the mutation data from.
+        mutations (pandas DataFrame): The somatic_mutation dataframe, which we'll grab the mutation data from.
         gene (str): The gene to grab mutations for.
-        multiple_mutations (bool): Whether to keep multiple mutations on the gene for each patient, or only report the highest priority mutation per patient. 
 
         Returns:
         pandas DataFrame: The mutations in each patient for the specified gene.
@@ -216,89 +198,79 @@ class Utilities:
         patient_id_col = "Patient_Id"
         mutation_col = "Mutation"
         location_col = "Location"
-        hierarchy_col = "Mutation_Hierarchy"
 
-        mutations = somatic_mutation[somatic_mutation[gene_col] == gene]
+        gene_mutations = mutations[mutations[gene_col] == gene]
 
-        if len(mutations) == 0: # If the gene doesn't match any in the dataframe, tell them, and return None.
+        if len(gene_mutations) == 0: # If the gene doesn't match any in the dataframe, tell them, and return None.
             print("{} gene not found in somatic_mutation data.".format(gene))
             return
         
-        mutations = mutations.set_index(patient_key_col) # Set index as S*** number for merging
-        mutations = mutations.drop(columns=[gene_col, patient_id_col]) # Gene column is same for every sample, and we don't need Patient_Id anymore.
-        if multiple_mutations:
-            pass
-#            # Create a prep dataframe
-#            prep_index = mutations[patient_key_col].drop_duplicates()
-#            prep_columns = mutations.columns
-#            mutation_lists = pd.DataFrame(index=prep_index, columns=prep_columns)
-#
-#            for sample in mutation_lists.index:
-#                # Get mutation(s) for the sample
-#                sample_data = mutations.loc[sample]
-#                sample_mutations = sample_data[mutation_col]
-#                sample_locations = sample_data[location_col]
-#
-#                # Make them a list (even if there's only one)
-#                sample_mutations_list = sample_mutations.tolist()
-#                sample_locations_list = sample_mutations.tolist()
-#
-#                # Put in our template dataframe
-#                mutation_lists.at[sample, mutation_col] = sample_mutations
-#                mutation_lists.at[sample, location_col] = sample_locations
-#
-#                # Set mutations as mutation_lists
-#                mutations = mutation_lists
+        gene_mutations = gene_mutations.set_index(patient_key_col) # Set index as S*** number for merging
+        gene_mutations = gene_mutations.drop(columns=[gene_col, patient_id_col]) # Gene column is same for every sample, and we don't need Patient_Id anymore.
+        
+        # Create an empty dataframe, which we'll fill with the mutation and location data as lists
+        prep_index = gene_mutations[patient_key_col].drop_duplicates()
+        prep_columns = gene_mutations.columns
+        mutation_lists = pd.DataFrame(index=prep_index, columns=prep_columns)
 
-        else: # Filter out multiple mutations for a single sample
-            mutations = self.add_mutation_hierarchy(mutations) # Appends hierachy for sorting so correct duplicate can be kept
-            mutations = mutations.sort_values(by = [patient_key_col, hierarchy_col], ascending = [True,False]) # Sorts by patient key, then by hierarchy so the duplicates will come with the higher number first
-            mutations = mutations[~mutations.index.duplicated(keep="first")] # Keeps first duplicate row if indices are the same
-            mutations = mutations.drop(columns=[hierarchy_col]) # Drop the Mutation_Hierarchy now that we've dropped the duplicates
+        for sample in mutation_lists.index:
+            # Get mutation(s) for the sample
+            sample_data = gene_mutations.loc[sample]
+            sample_gene_mutations = sample_data[mutation_col]
+            sample_locations = sample_data[location_col]
 
-        mutations = mutations.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Add the gene name to end beginning of each column header, to preserve info when we merge dataframes
-        mutations.name = 'Somatic mutation data for {} gene'.format(gene)
-        return mutations
+            # Make them a list (even if there's only one)
+            sample_gene_mutations_list = sample_gene_mutations.tolist()
+            sample_locations_list = sample_gene_mutations.tolist()
 
-    def get_mutations_for_genes(self, somatic_mutation, genes, multiple_mutations):
+            # Put in our template dataframe
+            mutation_lists.at[sample, mutation_col] = sample_gene_mutations
+            mutation_lists.at[sample, location_col] = sample_locations
+
+            # Set gene_mutations as mutation_lists
+            gene_mutations = mutation_lists
+
+        gene_mutations = gene_mutations.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Add the gene name to end beginning of each column header, to preserve info when we merge dataframes
+        gene_mutations.name = 'Somatic mutation data for {} gene'.format(gene)
+        return gene_mutations
+
+    def get_mutations_for_genes(self, somatic_mutation, genes):
         """Gets all the mutations for a list or array-like of genes, for all patients.
 
         Parameters:
         somatic_mutation (pandas DataFrame): The somatic_mutation dataframe that we'll grab the mutation data from.
         genes (str, or list or array-like of str): The genes, as strings, to grab mutations for.
-        multiple_mutations (bool): Whether to keep multiple mutations on a single gene for each patient, or only report the highest priority mutation per patient. 
 
         Returns:
         pandas DataFrame: The mutations in each patient for the specified genes.
         """
         df = pd.DataFrame(index=somatic_mutation['Clinical_Patient_Key'].drop_duplicates()) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
         for gene in genes:
-            selected = self.get_mutations_for_gene(somatic_mutation, gene, multiple_mutations) # Get the mutations for our gene
+            selected = self.get_mutations_for_gene(somatic_mutation, gene) # Get the mutations for our gene
             if selected is None: # If there's no mutation data for that gene, get_mutations_for_gene will have printed an error message. Return None.
                 return
             df = df.join(selected, how='left') # Otherwise, append the columns to our dataframe we'll return.
         df.name = "Somatic mutation data for {} genes".format(len(genes)) # Name the dataframe!
         return df
 
-    def get_mutations_from_str_or_list(self, somatic_mutation, genes, multiple_mutations):
+    def get_mutations_from_str_or_list(self, somatic_mutation, genes):
         """Determines whether you passed it a single gene or a list (or pandas.core.series.Series or pandas.core.indexes.base.Index of genes), selects the corresponding mutations from the somatic_mutation dataframe, and returns them.
 
         Parameters:
         somatic_mutation (pandas DataFrame): The somatic_mutation dataframe we'll grab the mutation data from.
         genes (str, or list or array-like of str): gene(s) to select mutations for. str if one gene, list or array-like if multiple.
-        multiple_mutations (bool): Whether to keep multiple mutations on the gene for each patient, or only report the highest priority mutation per patient. 
 
         Returns:
         pandas DataFrame: the mutation data corresponding to the gene(s), as a dataframe.
         """
         if isinstance(genes, str): # If it's a single gene, feed it to the proper function
-            return self.get_mutations_for_gene(somatic_mutation, genes, multiple_mutations) 
+            return self.get_mutations_for_gene(somatic_mutation, genes) 
         elif isinstance(genes, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's a str, or list or array-like of str of genes, feed it to the proper function
-            return self.get_mutations_for_genes(somatic_mutation, genes, multiple_mutations)
+            return self.get_mutations_for_genes(somatic_mutation, genes)
         else: # If it's neither of those, they done messed up. Tell 'em.
             print("Genes parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(genes, type(genes)))
 
-    def append_mutations_to_omics(self, somatic_mutation, omics_df, mutation_genes, omics_genes, multiple_mutations, show_location):
+    def append_mutations_to_omics(self, somatic_mutation, omics_df, mutation_genes, omics_genes, show_location):
         """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
 
         Parameters:
@@ -306,14 +278,13 @@ class Utilities:
         omics_df (pandas DataFrame): Omics dataframe to append the mutation data to.
         mutation_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like if multiple.
         omics_genes (str, or list or array-like of str): Gene(s) to select from the omics dataframe. str if one gene, list or array-like if multiple. Passing None will select the entire omics dataframe.
-        multiple_mutations (bool): Whether to keep multiple mutations on the gene for each patient, or only report the highest priority mutation per patient. 
         show_location (bool): Whether to include the Location column from the mutation dataframe.
 
         Returns:
         pandas DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe.
         """
         omics = self.get_omics_from_str_or_list(omics_df, omics_genes)
-        mutations = self.get_mutations_from_str_or_list(somatic_mutation, mutation_genes, multiple_mutations)
+        mutations = self.get_mutations_from_str_or_list(somatic_mutation, mutation_genes)
 
         if (omics is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, and an error message was printed. We'll return None.
             merge = omics.join(mutations, how = "left") # Left join omics data and mutation data (left being the omics data)
