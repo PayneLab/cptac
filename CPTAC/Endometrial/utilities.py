@@ -216,23 +216,27 @@ class Utilities:
         for sample in mutation_lists.index:
             # Get mutation(s) for the sample
             sample_data = gene_mutations.loc[sample]
-            sample_gene_mutations = sample_data[mutation_col]
+            sample_mutations = sample_data[mutation_col]
             sample_locations = sample_data[location_col]
 
             # Make them a list (even if there's only one)
-            sample_gene_mutations_list = sample_gene_mutations.tolist()
-            sample_locations_list = sample_gene_mutations.tolist()
+            if isinstance(sample_mutations, str):
+                sample_mutations_list = [sample_mutations]
+            else: # It's a pandas Series
+                sample_mutations_list = sample_mutations.tolist()
+
+            if isinstance(sample_locations, str):
+                sample_locations_list = [sample_locations]
+            else: # It's a pandas Series
+                sample_locations_list = sample_locations.tolist()
 
             # Put in our template dataframe
-            mutation_lists.at[sample, mutation_col] = sample_gene_mutations
-            mutation_lists.at[sample, location_col] = sample_locations
+            mutation_lists.at[sample, mutation_col] = sample_mutations_list
+            mutation_lists.at[sample, location_col] = sample_locations_list
 
-            # Set gene_mutations as mutation_lists
-            gene_mutations = mutation_lists
-
-        gene_mutations = gene_mutations.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Add the gene name to end beginning of each column header, to preserve info when we merge dataframes
-        gene_mutations.name = 'Somatic mutation data for {} gene'.format(gene)
-        return gene_mutations
+        mutation_lists = mutation_lists.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Add the gene name to end beginning of each column header, to preserve info when we merge dataframes
+        mutation_lists.name = 'Somatic mutation data for {} gene'.format(gene)
+        return mutation_lists
 
     def get_mutations_for_genes(self, somatic_mutation, genes):
         """Gets all the mutations for a list or array-like of genes, for all patients.
