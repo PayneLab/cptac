@@ -27,7 +27,6 @@ for file in files: #loops through files variable
     try:
         df = DataFrameLoader(file).createDataFrame()
         data[df.name] = df #maps dataframe name to dataframe
-        print(df.name)
     except IOError:
         print("Error reading", file)
         print("Check that all file names coincide with DataFrameLoader specs")
