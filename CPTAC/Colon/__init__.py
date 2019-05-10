@@ -42,7 +42,6 @@ def list_data():
 	None
 	"""
 	print("Below are the available colon data frames contained in this package:")
-	#dataframes = [clinical, miRNA, mutation, proteomics, transcriptomics, phosphoproteomics]
 	for dataframe in data:
 		print("\t", data[dataframe].name)
 		print("\t", "\t", "Dimensions:", data[dataframe].shape)
@@ -81,12 +80,12 @@ def get_miRNA():
 	return data.get("miRNA")
 	
 def get_mutations():
-	"""Get the mutations dataframe."""
-	return data.get("mutation")
+	"""Get the somatic_mutation dataframe."""
+	return data.get("somatic_mutation")
 
 def get_mutations_binary():
-    """Get the mutation_binary dataframe."""
-    return data.get("mutation_binary")
+    """Get the somatic_mutation_binary dataframe."""
+    return data.get("somatic_mutation_binary")
 
 def get_phosphoproteomics():
 	"""

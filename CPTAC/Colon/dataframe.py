@@ -52,7 +52,7 @@ class DataFrameLoader:
                 df = df.sort_values(by="SampleID")
                 df = df[["SampleID","Gene","Variant_Type","Protein_Change"]]
                 df = df.rename({"Variant_Type":"Mutation","Protein_Change":"Location"},axis="columns")
-                df.name = self.name
+                df.name = "somatic_" + self.name
         else:
             error_message = "Error reading " + self.fileName
             raise IOError(error_message)

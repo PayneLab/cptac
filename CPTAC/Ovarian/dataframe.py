@@ -76,9 +76,9 @@ class DataFrameLoader:
             df = df.sort_index()
             df = df.transpose()
             df = df.sort_index()
-            df.name = self.name
+            df.name = "CNV"
             return df
-        elif self.name.split("_")[0] == "somatic":
+        elif self.name == "somatic_38":
             df = pd.read_csv(self.fileName, sep = "\t")
             if "Tumor_Sample_Barcode" in df.columns:
                 split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n = 1, expand = True)
@@ -86,7 +86,9 @@ class DataFrameLoader:
             parsedDf = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]]
             parsedDf = parsedDf.rename({"Tumor_Sample_Barcode":"Patient_Id","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
             parsedDf = parsedDf.set_index("Patient_Id")
-            parsedDf.name = self.name
+            parsedDf.name = 'somatic_mutation'
             return parsedDf
+        elif self.name == 'somatic_19':
+            pass # We don't even need to load this one.
         else:
             print("Error reading", self.fileName)

@@ -70,8 +70,8 @@ def get_data():
 def get_clinical():
     return data.get("clinical")
 
-def get_cnv():
-    return data.get("cnv")
+def get_CNV():
+    return data.get("CNV")
 
 def get_phosphoproteomics():
     return data.get("phosphoproteomics")
@@ -80,12 +80,8 @@ def get_proteomics():
     return data.get("proteomics")
 
 def get_mutations():
-    """Get the somatic_38 mutation dataframe."""
-    return data.get("somatic_38")
-
-def get_mutations_19():
-    """Get the somatic_19 mutation dataframe."""
-    return data.get("somatic_19")
+    """Get the somatic_mutation dataframe."""
+    return data.get("somatic_mutation")
 
 def get_transcriptomics():
     return data.get("transcriptomics")
@@ -146,7 +142,7 @@ def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     valid_dfs = [
         'phosphoproteomics',
         'proteomics',
-        'cnv',
+        'CNV',
         'transcriptomics']
     invalid = False
     if (omics_df1.name not in valid_dfs):
@@ -179,7 +175,7 @@ def append_clinical_to_omics(omics_df, clinical_cols=None, omics_cols=None):
     valid_dfs = [
         'phosphoproteomics',
         'proteomics',
-        'cnv',
+        'CNV',
         'transcriptomics']
     if (omics_df.name not in valid_dfs):
         print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))
@@ -208,7 +204,7 @@ def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, multip
     valid_dfs = [
         'phosphoproteomics',
         'proteomics',
-        'cnv',
+        'CNV',
         'transcriptomics']
     if (omics_df.name not in valid_dfs):
         print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))
