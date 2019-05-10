@@ -298,14 +298,14 @@ class Utilities:
             mutation_regex = r'.*_Mutation' # Construct regex to find all mutation columns
             mutation_cols = [col for col in merge.columns.values if re.match(mutation_regex, col)] # Get a str, or list or array-like of str of all mutation columns
             for mutation_col in mutation_cols:
-                merge.loc[(merge['Sample_Status'] == "Normal") & (pd.isnull(merge[mutation_col])), mutation_col] = "Wildtype_Normal" # Change all NaN mutation values (i.e., no mutation data for that sample) for Normal samples to Wildtype_Normal
-                merge.loc[(merge['Sample_Status'] == "Tumor") & (pd.isnull(merge[mutation_col])), mutation_col] = "Wildtype_Tumor" # Change all NaN mutation values (i.e., no mutation data for that sample) for Tumor samples to Wildtype_Tumor
+                merge.loc[(merge['Sample_Status'] == "Normal") & (pd.isnull(merge[mutation_col])), mutation_col] = ["Wildtype_Normal"] # Change all NaN mutation values (i.e., no mutation data for that sample) for Normal samples to Wildtype_Normal
+                merge.loc[(merge['Sample_Status'] == "Tumor") & (pd.isnull(merge[mutation_col])), mutation_col] = ["Wildtype_Tumor"] # Change all NaN mutation values (i.e., no mutation data for that sample) for Tumor samples to Wildtype_Tumor
 
             location_regex = r'.*_Location' # Construct regex to find all location columns
             location_cols = [col for col in merge.columns.values if re.match(location_regex, col)] # Get a str, or list or array-like of str of all location columns
             for location_col in location_cols:
                 if show_location:
-                    merge = merge.fillna(value={location_col:'No_mutation'}) # If there's no location, there wasn't a mutation--make it easier for people to understand what that means.
+                    merge.loc[pd.isnull(merge[location_col]), location_col] = ["No_mutation"] # If there's no location, there wasn't a mutation--make it easier for people to understand that.
                 else:
                     merge = merge.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
 
