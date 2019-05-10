@@ -209,7 +209,7 @@ class Utilities:
         gene_mutations = gene_mutations.drop(columns=[gene_col, patient_id_col]) # Gene column is same for every sample, and we don't need Patient_Id anymore.
         
         # Create an empty dataframe, which we'll fill with the mutation and location data as lists
-        prep_index = gene_mutations[patient_key_col].drop_duplicates()
+        prep_index = gene_mutations.index.drop_duplicates()
         prep_columns = gene_mutations.columns
         mutation_lists = pd.DataFrame(index=prep_index, columns=prep_columns)
 
