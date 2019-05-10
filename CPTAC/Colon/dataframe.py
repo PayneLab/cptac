@@ -46,7 +46,7 @@ class DataFrameLoader:
             if self.fileName.split(os.sep)[-1].split(".")[1] == "cbt":
                 df = pd.read_csv(self.fileName, sep="\t",index_col=0)
                 df = df.transpose()
-                df.name = self.name
+                df.name = "somatic_" + self.name
             elif self.fileName.split(os.sep)[-1].split(".")[1] == "txt":
                 df = pd.read_csv(self.fileName, sep="\t")#.set_index("SampleID").sort_index()
                 df = df.sort_values(by="SampleID")

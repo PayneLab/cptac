@@ -33,8 +33,9 @@ files = glob.glob(path) #puts all files into iterable variable
 data = {}
 print("Loading Ovarian CPTAC data:")
 for file in files: #loops through files variable
-    df = DataFrameLoader(file).createDataFrame()
-    data[df.name] = df #maps dataframe name to dataframe
+    if file != 'somatic_19':
+        df = DataFrameLoader(file).createDataFrame()
+        data[df.name] = df #maps dataframe name to dataframe
     
 warning() #displays warning
 
