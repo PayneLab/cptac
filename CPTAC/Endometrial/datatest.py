@@ -212,14 +212,14 @@ def check_appended_columns(source_df, dest_df, headers):
 def check_mutation_columns_single_gene(mutations, merged_df, gene, multiple_mutations, show_location):
     """
     Parameters
-    mutations (pandas.core.frame.DataFrame): The somatic mutations dataframe.
+    mutations (pandas.core.frame.DataFrame): The somatic_mutation dataframe.
     merged_df (pandas.core.frame.DataFrame): The merged datframe.
     gene (str): The gene the mutation data was collected for.
     multiple_mutations (bool): Whether multiple mutations for one sample were included in the column.
     show_location (bool): Whether the location column was included in merged_df.
 
     Returns
-    bool: Indicates whether the mutation data for that gene and each sample in the merged dataframe matched the data in the somatic mutations dataframe.
+    bool: Indicates whether the mutation data for that gene and each sample in the merged dataframe matched the data in the somatic_mutation dataframe.
     """
     PASS = True
 
@@ -288,14 +288,14 @@ def check_mutation_columns_single_gene(mutations, merged_df, gene, multiple_muta
 def check_mutation_columns(mutations, merged_df, genes, multiple_mutations=False, show_location=True):
     """
     Parameters
-    mutations (pandas.core.frame.DataFrame): The somatic mutations dataframe.
+    mutations (pandas.core.frame.DataFrame): The somatic_mutation dataframe.
     merged_df (pandas.core.frame.DataFrame): The merged datframe.
     gene (str or list): The gene(s) the mutation data was collected for. str if one, list of str if multiple.
     multiple_mutations (bool, optional): Whether multiple mutations for one sample were included in the column. Default is False.
     show_location (bool, optional): Whether the location column was included in merged_df. Default is True.
 
     Returns
-    bool: Indicates whether the mutation data for that gene and each sample in the merged dataframe matched the data in the somatic mutations dataframe.
+    bool: Indicates whether the mutation data for that gene and each sample in the merged dataframe matched the data in the somatic_mutation dataframe.
     """
     PASS = True
     if isinstance(genes, str):
@@ -462,13 +462,13 @@ def test_get_miRNA():
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
-def test_get_cna():
-    """Test get_cna."""
+def test_get_CNA():
+    """Test get_CNA."""
 
-    print('Running test_get_cna...')
+    print('Running test_get_CNA...')
 
-    df = en.get_cna()
-    name = "cna"
+    df = en.get_CNA()
+    name = "CNA"
     dimensions = (95, 28057)
     headers = ['MFSD14A', 'SASS6', 'TRMT13', 'LRRC39', 'DBT', 'RTCA-AS1', 'RTCA', 'MIR553', 'UBE4B', 'CDC14A', 'TSPY8', 'FAM197Y2', 'FAM197Y4', 'FAM197Y5', 'FAM197Y7', 'FAM197Y8', 'FAM197Y6', 'FAM197Y3', 'RBMY3AP', 'TTTY22']
     test_coord = ((12, 27865), (60, 8), (94, 15439))
@@ -529,7 +529,7 @@ def test_get_mutations():
     print('Running test_get_mutations...')
 
     df = en.get_mutations()
-    name = "somatic MAF"
+    name = "somatic_mutation"
     dimensions = (52560, 5)
     headers = ['Clinical_Patient_Key', 'Patient_Id', 'Gene', 'Mutation', 'Location']
     test_coord = ((52000, 3), (12, 4), (34567, 0))
@@ -544,7 +544,7 @@ def test_get_mutations_binary():
     print('Running test_get_mutations_binary...')
 
     df = en.get_mutations_binary()
-    name = "somatic binary"
+    name = "somatic_mutation_binary"
     dimensions = (95, 51559)
     headers = ['A1BG_p.E298K', 'A1BG_p.S181N', 'A1CF_p.F487L', 'A1CF_p.S236Y', 'A2ML1_p.A8V', 'A2ML1_p.G1306D', 'A2ML1_p.L1347F', 'A2ML1_p.L82I', 'A2ML1_p.P712S', 'A2ML1_p.R443Q', 'ZYG11A_p.Q442H', 'ZYG11B_p.H315R', 'ZYG11B_p.R495M', 'ZYG11B_p.R728C', 'ZYX_p.C447Y', 'ZZEF1_p.A2723V', 'ZZEF1_p.D845Y', 'ZZEF1_p.K1251E', 'ZZEF1_p.K2387Sfs*40', 'ZZZ3_p.Y891C']
     test_coord = ((94, 51558), (0, 0), (45, 25436))
@@ -735,7 +735,7 @@ def test_compare_omics_all_dfs():
 
     # Load our dataframes to test, and set our genes. We call individual parameters, to make sure the columns are formatted properly.
     acet = en.get_acetylproteomics()
-    cna = en.get_cna()
+    CNA = en.get_CNA()
     phosg = en.get_phosphoproteomics_gene()
     phoss = en.get_phosphoproteomics()
     prot = en.get_proteomics()
@@ -744,13 +744,13 @@ def test_compare_omics_all_dfs():
     gene2 = 'AAGAB'
 
     # Call compare_omics on the dataframes
-    acet_cna = en.compare_omics(acet, cna, gene1, gene2)
+    acet_CNA = en.compare_omics(acet, CNA, gene1, gene2)
     phosg_phoss = en.compare_omics(phosg, phoss, gene1, gene2)
     prot_tran = en.compare_omics(prot, tran, gene1, gene2)
 
     # Check the return values
-    if not check_returned_is_df(acet_cna):
-        print("Dataframes compared: acetylproetomics and cna.")
+    if not check_returned_is_df(acet_CNA):
+        print("Dataframes compared: acetylproetomics and CNA.")
         PASS = False
     if not check_returned_is_df(phosg_phoss):
         print("Dataframes compared: phosphoproteomics_gene and phosphoproteomics.")
@@ -946,7 +946,7 @@ def test_append_mutations_one_mut_all_omics():
     if not check_appended_columns(phos, appended, phos.columns):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic mutations dataframe, which the mutation data was drawn from
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, appended, mut_gene):
         PASS = False
 
@@ -985,7 +985,7 @@ def test_append_mutations_three_mut_all_omics():
     if not check_appended_columns(phos, appended, phos.columns):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic mutations dataframe, which the mutation data was drawn from
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, appended, mut_genes):
         PASS = False
 
@@ -1030,7 +1030,7 @@ def test_append_mutations_one_mut_one_omics():
     if not check_appended_columns(phos, appended, phos_cols.columns):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic mutations dataframe, which the mutation data was drawn from
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, appended, mut_gene):
         PASS = False
 
@@ -1075,7 +1075,7 @@ def test_append_mutations_three_mut_one_omics():
     if not check_appended_columns(phos, appended, phos_cols.columns):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic mutations dataframe, which the mutation data was drawn from
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, appended, mut_genes):
         PASS = False
 
@@ -1120,7 +1120,7 @@ def test_append_mutations_one_mut_three_omics():
     if not check_appended_columns(phos, appended, phos_cols.columns):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic mutations dataframe, which the mutation data was drawn from
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, appended, mut_gene):
         PASS = False
 
@@ -1165,7 +1165,7 @@ def test_append_mutations_three_mut_three_omics():
     if not check_appended_columns(phos, appended, phos_cols.columns):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic mutations dataframe, which the mutation data was drawn from
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, appended, mut_genes):
         PASS = False
 
@@ -1204,7 +1204,7 @@ def test_append_mutations_one_mut_all_omics_no_location():
     if not check_appended_columns(phos, appended, phos.columns):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic mutations dataframe, which the mutation data was drawn from
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, appended, mut_gene, show_location=False):
         PASS = False
 
@@ -1243,7 +1243,7 @@ def test_append_mutations_three_mut_all_omics_no_location():
     if not check_appended_columns(phos, appended, phos.columns):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic mutations dataframe, which the mutation data was drawn from
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, appended, mut_genes, show_location=False):
         PASS = False
 
@@ -1305,82 +1305,20 @@ def test_append_mutations_invalid_key_types():
 
     # Print whether the test passed
 
-def evaluate_special_getters():
-    print("Evaluating special getters...")
-    results = []
-    functions = {}
-    results.append(en.get_clinical_cols()); functions[len(results)] = "clinical_cols"
-    results.append(en.get_cohort_clinical(["Diabetes","BMI"])); functions[len(results)] = "cohort_meta"
-    results.append(en.get_proteomics_quant(["S018","S100"])); functions[len(results)] = "proteomics_quant"
-    results.append(en.get_proteomics_cols()); functions[len(results)] = "proteomics_cols"
-    results.append(en.get_transcriptomics_cols()); functions[len(results)] = "transcriptomics_cols"
-    results.append(en.get_cohort_proteomics(["A1BG","TP53"])); functions[len(results)] = "cohort_proteomics"
-    results.append(en.get_cohort_transcriptomics(["A1BG","TP53"])); functions[len(results)] = "cohort_transcriptomics"
-    results.append(en.get_cohort_cna(["SASS6","TTTY22"])); functions[len(results)] = "cohort_cna"
-    results.append(en.get_cohort_phosphoproteomics(["TP53-S315","AAAS-S541"])); functions[len(results)] = "cohort_phosphoproteomics"
-    results.append(en.get_patient_mutations("C3L-00157")); functions[len(results)] = "patient_mutations(Patient_Id)"
-    results.append(en.get_patient_mutations("S013")); functions[len(results)] = "patient_mutations(Clinical_Patient_Key)"
-    results.append(en.get_phosphosites("TP53")); functions[len(results)] = "phosphosites"
-    PASS = True
-    for x in range(0,len(results)):
-        if results[x] is None:
-            print("Error with get",functions[x+1], "function")
-            PASS = False
-    if PASS:
-        print('\tPASS')
-    else:
-        print("\tFAIL\n")
-class Stats:
-    def __init__(self):
-        pass
-    def evaluate(data, trait):
-        data_trait = en.compare_clinical(data, trait)
-        threshold = .05 / len(data.columns)
-        tscutoff = .5
-        significantTests = []
-        significantGenes = []
-        for num in range(1,len(data_trait.columns)):
-            gene = data_trait.columns[num]
-            oneGene = data_trait[[trait, gene]]
-            oneGene = oneGene.dropna(axis=0)
-            spearmanrTest = stats.spearmanr(oneGene[trait], oneGene[gene])
-            if (abs(spearmanrTest[0]) >= tscutoff) and (spearmanrTest[1] <= threshold):
-                significantTests.append(spearmanrTest)
-                significantGenes.append(gene)
-        if len(significantGenes) > 0:
-            return '\tPASS'
-        else:
-            return "\tFAIL\n"
-class Plotter:
-    def __init__(self):
-        pass
-    def plot(data, column1, column2, method):
-        if method == "scatterplot":
-            plot = sns.relplot(x = column1, y = column2, data = data)
-        elif method == "barplot":
-            plot = sns.barplot(x = column1, y = column2, data = data)
-        elif method == "boxplot":
-            plot = sns.boxplot(x = column1, y = column2, data = data)
-        else:
-            message = method + " not a recognized method"
-            print(message)
-            return ""
-        plt.show()
-
 print("\nRunning tests:\n")
 
 print("Testing getters...")
 test_get_clinical_filtered()
 test_get_clinical_unfiltered()
-test_get_derived_molecular_filtered()
-test_get_derived_molecular_unfiltered()
+#test_get_derived_molecular_filtered()
+#test_get_derived_molecular_unfiltered()
 test_get_acetylproteomics_filtered()
 test_get_acetylproteomics_unfiltered()
 test_get_proteomics()
 test_get_transcriptomics()
 test_get_circular_RNA()
 test_get_miRNA()
-test_get_cna()
+test_get_CNA()
 test_get_phosphoproteomics()
 test_get_phosphoproteomics_gene()
 test_get_phosphosites()
@@ -1406,19 +1344,5 @@ test_append_mutations_three_mut_three_omics()
 test_append_mutations_one_mut_all_omics_no_location()
 test_append_mutations_three_mut_all_omics_no_location()
 test_append_mutations_invalid_key()
-
-#evaluate_special_getters()
-
-# The below tests are not so necessary anymore, now that we have better tests above.
-
-#print("Plotting...")
-#Plotter().plot(en.get_proteomics(), "A1BG","PTEN","scatterplot")
-#Plotter().plot(en.get_clinical(), "Diabetes","BMI","barplot")
-#Plotter().plot(en.get_clinical(), "Diabetes","BMI","boxplot")
-#print('\tPASS')
-
-#print("Running statistics...")
-#message = Stats().evaluate(en.get_proteomics(), "Tumor_Size_cm")
-#print(message)
 
 print("Version:",en.version())

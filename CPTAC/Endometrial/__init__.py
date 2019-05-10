@@ -15,8 +15,6 @@ import webbrowser
 import textwrap
 import pandas as pd
 from .dataframe import DataFrameLoader
-from .meta import MetaData
-from .molecular import MolecularData
 from .utilities import Utilities
 
 def warning():
@@ -124,7 +122,7 @@ transcriptomics_circular.name = transcriptomics_circular_u.name
 miRNA.name = miRNA_u.name
 
 print("Loading CNA Data...")
-cna_u = DataFrameLoader(data_directory + "cna.cct.gz").createDataFrame()
+cna_u = DataFrameLoader(data_directory + "CNA.cct.gz").createDataFrame()
 cna = cna_u.drop(casesToDrop, errors = "ignore")
 cna.name = cna_u.name
 
@@ -141,18 +139,15 @@ phosphoproteomics_gene.name = phosphoproteomics_gene_u.name
 print("Loading Somatic Mutation Data...")
 somatic_binary_u = DataFrameLoader(data_directory + "somatic.cbt.gz").createDataFrame()
 somatic_binary = somatic_binary_u.drop(casesToDrop, errors = "ignore")
-somatic_binary.name = "somatic binary"
-somatic_maf_u = DataFrameLoader(data_directory + "somatic.maf.gz").createDataFrame()
+somatic_binary.name = "somatic_mutation_binary"
+somatic_mutation_u = DataFrameLoader(data_directory + "somatic.maf.gz").createDataFrame()
 patient_ids = create_patient_ids(clinical_unfiltered) #maps C3L-**** number to S*** number
-somatic_maf_u = link_patient_ids(patient_ids, somatic_maf_u) #adds S*** number to somatic mutations dataframe
-somatic_maf_u = somatic_maf_u.set_index("Clinical_Patient_Key")
-somatic_maf = somatic_maf_u.drop(casesToDrop, errors = "ignore")
-somatic_maf = somatic_maf.reset_index()
-somatic_maf.name = "somatic_maf"
+somatic_mutation_u = link_patient_ids(patient_ids, somatic_mutation_u) #adds S*** number to somatic mutations dataframe
+somatic_mutation_u = somatic_mutation_u.set_index("Clinical_Patient_Key")
+somatic_mutation = somatic_mutation_u.drop(casesToDrop, errors = "ignore")
+somatic_mutation = somatic_mutation.reset_index()
+somatic_mutation.name = "somatic_mutation"
 
-
-#metaData = MetaData(clinical)
-#molecularData = MolecularData(proteomics, transcriptome, cna, phosphoproteomics)
 warning()
 def list_data():
     """
@@ -165,7 +160,7 @@ def list_data():
     None
     """
     print("Below are the available endometrial data frames contained in this package:")
-    data = [clinical, derived_molecular, experimental_setup, acetylproteomics, proteomics, transcriptomics, transcriptomics_circular, miRNA, cna, phosphoproteomics, phosphoproteomics_gene, somatic_binary, somatic_maf]
+    data = [clinical, derived_molecular, experimental_setup, acetylproteomics, proteomics, transcriptomics, transcriptomics_circular, miRNA, cna, phosphoproteomics, phosphoproteomics_gene, somatic_binary, somatic_mutation]
     for dataframe in data:
         print("\t", dataframe.name)
         print("\t", "\t", "Dimensions:", dataframe.shape)
@@ -322,13 +317,13 @@ def get_miRNA(unfiltered=False):
         return miRNA_u
     return miRNA
 
-def get_cna(unfiltered=False):
+def get_CNA(unfiltered=False):
     """
     Parameters
-    unfiltered: boolean indicating whether to return unfiltered cna data
+    unfiltered: boolean indicating whether to return unfiltered CNA data
 
     Returns
-    cna dataframe
+    CNA dataframe
     """
     if unfiltered:
         unfiltered_warning()
@@ -375,27 +370,27 @@ def get_phosphosites(genes):
     return Utilities().get_omics_from_str_or_list(phosphoproteomics, genes)
 
 def get_mutations(unfiltered=False):
-    """Gets the somatic_maf mutations dataframe.
+    """Gets the somatic_mutation dataframe.
 
     Parameters:
     unfiltered (bool, optional): Whether to include unfiltered samples. Default is false.
 
     Returns:
-    pandas.core.frame.DataFrame: The somatic_maf mutations dataframe.
+    pandas.core.frame.DataFrame: The somatic_mutation dataframe.
     """
     if unfiltered:
         unfiltered_warning()
-        return somatic_maf_u
-    return somatic_maf
+        return somatic_mutation_u
+    return somatic_mutation
 
 def get_mutations_binary(unfiltered=False):
-    """Gets the somatic_binary mutations dataframe, which has a binary value indicating, for each location on each gene, whether there was a mutation in that gene at that location, for each sample.
+    """Gets the somatic_mutation_binary dataframe, which has a binary value indicating, for each location on each gene, whether there was a mutation in that gene at that location, for each sample.
 
     Parameters:
     unfiltered (bool, optional): Whether to include unfiltered samples. Default is false.
 
     Returns:
-    pandas.core.frame.DataFrame: The somatic_binary mutations dataframe.
+    pandas.core.frame.DataFrame: The somatic_mutation_binary dataframe.
     """
     if unfiltered:
         unfiltered_warning()
@@ -419,7 +414,7 @@ def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
         'acetylproteomics',
         'proteomics',
         'transcriptomics', # But not circular_RNA or miRNA--they have incompatible column names.
-        'cna',
+        'CNA',
         'phosphoproteomics',
         'phosphoproteomics_gene']
     invalid = False
@@ -466,7 +461,7 @@ def append_metadata_to_omics(metadata_df, omics_df, metadata_cols=None, omics_co
         'acetylproteomics',
         'proteomics',
         'transcriptomics', # But not circular_RNA or miRNA--they have incompatible column names.
-        'cna',
+        'CNA',
         'phosphoproteomics',
         'phosphoproteomics_gene']
     if (omics_df.name not in valid_omics_dfs):
@@ -496,7 +491,7 @@ def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, multip
         'acetylproteomics',
         'proteomics',
         'transcriptomics', # But not circular_RNA or miRNA--they have incompatible column names.
-        'cna',
+        'CNA',
         'phosphoproteomics',
         'phosphoproteomics_gene']
     if (omics_df.name not in valid_dfs):
@@ -506,7 +501,7 @@ def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, multip
         return
 
     # Return the merge.
-    return Utilities().append_mutations_to_omics(somatic_maf, omics_df, mutation_genes, omics_genes, multiple_mutations, show_location)
+    return Utilities().append_mutations_to_omics(somatic_mutation, omics_df, mutation_genes, omics_genes, multiple_mutations, show_location)
 
 def git_help():
     """
