@@ -345,10 +345,10 @@ def test_get_derived_molecular_filtered():
 
     df = en.get_derived_molecular()
     name = 'derived_molecular'
-    dimensions = (144, 144) 
-    headers = ['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'Estrogen_Receptor', 'Estrogen_Receptor_%', 'Progesterone_Receptor', 'Progesterone_Receptor_%', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
-    test_coord = ((2, 3), (90, 143), (143, 4))
-    test_vals = ('C3L-00032-01', 'PASS', 'CPT0230460002,CPT0230460003,CPT0230460004,CPT0230470002,CPT0230470003,CPT0230470004,CPT0230480002,CPT0230480003,CPT0230480004')
+    dimensions = (144, 118) 
+    headers = ['Estrogen_Receptor', 'Estrogen_Receptor_%', 'Progesterone_Receptor', 'Progesterone_Receptor_%', 'MLH1', 'MLH2', 'MSH6', 'PMS2', 'p53', 'Other_IHC_specify', 'Log2_INDEL_per_Mbp', 'Log2_variant_total', 'Log2_SNP_total', 'Log2_INDEL_total', 'Mutation_signature_C>A', 'Mutation_signature_C>G', 'Mutation_signature_C>T', 'Mutation_signature_T>C', 'Mutation_signature_T>A', 'Mutation_signature_T>G']
+    test_coord = ((3, 4), (30, 117), (80, 52))
+    test_vals = ('Intact nuclear expression', 1.652892562, -0.34)
 
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
@@ -362,10 +362,42 @@ def test_get_derived_molecular_unfiltered():
     print("(NOTE: The unfiltered data warning above was expected.)") # To avoid confusion
 
     name = 'derived_molecular'
-    dimensions = (153, 144)
-    headers = ['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'Estrogen_Receptor', 'Estrogen_Receptor_%', 'Progesterone_Receptor', 'Progesterone_Receptor_%', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
-    test_coord = ((152, 2), (4, 143), (30, 60))
-    test_vals = ('130N', 'PASS', -0.13)
+    dimensions = (153, 118)
+    headers = ['Estrogen_Receptor', 'Estrogen_Receptor_%', 'Progesterone_Receptor', 'Progesterone_Receptor_%', 'MLH1', 'MLH2', 'MSH6', 'PMS2', 'p53', 'Other_IHC_specify', 'Log2_INDEL_per_Mbp', 'Log2_variant_total', 'Log2_SNP_total', 'Log2_INDEL_total', 'Mutation_signature_C>A', 'Mutation_signature_C>G', 'Mutation_signature_C>T', 'Mutation_signature_T>C', 'Mutation_signature_T>A', 'Mutation_signature_T>G']
+    test_coord = ((1, 11), (30, 117), (88, 53))
+    test_vals = (0.005666428, 4.0, -0.37)
+
+    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    print_test_result(PASS)
+
+def test_get_experimental_setup_filtered():
+    """Test get_experimental_setup with default parameter unfiltered=False."""
+
+    print('Running test_get_experimental_setup with default parameter unfiltered=False...')
+
+    df = en.get_experimental_setup()
+    name = 'experimental_setup'
+    dimensions = (144, 26) 
+    headers = ['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
+    test_coord = ((2, 13), (143, 2), (67, 25))
+    test_vals = ('a16b07d8-46c1-4fd9-8204-4f866aacfbec', '130N', 'PASS')
+
+    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    print_test_result(PASS)
+
+def test_get_experimental_setup_unfiltered():
+    """Test get_experimental_setup with parameter unfiltered=True."""
+
+    print('Running test_get_experimental_setup with parameter unfiltered=True...')
+
+    df = en.get_experimental_setup(unfiltered=True)
+    print("(NOTE: The unfiltered data warning above was expected.)") # To avoid confusion
+
+    name = 'experimental_setup'
+    dimensions = (153, 26)
+    headers = ['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
+    test_coord = ((3, 24), (15, 15), (101, 0))
+    test_vals = ('YES', '573df828-ddd8-43e5-9dc2-513911ee977f', 4)
 
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
@@ -1308,41 +1340,43 @@ def test_append_mutations_invalid_key_types():
 print("\nRunning tests:\n")
 
 print("Testing getters...")
-test_get_clinical_filtered()
-test_get_clinical_unfiltered()
+#test_get_clinical_filtered()
+#test_get_clinical_unfiltered()
 #test_get_derived_molecular_filtered()
 #test_get_derived_molecular_unfiltered()
-test_get_acetylproteomics_filtered()
-test_get_acetylproteomics_unfiltered()
-test_get_proteomics()
-test_get_transcriptomics()
-test_get_circular_RNA()
-test_get_miRNA()
-test_get_CNA()
-test_get_phosphoproteomics()
-test_get_phosphoproteomics_gene()
-test_get_phosphosites()
-test_get_mutations()
-test_get_mutations_binary()
-
-print("\nTesting compare and append functions...")
-test_compare_omics_source_preservation()
-test_compare_omics_default_parameters()
-test_compare_omics_single_gene()
-test_compare_omics_multiple_genes()
-test_compare_omics_all_dfs()
-test_compare_omics_invalid_dfs()
-test_compare_omics_invalid_keys()
-test_compare_omics_invalid_key_types()
-test_append_mutations_source_preservation()
-test_append_mutations_one_mut_all_omics()
-test_append_mutations_three_mut_all_omics()
-test_append_mutations_one_mut_one_omics()
-test_append_mutations_three_mut_one_omics()
-test_append_mutations_one_mut_three_omics()
-test_append_mutations_three_mut_three_omics()
-test_append_mutations_one_mut_all_omics_no_location()
-test_append_mutations_three_mut_all_omics_no_location()
-test_append_mutations_invalid_key()
+#test_get_experimental_setup_filtered()
+#test_get_experimental_setup_unfiltered()
+#test_get_acetylproteomics_filtered()
+#test_get_acetylproteomics_unfiltered()
+#test_get_proteomics()
+#test_get_transcriptomics()
+#test_get_circular_RNA()
+#test_get_miRNA()
+#test_get_CNA()
+#test_get_phosphoproteomics()
+#test_get_phosphoproteomics_gene()
+#test_get_phosphosites()
+#test_get_mutations()
+#test_get_mutations_binary()
+#
+#print("\nTesting compare and append functions...")
+#test_compare_omics_source_preservation()
+#test_compare_omics_default_parameters()
+#test_compare_omics_single_gene()
+#test_compare_omics_multiple_genes()
+#test_compare_omics_all_dfs()
+#test_compare_omics_invalid_dfs()
+#test_compare_omics_invalid_keys()
+#test_compare_omics_invalid_key_types()
+#test_append_mutations_source_preservation()
+#test_append_mutations_one_mut_all_omics()
+#test_append_mutations_three_mut_all_omics()
+#test_append_mutations_one_mut_one_omics()
+#test_append_mutations_three_mut_one_omics()
+#test_append_mutations_one_mut_three_omics()
+#test_append_mutations_three_mut_three_omics()
+#test_append_mutations_one_mut_all_omics_no_location()
+#test_append_mutations_three_mut_all_omics_no_location()
+#test_append_mutations_invalid_key()
 
 print("Version:",en.version())
