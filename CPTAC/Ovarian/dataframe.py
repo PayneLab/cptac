@@ -88,7 +88,5 @@ class DataFrameLoader:
             parsedDf = parsedDf.set_index("Patient_Id")
             parsedDf.name = 'somatic_mutation'
             return parsedDf
-        elif self.name == 'somatic_19':
-            pass # We don't even need to load this one.
         else:
             print("Error reading", self.fileName)
