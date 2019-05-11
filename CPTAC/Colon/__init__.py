@@ -50,7 +50,8 @@ for i in range(len(phos_normal_indicies)):
     index = phos_normal_indicies[i]
     index_marked = index + 'N'
     phos_normal_indicies[i] = index_marked
-phos_normal = phos_normal.set_index(phos_normal_indicies)
+phos_new_index = pd.Index(phos_normal_indicies)
+phos_normal = phos_normal.set_index(phos_new_index)
 
 # Combine the two phosphoproteomics dataframes
 phos_combined = phos_tumor.append(phos_normal)
