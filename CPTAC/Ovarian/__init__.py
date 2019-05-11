@@ -235,7 +235,7 @@ def append_clinical_to_omics(omics_df, clinical_cols=None, omics_cols=None):
 
     # Return the merge.
     clinical = get_clinical()
-    return Utilities().append_clinical_to_omics(clinical, omics_df, clinical_cols, omics_cols)
+    return Utilities().append_metadata_to_omics(clinical, omics_df, clinical_cols, omics_cols)
 
 def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, show_location=True):
     """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
