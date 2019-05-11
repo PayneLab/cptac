@@ -34,7 +34,7 @@ for file in files: #loops through files variable
 # Combine the two proteomics dataframes
 prot_tumor = data.get("proteomics_tumor")
 prot_normal = data.get("proteomics_normal") #normal entries are marked with 'N' on the end of the ID
-prot_combined = tumor.append(normal)
+prot_combined = prot_tumor.append(prot_normal)
 prot_combined.name = "proteomics"
 data[prot_combined.name] = prot_combined
 del data["proteomics_tumor"]
