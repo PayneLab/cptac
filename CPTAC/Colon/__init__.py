@@ -31,6 +31,35 @@ for file in files: #loops through files variable
         print("Error reading", file)
         print("Check that all file names coincide with DataFrameLoader specs")
 
+# Combine the two proteomics dataframes
+prot_tumor = data.get("proteomics_tumor")
+prot_normal = data.get("proteomics_normal") #normal entries are marked with 'N' on the end of the ID
+prot_combined = tumor.append(normal)
+prot_combined.name = "proteomics"
+data[prot_combined.name] = prot_combined
+del data["proteomics_tumor"]
+del data["proteomics_normal"]
+
+# Get phosphoproteomics dataframes
+phos_tumor = data.get("phosphoproteomics_tumor")
+phos_normal = data.get("phosphoproteomics_normal") # Normal entries are not marked
+
+# Mark entries in normal dataframe
+phos_normal_indicies = phos_normal.index.values.tolist()
+for i in range(len(phos_normal_indicies)):
+    index = phos_normal_indicies[i]
+    index_marked = index + 'N'
+    phos_normal_indicies[i] = index_marked
+phos_normal = phos_normal.set_index(phos_normal_indicies)
+
+# Combine the two phosphoproteomics dataframes
+phos_combined = phos_tumor.append(phos_normal)
+phos_combined.name = 'phosphoproteomics'
+data[phos_combined.name] = phos_combined
+del data["phosphoproteomics_tumor"]
+del data["phosphoproteomics_normal"]
+
+
 def list_data():
 	"""
 	Parameters:
@@ -94,11 +123,7 @@ def get_phosphoproteomics():
 	Returns:
 	Phosphoproteomics dataframe (both normal and tumor entries combined in one dataframe)
 	"""
-	tumor = data.get("phosphoproteomics_tumor")
-	normal = data.get("phosphoproteomics_normal") #normal entries are not marked
-	combined = tumor.append(normal)
-	combined.name = 'phosphoproteomics'
-	return combined
+	return data.get("phosphoproteomics")
 
 def get_proteomics():
 	"""
@@ -108,11 +133,7 @@ def get_proteomics():
 	Returns:
 	Proteomics dataframe (both normal and tumor entries combined in one dataframe)
 	"""
-	tumor = data.get("proteomics_tumor")
-	normal = data.get("proteomics_normal") #normal entries are marked with 'N' on the end of the ID
-	combined = tumor.append(normal)
-	combined.name = "proteomics"
-	return combined
+	return data.get("proteomics")
 
 def get_transcriptomics():
 	"""
