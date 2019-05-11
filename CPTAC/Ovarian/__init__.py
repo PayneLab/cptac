@@ -237,14 +237,13 @@ def append_clinical_to_omics(omics_df, clinical_cols=None, omics_cols=None):
     clinical = get_clinical()
     return Utilities().append_clinical_to_omics(clinical, omics_df, clinical_cols, omics_cols)
 
-def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, multiple_mutations=False, show_location=True):
+def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, show_location=True):
     """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
 
     Parameters:
     omics_df (pandas DataFrame): Omics dataframe to append the mutation data to.
     mutation_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
     omics_genes (str, or list or array-like of str, optional): Gene(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
-    multiple_mutations (bool, optional): Whether to keep multiple mutations on the same gene for one sample, or only report the highest priority mutation.
     show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
 
     Returns:
@@ -264,4 +263,4 @@ def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, multip
 
     # Return the merge.
     mutations = get_mutations()
-    return Utilities().append_mutations_to_omics(mutations, omics_df, mutation_genes, omics_genes, multiple_mutations, show_location)
+    return Utilities().append_mutations_to_omics(mutations, omics_df, mutation_genes, omics_genes, show_location)
