@@ -80,6 +80,7 @@ master_df = pd.DataFrame(index=master_index)
 master_clinical = data['clinical'].join(master_df, how='outer') # Do an outer join with the clinical dataframe, so that clinical has a row for every sample in the dataset
 master_clinical = set_sample_id_index(master_clinical, sample_id_dict, drop_patient_ids=False) # Replace the patient id index with a sample id index in the clinical dataframe. Keep the patient ids so we can maps sample ids to their patient ids.
 data['clinical'] = master_clinical # Replace the clinical dataframe in the data dictionary with our new and improved version!
+data['clinical'].name = 'clinical'
 
 # Give the other dataframes Sample_ID indicies, but don't keep the old index, since we have a mapping in the clinical dataframe of all sample ids to their patient ids.
 for df in data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
