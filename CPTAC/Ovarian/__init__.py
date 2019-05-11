@@ -48,7 +48,6 @@ def set_sample_id_index(df, sample_id_dict, drop_patient_ids): # private
         return_df = return_df.reset_index() # This gives the dataframe a default numerical index and makes the old index a column, which prevents it from being dropped when we set Sample_ID as the index.
         return_df = return_df.rename(columns={old_index_name:'Patient_ID'}) # Rename the old index as Patient_ID
     return_df = return_df.set_index('Sample_ID') # Make the Sample_ID column the index
-    return_df.name = df.name
     return return_df
 
 dir_path = os.path.dirname(os.path.realpath(__file__)) #gets path to CPTAC package
@@ -86,6 +85,7 @@ data['clinical'] = master_clinical # Replace the clinical dataframe in the data 
 for df in data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
     if df != 'clinical':
         data[df] = set_sample_id_index(data[df], sample_id_dict, drop_patient_ids=True)
+        data[df].name = df
 
 warning() #displays warning
 
