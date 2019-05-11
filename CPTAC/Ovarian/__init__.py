@@ -58,29 +58,32 @@ for file in files: #loops through files variable
     df = DataFrameLoader(file).createDataFrame()
     data[df.name] = df #maps dataframe name to dataframe
 
-# Get a union of all dataframes' indicies, with duplicates removed
-indicies = [df.index for df in data.values()]
-master_index = pd.Index([])
-for index in indicies:
-    master_index = master_index.union(index)
-master_index = master_index.drop_duplicates()
-
-# Generate a sample ID for each patient ID
-sample_id_dict = {}
-for i in range(len(master_index)):
-    patient_id = master_index[i]
-    sample_id_dict[patient_id] = "S{:0>3}".format(i + 1) # Use string formatter to give each sample id the format S*** filled with zeroes, e.g. S001 or S023
-
-# Put a mapping in the clinical dataframe of all patient ids to their sample ids, including patient ids for samples not originally in the clinical dataframe. Then, give the clinical dataframe a sample id index.
-master_df = pd.DataFrame(index=master_index) 
-master_clinical = data['clinical'].join(master_df, how='outer') # Do an outer join with the clinical dataframe, so that clinical has a row for every sample in the dataset
-master_clinical = set_sample_id_index(master_clinical, sample_id_dict, drop_patient_ids=False) # Replace the patient id index with a sample id index in the clinical dataframe. Keep the patient ids so we can maps sample ids to their patient ids.
-data['clinical'] = master_clinical # Replace the clinical dataframe in the data dictionary with our new and improved version!
-
-# Give the other dataframes Sample_ID indicies, but don't keep the old index, since we have a mapping in the clinical dataframe of all sample ids to their patient ids.
-for df in data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
-    if df != 'clinical':
-        data[df] = set_sample_id_index(data[df], sample_id_dict, drop_patient_ids=True)
+## Get a union of all dataframes' indicies, with duplicates removed
+#indicies = [df.index for df in data.values()]
+#master_index = pd.Index([])
+#for index in indicies:
+#    master_index = master_index.union(index)
+#master_index = master_index.drop_duplicates()
+#
+## Generate a sample ID for each patient ID
+#sample_id_dict = {}
+#for i in range(len(master_index)):
+#    patient_id = master_index[i]
+#    sample_id_dict[patient_id] = "S{:0>3}".format(i + 1) # Use string formatter to give each sample id the format S*** filled with zeroes, e.g. S001 or S023
+#
+## Put a mapping in the clinical dataframe of all patient ids to their sample ids, including patient ids for samples not originally in the clinical dataframe. Then, give the clinical dataframe a sample id index.
+#master_df = pd.DataFrame(index=master_index) 
+#master_clinical = data['clinical'].join(master_df, how='outer') # Do an outer join with the clinical dataframe, so that clinical has a row for every sample in the dataset
+#master_clinical = set_sample_id_index(master_clinical, sample_id_dict, drop_patient_ids=False) # Replace the patient id index with a sample id index in the clinical dataframe. Keep the patient ids so we can maps sample ids to their patient ids.
+#data['clinical'] = master_clinical # Replace the clinical dataframe in the data dictionary with our new and improved version!
+#
+## Keep the somatic_mutation dataframe's index, but add a Sample_ID column
+#data['somatic_mutation'] = data['somatic_mutation'].assign(Sample_ID=lambda df:sample_id_dict[df['Patient_ID']])
+#
+## Give the other dataframes Sample_ID indicies, but don't keep the old index, since we have a mapping in the clinical dataframe of all sample ids to their patient ids.
+#for df in data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
+#    if df != 'clinical' and df != 'somatic_mutation':
+#        data[df] = set_sample_id_index(data[df], sample_id_dict, drop_patient_ids=True)
 
 warning() #displays warning
 
