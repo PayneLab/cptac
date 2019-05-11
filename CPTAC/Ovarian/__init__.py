@@ -26,16 +26,62 @@ def warning():
     for line in wrapped_list:
         print(line)
 
+def set_sample_id_index(df, id_dict, drop_patient_ids): # private
+    """Replaces a patient ID index with a sample ID index for a dataframe.
+
+    Parameters:
+    df (pandas DataFrame): The dataframe to change the index of.
+    id_dict (dict): A dictionary where the keys are the patient ids, and the values are the corresponding sample ids. Every value in the original dataframe's index must match a key in this dictionary.
+    drop_patient_ids (bool): Whether to drop the patient id column after it is no longer the index.
+
+    Returns:
+    pandas DataFrame: The original dataframe, with the patient id index replaced with a sample id index.
+    """
+    return_df = df.assign(Sample_ID=np.nan) # Create a Sample_ID column filled with NaN values
+    for row in return_df.index: # Fill the Sample_ID column with the sample ID corresponding to the row's index
+        return_df.loc[row, 'Sample_ID'] = id_dict[row] # This is why every value in the original index has to be a key in the id_dict
+    if not drop_patient_ids:
+        return_df = return_df.reset_index() # This gives the dataframe a default numerical index and makes the old index a column, which prevents it from being dropped when we set Sample_ID as the index.
+        return_df = return_df.rename(columns={'index':'Patient_ID'}) # Rename the old index as Patient_ID
+    return_df = return_df.set_index('Sample_ID') # Make the Sample_ID column the index
+    return return_df
+
 dir_path = os.path.dirname(os.path.realpath(__file__)) #gets path to CPTAC package
 data_directory = dir_path + os.sep + "Data" + os.sep #appends Data to path
 path = data_directory + os.sep + "*.*" #appends "*.*" to path, which looks for all files
 files = glob.glob(path) #puts all files into iterable variable
-data = {}
+
+# Load the dataframes
 print("Loading Ovarian CPTAC data:")
+data = {}
 for file in files: #loops through files variable
     df = DataFrameLoader(file).createDataFrame()
     data[df.name] = df #maps dataframe name to dataframe
-    
+
+# Get a union of all dataframes' indicies, with duplicates removed
+indicies = [df.index for df in data.values()]
+master_index = pd.Index([])
+for index in indicies:
+    master_index = master_index.union(index)
+master_index = master_index.drop_duplicates()
+
+# Generate a sample ID for each patient ID
+sample_id_dict = {}
+for i in range(len(master_index)):
+    patient_id = master_index[i]
+    sample_id_dict[patient_id] = "S{:0>3}".format(i + 1) # Use string formatter to give each sample id the format S*** filled with zeroes, e.g. S001 or S023
+
+# Put a mapping in the clinical dataframe of all patient ids to their sample ids, including patient ids for samples not originally in the clinical dataframe. Then, give the clinical dataframe a sample id index.
+master_df = pd.DataFrame(index=master_index) 
+master_clinical = data['clinical'].join(master_df, how='outer') # Do an outer join with the clinical dataframe, so that clinical has a row for every sample in the dataset
+master_clinical = set_sample_id_index(master_clinical, sample_id_dict, drop_patient_ids=False) # Replace the patient id index with a sample id index in the clinical dataframe. Keep the patient ids so we can maps sample ids to their patient ids.
+data['clinical'] = master_clinical # Replace the clinical dataframe in the data dictionary with our new and improved version!
+
+# Give the other dataframes Sample_ID indicies, but don't keep the old index, since we have a mapping in the clinical dataframe of all sample ids to their patient ids.
+for df in data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
+    if df != 'clinical':
+        data[df] = set_sample_id_index(data[df], sample_id_dict, drop_patient_ids=True)
+
 warning() #displays warning
 
 def list_data():
