@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
 import CPTAC.Endometrial as en
-from utilities import *
+from .utilities import Utilities
 
 def print_test_result(PASS):
     """Prints the result of a test, based on a bool.
@@ -1340,34 +1340,36 @@ def test_append_mutations_invalid_key_types():
 print("\nRunning tests:\n")
 
 print("Testing getters...")
-#test_get_clinical_filtered()
-#test_get_clinical_unfiltered()
-#test_get_derived_molecular_filtered()
-#test_get_derived_molecular_unfiltered()
-#test_get_experimental_setup_filtered()
-#test_get_experimental_setup_unfiltered()
-#test_get_acetylproteomics_filtered()
-#test_get_acetylproteomics_unfiltered()
-#test_get_proteomics()
-#test_get_transcriptomics()
-#test_get_circular_RNA()
-#test_get_miRNA()
-#test_get_CNA()
-#test_get_phosphoproteomics()
-#test_get_phosphoproteomics_gene()
-#test_get_phosphosites()
-#test_get_mutations()
-#test_get_mutations_binary()
-#
-#print("\nTesting compare and append functions...")
-#test_compare_omics_source_preservation()
-#test_compare_omics_default_parameters()
-#test_compare_omics_single_gene()
-#test_compare_omics_multiple_genes()
-#test_compare_omics_all_dfs()
-#test_compare_omics_invalid_dfs()
-#test_compare_omics_invalid_keys()
-#test_compare_omics_invalid_key_types()
+test_get_clinical_filtered()
+test_get_clinical_unfiltered()
+test_get_derived_molecular_filtered()
+test_get_derived_molecular_unfiltered()
+test_get_experimental_setup_filtered()
+test_get_experimental_setup_unfiltered()
+test_get_acetylproteomics_filtered()
+test_get_acetylproteomics_unfiltered()
+test_get_proteomics()
+test_get_transcriptomics()
+test_get_circular_RNA()
+test_get_miRNA()
+test_get_CNA()
+test_get_phosphoproteomics()
+test_get_phosphoproteomics_gene()
+test_get_phosphosites()
+test_get_mutations()
+test_get_mutations_binary()
+
+print("\nTesting compare and append functions...")
+test_compare_omics_source_preservation()
+test_compare_omics_default_parameters()
+test_compare_omics_single_gene()
+test_compare_omics_multiple_genes()
+test_compare_omics_all_dfs()
+test_compare_omics_invalid_dfs()
+test_compare_omics_invalid_keys()
+test_compare_omics_invalid_key_types()
+
+# Need to fix these tests
 #test_append_mutations_source_preservation()
 #test_append_mutations_one_mut_all_omics()
 #test_append_mutations_three_mut_all_omics()
