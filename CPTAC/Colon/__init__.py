@@ -31,6 +31,17 @@ for file in files: #loops through files variable
         print("Error reading", file)
         print("Check that all file names coincide with DataFrameLoader specs")
 
+# Separate clinical and derived molecular dataframes
+all_clinical_data = data.get("clinical")
+clinical_df = all_clinical_data.drop(columns=['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity', 'immuneSubtype', 'CIN', 'Integrated.Phenotype'])
+clinical_df.name = "clinical"
+derived_molecular_df = all_clinical_data[['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity', 'immuneSubtype', 'CIN', 'Integrated.Phenotype']]
+derived_molecular_df.name = "derived_molecular"
+
+# Put them in our data dictionary
+data["clinical"] = clinical_df
+data["derived_molecular"] = derived_molecular_df
+
 # Combine the two proteomics dataframes
 prot_tumor = data.get("proteomics_tumor")
 prot_normal = data.get("proteomics_normal") #normal entries are marked with 'N' on the end of the ID
@@ -62,50 +73,26 @@ del data["phosphoproteomics_normal"]
 
 
 def list_data():
-	"""
-	Parameters:
-	None
-
-	Prints a list of available dataframes and dimensions
-
-	Returns:
-	None
-	"""
+	"""Print a list of available dataframes and their dimensions."""
 	print("Below are the available colon data frames contained in this package:")
 	for dataframe in data:
 		print("\t", data[dataframe].name)
 		print("\t", "\t", "Dimensions:", data[dataframe].shape)
 
 def list_api():
-    """
-    Parameters
-    None
-
-    Prints docstrings for all accessible functions
-
-    Returns
-    None
-    """
+    """Print docstrings for all accessible functions."""
     help(__name__)
 
 def get_clinical():
-	"""
-	Parameters:
-	None
-
-	Returns:
-	Clinical dataframe
-	"""
+	"""Get the clinical dataframe."""
 	return data.get("clinical")
 
-def get_miRNA():
-	"""
-	Parameters:
-	None
+def get_derived_molecular():
+    """Get the derived_molecular dataframe."""
+    return data.get("derived_molecular")
 
-	Returns:
-	miRNA dataframe
-	"""
+def get_miRNA():
+	"""Get the miRNA dataframe."""
 	return data.get("miRNA")
 	
 def get_mutations():
@@ -117,33 +104,15 @@ def get_mutations_binary():
     return data.get("somatic_mutation_binary")
 
 def get_phosphoproteomics():
-	"""
-	Parameters:
-	None
-
-	Returns:
-	Phosphoproteomics dataframe (both normal and tumor entries combined in one dataframe)
-	"""
+	"""Get the phosphoproteomics dataframe (both normal and tumor entries combined in one dataframe)."""
 	return data.get("phosphoproteomics")
 
 def get_proteomics():
-	"""
-	Parameters:
-	None
-
-	Returns:
-	Proteomics dataframe (both normal and tumor entries combined in one dataframe)
-	"""
+	"""Get the proteomics dataframe (both normal and tumor entries combined in one dataframe)."""
 	return data.get("proteomics")
 
 def get_transcriptomics():
-	"""
-	Parameters:
-	None
-
-	Returns:
-	Transcriptomics dataframe
-	"""
+	"""Get the transcriptomics dataframe."""
 	return data.get("transcriptomics")
 
 def get_phosphosites(genes):
@@ -191,17 +160,28 @@ def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     # Return the merge.
     return Utilities().compare_omics(omics_df1, omics_df2, cols1, cols2)
 
-def append_clinical_to_omics(omics_df, clinical_cols=None, omics_cols=None):
-    """Append columns from clinical dataframe to part or all of an omics dataframe. Intersection (inner join) of indicies is used.
+def append_metadata_to_omics(metadata_df, omics_df, metadata_cols=None, omics_cols=None):
+    """Joins columns from a metadata dataframe (clinical or derived_molecular) to part or all of an omics dataframe. Intersection (inner join) of indicies is used.
 
     Parameters:
-    omics_df (pandas DataFrame): Omics dataframe to append the clinical columns to.
-    clinical_cols (str, or list or array-like of str, optional): Column(s) to select from the clinical dataframe. str if one gene, list or array-like of str if multiple. Default of None will cause entire dataframe to be selected.
-    omics_cols (str, or list or array-like of str, optional): Column(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
+    metadata_df (pandas DataFrame): Metadata dataframe to select columns from. Either clinical or derived_molecular.
+    omics_df (pandas DataFrame): Omics dataframe to append the metadata columns to.
+    metadata_cols (str, or list or array-like of str, optional): Column(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select the entire metadata dataframe.
+    omics_cols (str, or list or array-like of str, optional): Column(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select entire dataframe.
 
     Returns:
-    pandas DataFrame: The selected clinical columns, merged with all or part of the omics dataframe.
+    pandas DataFrame: The selected metadata columns, merged with all or part of the omics dataframe.
     """
+    # Make sure metadata_df is the right kind of dataframe
+    valid_metadata_dfs = [
+        'clinical',
+        'derived_molecular']
+    if (metadata_df.name not in valid_metadata_dfs):
+        print("{} is not a valid dataframe for metadata_df parameter. Valid options:".format(metadata_df.name))
+        for df_name in valid_metadata_dfs:
+            print('\t' + df_name)
+        return
+
     # Make sure omics_df is the right kind of dataframe
     valid_dfs = [
         'phosphoproteomics',
@@ -214,8 +194,7 @@ def append_clinical_to_omics(omics_df, clinical_cols=None, omics_cols=None):
         return
 
     # Return the merge.
-    clinical = get_clinical()
-    return Utilities().append_clinical_to_omics(clinical, omics_df, clinical_cols, omics_cols)
+    return Utilities().append_metadata_to_omics(metadata_df, omics_df, metadata_cols, omics_cols)
 
 def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, multiple_mutations=False, show_location=True):
     """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
