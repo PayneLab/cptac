@@ -194,8 +194,6 @@ class Utilities:
         """
         # Set some column names for use later
         gene_col = "Gene"
-        patient_key_col = "Clinical_Patient_Key"
-        patient_id_col = "Patient_Id"
         mutation_col = "Mutation"
         location_col = "Location"
 
@@ -205,8 +203,7 @@ class Utilities:
             print("{} gene not found in somatic_mutation data.".format(gene))
             return
         
-        gene_mutations = gene_mutations.set_index(patient_key_col) # Set index as S*** number for merging
-        gene_mutations = gene_mutations.drop(columns=[gene_col, patient_id_col]) # Gene column is same for every sample, and we don't need Patient_Id anymore.
+        gene_mutations = gene_mutations.drop(columns=[gene_col]) # Gene column is same for every sample, so we don't need it anymore
         
         # Create an empty dataframe, which we'll fill with the mutation and location data as lists
         prep_index = gene_mutations.index.drop_duplicates()
@@ -248,7 +245,7 @@ class Utilities:
         Returns:
         pandas DataFrame: The mutations in each patient for the specified genes.
         """
-        df = pd.DataFrame(index=somatic_mutation['Clinical_Patient_Key'].drop_duplicates()) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
+        df = pd.DataFrame(index=somatic_mutation.index.drop_duplicates()) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
         for gene in genes:
             selected = self.get_mutations_for_gene(somatic_mutation, gene) # Get the mutations for our gene
             if selected is None: # If there's no mutation data for that gene, get_mutations_for_gene will have printed an error message. Return None.

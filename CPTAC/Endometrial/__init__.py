@@ -41,7 +41,7 @@ def link_patient_ids(patient_ids, somatic): #private
             s.append(patient_ids[x])
         else:
             s.append("NA")
-    somatic["Clinical_Patient_Key"] = s
+    somatic["Sample_ID"] = s
     return somatic
 """
 Executes on import CPTAC statement. Selects files from docs folder in CPTAC package
@@ -143,7 +143,8 @@ somatic_binary.name = "somatic_mutation_binary"
 somatic_mutation_u = DataFrameLoader(data_directory + "somatic.maf.gz").createDataFrame()
 patient_ids = create_patient_ids(clinical_unfiltered) #maps C3L-**** number to S*** number
 somatic_mutation_u = link_patient_ids(patient_ids, somatic_mutation_u) #adds S*** number to somatic mutations dataframe
-somatic_mutation_u = somatic_mutation_u.set_index("Clinical_Patient_Key")
+somatic_mutation_u = somatic_mutation_u.set_index("Sample_ID")
+somatic_mutation_u = somatic_mutation_u.drop(columns="Patient_Id")
 somatic_mutation = somatic_mutation_u.drop(casesToDrop, errors = "ignore")
 somatic_mutation = somatic_mutation.reset_index()
 somatic_mutation.name = "somatic_mutation"
