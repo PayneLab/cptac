@@ -14,37 +14,20 @@ import numpy as np
 import re
 
 class Utilities:
+
     def __init__(self):
         pass
 
-    def add_mutation_hierarchy(self, somatic): # private
-        """
-        Parameters
-        somatic: somatic data to add mutation hierarchy to
-
-        Returns
-        Somatic mutation dataframe with added mutation hierarchy
-        """
-        mutation_hierarchy = {"nonsynonymous SNV":0,"nonframeshift deletion":0,"nonframeshift insertion":0,"nonframeshift substitution":0,"framshift substitution":1,"framshift insertion":1,"stopgain":1,"framshift deletion":1,"stoploss":1}
-        hierarchy = []
-        for x in somatic["Mutation"]: #for every value in the Mutation column, append its value in the hard coded mutation hierarchy
-            if x in mutation_hierarchy.keys():
-                hierarchy.append(mutation_hierarchy[x])
-            else:
-                hierarchy.append(float('NaN'))
-        somatic = somatic.assign(Mutation_Hierarchy =  hierarchy)
-        return somatic
-
 # Next 4 functions are for working with omics data
     def get_col_from_omics(self, omics_df, gene): # private
-        """Based on a single gene, select a column or columns from an omics dataframe. If dataframe is phospho- or acetylproteomics, grabs all columns that match the gene.
+        """Based on a single gene, select a column or columns from an omics dataframe. If dataframe is phosphoproteomics or acetylproteomics, grabs all columns that match the gene.
 
         Parameters:
-        omics_df (pandas.core.frame.DataFrame): omics dataframe to select colum(s) from.
-        gene (str): gene to use to select column(s).
+        omics_df (pandas DataFrame): omics dataframe to select colum(s) from.
+        gene (str): gene to use to select column(s). 
 
-        Returns:
-        pandas.core.frame.DataFrame: The selected column(s) from the dataframe.
+        Returns: 
+        pandas DataFrame: The selected column(s) from the dataframe.
         """
         if omics_df.name == 'phosphoproteomics':
             col_regex = gene + "_.*" # Build a regex to get all columns that match the gene
@@ -60,14 +43,14 @@ class Utilities:
         return selected
 
     def get_cols_from_omics(self, omics_df, genes): # private
-        """Based on a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
+        """Based on a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
 
         Parameters:
-        omics_df (pandas.core.frame.DataFrame): omics dataframe to select column(s) from.
-        genes (list or pandas.core.series.Series or pandas.core.indexes.base.Index): list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes, as strings, to use to select columns.
+        omics_df (pandas DataFrame): omics dataframe to select column(s) from.
+        genes (str, or list or array-like of str): list or array-like of genes, as strings, to use to select columns.
 
         Returns:
-        pandas.core.frame.DataFrame: The selected columns from the dataframe.
+        pandas DataFrame: The selected columns from the dataframe.
         """
         df = pd.DataFrame(index=omics_df.index) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
         for gene in genes:
@@ -79,37 +62,37 @@ class Utilities:
         return df
 
     def get_omics_from_str_or_list(self, omics_df, genes):
-        """Determines whether you passed it a single gene or a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes, selects the corresponding columns from the omics dataframe, and returns them.
+        """Determines whether you passed it a single gene or a list or array-like of genes, selects the corresponding columns from the omics dataframe, and returns them.
 
         Parameters:
-        omics_df (pandas.core.frame.DataFrame): omics dataframe to select columns from
-        genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): gene(s) to use to select columns from omics_df. str if one gene, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) if multiple. Passing None will select the entire omics dataframe.
+        omics_df (pandas DataFrame): omics dataframe to select columns from
+        genes (str, or list or array-like of str): gene(s) to use to select columns from omics_df. str if one gene, list or array-like if multiple. Passing None will select the entire omics dataframe.
 
         Returns:
-        pandas.core.frame.DataFrame: the columns from omics_df corresponding to the gene(s), as a dataframe.
+        pandas DataFrame: the columns from omics_df corresponding to the gene(s), as a dataframe.
         """
         if isinstance(genes, str): # If it's a single gene, feed it to the proper function
-            return self.get_col_from_omics(omics_df, genes)
-        elif isinstance(genes, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes, feed it to the proper function
+            return self.get_col_from_omics(omics_df, genes) 
+        elif isinstance(genes, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's a str, or list or array-like of str of genes, feed it to the proper function
             return self.get_cols_from_omics(omics_df, genes)
         elif genes is None: # If it's the default of None, rename columns and return the entire dataframe
             return_df = omics_df.rename(columns=lambda x:'{}_{}'.format(x, omics_df.name)) # Append dataframe name to end of each column header, to preserve info when we merge dataframes
             return_df.name = omics_df.name # Name the return dataframe
             return return_df
         else: # If it's none of those, they done messed up. Tell 'em.
-            print("Genes parameter {} is of invalid type {}. Valid types: str, list, pandas.core.series.Series, pandas.core.indexes.base.Index, or NoneType.".format(genes, type(genes)))
+            print("Genes parameter \n{}\nis of invalid type {}. Valid types: str, list, or NoneType.".format(genes, type(genes)))
 
     def compare_omics(self, df1, df2, genes1, genes2):
-        """Select columns for one gene or a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes from one omics dataframe, and columns for another gene or list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes from another omics dataframe, and join them into one dataframe. Intersection (inner join) of indicies is used.
+        """Select columns for one gene or a list or array-like of genes from one omics dataframe, and columns for another gene or list or array-like of genes from another omics dataframe, and join them into one dataframe. Intersection (inner join) of indicies is used.
 
         Parameters:
-        df1 (pandas.core.frame.DataFrame): first omics dataframe to select from.
-        genes1 (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): gene(s) for column(s) to select from the first omics dataframe. str if one gene, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of strings if multiple genes. Passing None will select the entire omics dataframe.
-        df2 (pandas.core.frame.DataFrame): second omics dataframe to select from.
-        genes2 (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): gene(s) for column(s) to select from the second omics dataframe. str if one gene, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of strings if multiple genes. Passing None will select the entire omics dataframe.
+        df1 (pandas DataFrame): first omics dataframe to select from.
+        genes1 (str, or list or array-like of str): gene(s) for column(s) to select from the first omics dataframe. str if one gene, list or array-like of strings if multiple genes. Passing None will select the entire omics dataframe.
+        df2 (pandas DataFrame): second omics dataframe to select from.
+        genes2 (str, or list or array-like of str): gene(s) for column(s) to select from the second omics dataframe. str if one gene, list or array-like of strings if multiple genes. Passing None will select the entire omics dataframe.
 
         Returns:
-        pandas.core.frame.DataFrame: The data from the selected columns from the two dataframes, joined into one dataframe.
+        pandas DataFrame: The data from the selected columns from the two dataframes, joined into one dataframe.
         """
         selected1 = self.get_omics_from_str_or_list(df1, genes1)
         selected2 = self.get_omics_from_str_or_list(df2, genes2)
@@ -125,29 +108,29 @@ class Utilities:
         """Get a single column from the clinical or derived_molecular dataframe.
 
         Parameters:
-        df (pandas.core.frame.DataFrame): The dataframe to select the column from. Either clinical or derived_molecular.
+        df (pandas DataFrame): The dataframe to select the column from. Either clinical or derived_molecular.
         col (str): The column to select from the dataframe.
 
         Returns:
-        pandas.core.frame.DataFrame: The specified column from the given dataframe. We return it as a dataframe for easy merging later.
+        pandas DataFrame: The specified column from the given dataframe. We return it as a dataframe for easy merging later.
         """
         if col not in df.columns.values: # If they didn't give us one of the actual columns, tell them and return None.
             print('{} column not found in {} dataframe. Please double check that it is included in the dataframe.'.format(col, df.name))
             return
-
+        
         selected = df.loc[:, [col]] # Select the column from the dataframe, keeping it as a dataframe
         selected.name = '{} from {}'.format(col, df.name) # Give it a name, identifying which dataframe it came from
         return selected
 
     def get_cols_from_metadata(self, df, cols):
-        """Select several columns, given as a list (or pandas.core.series.Series or pandas.core.indexes.base.Index), from either the clinical or derived_molecular dataframe.
+        """Select several columns, given as a list, from the clinical or derived_molecular dataframe.
 
         Parameters:
-        df (pandas.core.frame.DataFrame): The dataframe to select the column from. Either clinical derived_molecular.
-        cols (list or pandas.core.series.Series or pandas.core.indexes.base.Index): A list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of the columns, as strings, to select from the dataframe.
+        df (pandas DataFrame): The dataframe to select the column from. Either clinical or derived_molecular.
+        cols (str, or list or array-like of str): A list or array-like of the columns, as strings, to select from the dataframe.
 
         Returns:
-        pandas.core.frame.DataFrame: The specified columns from the given dataframe.
+        pandas DataFrame: The specified columns from the given dataframe.
         """
         return_df = pd.DataFrame(index=df.index) # Create an empty dataframe, which we'll fill with the columns we select, and then return.
         for col in cols:
@@ -159,36 +142,36 @@ class Utilities:
         return return_df
 
     def get_metadata_from_str_or_list(self, df, cols):
-        """Determines whether you passed it a single column or a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of columns, then selects them from the given dataframe, and returns them.
+        """Determines whether you passed it a single column or a list or array-like of columns, then selects them from the given dataframe, and returns them.
 
         Parameters:
-        df (pandas.core.frame.DataFrame): The dataframe to select column(s) from. Either clinical or derived_molecular.
-        cols (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): Column(s) to select from the dataframe. str if one, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) if multiple.
+        df (pandas DataFrame): The dataframe to select column(s) from. Either clinical or derived_molecular.
+        cols (str, or list or array-like of str): Column(s) to select from the dataframe. str if one, list or array-like if multiple.
 
         Returns:
-        pandas.core.frame.DataFrame: The specificed columns from the given dataframe.
+        pandas DataFrame: The specificed columns from the given dataframe.
         """
         if isinstance(cols, str): # If it's a single column, feed it to the proper function
             return self.get_col_from_metadata(df, cols)
-        elif isinstance(cols, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of columns, feed it to the proper function
+        elif isinstance(cols, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's a str, or list or array-like of str of columns, feed it to the proper function
             return self.get_cols_from_metadata(df, cols)
-        elif cols is None: # If it's the default of none, return the whole dataframe.
+        elif cols is None: # If it's the default of None, return the entire dataframe
             return df
         else: # If it's none of those, they done messed up. Tell 'em.
-            print("Columns parameter {} is of invalid type {}. Valid types: str, list, pandas.core.series.Series, or pandas.core.indexes.base.Index.".format(cols, type(cols)))
+            print("Columns parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(cols, type(cols)))
 
     def append_metadata_to_omics(self, df, omics_df, df_cols, omics_cols):
         """Selected the specified columns from either the clinical or derived_molecular dataframe, and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
 
         Parameters:
-        df (pandas.core.frame.DataFrame): Either the clinical or derived_molecular dataframe, from which we'll select our columns to append.
-        omics_df (pandas.core.frame.DataFrame): The omics dataframe to append to.
-        df_cols (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): Column(s) to select from the clinical or derived_molecular dataframe. str if one column, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of strings if multiple.
-        omics_cols (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): Gene(s) to select data for from the omics dataframe. Passing None will select the entire omics dataframe.
+        df (pandas DataFrame): Either the clinical or derived_molecular dataframe, from which we'll select our columns to append.
+        omics_df (pandas DataFrame): The omics dataframe to append to.
+        df_cols (str, or list or array-like of str): Column(s) to select from the clinical or derived_molecular dataframe. str if one column, list or array-like of strings if multiple.
+        omics_cols (str, or list or array-like of str): Gene(s) to select data for from the omics dataframe. Passing None will select the entire omics dataframe.
 
         Returns:
-        pandas.core.frame.DataFrame: The selected columns from the clinical or derived_molecular dataframe, appended to the selected columns from the omics dataframe.
-        """
+        pandas DataFrame: The selected columns from the clinical or derived_molecular dataframe, appended to the selected columns from the omics dataframe.
+        """  
         df_selected = self.get_metadata_from_str_or_list(df, df_cols)
         omics_selected = self.get_omics_from_str_or_list(omics_df, omics_cols)
 
@@ -199,110 +182,129 @@ class Utilities:
             return df
 
 # Next 4 functions are for working with mutation data
-    def get_mutations_for_gene(self, somatic, gene, multiple_mutations):
+    def get_mutations_for_gene(self, mutations, gene):
         """Gets all the mutations for a specific gene, for all patients.
 
         Parameters:
-        somatic (pandas.core.frame.DataFrame): The somatic mutation dataframe that we'll grab the mutation data from.
+        mutations (pandas DataFrame): The somatic_mutation dataframe, which we'll grab the mutation data from.
         gene (str): The gene to grab mutations for.
-        multiple_mutations (bool): Whether to keep multiple mutations on the gene for each patient, or only report the highest priority mutation per patient.
 
         Returns:
-        pandas.core.frame.DataFrame: The mutations in each patient for the specified gene.
+        pandas DataFrame: The mutations in each patient for the specified gene.
         """
-        mutations = somatic[somatic["Gene"] == gene]
+        # Set some column names for use later
+        gene_col = "Gene"
+        mutation_col = "Mutation"
+        location_col = "Location"
 
-        if len(mutations) == 0: # If the gene doesn't match any in the dataframe, tell them, and return None.
-            print("{} gene not found in somatic mutations data.".format(gene))
+        gene_mutations = mutations[mutations[gene_col] == gene]
+
+        if len(gene_mutations) == 0: # If the gene doesn't match any in the dataframe, tell them, and return None.
+            print("{} gene not found in somatic_mutation data.".format(gene))
             return
+        
+        gene_mutations = gene_mutations.drop(columns=[gene_col]) # Gene column is same for every sample, so we can drop it.
+        
+        # Create an empty dataframe, which we'll fill with the mutation and location data as lists
+        prep_index = gene_mutations.index.drop_duplicates()
+        prep_columns = gene_mutations.columns
+        mutation_lists = pd.DataFrame(index=prep_index, columns=prep_columns)
 
-        mutations = mutations.drop(columns=["Gene"]) # Drop the gene column due to every value being the same
-        mutations = mutations.set_index("SampleID") # Set index as SampleID for merging
-        if not multiple_mutations: # Filter out multiple mutations for a single sample
-            mutations = self.add_mutation_hierarchy(mutations) # Appends hierachy for sorting so correct duplicate can be kept
-            mutations = mutations.sort_values(by = ["SampleID","Mutation_Hierarchy"], ascending = [True,False]) # Sorts by patient key, then by hierarchy so the duplicates will come with the higher number first
-            mutations = mutations[~mutations.index.duplicated(keep="first")] # Keeps first duplicate row if indices are the same
-            mutations = mutations.drop(columns=['Mutation_Hierarchy']) # Drop the Mutation_Hierarchy now that we've dropped the duplicates
+        for sample in mutation_lists.index:
+            # Get mutation(s) for the sample
+            sample_data = gene_mutations.loc[sample]
+            sample_mutations = sample_data[mutation_col]
+            sample_locations = sample_data[location_col]
 
-        mutations = mutations.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Add the gene name to end beginning of each column header, to preserve info when we merge dataframes
-        mutations.name = 'Somatic mutation data for {} gene'.format(gene)
-        return mutations
+            # Make them a list (even if there's only one)
+            if isinstance(sample_mutations, str):
+                sample_mutations_list = [sample_mutations]
+            else: # It's a pandas Series
+                sample_mutations_list = sample_mutations.tolist()
 
-    def get_mutations_for_genes(self, somatic, genes, multiple_mutations):
-        """Gets all the mutations for a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes, for all patients.
+            if isinstance(sample_locations, str):
+                sample_locations_list = [sample_locations]
+            else: # It's a pandas Series
+                sample_locations_list = sample_locations.tolist()
+
+            # Put in our template dataframe
+            mutation_lists.at[sample, mutation_col] = sample_mutations_list
+            mutation_lists.at[sample, location_col] = sample_locations_list
+
+        mutation_lists = mutation_lists.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Add the gene name to end beginning of each column header, to preserve info when we merge dataframes.
+        mutation_lists.name = 'Somatic mutation data for {} gene'.format(gene)
+        return mutation_lists
+
+    def get_mutations_for_genes(self, somatic_mutation, genes):
+        """Gets all the mutations for a list or array-like of genes, for all patients.
 
         Parameters:
-        somatic (pandas.core.frame.DataFrame): The somatic mutation dataframe that we'll grab the mutation data from.
-        genes (list or pandas.core.series.Series or pandas.core.indexes.base.Index): The genes, as strings, to grab mutations for.
-        multiple_mutations (bool): Whether to keep multiple mutations on a single gene for each patient, or only report the highest priority mutation per patient.
+        somatic_mutation (pandas DataFrame): The somatic_mutation dataframe that we'll grab the mutation data from.
+        genes (str, or list or array-like of str): The genes, as strings, to grab mutations for.
 
         Returns:
-        pandas.core.frame.DataFrame: The mutations in each patient for the specified genes.
+        pandas DataFrame: The mutations in each patient for the specified genes.
         """
-        df = pd.DataFrame(index=somatic['SampleID'].drop_duplicates()) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
+        df = pd.DataFrame(index=somatic_mutation.index.drop_duplicates()) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
         for gene in genes:
-            selected = self.get_mutations_for_gene(somatic, gene, multiple_mutations) # Get the mutations for our gene
+            selected = self.get_mutations_for_gene(somatic_mutation, gene) # Get the mutations for our gene
             if selected is None: # If there's no mutation data for that gene, get_mutations_for_gene will have printed an error message. Return None.
                 return
             df = df.join(selected, how='left') # Otherwise, append the columns to our dataframe we'll return.
         df.name = "Somatic mutation data for {} genes".format(len(genes)) # Name the dataframe!
         return df
 
-    def get_mutations_from_str_or_list(self, somatic, genes, multiple_mutations):
-        """Determines whether you passed it a single gene or a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes, selects the corresponding mutations from the somatic mutation dataframe, and returns them.
+    def get_mutations_from_str_or_list(self, somatic_mutation, genes):
+        """Determines whether you passed it a single gene or a list (or pandas.core.series.Series or pandas.core.indexes.base.Index of genes), selects the corresponding mutations from the somatic_mutation dataframe, and returns them.
 
         Parameters:
-        somatic (pandas.core.frame.DataFrame): The somatic mutation dataframe we'll grab the mutation data from.
-        genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): gene(s) to select mutations for. str if one gene, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) if multiple.
-        multiple_mutations (bool): Whether to keep multiple mutations on the gene for each patient, or only report the highest priority mutation per patient.
+        somatic_mutation (pandas DataFrame): The somatic_mutation dataframe we'll grab the mutation data from.
+        genes (str, or list or array-like of str): gene(s) to select mutations for. str if one gene, list or array-like if multiple.
 
         Returns:
-        pandas.core.frame.DataFrame: the mutation data corresponding to the gene(s), as a dataframe.
+        pandas DataFrame: the mutation data corresponding to the gene(s), as a dataframe.
         """
         if isinstance(genes, str): # If it's a single gene, feed it to the proper function
-            return self.get_mutations_for_gene(somatic, genes, multiple_mutations)
-        elif isinstance(genes, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's a list (or pandas.core.series.Series or pandas.core.indexes.base.Index) of genes, feed it to the proper function
-            return self.get_mutations_for_genes(somatic, genes, multiple_mutations)
+            return self.get_mutations_for_gene(somatic_mutation, genes) 
+        elif isinstance(genes, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's a str, or list or array-like of str of genes, feed it to the proper function
+            return self.get_mutations_for_genes(somatic_mutation, genes)
         else: # If it's neither of those, they done messed up. Tell 'em.
-            print("Genes parameter {} is of invalid type {}. Valid types: str or list or pandas.core.series.Series or pandas.core.indexes.base.Index.".format(genes, type(genes)))
+            print("Genes parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(genes, type(genes)))
 
-    def append_mutations_to_omics(self, somatic, omics_df, mutation_genes, omics_genes, multiple_mutations, show_location):
-        """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
+    def append_mutations_to_omics(self, somatic_mutation, omics_df, mutation_genes, omics_genes, show_location):
+        """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
-        somatic (pandas.core.frame.DataFrame): Somatic mutation dataframe we'll get the dataframe.
-        omics_df (pandas.core.frame.DataFrame): Omics dataframe to append the mutation data to.
-        mutation_genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): The gene(s) to get mutation data for. str if one gene, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) if multiple.
-        omics_genes (str or list or pandas.core.series.Series or pandas.core.indexes.base.Index): Gene(s) to select from the omics dataframe. str if one gene, list (or pandas.core.series.Series or pandas.core.indexes.base.Index) if multiple. Passing None will select the entire omics dataframe.
-        multiple_mutations (bool): Whether to keep multiple mutations on the gene for each patient, or only report the highest priority mutation per patient.
+        somatic_mutation (pandas DataFrame): Somatic mutation dataframe we'll get the dataframe.
+        omics_df (pandas DataFrame): Omics dataframe to append the mutation data to.
+        mutation_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like if multiple.
+        omics_genes (str, or list or array-like of str): Gene(s) to select from the omics dataframe. str if one gene, list or array-like if multiple. Passing None will select the entire omics dataframe.
         show_location (bool): Whether to include the Location column from the mutation dataframe.
 
         Returns:
-        pandas.core.frame.DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe.
+        pandas DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
         """
         omics = self.get_omics_from_str_or_list(omics_df, omics_genes)
-        mutations = self.get_mutations_from_str_or_list(somatic, mutation_genes, multiple_mutations)
+        mutations = self.get_mutations_from_str_or_list(somatic_mutation, mutation_genes)
 
         if (omics is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, and an error message was printed. We'll return None.
             merge = omics.join(mutations, how = "left") # Left join omics data and mutation data (left being the omics data)
 
-            merge = merge.assign(Sample_Status = np.where(merge.index.str[-1] != "N", "Tumor", "Normal")) # Add sample status, setting all samples labels not ending in "N" as Tumor, others as normal. 
+            merge["Sample_Status"] = np.where(merge.index <= "S110", "Tumor", "Normal") # Add Sample_Status column indicating sample type. Set all samples up to S104 as Tumor, others as normal.
 
             mutation_regex = r'.*_Mutation' # Construct regex to find all mutation columns
             mutation_cols = [col for col in merge.columns.values if re.match(mutation_regex, col)] # Get a list of all mutation columns
             for mutation_col in mutation_cols:
-                merge.loc[(merge['Sample_Status'] == "Normal") & (pd.isnull(merge[mutation_col])), mutation_col] = "Wildtype_Normal" # Change all NaN mutation values (i.e., no mutation data for that sample) for Normal samples to Wildtype_Normal
-                merge.loc[(merge['Sample_Status'] == "Tumor") & (pd.isnull(merge[mutation_col])), mutation_col] = "Wildtype_Tumor" # Change all NaN mutation values (i.e., no mutation data for that sample) for Tumor samples to Wildtype_Tumor
+                merge.loc[(merge['Sample_Status'] == "Normal") & (pd.isnull(merge[mutation_col])), mutation_col] = [[["Wildtype_Normal"]]] # Change all NaN mutation values (i.e., no mutation data for that sample) for Normal samples to Wildtype_Normal. Triple nested list causes .loc to insert the value as ['Wildtype_Normal'], like we want it to, instead of unpacking the list.
+                merge.loc[(merge['Sample_Status'] == "Tumor") & (pd.isnull(merge[mutation_col])), mutation_col] = [[["Wildtype_Tumor"]]] # Change all NaN mutation values (i.e., no mutation data for that sample) for Tumor samples to Wildtype_Tumor
 
             location_regex = r'.*_Location' # Construct regex to find all location columns
             location_cols = [col for col in merge.columns.values if re.match(location_regex, col)] # Get a list of all location columns
             for location_col in location_cols:
                 if show_location:
-                    merge = merge.fillna(value={location_col:'No_mutation'}) # If there's no location, there wasn't a mutation--make it easier for people to understand what that means.
+                    merge.loc[pd.isnull(merge[location_col]), location_col] = [[["No_mutation"]]] # If there's no location, there wasn't a mutation--make it easier for people to understand that.
                 else:
                     merge = merge.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
 
-            merge.index.name = 'index'
-            merge = merge.sort_values(by = ["Sample_Status", "index"], ascending = [False,True]) # Sorts by Sample_Status, then by SampleID, so all normal samples are at the end.
             merge.name = "{}, with {}".format(omics.name, mutations.name) # Give it a name identifying the data in it
             return merge

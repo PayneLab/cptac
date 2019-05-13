@@ -103,7 +103,7 @@ class Utilities:
             df.name = "{}, with {}".format(selected1.name, selected2.name) # Give it a nice name identifying the data in it.
             return df
 
-# Next 4 functions are for working with clinical, derived molecular, and experimental_setup data
+# Next 4 functions are for working with clinical data
     def get_col_from_metadata(self, df, col):
         """Get a single column from the clinical dataframe.
 

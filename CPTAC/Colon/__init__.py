@@ -17,6 +17,31 @@ import pandas as pd
 from .dataframe import DataFrameLoader
 from .utilities import Utilities
 
+def set_sample_id_index(df, sample_id_dict, drop_patient_ids): # private
+    """Replaces a patient ID index with a sample ID index for a dataframe.
+
+    Parameters:
+    df (pandas DataFrame): The dataframe to change the index of.
+    sample_id_dict (dict): A dictionary where the keys are the patient ids, and the values are the corresponding sample ids. Every value in the original dataframe's index must match a key in this dictionary.
+    drop_patient_ids (bool): Whether to drop the patient id column after it is no longer the index.
+
+    Returns:
+    pandas DataFrame: The original dataframe, with the patient id index replaced with a sample id index.
+    """
+    sample_id_column = []
+    for row in df.index:
+        sample_id_column.append(sample_id_dict[row]) # This is why every value in the original dataframe's index has to match a key in sample_id_dict
+    return_df = df.assign(Sample_ID=sample_id_column)
+    if not drop_patient_ids:
+        old_index_name = df.index.name
+        if old_index_name is None:
+            old_index_name = 'index'
+        return_df = return_df.reset_index() # This gives the dataframe a default numerical index and makes the old index a column, which prevents it from being dropped when we set Sample_ID as the index.
+        return_df = return_df.rename(columns={old_index_name:'Patient_ID'}) # Rename the old index as Patient_ID
+    return_df = return_df.set_index('Sample_ID') # Make the Sample_ID column the index
+    return_df = return_df.sort_index() # Get everything in order
+    return return_df
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 data_directory = dir_path + os.sep + "Data" + os.sep
 path = data_directory + "*.*"
@@ -71,6 +96,50 @@ data[phos_combined.name] = phos_combined
 del data["phosphoproteomics_tumor"]
 del data["phosphoproteomics_normal"]
 
+# Rename the somamtic_mutation dataframe's "SampleID" column to "PatientID", then set that as the index, to match the other dataframes
+new_somatic = data["somatic_mutation"]
+new_somatic = new_somatic.rename(columns={"SampleID":"Patient_ID"})
+new_somatic = new_somatic.set_index("Patient_ID")
+new_somatic.name = "somatic_mutation"
+data["somatic_mutation"] = new_somatic
+
+# Get a union of all dataframes' indicies, with duplicates removed
+indicies = [df.index for df in data.values()]
+master_index = pd.Index([])
+for index in indicies:
+    master_index = master_index.union(index)
+    master_index = master_index.drop_duplicates()
+
+# Sort this master_index so all the samples with an N suffix are last
+status_df = pd.DataFrame(master_index, columns=['Patient_ID']) # Create a new dataframe with the master_index as a column called "Patient_ID"
+status_col = []
+for index in master_index:
+    if index[-1] == 'N':
+        status_col.append("Normal")
+    else:
+        status_col.append("Tumor")
+status_df = status_df.assign(Status=status_col)
+status_df = status_df.sort_values(by=['Status', 'Patient_ID'], ascending=[False, True])
+master_index = status_df["Patient_ID"].tolist()
+
+# Generate a sample ID for each patient ID
+sample_id_dict = {}
+for i in range(len(master_index)):
+    patient_id = master_index[i]
+    sample_id_dict[patient_id] = "S{:0>3}".format(i + 1) # Use string formatter to give each sample id the format S*** filled with zeroes, e.g. S001 or S023
+
+# Put a mapping in the clinical dataframe of all patient ids to their sample ids, including patient ids for samples not originally in the clinical dataframe. Then, give the clinical dataframe a sample id index.
+master_df = pd.DataFrame(index=master_index)
+master_clinical = data['clinical'].join(master_df, how='outer') # Do an outer join with the clinical dataframe, so that clinical has a row for every sample in the dataset
+master_clinical = set_sample_id_index(master_clinical, sample_id_dict, drop_patient_ids=False) # Replace the patient id index with a sample id index in the clinical dataframe. Keep the patient ids so we can maps sample ids to their patient ids.
+data['clinical'] = master_clinical # Replace the clinical dataframe in the data dictionary with our new and improved version!
+data['clinical'].name = 'clinical'
+
+# Give the other dataframes Sample_ID indicies, but don't keep the old index, since we have a mapping in the clinical dataframe of all sample ids to their patient ids.
+for df in data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
+    if df != 'clinical':
+        data[df] = set_sample_id_index(data[df], sample_id_dict, drop_patient_ids=True)
+        data[df].name = df
 
 def list_data():
 	"""Print a list of available dataframes and their dimensions."""
@@ -196,7 +265,7 @@ def append_metadata_to_omics(metadata_df, omics_df, metadata_cols=None, omics_co
     # Return the merge.
     return Utilities().append_metadata_to_omics(metadata_df, omics_df, metadata_cols, omics_cols)
 
-def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, multiple_mutations=False, show_location=True):
+def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, show_location=True):
     """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
 
     Parameters:
@@ -222,4 +291,4 @@ def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, multip
 
     # Return the merge.
     mutations = get_mutations()
-    return Utilities().append_mutations_to_omics(mutations, omics_df, mutation_genes, omics_genes, multiple_mutations, show_location)
+    return Utilities().append_mutations_to_omics(mutations, omics_df, mutation_genes, omics_genes, show_location)

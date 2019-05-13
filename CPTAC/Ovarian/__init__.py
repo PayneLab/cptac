@@ -67,7 +67,7 @@ indicies = [df.index for df in data.values()]
 master_index = pd.Index([])
 for index in indicies:
     master_index = master_index.union(index)
-master_index = master_index.drop_duplicates()
+    master_index = master_index.drop_duplicates()
 
 # Generate a sample ID for each patient ID
 sample_id_dict = {}
