@@ -28,9 +28,9 @@ def warning():
 Creates dictionary for linking Patient_Id with individual sample number (i.e. C3L-00006 with S001)
 """
 def create_patient_ids(clinical): #private
-    c = clinical[["Proteomics_Participant_ID"]][0:103] # S105 maps back to S001
+    c = clinical[["Patient_ID"]][0:103] # S105 maps back to S001
     s = c.index
-    dictPrepDf = c.set_index('Proteomics_Participant_ID')
+    dictPrepDf = c.set_index('Patient_ID')
     dictPrepDf['idx'] = s
     patient_ids = dictPrepDf.to_dict()['idx']
     return patient_ids
@@ -72,6 +72,7 @@ clinical_unfiltered = clinical_file_data[[
     'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Clin_Stage_Dist_Mets-cM', 'Path_Stage_Dist_Mets-pM',
     'tumor_Stage-Pathological', 'FIGO_stage', 'LVSI', 'BMI', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site',
     'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm',   'Num_full_term_pregnancies']]
+clinical_unfiltered = clinical_unfiltered.rename(columns={"Proteomics_Participant_ID":"Patient_ID"})
 clinical = clinical_unfiltered.drop(casesToDrop, errors = "ignore") #Drops all samples with Case_excluded == Yes
 clinical = clinical.drop(['Case_excluded'], axis=1)
 clinical_unfiltered.name = "clinical"
@@ -165,6 +166,7 @@ def list_data():
         print("\t", dataframe.name)
         print("\t", "\t", "Dimensions:", dataframe.shape)
     #print("To find how to access the data, view the documentation with either list_api() or visit the github page with help().")
+
 def list_api():
     """
     Parameters
@@ -176,31 +178,7 @@ def list_api():
     None
     """
     help(__name__)
-def define(term):
-    """
-    Parameters
-    term: string of term to be defined
 
-    Returns
-    String definition of provided term
-    """
-    if term in dict:
-        print(dict[term])
-    else:
-        print(term, "not found in dictionary. Alternatively, CPTAC.define() can be used to perform a web search of the term provided.")
-def search(term):
-    """
-    Parameters
-    term: string of term to be searched
-
-    Performs online search of provided term
-
-    Returns
-    None
-    """
-    url = "https://www.google.com/search?q=" + term
-    print("Searching for", term, "in web browser...")
-    webbrowser.open(url)
 def unfiltered_warning():
     """
     Parameters
@@ -214,6 +192,7 @@ def unfiltered_warning():
 
     message = "IMPORTANT! Data has been filtered due to quality check on samples. Inclusion of unfiltered samples in analyses is NOT recommended."
     print(message)
+
 def get_clinical(unfiltered=False):
     """
     Parameters
@@ -226,6 +205,7 @@ def get_clinical(unfiltered=False):
         unfiltered_warning()
         return clinical_unfiltered
     return clinical
+
 def get_derived_molecular(unfiltered=False):
     """
     Parameters
@@ -238,6 +218,7 @@ def get_derived_molecular(unfiltered=False):
         unfiltered_warning()
         return derived_molecular_u
     return derived_molecular
+
 def get_experimental_setup(unfiltered=False):
     """
     Parameters
@@ -250,6 +231,7 @@ def get_experimental_setup(unfiltered=False):
         unfiltered_warning()
         return experimental_setup_u
     return experimental_setup
+
 def get_acetylproteomics(unfiltered=False):
     """
     Parameters
@@ -262,6 +244,7 @@ def get_acetylproteomics(unfiltered=False):
         unfiltered_warning()
         return acetylproteomics_u
     return acetylproteomics
+
 def get_proteomics(unfiltered=False):
     """
     Parameters
@@ -502,6 +485,33 @@ def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, show_l
     # Return the merge.
     return Utilities().append_mutations_to_omics(somatic_mutation, omics_df, mutation_genes, omics_genes, show_location)
 
+def define(term):
+    """
+    Parameters
+    term: string of term to be defined
+
+    Returns
+    String definition of provided term
+    """
+    if term in dict:
+        print(dict[term])
+    else:
+        print(term, "not found in dictionary. Alternatively, CPTAC.define() can be used to perform a web search of the term provided.")
+
+def search(term):
+    """
+    Parameters
+    term: string of term to be searched
+
+    Performs online search of provided term
+
+    Returns
+    None
+    """
+    url = "https://www.google.com/search?q=" + term
+    print("Searching for", term, "in web browser...")
+    webbrowser.open(url)
+
 def git_help():
     """
     Parameters
@@ -527,6 +537,7 @@ def embargo():
     """
     print("Opening embargo details in web browser...")
     webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
+
 def version():
     """
     Parameters

@@ -79,6 +79,8 @@ for i in range(len(master_index)):
 master_df = pd.DataFrame(index=master_index) 
 master_clinical = data['clinical'].join(master_df, how='outer') # Do an outer join with the clinical dataframe, so that clinical has a row for every sample in the dataset
 master_clinical = set_sample_id_index(master_clinical, sample_id_dict, drop_patient_ids=False) # Replace the patient id index with a sample id index in the clinical dataframe. Keep the patient ids so we can maps sample ids to their patient ids.
+clinical_status_col = np.where(master_clinical.index <= "S116", "Tumor", "Normal") # Add a sample status column. Samples with a Patient_ID beginning with N are normal, which begin at S117.
+master_clinical.insert(1, "Sample_Status", clinical_status_col)
 data['clinical'] = master_clinical # Replace the clinical dataframe in the data dictionary with our new and improved version!
 data['clinical'].name = 'clinical'
 
@@ -105,6 +107,7 @@ def list_data():
     for dataframe in data:
         print("\t", data[dataframe].name)
         print("\t", "\t", "Dimensions:", data[dataframe].shape)
+
 def list_api():
     """
     Parameters
@@ -116,8 +119,10 @@ def list_api():
     None
     """
     help(__name__)
+
 def get_data():
     return data
+
 def get_clinical():
     return data.get("clinical")
 
@@ -149,34 +154,6 @@ def get_phosphosites(genes):
     phosphoproteomics = get_phosphoproteomics()
     return Utilities().get_omics_from_str_or_list(phosphoproteomics, genes)
 
-def embargo():
-    """
-    Parameters
-    None
-
-    Opens CPTAC embargo details in web browser
-
-    Returns
-    None
-    """
-    print("Opening embargo details in web browser...")
-    webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
-def version():
-    """
-    Parameters
-    None
-
-    Prints version number of CPTAC package
-
-    Returns
-    Version number
-    """
-    version = {}
-    with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder
-    	exec(fp.read(), version)
-    return(version['__version__'])
-
-# New merge functions
 def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     """Take specified column(s) from one omics dataframe, and merge with specified columns(s) from another omics dataframe. Intersection (inner join) of indicies is used.
 
@@ -265,3 +242,58 @@ def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, show_l
     # Return the merge.
     mutations = get_mutations()
     return Utilities().append_mutations_to_omics(mutations, omics_df, mutation_genes, omics_genes, show_location)
+
+def search(term):
+    """
+    Parameters
+    term: string of term to be searched
+
+    Performs online search of provided term
+
+    Returns
+    None
+    """
+    url = "https://www.google.com/search?q=" + term
+    print("Searching for", term, "in web browser...")
+    webbrowser.open(url)
+
+def git_help():
+    """
+    Parameters
+    None
+
+    Opens github help page
+
+    Returns
+    None
+    """
+    print("Opening help.txt in web browser...")
+    webbrowser.open("https://github.com/PayneLab/CPTAC/blob/master/doc/help.txt")
+
+def embargo():
+    """
+    Parameters
+    None
+
+    Opens CPTAC embargo details in web browser
+
+    Returns
+    None
+    """
+    print("Opening embargo details in web browser...")
+    webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
+
+def version():
+    """
+    Parameters
+    None
+
+    Prints version number of CPTAC package
+
+    Returns
+    Version number
+    """
+    version = {}
+    with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder
+    	exec(fp.read(), version)
+    return(version['__version__'])
