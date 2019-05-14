@@ -80,7 +80,7 @@ class Utilities:
             return_df.name = omics_df.name # Name the return dataframe
             return return_df
         else: # If it's none of those, they done messed up. Tell 'em.
-            print("Genes parameter \n{}\nis of invalid type {}. Valid types: str, list, or NoneType.".format(genes, type(genes)))
+            print("Genes parameter \n{}\nis of invalid type {}. Valid types: str, list or array-like of str, or NoneType.".format(genes, type(genes)))
 
     def compare_omics(self, df1, df2, genes1, genes2):
         """Select columns for one gene or a list or array-like of genes from one omics dataframe, and columns for another gene or list or array-like of genes from another omics dataframe, and join them into one dataframe. Intersection (inner join) of indicies is used.
@@ -103,12 +103,12 @@ class Utilities:
             df.name = "{}, with {}".format(selected1.name, selected2.name) # Give it a nice name identifying the data in it.
             return df
 
-# Next 4 functions are for working with clinical, derived molecular, and experimental_setup data
+# Next 4 functions are for working with metadata dataframes
     def get_col_from_metadata(self, df, col):
-        """Get a single column from the clinical, derived_molecular, or experimental_setup dataframe.
+        """Get a single column from a metadata dataframe.
 
         Parameters:
-        df (pandas DataFrame): The dataframe to select the column from. Either clinical, derived_molecular, or experimental_setup.
+        df (pandas DataFrame): The dataframe to select the column from.
         col (str): The column to select from the dataframe.
 
         Returns:
@@ -123,10 +123,10 @@ class Utilities:
         return selected
 
     def get_cols_from_metadata(self, df, cols):
-        """Select several columns, given as a list, from the clinical, derived_molecular, or experimental_setup dataframe.
+        """Select several columns, given as a list, from a metadata dataframe.
 
         Parameters:
-        df (pandas DataFrame): The dataframe to select the column from. Either clinical, derived_molecular, or experimental_setup.
+        df (pandas DataFrame): The dataframe to select the column from.
         cols (str, or list or array-like of str): A list or array-like of the columns, as strings, to select from the dataframe.
 
         Returns:
@@ -145,7 +145,7 @@ class Utilities:
         """Determines whether you passed it a single column or a list or array-like of columns, then selects them from the given dataframe, and returns them.
 
         Parameters:
-        df (pandas DataFrame): The dataframe to select column(s) from. Either clinical, derived_molecular, or experimental_setup.
+        df (pandas DataFrame): The dataframe to select column(s) from.
         cols (str, or list or array-like of str): Column(s) to select from the dataframe. str if one, list or array-like if multiple.
 
         Returns:
@@ -161,16 +161,16 @@ class Utilities:
             print("Columns parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(cols, type(cols)))
 
     def append_metadata_to_omics(self, df, omics_df, df_cols, omics_cols):
-        """Selected the specified columns from either the clinical, derived_molecular, or experimental_setup dataframe, and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
+        """Append all or part of the given metadata dataframe to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
 
         Parameters:
-        df (pandas DataFrame): Either the clinical, derived_molecular, or experimental_setup dataframe, from which we'll select our columns to append.
+        df (pandas DataFrame): The metadata dataframe from which we'll select our columns to append.
         omics_df (pandas DataFrame): The omics dataframe to append to.
-        df_cols (str, or list or array-like of str): Column(s) to select from the clinical, derived_molecular, or experimental_setup dataframe. str if one column, list or array-like of strings if multiple.
+        df_cols (str, or list or array-like of str): Column(s) to select from the metadata dataframe. str if one column, list or array-like of strings if multiple.
         omics_cols (str, or list or array-like of str): Gene(s) to select data for from the omics dataframe. Passing None will select the entire omics dataframe.
 
         Returns:
-        pandas DataFrame: The selected columns from the clinical, derived_molecular, or experimental_setup dataframe, appended to the selected columns from the omics dataframe.
+        pandas DataFrame: The selected columns from the metadata dataframe, appended to the selected columns from the omics dataframe.
         """  
         df_selected = self.get_metadata_from_str_or_list(df, df_cols)
         omics_selected = self.get_omics_from_str_or_list(omics_df, omics_cols)
@@ -203,7 +203,7 @@ class Utilities:
             print("{} gene not found in somatic_mutation data.".format(gene))
             return
         
-        gene_mutations = gene_mutations.drop(columns=[gene_col]) # Gene column is same for every sample, so we don't need it anymore
+        gene_mutations = gene_mutations.drop(columns=[gene_col]) # Gene column is same for every sample, so we don't need it anymore.
         
         # Create an empty dataframe, which we'll fill with the mutation and location data as lists
         prep_index = gene_mutations.index.drop_duplicates()
@@ -290,7 +290,7 @@ class Utilities:
         if (omics is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, and an error message was printed. We'll return None.
             merge = omics.join(mutations, how = "left") # Left join omics data and mutation data (left being the omics data)
 
-            merge["Sample_Status"] = np.where(merge.index <= "S104", "Tumor", "Normal") # Add Sample_Status column indicating sample type. Set all samples up to S104 as Tumor, others as normal.
+            merge["Sample_Status"] = np.where(merge.index <= "S104", "Tumor", "Normal") # Add Sample_Status column indicating sample type, matching what is recorded in the Patient_ID column of the clinical dataframe.
 
             mutation_regex = r'.*_Mutation' # Construct regex to find all mutation columns
             mutation_cols = [col for col in merge.columns.values if re.match(mutation_regex, col)] # Get a list of all mutation columns

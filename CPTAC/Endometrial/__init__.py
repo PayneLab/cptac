@@ -146,7 +146,6 @@ somatic_mutation_u = link_patient_ids(patient_ids, somatic_mutation_u) #adds S**
 somatic_mutation_u = somatic_mutation_u.set_index("Sample_ID")
 somatic_mutation_u = somatic_mutation_u.drop(columns="Patient_Id")
 somatic_mutation = somatic_mutation_u.drop(casesToDrop, errors = "ignore")
-somatic_mutation = somatic_mutation.reset_index()
 somatic_mutation.name = "somatic_mutation"
 
 warning()
