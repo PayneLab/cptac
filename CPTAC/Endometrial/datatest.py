@@ -949,7 +949,7 @@ def test_append_mutations_source_preservation():
 
 def test_append_mutations_one_mut_all_omics():
     """Test append_mutations_to_omics with one mutation gene, and the default parameter of None for the omics gene, which should give the entire omics dataframe."""
-    print("Running test_append_mutations_single_mut_all_omics...")
+    print("Running test_append_mutations_one_mut_all_omics...")
     PASS = True
 
     # Load the source dataframe and set our keys
@@ -1207,7 +1207,7 @@ def test_append_mutations_three_mut_three_omics():
 
 def test_append_mutations_one_mut_all_omics_no_location():
     """Test append_mutations_to_omics with one mutation gene, default of None for omics gene (to select all omics), and no location column."""
-    print("Running test_append_mutations_single_mut_all_omics...")
+    print("Running test_append_mutations_one_mut_all_omics_no_location...")
     PASS = True
 
     # Load the source dataframe and set our keys
@@ -1554,18 +1554,18 @@ test_compare_omics_invalid_keys()
 test_compare_omics_invalid_key_types()
 
 test_append_mutations_source_preservation()
-test_append_mutations_one_mut_all_omics()
-test_append_mutations_three_mut_all_omics()
 test_append_mutations_one_mut_one_omics()
-test_append_mutations_three_mut_one_omics()
 test_append_mutations_one_mut_three_omics()
+test_append_mutations_one_mut_all_omics()
+test_append_mutations_three_mut_one_omics()
 test_append_mutations_three_mut_three_omics()
+test_append_mutations_three_mut_all_omics()
 test_append_mutations_one_mut_all_omics_no_location()
-test_append_mutations_three_mut_all_omics_no_location()
 test_append_mutations_one_mut_one_omics_no_location()
-test_append_mutations_three_mut_one_omics_no_location()
 test_append_mutations_one_mut_three_omics_no_location()
+test_append_mutations_three_mut_one_omics_no_location()
 test_append_mutations_three_mut_three_omics_no_location()
+test_append_mutations_three_mut_all_omics_no_location()
 test_append_mutations_invalid_key()
 
 print("Version:",en.version())
