@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
 import CPTAC.Endometrial as en
-from .utilities import Utilities
+from utilities import Utilities
 
 def print_test_result(PASS):
     """Prints the result of a test, based on a bool.
@@ -209,13 +209,12 @@ def check_appended_columns(source_df, dest_df, headers):
             PASS = False
     return PASS
 
-def check_mutation_columns_single_gene(mutations, merged_df, gene, multiple_mutations, show_location):
+def check_mutation_columns_single_gene(mutations, merged_df, gene, show_location):
     """
     Parameters
     mutations (pandas.core.frame.DataFrame): The somatic_mutation dataframe.
     merged_df (pandas.core.frame.DataFrame): The merged datframe.
     gene (str): The gene the mutation data was collected for.
-    multiple_mutations (bool): Whether multiple mutations for one sample were included in the column.
     show_location (bool): Whether the location column was included in merged_df.
 
     Returns
@@ -224,8 +223,8 @@ def check_mutation_columns_single_gene(mutations, merged_df, gene, multiple_muta
     PASS = True
 
     # Set our column names for use later
-    patient_col = 'Clinical_Patient_Key'
     gene_col = 'Gene'
+    sample_col = 'Sample_ID'
     location_col = 'Location'
     mutation_col = 'Mutation'
     status_col = 'Sample_Status'
@@ -234,7 +233,6 @@ def check_mutation_columns_single_gene(mutations, merged_df, gene, multiple_muta
 
     # Load all the mutations for the gene
     gene_df = mutations.loc[mutations[gene_col] == gene] 
-    gene_df = gene_df.set_index(patient_col)
 
     for sample in merged_df.index.values:
         # Get the rows for just this sample from our two dataframes
@@ -242,30 +240,36 @@ def check_mutation_columns_single_gene(mutations, merged_df, gene, multiple_muta
         merged_sample_df = merged_df.loc[merged_df.index == sample]
 
         if len(sample_df.index) == 0: # There were no mutations for that gene in this sample
-            original_location = 'No_mutation'
+            original_location = [['No_mutation']]
             if sample <= 'S104':
-                original_mutation = 'Wildtype_Tumor'
+                original_mutation = [['Wildtype_Tumor']]
             else:
-                original_mutation = 'Wildtype_Normal'
+                original_mutation = [['Wildtype_Normal']]
             sample_dict = { # Create a prep dictionary with what the values for the different columns should be
-                patient_col:[sample], # This will be our index
-                location_col:original_location,
-                mutation_col:original_mutation} 
-            sample_df = pd.DataFrame(data=sample_dict, index=sample_dict[patient_col]) # Make that dict a dataframe, and set it as our sample_df
+                sample_col:[sample], # This will be our index
+                mutation_col:original_mutation, 
+                location_col:original_location}
+            sample_df = pd.DataFrame(data=sample_dict, index=sample_dict[sample_col]) # Make that dict a dataframe, and set it as our sample_df
 
         elif len(sample_df.index) == 1: # There was one mutation for that gene in this sample
-            pass # sample_df and merged_sample_df are already ready for the check_appended_column calls
+            original_mutation = sample_df.loc[sample, mutation_col] # Get the values
+            original_location = sample_df.loc[sample, location_col]
+
+            sample_df.at[sample, mutation_col] = [original_mutation] # Put them inside of lists, to match the merged dataframe.
+            sample_df.at[sample, location_col] = [original_location] 
 
         else: # There were multiple mutations for that gene in this sample
-            if multiple_mutations:
-                # Since there are multiple rows in our two dataframes, sort by location for consistency
-                sample_df = sample_df.sort_values(by=location_col)
-                merged_sample_df = merged_sample_df.sort_values(by=merged_location_col) 
-            else:
-                # Get just the mutation we care about
-                sample_df = Utilities().add_mutation_hierarchy(sample_df)
-                sample_df = sample_df.sort_values(by=[patient_col, 'Mutation_Hierarchy'], ascending=[True,False]) # Sorts by patient key, then by hierarchy so the duplicates will come with the lower number first
-                sample_df = sample_df.iloc[[0]]
+            original_mutations = sample_df[mutation_col].tolist() 
+            original_locations = sample_df[location_col].tolist()
+
+            original_mutations = [original_mutations] # In the merged dataframe, all of the multiple mutations/location values will be in one cell, in a list
+            original_locations = [original_locations] # So, we nest each mutation/location list inside another list, so that the inner list isn't unpacked when we create our df.
+
+            sample_dict = { # Create a prep dictionary with the column values
+                sample_col:[sample], # This will be our index
+                mutation_col:original_mutations,
+                location_col:original_locations}
+            sample_df = pd.DataFrame(data=sample_dict, index=sample_dict[sample_col]) # Make it a dataframe, and set it as our sample_df
 
         # Test our location and mutation columns
         if show_location: # Only try to test the location if it was included haha
@@ -285,13 +289,12 @@ def check_mutation_columns_single_gene(mutations, merged_df, gene, multiple_muta
 
     return PASS
 
-def check_mutation_columns(mutations, merged_df, genes, multiple_mutations=False, show_location=True):
+def check_mutation_columns(mutations, merged_df, genes, show_location=True):
     """
     Parameters
     mutations (pandas.core.frame.DataFrame): The somatic_mutation dataframe.
     merged_df (pandas.core.frame.DataFrame): The merged datframe.
     gene (str or list): The gene(s) the mutation data was collected for. str if one, list of str if multiple.
-    multiple_mutations (bool, optional): Whether multiple mutations for one sample were included in the column. Default is False.
     show_location (bool, optional): Whether the location column was included in merged_df. Default is True.
 
     Returns
@@ -301,7 +304,7 @@ def check_mutation_columns(mutations, merged_df, genes, multiple_mutations=False
     if isinstance(genes, str):
         genes = [genes]
     for gene in genes:
-        if not check_mutation_columns_single_gene(mutations, merged_df, gene, multiple_mutations, show_location):
+        if not check_mutation_columns_single_gene(mutations, merged_df, gene, show_location):
             PASS = False
     return PASS
     
@@ -314,7 +317,7 @@ def test_get_clinical_filtered():
     df = en.get_clinical()
     name = "clinical"
     dimensions = (144, 26)
-    headers = ['Proteomics_Participant_ID', 'Proteomics_Tumor_Normal', 'Country', 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm', 'Num_full_term_pregnancies']
+    headers = ['Patient_ID', 'Proteomics_Tumor_Normal', 'Country', 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm', 'Num_full_term_pregnancies']
     test_coord = ((79, 16), (15, 25), (88, 2))
     test_vals = (77.0, '3', 'Poland')
 
@@ -331,7 +334,7 @@ def test_get_clinical_unfiltered():
 
     name = "clinical"
     dimensions = (153, 27)
-    headers = ['Proteomics_Participant_ID', 'Case_excluded', 'Proteomics_Tumor_Normal', 'Country', 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 'Path_Stage_Primary_Tumor-pT', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm', 'Num_full_term_pregnancies']
+    headers = ['Patient_ID', 'Case_excluded', 'Proteomics_Tumor_Normal', 'Country', 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 'Path_Stage_Primary_Tumor-pT', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm', 'Num_full_term_pregnancies']
     test_coord = ((23, 8), (151, 1), (32, 26))
     test_vals = ('Normal', 'No', '3')
 
@@ -562,10 +565,10 @@ def test_get_mutations():
 
     df = en.get_mutations()
     name = "somatic_mutation"
-    dimensions = (52560, 5)
-    headers = ['Clinical_Patient_Key', 'Patient_Id', 'Gene', 'Mutation', 'Location']
-    test_coord = ((52000, 3), (12, 4), (34567, 0))
-    test_vals = ('Missense_Mutation', 'p.T2121P', 'S059')
+    dimensions = (52560, 3)
+    headers = ['Gene', 'Mutation', 'Location']
+    test_coord = ((52000, 2), (12, 0), (34567, 1))
+    test_vals = ('p.V167L', 'ARID1A', 'Missense_Mutation')
 
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
@@ -930,9 +933,7 @@ def test_append_mutations_source_preservation():
     en.append_mutations_to_omics(acet, mut_gene, acet_genes)
     en.append_mutations_to_omics(acet, mut_genes, acet_gene)
     en.append_mutations_to_omics(acet, mut_genes, acet_genes)
-    en.append_mutations_to_omics(acet, mut_genes, acet_genes, multiple_mutations=True)
     en.append_mutations_to_omics(acet, mut_genes, acet_genes, show_location=False)
-    en.append_mutations_to_omics(acet, mut_genes, acet_genes, multiple_mutations=True, show_location=False)
 
     # Check that the source dataframes weren't changed
     if not mut.equals(mut_copy):
@@ -1282,19 +1283,186 @@ def test_append_mutations_three_mut_all_omics_no_location():
     # Print whether the test passed
     print_test_result(PASS)
 
-# Multiple mutations, one mutation gene. Use PIK3CA
+def test_append_mutations_one_mut_one_omics_no_location():
+    """Test append_mutations_to_omics with one mutation gene and one omics gene, and no location column."""
+    print("Running test_append_mutations_one_mut_one_omics_no_location...")
+    PASS = True
 
-# Multiple mutations, three mutation genes. Use PIK3CA
+    # Load the source dataframe and set our keys
+    phos = en.get_phosphoproteomics()
+    phos_gene = 'AAGAB'
+    mut_gene = 'PIK3CA'
 
-# Show location, multiple mutations, one mutation gene. Use PIK3CA
+    # Run the function, make sure it returned properly
+    appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_gene, show_location=False)
+    if not check_returned_is_df(appended):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-# Show location, multiple mutations, three mutation genes, all omics. Use PIK3CA
+    # Check dataframe name
+    exp_name = '{} for {}, with Somatic mutation data for {} gene'.format(phos.name, phos_gene, mut_gene)
+    if not check_df_name(appended, exp_name):
+        PASS = False
 
-# Show location, multiple mutations, three mutation genes, one omics. Use PIK3CA
+    # Figure out which phosphoproteomics columns should have been grabbed
+    phos_suffix = '-.*'
+    phos_regex = build_omics_regex(phos_gene, suffix=phos_suffix)
+    phos_cols = phos.filter(regex=phos_regex) # Use the regex to get all matching columns
 
-# Show location, multiple mutations, three mutation genes, multiple omics. Use PIK3CA
+    # Check dataframe shape
+    exp_num_rows = len(phos.index)
+    exp_num_cols = len(phos_cols.columns) + 2
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(appended, exp_shape):
+        PASS = False
 
-# Invalid mutations keys (single and in list)
+    # Check values in columns
+    if not check_appended_columns(phos, appended, phos_cols.columns):
+        PASS = False
+
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    if not check_mutation_columns(mutations, appended, mut_gene, show_location=False):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+def test_append_mutations_three_mut_one_omics_no_location():
+    """Test append_mutations_to_omics with three mutation genes and one omics gene, and no location column."""
+    print("Running test_append_mutations_three_mut_one_omics_no_location...")
+    PASS = True
+
+    # Load the source dataframe and set our keys
+    phos = en.get_phosphoproteomics()
+    phos_gene = 'AAGAB'
+    mut_genes = ['PIK3CA', 'TP53', 'AURKA']
+
+    # Run the function, make sure it returned properly
+    appended = en.append_mutations_to_omics(phos, mut_genes, omics_genes=phos_gene, show_location=False)
+    if not check_returned_is_df(appended):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = '{} for {}, with Somatic mutation data for {} genes'.format(phos.name, phos_gene, len(mut_genes))
+    if not check_df_name(appended, exp_name):
+        PASS = False
+
+    # Figure out which phosphoproteomics columns should have been grabbed
+    phos_suffix = '-.*'
+    phos_regex = build_omics_regex(phos_gene, suffix=phos_suffix)
+    phos_cols = phos.filter(regex=phos_regex) # Use the regex to get all matching columns
+
+    # Check dataframe shape
+    exp_num_rows = len(phos.index)
+    exp_num_cols = len(phos_cols.columns) + 4
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(appended, exp_shape):
+        PASS = False
+
+    # Check values in columns
+    if not check_appended_columns(phos, appended, phos_cols.columns):
+        PASS = False
+
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    if not check_mutation_columns(mutations, appended, mut_genes, show_location=False):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+def test_append_mutations_one_mut_three_omics_no_location():
+    """Test append_mutations_to_omics with one mutation gene and three omics genes, and no location column."""
+    print("Running test_append_mutations_one_mut_three_omics_no_location...")
+    PASS = True
+
+    # Load the source dataframe and set our keys
+    phos = en.get_phosphoproteomics()
+    phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
+    mut_gene = 'PIK3CA'
+
+    # Run the function, make sure it returned properly
+    appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_genes, show_location=False)
+    if not check_returned_is_df(appended):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = '{} for {} genes, with Somatic mutation data for {} gene'.format(phos.name, len(phos_genes), mut_gene)
+    if not check_df_name(appended, exp_name):
+        PASS = False
+
+    # Figure out which phosphoproteomics columns should have been grabbed
+    phos_suffix = '-.*'
+    phos_regex = build_omics_regex(phos_genes, suffix=phos_suffix)
+    phos_cols = phos.filter(regex=phos_regex) # Use the regex to get all matching columns
+
+    # Check dataframe shape
+    exp_num_rows = len(phos.index)
+    exp_num_cols = len(phos_cols.columns) + 2
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(appended, exp_shape):
+        PASS = False
+
+    # Check values in columns
+    if not check_appended_columns(phos, appended, phos_cols.columns):
+        PASS = False
+
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    if not check_mutation_columns(mutations, appended, mut_gene, show_location=False):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+def test_append_mutations_three_mut_three_omics_no_location():
+    """Test append_mutations_to_omics with three mutation genes and three omics genes, and no location column."""
+    print("Running test_append_mutations_three_mut_three_omics_no_location...")
+    PASS = True
+
+    # Load the source dataframe and set our keys
+    phos = en.get_phosphoproteomics()
+    phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
+    mut_genes = ['PIK3CA', 'TP53', 'AURKA']
+
+    # Run the function, make sure it returned properly
+    appended = en.append_mutations_to_omics(phos, mut_genes, omics_genes=phos_genes, show_location=False)
+    if not check_returned_is_df(appended):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = '{} for {} genes, with Somatic mutation data for {} genes'.format(phos.name, len(phos_genes), len(mut_genes))
+    if not check_df_name(appended, exp_name):
+        PASS = False
+
+    # Figure out which phosphoproteomics columns should have been grabbed
+    phos_suffix = '-.*'
+    phos_regex = build_omics_regex(phos_genes, suffix=phos_suffix)
+    phos_cols = phos.filter(regex=phos_regex) # Use the regex to get all matching columns
+
+    # Check dataframe shape
+    exp_num_rows = len(phos.index)
+    exp_num_cols = len(phos_cols.columns) + 4
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(appended, exp_shape):
+        PASS = False
+
+    # Check values in columns
+    if not check_appended_columns(phos, appended, phos_cols.columns):
+        PASS = False
+
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    if not check_mutation_columns(mutations, appended, mut_genes, show_location=False):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
 def test_append_mutations_invalid_key():
     """Test that append_mutations_to_omics gracefully handles invalid mutation gene keys."""
     print("Running test_append_mutations_invalid_key...")
@@ -1324,18 +1492,34 @@ def test_append_mutations_invalid_key():
     # Print whether the test passed
     print_test_result(PASS)
 
-# Invalid mutation key types
 def test_append_mutations_invalid_key_types():
     """Test that append_mutations_to_omics gracefully handles invalid mutation gene key types."""
     print("Running test_append_mutations_invalid_key_types...")
+    PASS = True
 
     # Load our dataframe to test with, and set our keys to use
     prot = en.get_proteomics()
     int_key = 44
+    dict_key = {0:"TP53", 1:"PIK3CA", 2:"AURKA"}
 
     # Test a key of type int
+    appended = en.append_mutations_to_omics(acet, int_key)
+    if appended is not None:
+        print("append_mutations_to_omics should have returned None when passed a key of invalid type int, but instead returned a {}".format(type(appended)))
+        PASS = False
+    else:
+        print("(NOTE: The invalid key message above was expected.)")
+
+    # Test a key of type dict
+    appended = en.append_mutations_to_omics(acet, dict_key)
+    if appended is not None:
+        print("append_mutations_to_omics should have returned None when passed a key of invalid type dict, but instead returned a {}".format(type(appended)))
+        PASS = False
+    else:
+        print("(NOTE: The invalid key message above was expected.)")
 
     # Print whether the test passed
+    print_test_result(PASS)
 
 print("\nRunning tests:\n")
 
@@ -1369,16 +1553,19 @@ test_compare_omics_invalid_dfs()
 test_compare_omics_invalid_keys()
 test_compare_omics_invalid_key_types()
 
-# Need to fix these tests
-#test_append_mutations_source_preservation()
-#test_append_mutations_one_mut_all_omics()
-#test_append_mutations_three_mut_all_omics()
-#test_append_mutations_one_mut_one_omics()
-#test_append_mutations_three_mut_one_omics()
-#test_append_mutations_one_mut_three_omics()
-#test_append_mutations_three_mut_three_omics()
-#test_append_mutations_one_mut_all_omics_no_location()
-#test_append_mutations_three_mut_all_omics_no_location()
-#test_append_mutations_invalid_key()
+test_append_mutations_source_preservation()
+test_append_mutations_one_mut_all_omics()
+test_append_mutations_three_mut_all_omics()
+test_append_mutations_one_mut_one_omics()
+test_append_mutations_three_mut_one_omics()
+test_append_mutations_one_mut_three_omics()
+test_append_mutations_three_mut_three_omics()
+test_append_mutations_one_mut_all_omics_no_location()
+test_append_mutations_three_mut_all_omics_no_location()
+test_append_mutations_one_mut_one_omics_no_location()
+test_append_mutations_three_mut_one_omics_no_location()
+test_append_mutations_one_mut_three_omics_no_location()
+test_append_mutations_three_mut_three_omics_no_location()
+test_append_mutations_invalid_key()
 
 print("Version:",en.version())
