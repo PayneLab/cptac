@@ -48,6 +48,7 @@ def set_sample_id_index(df, sample_id_dict, drop_patient_ids): # private
         return_df = return_df.reset_index() # This gives the dataframe a default numerical index and makes the old index a column, which prevents it from being dropped when we set Sample_ID as the index.
         return_df = return_df.rename(columns={old_index_name:'Patient_ID'}) # Rename the old index as Patient_ID
     return_df = return_df.set_index('Sample_ID') # Make the Sample_ID column the index
+    return_df.name = df.name
     return return_df
 
 dir_path = os.path.dirname(os.path.realpath(__file__)) #gets path to CPTAC package
@@ -78,17 +79,23 @@ for i in range(len(master_index)):
 # Put a mapping in the clinical dataframe of all patient ids to their sample ids, including patient ids for samples not originally in the clinical dataframe. Then, give the clinical dataframe a sample id index.
 master_df = pd.DataFrame(index=master_index) 
 master_clinical = data['clinical'].join(master_df, how='outer') # Do an outer join with the clinical dataframe, so that clinical has a row for every sample in the dataset
+master_clinical.name = data["clinical"].name
 master_clinical = set_sample_id_index(master_clinical, sample_id_dict, drop_patient_ids=False) # Replace the patient id index with a sample id index in the clinical dataframe. Keep the patient ids so we can maps sample ids to their patient ids.
-clinical_status_col = np.where(master_clinical.index <= "S116", "Tumor", "Normal") # Add a sample status column. Samples with a Patient_ID beginning with N are normal, which begin at S117.
-master_clinical.insert(1, "Sample_Status", clinical_status_col)
+
+# Add a column, Sample_Tumor_Normal, indicating whether each sample was a tumor or normal sample. Normal samples have a Patient_ID that begins with 'N'.
+clinical_status_col = []
+for sample in master_clinical["Patient_ID"]:
+    if sample[0] == 'N':
+        clinical_status_col.append("Normal")
+    else:
+        clinical_status_col.append("Tumor")
+master_clinical.insert(1, "Sample_Tumor_Normal", clinical_status_col)
 data['clinical'] = master_clinical # Replace the clinical dataframe in the data dictionary with our new and improved version!
-data['clinical'].name = 'clinical'
 
 # Give the other dataframes Sample_ID indicies, but don't keep the old index, since we have a mapping in the clinical dataframe of all sample ids to their patient ids.
 for df in data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
     if df != 'clinical':
         data[df] = set_sample_id_index(data[df], sample_id_dict, drop_patient_ids=True)
-        data[df].name = df
 
 warning() #displays warning
 
@@ -256,19 +263,6 @@ def search(term):
     url = "https://www.google.com/search?q=" + term
     print("Searching for", term, "in web browser...")
     webbrowser.open(url)
-
-def git_help():
-    """
-    Parameters
-    None
-
-    Opens github help page
-
-    Returns
-    None
-    """
-    print("Opening help.txt in web browser...")
-    webbrowser.open("https://github.com/PayneLab/CPTAC/blob/master/doc/help.txt")
 
 def embargo():
     """

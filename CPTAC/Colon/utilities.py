@@ -20,7 +20,7 @@ class Utilities:
 
 # Next 4 functions are for working with omics data
     def get_col_from_omics(self, omics_df, gene): # private
-        """Based on a single gene, select a column or columns from an omics dataframe. If dataframe is phosphoproteomics or acetylproteomics, grabs all columns that match the gene.
+        """Based on a single gene, select a column or columns from an omics dataframe. If dataframe is phosphoproteomics, grabs all columns that match the gene.
 
         Parameters:
         omics_df (pandas DataFrame): omics dataframe to select colum(s) from.

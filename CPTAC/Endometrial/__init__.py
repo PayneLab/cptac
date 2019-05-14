@@ -512,19 +512,6 @@ def search(term):
     print("Searching for", term, "in web browser...")
     webbrowser.open(url)
 
-def git_help():
-    """
-    Parameters
-    None
-
-    Opens github help page
-
-    Returns
-    None
-    """
-    print("Opening help.txt in web browser...")
-    webbrowser.open("https://github.com/PayneLab/CPTAC/blob/master/doc/help.txt")
-
 def embargo():
     """
     Parameters
