@@ -15,7 +15,7 @@ import os
 import re
 import glob
 
-def load_dataframe(path):
+def create_dataframe(path):
     """Create a dataframe for the data a file, parsed based on the data type.
 
     Parameters:
@@ -100,7 +100,7 @@ def get_dataframes():
     print("Loading CPTAC Colon data:")
     for file in files: # Loops through files variable
         try:
-            df = load_dataframe(file)
+            df = create_dataframe(file)
             data[df.name] = df # Maps dataframe name to dataframe
         except IOError:
             print("Error reading ", file)
