@@ -250,3 +250,68 @@ def get_interacting_proteins(protein, number=25):
                 interacting_proteins.append(prot)
 
         return interacting_proteins
+
+
+def get_frequently_mutated(somatic_df, omics_mutations_df, cutoff=.1, show_percentage=False):  
+     
+    """take DataFrames of somatic mutations and omics_mutations to determine the percent of 
+    mutated genes for all tumors. Frequently mutated genes are greater than the cutoff.
+
+    Parameters:
+    somatic_df (pandas.core.frame.DataFrame): Somatic mutations dataframe.
+    omics_mutations_df (pandas.core.frame.DataFrame): merged dataframe of any gene and proteomics dataframe
+    (used to find total_tumor_patients)
+    cutoff (float): used as comparison to determine status of gene mutation frequency
+
+    Returns:
+    freq_mutated (list): list of frequently mutated genes passing the cutoff"""
+    
+    unique_genes = somatic_df['Gene'].unique() # Get series of all mutated genes
+    freq_mutated = []
+    gene_and_freq_d = {}
+    
+    # Get total tumor patients
+    tumors = omics_mutations_df.loc[omics_mutations_df['Sample_Status'] == 'Tumor']
+    total_tumor_patients = len(tumors)
+    
+    # Find sample (col or index) in gene_mutated (samples represent patients)
+    # gene_mutated: Endometrial and Colon samples found in column 0, Ovarian found in index
+    gene = 'PTEN'
+    gene_mutated = somatic_df.loc[somatic_df['Gene'] == gene]
+    ovarian = False
+    if gene_mutated.columns[0] == 'Gene':
+        ovarian = True
+    
+    # Find percentage of gene mutation and add frequently mutated genes to dictionary
+    if ovarian == True:
+        print('ovarian')
+        for gene in unique_genes:
+            gene_mutated = somatic_df.loc[somatic_df['Gene'] == gene].index
+            num_gene_mutated = len(gene_mutated.unique())
+            percentage = (num_gene_mutated / total_tumor_patients)
+            if percentage > cutoff:
+                gene_and_freq_d[gene] = percentage
+    
+    else:
+        for gene in unique_genes:
+            gene_mutated = somatic_df.loc[somatic_df['Gene'] == gene].iloc[:, 0]
+            gene_mutated.drop_duplicates(keep='first',inplace=True)
+            num_gene_mutated = len(gene_mutated)
+            percentage = (num_gene_mutated / total_tumor_patients)
+            if percentage > cutoff:
+                gene_and_freq_d[gene] = percentage
+
+    # Sort dictionary descending order based on percent mutated
+    sorted_d = sorted(gene_and_freq_d.items(), key=operator.itemgetter(1), reverse=True)  
+    
+    # Add frequently mutated gene to list. Option to include percentage.
+    for i in range(0,len(sorted_d)):
+        certain_tuple = sorted_d[i]
+        gene, percent_mutated = certain_tuple
+        if show_percentage == True:
+            string_gene_percent = gene + ': %' + str('%.2f'%percent_mutated)
+            freq_mutated.append(string_gene_percent)
+        else:
+            freq_mutated.append(gene)  
+                   
+    return freq_mutated
