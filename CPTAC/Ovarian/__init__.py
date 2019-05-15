@@ -15,10 +15,10 @@ import glob
 import os
 import textwrap
 import webbrowser
-import CPTAC.Ovarian.dataframe as dataframe
+import CPTAC.Ovarian.dataloader as dataloader
 from .utilities import Utilities
 
-data = dataframe.get_dataframes()
+data = dataloader.get_dataframes()
 
 def list_data():
     """
