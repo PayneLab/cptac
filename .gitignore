@@ -4,3 +4,4 @@ __pychache__/
 *.pyc
 dist/
 build/
+.DS_Store/
