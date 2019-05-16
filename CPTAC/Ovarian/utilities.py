@@ -19,8 +19,8 @@ class Utilities:
         pass
 
 # Next 4 functions are for working with omics data
-    def get_col_from_omics(self, omics_df, gene): # private
-        """Based on a single gene, select a column or columns from an omics dataframe. If dataframe is phosphoproteomics, grabs all columns that match the gene.
+    def get_col_from_omics(self, omics_df, gene): 
+        """Based on a single gene, select a column or columns from an omics dataframe. If dataframe is phosphoproteomics or acetylproteomics, grabs all columns that match the gene.
 
         Parameters:
         omics_df (pandas DataFrame): omics dataframe to select colum(s) from.
@@ -29,20 +29,22 @@ class Utilities:
         Returns: 
         pandas DataFrame: The selected column(s) from the dataframe.
         """
-        if omics_df.name == 'phosphoproteomics':
+        if omics_df.name == 'phosphoproteomics' or omics_df.name == 'acetylproteomics':
             col_regex = gene + "-.*" # Build a regex to get all columns that match the gene
         else:
             col_regex = '^{}$'.format(gene)
 
         selected = omics_df.filter(regex=col_regex) # Find all columns that match the gene. If only one column matches, DataFrame.filter will still return a dataframe, not a series :)
-        if len(selected.columns) == 0: # If none of the columns matched the gene, print an error message and return None.
-            print('{} did not match any columns in {} dataframe. Please double check that it is included in the dataframe.'.format(gene, omics_df.name))
-            return
+        if len(selected.columns) == 0: # If none of the columns matched the gene, print a warning message and return a column of NaN
+            print('{0} did not match any columns in {1} dataframe. {0}_{1} column inserted, but filled with NaN.'.format(gene, omics_df.name))
+            omics_index_copy = omics_df.index.copy()
+            empty_omics_df = pd.DataFrame(index=omics_index_copy)
+            selected = empty_omics_df.assign(**{gene:np.nan}) # ** unpacks the dictionary, creating a column with the value of the gene variable as the header, and filled with NaNs. Weird pandas syntax.
         selected = selected.rename(columns=lambda x:'{}_{}'.format(x, omics_df.name)) # Append dataframe name to end of each column header, to preserve info when we merge dataframes
         selected.name = "{} for {}".format(omics_df.name, gene) # Give the dataframe a name!
         return selected
 
-    def get_cols_from_omics(self, omics_df, genes): # private
+    def get_cols_from_omics(self, omics_df, genes):
         """Based on a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
 
         Parameters:
@@ -196,6 +198,7 @@ class Utilities:
         gene_col = "Gene"
         mutation_col = "Mutation"
         location_col = "Location"
+        mutation_status_col = "Mutation_Status"
 
         gene_mutations = mutations[mutations[gene_col] == gene]
 
@@ -206,30 +209,39 @@ class Utilities:
         gene_mutations = gene_mutations.drop(columns=[gene_col]) # Gene column is same for every sample, so we don't need it anymore.
         
         # Create an empty dataframe, which we'll fill with the mutation and location data as lists
-        prep_index = gene_mutations.index.drop_duplicates()
+        prep_index = gene_mutations.index.copy().drop_duplicates()
         prep_columns = gene_mutations.columns
-        mutation_lists = pd.DataFrame(index=prep_index, columns=prep_columns)
+        prep_cols_with_mut_status = prep_columns.union([mutation_status_col]) # Add a mutation_status column, which will indicate if there are 1 or multiple mutations
+        mutation_lists = pd.DataFrame(index=prep_index, columns=prep_cols_with_mut_status)
 
-        for sample in mutation_lists.index:
-            # Get mutation(s) for the sample
-            sample_data = gene_mutations.loc[sample]
-            sample_mutations = sample_data[mutation_col]
-            sample_locations = sample_data[location_col]
+        # Get the mutation(s), mutation status, and location information for this gene and sample
+        for sample in mutation_lists.index: 
+            sample_data = gene_mutations.loc[sample] # Get slice of dataframe for the sample
+            sample_mutations = sample_data[mutation_col] # Get mutation(s)
+            sample_locations = sample_data[location_col] # Get location(s)
 
-            # Make them a list (even if there's only one)
-            if isinstance(sample_mutations, str):
-                sample_mutations_list = [sample_mutations]
-            else: # It's a pandas Series
+            # Make the mutations a list (even if there's only one)
+            if isinstance(sample_mutations, pd.core.series.Series):
                 sample_mutations_list = sample_mutations.tolist()
+            else:
+                sample_mutations_list = [sample_mutations]
 
-            if isinstance(sample_locations, str):
-                sample_locations_list = [sample_locations]
-            else: # It's a pandas Series
+            # Make the locations a list (even if there's only one)
+            if isinstance(sample_locations, pd.core.series.Series):
                 sample_locations_list = sample_locations.tolist()
+            else:
+                sample_locations_list = [sample_locations]
+
+            # Figure out what our mutation status is (either single_mutation or multiple_mutation)
+            if len(sample_mutations_list) > 1:
+                sample_mutation_status = "Multiple_mutation"
+            else:
+                sample_mutation_status = "Single_mutation"
 
             # Put in our template dataframe
             mutation_lists.at[sample, mutation_col] = sample_mutations_list
             mutation_lists.at[sample, location_col] = sample_locations_list
+            mutation_lists.at[sample, mutation_status_col] = sample_mutation_status
 
         mutation_lists = mutation_lists.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Add the gene name to end beginning of each column header, to preserve info when we merge dataframes.
         mutation_lists.name = 'Somatic mutation data for {} gene'.format(gene)
@@ -271,15 +283,16 @@ class Utilities:
         else: # If it's neither of those, they done messed up. Tell 'em.
             print("Genes parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(genes, type(genes)))
 
-    def append_mutations_to_omics(self, somatic_mutation, omics_df, mutation_genes, omics_genes, show_location):
+    def append_mutations_to_omics(self, somatic_mutation, omics_df, mutation_genes, omics_genes, show_location, sample_status_map):
         """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
-        somatic_mutation (pandas DataFrame): Somatic mutation dataframe we'll get the dataframe.
+        somatic_mutation (pandas DataFrame): Somatic mutation dataframe we'll get the mutation data from.
         omics_df (pandas DataFrame): Omics dataframe to append the mutation data to.
         mutation_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like if multiple.
         omics_genes (str, or list or array-like of str): Gene(s) to select from the omics dataframe. str if one gene, list or array-like if multiple. Passing None will select the entire omics dataframe.
         show_location (bool): Whether to include the Location column from the mutation dataframe.
+        sample_status_map (pandas Series): A series with the dataset's sample IDs as the indicies, and each sample's status (tumor or normal) as the values. Used to generate the Sample_Status column.
 
         Returns:
         pandas DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
@@ -290,21 +303,31 @@ class Utilities:
         if (omics is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, and an error message was printed. We'll return None.
             merge = omics.join(mutations, how = "left") # Left join omics data and mutation data (left being the omics data)
 
-            merge["Sample_Status"] = np.where(merge.index <= "S116", "Tumor", "Normal") # Add Sample_Status column indicating sample type, matching what is recorded in the Patient_ID column of the clinical dataframe.
+            # Add Sample_Status column by joining the sample_status_map to the merged mutation dataframe. Do a left join so we drop any indicies not in the mutations dataframe.
+            merge = merge.join(sample_status_map, how="left") 
 
-            mutation_regex = r'.*_Mutation' # Construct regex to find all mutation columns
+            # Fill in Wildtype_Normal or Wildtype_Tumor for NaN values (i.e., no mutation data for that sample) in merged dataframe mutation columns
+            mutation_regex = r'.*_Mutation$' # Construct regex to find all mutation columns
             mutation_cols = [col for col in merge.columns.values if re.match(mutation_regex, col)] # Get a list of all mutation columns
             for mutation_col in mutation_cols:
-                merge.loc[(merge['Sample_Status'] == "Normal") & (pd.isnull(merge[mutation_col])), mutation_col] = [[["Wildtype_Normal"]]] # Change all NaN mutation values (i.e., no mutation data for that sample) for Normal samples to Wildtype_Normal. Triple nested list causes .loc to insert the value as ['Wildtype_Normal'], like we want it to, instead of unpacking the list.
-                merge.loc[(merge['Sample_Status'] == "Tumor") & (pd.isnull(merge[mutation_col])), mutation_col] = [[["Wildtype_Tumor"]]] # Change all NaN mutation values (i.e., no mutation data for that sample) for Tumor samples to Wildtype_Tumor
+                merge.loc[(merge['Sample_Status'] == "Normal") & (pd.isnull(merge[mutation_col])), mutation_col] = [[["Wildtype_Normal"]]] # Change all NaN mutation values for Normal samples to Wildtype_Normal. Triple nested list causes .loc to insert the value as ['Wildtype_Normal'], like we want it to, instead of unpacking the list.
+                merge.loc[(merge['Sample_Status'] == "Tumor") & (pd.isnull(merge[mutation_col])), mutation_col] = [[["Wildtype_Tumor"]]] # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
 
-            location_regex = r'.*_Location' # Construct regex to find all location columns
+            # Depending on show_location, either fill NaN values in the merged dataframe location columns with "No_mutation", or just drop the location columns altogether
+            location_regex = r'.*_Location$' # Construct regex to find all location columns
             location_cols = [col for col in merge.columns.values if re.match(location_regex, col)] # Get a list of all location columns
             for location_col in location_cols:
                 if show_location:
                     merge.loc[pd.isnull(merge[location_col]), location_col] = [[["No_mutation"]]] # If there's no location, there wasn't a mutation--make it easier for people to understand that.
                 else:
                     merge = merge.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
+
+            # Fill NaN values in Mutation_Status column with either Wildtype_Tumor or Wildtype_Normal
+            mutation_status_regex = r".*_Mutation_Status$" # Construct a regex to find all Mutation_Status columns
+            mutation_status_cols = [col for col in merge.columns.values if re.match(mutation_status_regex, col)] # Get a list of all Mutation_Status columns
+            for mutation_status_col in mutation_status_cols:
+                merge.loc[(merge['Sample_Status'] == "Normal") & (pd.isnull(merge[mutation_status_col])), mutation_status_col] = "Wildtype_Normal" # Change all NaN mutation status values for Normal samples to Wildtype_Normal
+                merge.loc[(merge['Sample_Status'] == "Tumor") & (pd.isnull(merge[mutation_status_col])), mutation_status_col] = "Wildtype_Tumor" # Change all NaN mutation status values for Tumor samples to Wildtype_Tumor
 
             merge.name = "{}, with {}".format(omics.name, mutations.name) # Give it a name identifying the data in it
             return merge

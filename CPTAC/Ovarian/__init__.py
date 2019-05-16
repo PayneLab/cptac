@@ -65,6 +65,13 @@ def get_phosphosites(genes):
     phosphoproteomics = get_phosphoproteomics()
     return Utilities().get_omics_from_str_or_list(phosphoproteomics, genes)
 
+def get_sample_status_map():
+    """Get a pandas Series from the clinical dataframe, with sample ids as the index, and each sample's status (tumor or normal) as the values."""
+    clinical = get_clinical()
+    map = clinical["Sample_Tumor_Normal"]
+    map.name = "Sample_Status"
+    return map
+
 def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     """Take specified column(s) from one omics dataframe, and merge with specified columns(s) from another omics dataframe. Intersection (inner join) of indicies is used.
 
@@ -152,7 +159,8 @@ def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, show_l
 
     # Return the merge.
     mutations = get_mutations()
-    return Utilities().append_mutations_to_omics(mutations, omics_df, mutation_genes, omics_genes, show_location)
+    sample_status_map = get_sample_status_map()
+    return Utilities().append_mutations_to_omics(mutations, omics_df, mutation_genes, omics_genes, show_location, sample_status_map)
 
 def search(term):
     """Perform an online search of the provided term.
