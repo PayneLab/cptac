@@ -133,13 +133,20 @@ def set_sample_id_index(df, sample_id_dict, drop_patient_ids): # private
     return return_df
 
 def get_dataframes():
+    """Load all of the Ovarian dataframes, and format them properly.
+
+    Parameters: None
+
+    Returns:
+    dict of pandas DataFrame: A dictionary containing all of the endometrial dataframes as values, with their names as keys.
+    """
     dir_path = os.path.dirname(os.path.realpath(__file__)) #gets path to CPTAC package
     data_directory = dir_path + os.sep + "Data" + os.sep #appends Data to path
     path = data_directory + os.sep + "*.*" #appends "*.*" to path, which looks for all files
     files = glob.glob(path) #puts all files into iterable variable
 
     # Load the dataframes
-    print("Loading Ovarian CPTAC data:")
+    print("Loading CPTAC Ovarian data:")
     data = {}
     for file in files: #loops through files variable
         df = create_dataframe(file)

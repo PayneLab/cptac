@@ -206,7 +206,7 @@ class Utilities:
         gene_mutations = gene_mutations.drop(columns=[gene_col]) # Gene column is same for every sample, so we don't need it anymore.
         
         # Create an empty dataframe, which we'll fill with the mutation and location data as lists
-        prep_index = gene_mutations.index.drop_duplicates()
+        prep_index = gene_mutations.index.copy().drop_duplicates()
         prep_columns = gene_mutations.columns
         mutation_lists = pd.DataFrame(index=prep_index, columns=prep_columns)
 
@@ -222,7 +222,7 @@ class Utilities:
             else: # It's a pandas Series
                 sample_mutations_list = sample_mutations.tolist()
 
-            if isinstance(sample_locations, str):
+            if isinstance(sample_locations, str) or pd.isnull(sample_locations): # Some genes have samples that have a mutation recorded, but the location is NaN. Example: PIK3R1 for sample S062 in the endometrial dataset
                 sample_locations_list = [sample_locations]
             else: # It's a pandas Series
                 sample_locations_list = sample_locations.tolist()
