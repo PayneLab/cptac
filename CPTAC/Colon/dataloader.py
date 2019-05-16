@@ -71,7 +71,11 @@ def set_sample_id_index(df, sample_id_dict, drop_patient_ids):
     """
     sample_id_column = []
     for row in df.index:
-        sample_id_column.append(sample_id_dict[row]) # This is why every value in the original dataframe's index has to match a key in sample_id_dict
+        if row in sample_id_dict.keys():
+            sample_id_column.append(sample_id_dict[row]) 
+        else:
+            print("Error mapping sample ids in {0} dataframe. Patient_ID {1} did not have corresponding Sample_ID mapped in clinical dataframe. {0} dataframe not loaded.".format(df.name, row))
+            return
     return_df = df.assign(Sample_ID=sample_id_column)
     if not drop_patient_ids:
         old_index_name = df.index.name
@@ -198,8 +202,8 @@ def get_dataframes():
     data['clinical'] = master_clinical # Replace the clinical dataframe in the data dictionary with our new and improved version!
 
     # Give the other dataframes Sample_ID indicies, but don't keep the old index, since we have a mapping in the clinical dataframe of all sample ids to their patient ids.
-    for df in data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
-        if df != 'clinical':
-            data[df] = set_sample_id_index(data[df], sample_id_dict, drop_patient_ids=True)
+    for name in data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
+        if name != 'clinical':
+            data[name] = set_sample_id_index(data[name], sample_id_dict, drop_patient_ids=True)
 
     return data

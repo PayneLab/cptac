@@ -158,7 +158,7 @@ def get_dataframes():
             sample_id_col.append(patient_id_map[patient_id]) # Get the sample id corresponding to the patient id
         else: # If there's not a corresponding sample ID for a patient ID, print an error message and return None
             print("Error mapping sample ids in somatic mutations dataframe. Patient_ID {} did not have corresponding Sample_ID mapped in clinical dataframe. Data loading aborted.".format(patient_id))
-            return None
+            return 
     mutations_with_sample = mutations_patient_indexed.assign(Sample_ID=sample_id_col) # Add in the Sample_ID column
     mutations_sample_indexed = mutations_with_sample.set_index("Sample_ID") # Make the Sample_ID column the index
     mutations_sample_indexed.name = mutations.name

@@ -1,52 +1,25 @@
 import webbrowser
 import textwrap
 import os
+
 def list_data():
-    """Parameters
-    None
-
-    Lists all available datasets
-
-    Returns
-    None
-    """
+    """List all available datasets."""
     print("Available datasets:")
     print("Endometrial")
     print("Ovarian")
     print("Colon")
+
 def list_api():
-    """
-    Parameters
-    None
-
-    Prints docstrings for all accessible functions
-
-    Returns
-    None
-    """
+    """Print docstrings for all accessible functions."""
     help(__name__)
+
 def embargo():
-    """
-    Parameters
-    None
-
-    Opens CPTAC embargo details in web browser
-
-    Returns
-    None
-    """
+    """Open CPTAC embargo details in web browser."""
     print("Opening embargo details in web browser...")
     webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
+
 def version():
-    """
-    Parameters
-    None
-
-    Prints version number of CPTAC package
-
-    Returns
-    Version number
-    """
+    """Print version number of CPTAC package."""
     version = {}
     with open(dir_path + os.sep + "version.py") as fp:
     	exec(fp.read(), version)
