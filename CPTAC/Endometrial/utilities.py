@@ -222,10 +222,10 @@ class Utilities:
             else: # It's a pandas Series
                 sample_mutations_list = sample_mutations.tolist()
 
-            if isinstance(sample_locations, str) or pd.isnull(sample_locations): # Some genes have samples that have a mutation recorded, but the location is NaN. Example: PIK3R1 for sample S062 in the endometrial dataset
-                sample_locations_list = [sample_locations]
-            else: # It's a pandas Series
+            if isinstance(sample_locations, pd.core.series.Series):
                 sample_locations_list = sample_locations.tolist()
+            else:
+                sample_locations_list = [sample_locations]
 
             # Put in our template dataframe
             mutation_lists.at[sample, mutation_col] = sample_mutations_list
