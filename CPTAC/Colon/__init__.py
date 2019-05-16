@@ -13,7 +13,7 @@ import os
 import webbrowser
 import pandas as pd
 import numpy as np
-import CPTAC.Colon.dataloader as dataloader
+from .dataloader import get_dataframes
 from .utilities import Utilities
 
 data = dataloader.get_dataframes()

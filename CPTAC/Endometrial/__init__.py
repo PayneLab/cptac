@@ -14,7 +14,9 @@ import sys
 import webbrowser
 import textwrap
 import pandas as pd
-import CPTAC.Endometrial.dataloader as dataloader
+import numpy as np
+from .dataloader import get_dataframes
+from .dataloader import get_dictionary
 from .utilities import Utilities
 
 dictionary = dataloader.get_dictionary()
@@ -94,6 +96,14 @@ def get_mutations():
 def get_mutations_binary():
     """Gets the somatic_mutation_binary dataframe, which has a binary value indicating, for each location on each gene, whether there was a mutation in that gene at that location, for each sample."""
     return data["somatic_mutation_binary"]
+
+def get_sample_status_map():
+    """Get a pandas Series from the clinical dataframe, with sample ids as the index, and each sample's status (tumor or normal) as the values."""
+    clinical = get_clinical()
+    raw_map = clinical["Proteomics_Tumor_Normal"]
+    parsed_map = raw_map.where(raw_map == "Tumor", other="Normal") # Replace various types of normal (Adjacent_normal, Myometrium_normal, etc.) with just "Normal"
+    parsed_map.name = "Sample_Status"
+    return parsed_map
 
 def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     """Take specified column(s) from one omics dataframe, and append to specified columns(s) from another omics dataframe. Intersection (inner join) of indicies is used.
@@ -199,7 +209,8 @@ def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, show_l
 
     # Return the merge.
     somatic_mutation = get_mutations()
-    return Utilities().append_mutations_to_omics(somatic_mutation, omics_df, mutation_genes, omics_genes, show_location)
+    sample_status_map = get_sample_status_map()
+    return Utilities().append_mutations_to_omics(somatic_mutation, omics_df, mutation_genes, omics_genes, show_location, sample_status_map)
 
 def define(term):
     """Define a term, if it is in the dataset's definitions dictionary.

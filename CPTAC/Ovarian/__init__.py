@@ -15,37 +15,20 @@ import glob
 import os
 import textwrap
 import webbrowser
-import CPTAC.Ovarian.dataloader as dataloader
+from .dataloader import get_dataframes
 from .utilities import Utilities
 
 data = dataloader.get_dataframes()
 
 def list_data():
-    """
-    Parameters
-    None
-
-    Prints list of loaded data frames and dimensions
-
-    Returns
-    None
-    """
-
+    """Print a list of loaded data frames and dimensions."""
     print("Below are the available ovarian data frames contained in this package:")
     for dataframe in data:
         print("\t", data[dataframe].name)
         print("\t", "\t", "Dimensions:", data[dataframe].shape)
 
 def list_api():
-    """
-    Parameters
-    None
-
-    Prints docstrings for all accessible functions
-
-    Returns
-    None
-    """
+    """Print docstrings for all accessible functions."""
     help(__name__)
 
 def get_data():
@@ -172,42 +155,24 @@ def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, show_l
     return Utilities().append_mutations_to_omics(mutations, omics_df, mutation_genes, omics_genes, show_location)
 
 def search(term):
-    """
-    Parameters
-    term: string of term to be searched
+    """Perform an online search of the provided term.
 
-    Performs online search of provided term
+    Parameters:
+    term (str): term to be searched
 
-    Returns
-    None
+    Returns: None
     """
     url = "https://www.google.com/search?q=" + term
     print("Searching for", term, "in web browser...")
     webbrowser.open(url)
 
 def embargo():
-    """
-    Parameters
-    None
-
-    Opens CPTAC embargo details in web browser
-
-    Returns
-    None
-    """
+    """Open the CPTAC embargo details in a web browser."""
     print("Opening embargo details in web browser...")
     webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
 
 def version():
-    """
-    Parameters
-    None
-
-    Prints version number of CPTAC package
-
-    Returns
-    Version number
-    """
+    """Print the version number of the CPTAC package."""
     version = {}
     with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder
     	exec(fp.read(), version)
