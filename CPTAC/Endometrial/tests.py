@@ -139,7 +139,7 @@ def check_getter(df, exp_name, exp_dim, exp_headers, coordinates, values):
     return PASS
 
 def build_omics_regex(genes, suffix=""):
-    """Builds a regex from a list of genes to grab all columns corresponding to those genes from the acetylproteomics or phosphoproteomics dataframes.
+    """Builds a regex from a list of genes to grab all columns corresponding to those genes from an omics dataframe. Optional suffix allows you to search acetylproteomics and phosphoproteomics dataframes.
 
     Parameters:
     genes (str or list): one gene as a string, or a list of the genes, as strings
@@ -192,7 +192,7 @@ def check_appended_columns(source_df, dest_df, headers):
     Parameters:
     source_df (pandas.core.frame.DataFrame): The dataframe the columns were taken from.
     dest_df (pandas.core.frame.DataFrame): The dataframe the columns were appended to (with them appended to it).
-    header (str or list or pandas.core.indexes.base.Index): The header(s) of the columns in source_df. str if single, list or index of str if multiple. Header(s) in dest_df will be constructed from this, and the name of source_df.
+    header (str or list or pandas.core.indexes.base.Index): The header(s) of the columns in source_df. str if one, list or index of str if multiple. Header(s) in dest_df will be constructed from this, and the name of source_df.
     
     Returns:
     bool: Indicates whether the specified column(s) in dest_df had the same values for each index as they did in source_df.
@@ -206,7 +206,35 @@ def check_appended_columns(source_df, dest_df, headers):
             PASS = False
     return PASS
 
-def check_mutation_columns_single_gene(mutations, merged_df, gene, show_location):
+def check_invalid_columns(invalid_cols, exp_num_invalid):
+    """Check that we have the expected number of columns returned for an invalid key from an omics dataframe, and that they are all NaN.
+    
+    Parameters:
+    invalid_cols(pandas DataFrame): The invalid columns found in the merged dataframe.
+    exp_num_invalid (int): The expected number of invalid columns.
+
+    Returns:
+    bool: Indicates whether the test passed.
+    """
+    PASS = True
+
+    # Check that we got the expected number of invalid columns
+    if len(invalid_cols.columns) != exp_num_invalid:
+        print("Unexpected number of columns from invalid key. Expected number: {} Actual number: {}".format(exp_num_invalid, len(invalid_cols.columns)))
+        PASS = False
+    
+    # Check that they were all NaN
+    null_bools = invalid_cols.isnull()
+    if not null_bools.all().all():
+        print("Unexpected values in dataframe of columns for invalid keys. Expected all NaN. Actual:\n{}".format(invalid_cols))
+        PASS = False
+
+    if PASS:
+        print("(NOTE: The invalid key message above was expected.)")
+
+    return PASS
+
+def check_mutation_columns_one_gene(mutations, merged_df, gene, show_location):
     """
     Parameters
     mutations (pandas.core.frame.DataFrame): The somatic_mutation dataframe.
@@ -301,7 +329,7 @@ def check_mutation_columns(mutations, merged_df, genes, show_location=True):
     if isinstance(genes, str):
         genes = [genes]
     for gene in genes:
-        if not check_mutation_columns_single_gene(mutations, merged_df, gene, show_location):
+        if not check_mutation_columns_one_gene(mutations, merged_df, gene, show_location):
             PASS = False
     return PASS
     
@@ -588,9 +616,9 @@ def test_compare_omics_default_parameters():
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_compare_omics_single_gene():
-    """Tests compare_omics with single genes for cols1 and cols2."""
-    print("Running test_compare_omics_single_gene...")
+def test_compare_omics_one_gene():
+    """Tests compare_omics with one genes for cols1 and cols2."""
+    print("Running test_compare_omics_one_gene...")
     PASS = True
 
     # Load the source dataframes
@@ -755,51 +783,236 @@ def test_compare_omics_invalid_dfs():
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_compare_omics_invalid_keys():
-    """Test that compare_omics will gracefully handle an invalid key, either alone or in a list of valid keys."""
-    print("Running test_compare_omics_single_key_invalid...")
+def test_compare_omics_one_invalid_key():
+    """Test that compare_omics will gracefully handle one invalid key."""
+    print("Running test_compare_omics_one_invalid_key...")
+    PASS = True
+
+    # Load the source dataframes
+    prot = en.get_proteomics()
+    acet = en.get_acetylproteomics()
+
+    # Run the function, make sure it returned properly
+    invalid = 'gobbledegook'
+    acet_valid = 'AACS' 
+    compared = en.compare_omics(prot, acet, invalid, acet_valid)
+    if not check_returned_is_df(compared):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = "{} for {}, with {} for {}".format(prot.name, invalid, acet.name, acet_valid)
+    if not check_df_name(compared, exp_name):
+        PASS = False
+
+    # Get our columns corresponding to the invalid key
+    invalid_suffix = "_.*"
+    invalid_regex = build_omics_regex(invalid, suffix=invalid_suffix)
+    invalid_cols = compared.filter(regex=invalid_regex)
+    exp_num_invalid = 1
+
+    # Figure out which columns from acetylproteomics should have been grabbed for acet_valid
+    acet_suffix = '-.*'
+    acet_regex = build_omics_regex(acet_valid, suffix=acet_suffix)
+    acet_cols = acet.filter(regex=acet_regex) # Use the regex to get all matching columns
+
+    # Check dataframe shape
+    exp_num_rows = len(prot.index.intersection(acet.index))
+    exp_num_cols = exp_num_invalid + len(acet_cols.columns)
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(compared, exp_shape):
+        PASS = False
+
+    # Check invalid columns
+    if not check_invalid_columns(invalid_cols, exp_num_invalid):
+        PASS = False
+
+    # Check columns for acet_gene
+    if not check_appended_columns(acet, compared, acet_cols.columns):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+def test_compare_omics_both_invalid_keys():
+    """Test that compare_omics will gracefully handle two invalid keys."""
+    print("Running test_compare_omics_both_invalid_keys...")
     PASS = True
 
     # Load dataframes to test with, and set keys to use
     prot = en.get_proteomics()
     acet = en.get_acetylproteomics()
+
+    # Run the function, make sure it returned properly
     invalid = 'gobbledegook'
-    prot_invalid_list = ['A4GALT', 'TP53', 'ZSCAN30', 'gobbledegook']
-    acet_valid = 'AACS' 
+    compared = en.compare_omics(prot, acet, invalid, invalid)
+    if not check_returned_is_df(compared):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = "{} for {}, with {} for {}".format(prot.name, invalid, acet.name, invalid)
+    if not check_df_name(compared, exp_name):
+        PASS = False
+
+    # Get our columns corresponding to the invalid key
+    invalid_suffix = "_.*"
+    invalid_regex = build_omics_regex(invalid, suffix=invalid_suffix)
+    invalid_cols = compared.filter(regex=invalid_regex)
+    exp_num_invalid = 2
+
+    # Check dataframe shape
+    exp_num_rows = len(prot.index.intersection(acet.index))
+    exp_num_cols = exp_num_invalid
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(compared, exp_shape):
+        PASS = False
+
+    # Check invalid columns
+    if not check_invalid_columns(invalid_cols, exp_num_invalid):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+def test_compare_omics_one_list_with_invalid_key():
+    """Test that compare_omics will gracefully handle a list of valid keys containing one invalid key."""
+    print("Running test_compare_omics_one_list_with_invalid_key...")
+    PASS = True
+
+    # Load dataframes to test with, and set keys to use
+    prot = en.get_proteomics()
+    acet = en.get_acetylproteomics()
+
+    # Run the function, make sure it returned properly
+    invalid = "gobbledegook"
+
+    prot_valid_list = ['A4GALT', 'TP53', 'ZSCAN30']
+    prot_invalid_list = prot_valid_list.copy()
+    prot_invalid_list.append(invalid)
+
     acet_valid_list = ['AAGAB', 'AACS', 'ZW10', 'ZYX']
-    acet_invalid_list = ['AAGAB', 'AACS', 'ZW10', 'ZYX', 'gobbledegook']
-
-    # Test one invalid key and one valid key
-    comp = en.compare_omics(prot, acet, invalid, acet_valid)
-    if comp is not None:
-        print("compare_omics should have returned None when passed one invalid key and one valid key, but instead returned a {}".format(type(comp)))
+    
+    compared = en.compare_omics(prot, acet, prot_invalid_list, acet_valid_list)
+    if not check_returned_is_df(compared):
         PASS = False
-    else:
-        print("(NOTE: The invalid key message above was expected.)")
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Test two invalid keys
-    comp = en.compare_omics(prot, acet, invalid, invalid)
-    if comp is not None:
-        print("compare_omics should have returned None when passed two invalid keys, but instead returned a {}".format(type(comp)))
+    # Check dataframe name
+    exp_name = "{} for {} genes, with {} for {} genes".format(prot.name, len(prot_invalid_list), acet.name, len(acet_valid_list))
+    if not check_df_name(compared, exp_name):
         PASS = False
-    else:
-        print("(NOTE: The invalid key messages above were expected.)")
 
-    # Test one list of valid keys containing an invalid key, and one list of valid keys
-    comp = en.compare_omics(prot, acet, prot_invalid_list, acet_valid_list)
-    if comp is not None:
-        print("compare_omics should have returned None when passed a list of valid keys containing one invalid key, but instead returned a {}".format(type(comp)))
-        PASS = False
-    else:
-        print("(NOTE: The invalid key message above was expected.)")
+    # Get our columns corresponding to the invalid key
+    invalid_suffix = "_.*"
+    invalid_regex = build_omics_regex(invalid, suffix=invalid_suffix)
+    invalid_cols = compared.filter(regex=invalid_regex)
+    exp_num_invalid = 1
 
-    # Test two lists of valid keys containing one invalid key each
-    comp = en.compare_omics(prot, acet, prot_invalid_list, acet_invalid_list)
-    if comp is not None:
-        print("compare_omics should have returned None when passed two lists of valid keys containing one invalid key each, but instead returned a {}".format(type(comp)))
+    # Figure out which columns from proteomics should have been grabbed for the valid genes from prot_invalid_list (should be the same number as number of valid genes
+    prot_regex = build_omics_regex(prot_valid_list)
+    prot_cols = prot.filter(regex=prot_regex) # Use the regex to get all matching columns
+    if len(prot_cols.columns) != len(prot_valid_list):
+        print("Unexpected number of matching proteomics columns in test.\n\tExpected: {}\n\tActual: {}".format(len(prot_valid_list), len(prot_cols.columns)))
         PASS = False
-    else:
-        print("(NOTE: The invalid key messages above were expected.)")
+
+    # Figure out which columns from acetylproteomics should have been grabbed for acet_valid_list
+    acet_suffix = '-.*'
+    acet_regex = build_omics_regex(acet_valid_list, suffix=acet_suffix)
+    acet_cols = acet.filter(regex=acet_regex) # Use the regex to get all matching columns
+
+    # Check dataframe shape
+    exp_num_rows = len(prot.index.intersection(acet.index))
+    exp_num_cols = len(prot_cols.columns) + len(acet_cols.columns) + exp_num_invalid 
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(compared, exp_shape):
+        PASS = False
+
+    # Check invalid columns
+    if not check_invalid_columns(invalid_cols, exp_num_invalid):
+        PASS = False
+
+    # Check columns for valid genes in prot_invalid_list
+    if not check_appended_columns(prot, compared, prot_cols.columns):
+        PASS = False
+
+    # Check columns for acet_valid_list
+    if not check_appended_columns(acet, compared, acet_cols.columns):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+def test_compare_omics_both_list_with_invalid_key():
+    """Test that compare_omics will gracefully handle two lists of valid keys, each containing one invalid key."""
+    print("Running test_compare_omics_both_list_with_invalid_key...")
+    PASS = True
+
+    # Load dataframes to test with, and set keys to use
+    prot = en.get_proteomics()
+    acet = en.get_acetylproteomics()
+
+    # Run the function, make sure it returned properly
+    invalid = "gobbledegook"
+
+    prot_valid_list = ['A4GALT', 'TP53', 'ZSCAN30']
+    prot_invalid_list = prot_valid_list.copy()
+    prot_invalid_list.append(invalid)
+
+    acet_valid_list = ['AAGAB', 'AACS', 'ZW10', 'ZYX']
+    acet_invalid_list = acet_valid_list.copy()
+    acet_invalid_list.append(invalid)
+
+    compared = en.compare_omics(prot, acet, prot_invalid_list, acet_invalid_list)
+    if not check_returned_is_df(compared):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = "{} for {} genes, with {} for {} genes".format(prot.name, len(prot_invalid_list), acet.name, len(acet_invalid_list))
+    if not check_df_name(compared, exp_name):
+        PASS = False
+
+    # Get our columns corresponding to the invalid key
+    invalid_suffix = "_.*"
+    invalid_regex = build_omics_regex(invalid, suffix=invalid_suffix)
+    invalid_cols = compared.filter(regex=invalid_regex)
+    exp_num_invalid = 2
+
+    # Figure out which columns from proteomics should have been grabbed for the valid genes from prot_invalid_list (should be the same number as number of valid genes
+    prot_regex = build_omics_regex(prot_valid_list)
+    prot_cols = prot.filter(regex=prot_regex) # Use the regex to get all matching columns
+    if len(prot_cols.columns) != len(prot_valid_list):
+        print("Unexpected number of matching proteomics columns in test.\n\tExpected: {}\n\tActual: {}".format(len(prot_valid_list), len(prot_cols.columns)))
+        PASS = False
+
+    # Figure out which columns from acetylproteomics should have been grabbed for acet_valid_list
+    acet_suffix = '-.*'
+    acet_regex = build_omics_regex(acet_valid_list, suffix=acet_suffix)
+    acet_cols = acet.filter(regex=acet_regex) # Use the regex to get all matching columns
+
+    # Check dataframe shape
+    exp_num_rows = len(prot.index.intersection(acet.index))
+    exp_num_cols = len(prot_cols.columns) + len(acet_cols.columns) + exp_num_invalid 
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(compared, exp_shape):
+        PASS = False
+
+    # Check invalid columns
+    if not check_invalid_columns(invalid_cols, exp_num_invalid):
+        PASS = False
+
+    # Check columns for valid genes in prot_invalid_list
+    if not check_appended_columns(prot, compared, prot_cols.columns):
+        PASS = False
+
+    # Check columns for valid genes in acet_invalid_list
+    if not check_appended_columns(acet, compared, acet_cols.columns):
+        PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
@@ -876,84 +1089,6 @@ def test_append_mutations_source_preservation():
     # Indicate whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_one_mut_all_omics():
-    """Test append_mutations_to_omics with one mutation gene, and the default parameter of None for the omics gene, which should give the entire omics dataframe."""
-    print("Running test_append_mutations_one_mut_all_omics...")
-    PASS = True
-
-    # Load the source dataframe and set our keys
-    phos = en.get_phosphoproteomics()
-    mut_gene = 'PIK3CA'
-
-    # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_gene)
-    if not check_returned_is_df(appended):
-        PASS = False
-        print_test_result(PASS)
-        return # Skip remaining steps, since they won't work if it's not a dataframe.
-
-    # Check dataframe name
-    exp_name = '{}, with Somatic mutation data for {} gene'.format(phos.name, mut_gene)
-    if not check_df_name(appended, exp_name):
-        PASS = False
-
-    # Check dataframe shape
-    exp_num_rows = len(phos.index)
-    exp_num_cols = len(phos.columns) + 3
-    exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
-        PASS = False
-
-    # Check values in columns
-    if not check_appended_columns(phos, appended, phos.columns):
-        PASS = False
-
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_gene):
-        PASS = False
-
-    # Print whether the test passed
-    print_test_result(PASS)
-
-def test_append_mutations_three_mut_all_omics():
-    """Test append_mutations_to_omics with three mutation genes, and the default parameter of None for the omics gene, which should give the entire omics dataframe."""
-    print("Running test_append_mutations_three_mut_all_omics...")
-    PASS = True
-
-    # Load the source dataframe and set our keys
-    phos = en.get_phosphoproteomics()
-    mut_genes = ['PIK3CA', 'TP53', 'AURKA']
-
-    # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_genes)
-    if not check_returned_is_df(appended):
-        PASS = False
-        print_test_result(PASS)
-        return # Skip remaining steps, since they won't work if it's not a dataframe.
-
-    # Check dataframe name
-    exp_name = '{}, with Somatic mutation data for {} genes'.format(phos.name, len(mut_genes))
-    if not check_df_name(appended, exp_name):
-        PASS = False
-
-    # Check dataframe shape
-    exp_num_rows = len(phos.index)
-    exp_num_cols = len(phos.columns) + 7
-    exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
-        PASS = False
-
-    # Check values in columns
-    if not check_appended_columns(phos, appended, phos.columns):
-        PASS = False
-
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_genes):
-        PASS = False
-
-    # Print whether the test passed
-    print_test_result(PASS)
-
 def test_append_mutations_one_mut_one_omics():
     """Test append_mutations_to_omics with one mutation gene and one omics gene."""
     print("Running test_append_mutations_one_mut_one_omics...")
@@ -983,13 +1118,97 @@ def test_append_mutations_one_mut_one_omics():
 
     # Check dataframe shape
     exp_num_rows = len(phos.index)
-    exp_num_cols = len(phos_cols.columns) + 3
+    exp_num_cols = len(phos_cols.columns) + 4
     exp_shape = (exp_num_rows, exp_num_cols)
     if not check_df_shape(appended, exp_shape):
         PASS = False
 
     # Check values in columns
     if not check_appended_columns(phos, appended, phos_cols.columns):
+        PASS = False
+
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    if not check_mutation_columns(mutations, appended, mut_gene):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+def test_append_mutations_one_mut_three_omics():
+    """Test append_mutations_to_omics with one mutation gene and three omics genes."""
+    print("Running test_append_mutations_one_mut_three_omics...")
+    PASS = True
+
+    # Load the source dataframe and set our keys
+    phos = en.get_phosphoproteomics()
+    phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
+    mut_gene = 'PIK3CA'
+
+    # Run the function, make sure it returned properly
+    appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_genes)
+    if not check_returned_is_df(appended):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = '{} for {} genes, with Somatic mutation data for {} gene'.format(phos.name, len(phos_genes), mut_gene)
+    if not check_df_name(appended, exp_name):
+        PASS = False
+
+    # Figure out which phosphoproteomics columns should have been grabbed
+    phos_suffix = '-.*'
+    phos_regex = build_omics_regex(phos_genes, suffix=phos_suffix)
+    phos_cols = phos.filter(regex=phos_regex) # Use the regex to get all matching columns
+
+    # Check dataframe shape
+    exp_num_rows = len(phos.index)
+    exp_num_cols = len(phos_cols.columns) + 4
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(appended, exp_shape):
+        PASS = False
+
+    # Check values in columns
+    if not check_appended_columns(phos, appended, phos_cols.columns):
+        PASS = False
+
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    if not check_mutation_columns(mutations, appended, mut_gene):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+def test_append_mutations_one_mut_all_omics():
+    """Test append_mutations_to_omics with one mutation gene, and the default parameter of None for the omics gene, which should give the entire omics dataframe."""
+    print("Running test_append_mutations_one_mut_all_omics...")
+    PASS = True
+
+    # Load the source dataframe and set our keys
+    phos = en.get_phosphoproteomics()
+    mut_gene = 'PIK3CA'
+
+    # Run the function, make sure it returned properly
+    appended = en.append_mutations_to_omics(phos, mut_gene)
+    if not check_returned_is_df(appended):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = '{}, with Somatic mutation data for {} gene'.format(phos.name, mut_gene)
+    if not check_df_name(appended, exp_name):
+        PASS = False
+
+    # Check dataframe shape
+    exp_num_rows = len(phos.index)
+    exp_num_cols = len(phos.columns) + 4
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(appended, exp_shape):
+        PASS = False
+
+    # Check values in columns
+    if not check_appended_columns(phos, appended, phos.columns):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
@@ -1028,7 +1247,7 @@ def test_append_mutations_three_mut_one_omics():
 
     # Check dataframe shape
     exp_num_rows = len(phos.index)
-    exp_num_cols = len(phos_cols.columns) + 7
+    exp_num_cols = len(phos_cols.columns) + 10
     exp_shape = (exp_num_rows, exp_num_cols)
     if not check_df_shape(appended, exp_shape):
         PASS = False
@@ -1039,51 +1258,6 @@ def test_append_mutations_three_mut_one_omics():
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, appended, mut_genes):
-        PASS = False
-
-    # Print whether the test passed
-    print_test_result(PASS)
-
-def test_append_mutations_one_mut_three_omics():
-    """Test append_mutations_to_omics with one mutation gene and three omics genes."""
-    print("Running test_append_mutations_one_mut_three_omics...")
-    PASS = True
-
-    # Load the source dataframe and set our keys
-    phos = en.get_phosphoproteomics()
-    phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
-    mut_gene = 'PIK3CA'
-
-    # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_genes)
-    if not check_returned_is_df(appended):
-        PASS = False
-        print_test_result(PASS)
-        return # Skip remaining steps, since they won't work if it's not a dataframe.
-
-    # Check dataframe name
-    exp_name = '{} for {} genes, with Somatic mutation data for {} gene'.format(phos.name, len(phos_genes), mut_gene)
-    if not check_df_name(appended, exp_name):
-        PASS = False
-
-    # Figure out which phosphoproteomics columns should have been grabbed
-    phos_suffix = '-.*'
-    phos_regex = build_omics_regex(phos_genes, suffix=phos_suffix)
-    phos_cols = phos.filter(regex=phos_regex) # Use the regex to get all matching columns
-
-    # Check dataframe shape
-    exp_num_rows = len(phos.index)
-    exp_num_cols = len(phos_cols.columns) + 3
-    exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
-        PASS = False
-
-    # Check values in columns
-    if not check_appended_columns(phos, appended, phos_cols.columns):
-        PASS = False
-
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_gene):
         PASS = False
 
     # Print whether the test passed
@@ -1118,7 +1292,7 @@ def test_append_mutations_three_mut_three_omics():
 
     # Check dataframe shape
     exp_num_rows = len(phos.index)
-    exp_num_cols = len(phos_cols.columns) + 7
+    exp_num_cols = len(phos_cols.columns) + 10
     exp_shape = (exp_num_rows, exp_num_cols)
     if not check_df_shape(appended, exp_shape):
         PASS = False
@@ -1134,48 +1308,9 @@ def test_append_mutations_three_mut_three_omics():
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_one_mut_all_omics_no_location():
-    """Test append_mutations_to_omics with one mutation gene, default of None for omics gene (to select all omics), and no location column."""
-    print("Running test_append_mutations_one_mut_all_omics_no_location...")
-    PASS = True
-
-    # Load the source dataframe and set our keys
-    phos = en.get_phosphoproteomics()
-    mut_gene = 'PIK3CA'
-
-    # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_gene, show_location=False)
-    if not check_returned_is_df(appended):
-        PASS = False
-        print_test_result(PASS)
-        return # Skip remaining steps, since they won't work if it's not a dataframe.
-
-    # Check dataframe name
-    exp_name = '{}, with Somatic mutation data for {} gene'.format(phos.name, mut_gene)
-    if not check_df_name(appended, exp_name):
-        PASS = False
-
-    # Check dataframe shape
-    exp_num_rows = len(phos.index)
-    exp_num_cols = len(phos.columns) + 2
-    exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
-        PASS = False
-
-    # Check values in columns
-    if not check_appended_columns(phos, appended, phos.columns):
-        PASS = False
-
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_gene, show_location=False):
-        PASS = False
-
-    # Print whether the test passed
-    print_test_result(PASS)
-
-def test_append_mutations_three_mut_all_omics_no_location():
-    """Test append_mutations_to_omics with three mutation genes, default of None for the omics gene (to select all omics), and no location column."""
-    print("Running test_append_mutations_three_mut_all_omics_no_location...")
+def test_append_mutations_three_mut_all_omics():
+    """Test append_mutations_to_omics with three mutation genes, and the default parameter of None for the omics gene, which should give the entire omics dataframe."""
+    print("Running test_append_mutations_three_mut_all_omics...")
     PASS = True
 
     # Load the source dataframe and set our keys
@@ -1183,7 +1318,7 @@ def test_append_mutations_three_mut_all_omics_no_location():
     mut_genes = ['PIK3CA', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_genes, show_location=False)
+    appended = en.append_mutations_to_omics(phos, mut_genes)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1196,7 +1331,7 @@ def test_append_mutations_three_mut_all_omics_no_location():
 
     # Check dataframe shape
     exp_num_rows = len(phos.index)
-    exp_num_cols = len(phos.columns) + 4
+    exp_num_cols = len(phos.columns) + 10
     exp_shape = (exp_num_rows, exp_num_cols)
     if not check_df_shape(appended, exp_shape):
         PASS = False
@@ -1206,7 +1341,7 @@ def test_append_mutations_three_mut_all_omics_no_location():
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_genes, show_location=False):
+    if not check_mutation_columns(mutations, appended, mut_genes):
         PASS = False
 
     # Print whether the test passed
@@ -1241,13 +1376,97 @@ def test_append_mutations_one_mut_one_omics_no_location():
 
     # Check dataframe shape
     exp_num_rows = len(phos.index)
-    exp_num_cols = len(phos_cols.columns) + 2
+    exp_num_cols = len(phos_cols.columns) + 3
     exp_shape = (exp_num_rows, exp_num_cols)
     if not check_df_shape(appended, exp_shape):
         PASS = False
 
     # Check values in columns
     if not check_appended_columns(phos, appended, phos_cols.columns):
+        PASS = False
+
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    if not check_mutation_columns(mutations, appended, mut_gene, show_location=False):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+def test_append_mutations_one_mut_three_omics_no_location():
+    """Test append_mutations_to_omics with one mutation gene and three omics genes, and no location column."""
+    print("Running test_append_mutations_one_mut_three_omics_no_location...")
+    PASS = True
+
+    # Load the source dataframe and set our keys
+    phos = en.get_phosphoproteomics()
+    phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
+    mut_gene = 'PIK3CA'
+
+    # Run the function, make sure it returned properly
+    appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_genes, show_location=False)
+    if not check_returned_is_df(appended):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = '{} for {} genes, with Somatic mutation data for {} gene'.format(phos.name, len(phos_genes), mut_gene)
+    if not check_df_name(appended, exp_name):
+        PASS = False
+
+    # Figure out which phosphoproteomics columns should have been grabbed
+    phos_suffix = '-.*'
+    phos_regex = build_omics_regex(phos_genes, suffix=phos_suffix)
+    phos_cols = phos.filter(regex=phos_regex) # Use the regex to get all matching columns
+
+    # Check dataframe shape
+    exp_num_rows = len(phos.index)
+    exp_num_cols = len(phos_cols.columns) + 3
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(appended, exp_shape):
+        PASS = False
+
+    # Check values in columns
+    if not check_appended_columns(phos, appended, phos_cols.columns):
+        PASS = False
+
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    if not check_mutation_columns(mutations, appended, mut_gene, show_location=False):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+def test_append_mutations_one_mut_all_omics_no_location():
+    """Test append_mutations_to_omics with one mutation gene, default of None for omics gene (to select all omics), and no location column."""
+    print("Running test_append_mutations_one_mut_all_omics_no_location...")
+    PASS = True
+
+    # Load the source dataframe and set our keys
+    phos = en.get_phosphoproteomics()
+    mut_gene = 'PIK3CA'
+
+    # Run the function, make sure it returned properly
+    appended = en.append_mutations_to_omics(phos, mut_gene, show_location=False)
+    if not check_returned_is_df(appended):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = '{}, with Somatic mutation data for {} gene'.format(phos.name, mut_gene)
+    if not check_df_name(appended, exp_name):
+        PASS = False
+
+    # Check dataframe shape
+    exp_num_rows = len(phos.index)
+    exp_num_cols = len(phos.columns) + 3
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(appended, exp_shape):
+        PASS = False
+
+    # Check values in columns
+    if not check_appended_columns(phos, appended, phos.columns):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
@@ -1286,7 +1505,7 @@ def test_append_mutations_three_mut_one_omics_no_location():
 
     # Check dataframe shape
     exp_num_rows = len(phos.index)
-    exp_num_cols = len(phos_cols.columns) + 4
+    exp_num_cols = len(phos_cols.columns) + 7
     exp_shape = (exp_num_rows, exp_num_cols)
     if not check_df_shape(appended, exp_shape):
         PASS = False
@@ -1297,51 +1516,6 @@ def test_append_mutations_three_mut_one_omics_no_location():
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, appended, mut_genes, show_location=False):
-        PASS = False
-
-    # Print whether the test passed
-    print_test_result(PASS)
-
-def test_append_mutations_one_mut_three_omics_no_location():
-    """Test append_mutations_to_omics with one mutation gene and three omics genes, and no location column."""
-    print("Running test_append_mutations_one_mut_three_omics_no_location...")
-    PASS = True
-
-    # Load the source dataframe and set our keys
-    phos = en.get_phosphoproteomics()
-    phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
-    mut_gene = 'PIK3CA'
-
-    # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_genes, show_location=False)
-    if not check_returned_is_df(appended):
-        PASS = False
-        print_test_result(PASS)
-        return # Skip remaining steps, since they won't work if it's not a dataframe.
-
-    # Check dataframe name
-    exp_name = '{} for {} genes, with Somatic mutation data for {} gene'.format(phos.name, len(phos_genes), mut_gene)
-    if not check_df_name(appended, exp_name):
-        PASS = False
-
-    # Figure out which phosphoproteomics columns should have been grabbed
-    phos_suffix = '-.*'
-    phos_regex = build_omics_regex(phos_genes, suffix=phos_suffix)
-    phos_cols = phos.filter(regex=phos_regex) # Use the regex to get all matching columns
-
-    # Check dataframe shape
-    exp_num_rows = len(phos.index)
-    exp_num_cols = len(phos_cols.columns) + 2
-    exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
-        PASS = False
-
-    # Check values in columns
-    if not check_appended_columns(phos, appended, phos_cols.columns):
-        PASS = False
-
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_gene, show_location=False):
         PASS = False
 
     # Print whether the test passed
@@ -1376,13 +1550,52 @@ def test_append_mutations_three_mut_three_omics_no_location():
 
     # Check dataframe shape
     exp_num_rows = len(phos.index)
-    exp_num_cols = len(phos_cols.columns) + 4
+    exp_num_cols = len(phos_cols.columns) + 7
     exp_shape = (exp_num_rows, exp_num_cols)
     if not check_df_shape(appended, exp_shape):
         PASS = False
 
     # Check values in columns
     if not check_appended_columns(phos, appended, phos_cols.columns):
+        PASS = False
+
+    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    if not check_mutation_columns(mutations, appended, mut_genes, show_location=False):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
+def test_append_mutations_three_mut_all_omics_no_location():
+    """Test append_mutations_to_omics with three mutation genes, default of None for the omics gene (to select all omics), and no location column."""
+    print("Running test_append_mutations_three_mut_all_omics_no_location...")
+    PASS = True
+
+    # Load the source dataframe and set our keys
+    phos = en.get_phosphoproteomics()
+    mut_genes = ['PIK3CA', 'TP53', 'AURKA']
+
+    # Run the function, make sure it returned properly
+    appended = en.append_mutations_to_omics(phos, mut_genes, show_location=False)
+    if not check_returned_is_df(appended):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip remaining steps, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = '{}, with Somatic mutation data for {} genes'.format(phos.name, len(mut_genes))
+    if not check_df_name(appended, exp_name):
+        PASS = False
+
+    # Check dataframe shape
+    exp_num_rows = len(phos.index)
+    exp_num_cols = len(phos.columns) + 7
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(appended, exp_shape):
+        PASS = False
+
+    # Check values in columns
+    if not check_appended_columns(phos, appended, phos.columns):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
@@ -1471,13 +1684,15 @@ test_get_mutations_binary()
 print("\nTesting compare and append functions...")
 test_compare_omics_source_preservation()
 test_compare_omics_default_parameters()
-test_compare_omics_single_gene()
+test_compare_omics_one_gene()
 test_compare_omics_multiple_genes()
 test_compare_omics_all_dfs()
 test_compare_omics_invalid_dfs()
-test_compare_omics_invalid_keys()
-test_compare_omics_invalid_key_types()
-
+test_compare_omics_one_invalid_key()
+test_compare_omics_both_invalid_keys()
+test_compare_omics_one_list_with_invalid_key()
+test_compare_omics_both_list_with_invalid_key()
+test_compare_omics_invalid_key_types() #
 test_append_mutations_source_preservation()
 test_append_mutations_one_mut_one_omics()
 test_append_mutations_one_mut_three_omics()
@@ -1494,15 +1709,3 @@ test_append_mutations_three_mut_all_omics_no_location()
 test_append_mutations_invalid_key()
 
 print("Version:",en.version())
-
-# Tests to rewrite:
-# test_compare_omics_single_key_invalid
-# mutations df dimensions
-# test mutation cols
-# version not working?
-#Traceback (most recent call last):
-#  File "CPTAC/Endometrial/tests.py", line 1496, in <module>
-#    print("Version:",en.version())
-#  File "/home/caleb/sourceFiles/anaconda3/envs/CPTAC/lib/python3.7/site-packages/CPTAC/Endometrial/__init__.py", line 249, in version
-#    with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder
-#NameError: name 'dir_path' is not defined
