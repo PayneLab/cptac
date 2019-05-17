@@ -19,6 +19,14 @@ from .dataloader import get_dataframes
 from .dataloader import get_dictionary
 from .utilities import Utilities
 
+message = "You have loaded the CPTAC Endometrial dataset. To view available dataframes, use CPTAC.Endometrial.list_data(). To view available functions for accessing and manipulating the dataframes, use CPTAC.Endometrial.list_api()."
+wrapped_list = textwrap.wrap(message)
+for line in wrapped_list:
+    print(line)
+
+data_version = "2.1"
+print("Endometrial Data Version: {}\n".format(data_version))
+
 dictionary = dataloader.get_dictionary()
 data = dataloader.get_dataframes()
 

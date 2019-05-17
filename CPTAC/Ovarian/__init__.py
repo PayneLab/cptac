@@ -18,6 +18,14 @@ import webbrowser
 from .dataloader import get_dataframes
 from .utilities import Utilities
 
+message = "You have loaded the CPTAC Ovarian dataset. To view available dataframes, use CPTAC.Ovarian.list_data(). To view available functions for accessing and manipulating the dataframes, use CPTAC.Ovarian.list_api()."
+wrapped_list = textwrap.wrap(message)
+for line in wrapped_list:
+    print(line)
+
+data_version = "Most recent release"
+print("Ovarian Data Version: {}\n".format(data_version))
+
 data = dataloader.get_dataframes()
 
 def list_data():
@@ -183,6 +191,6 @@ def version():
     """Print the version number of the CPTAC package."""
     dir_path = os.path.dirname(os.path.realpath(__file__))
     version = {}
-    with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder
+    with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Ovarian folder
     	exec(fp.read(), version)
     return(version['__version__'])

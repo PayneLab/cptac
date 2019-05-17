@@ -13,8 +13,17 @@ import os
 import webbrowser
 import pandas as pd
 import numpy as np
+import textwrap
 from .dataloader import get_dataframes
 from .utilities import Utilities
+
+message = "You have loaded the CPTAC Colon dataset. To view available dataframes, use CPTAC.Colon.list_data(). To view available functions for accessing and manipulating the dataframes, use CPTAC.Colon.list_api()."
+wrapped_list = textwrap.wrap(message)
+for line in wrapped_list:
+    print(line)
+
+data_version = "Most recent release"
+print("Colon Data Version: {}\n".format(data_version))
 
 data = dataloader.get_dataframes()
 
@@ -217,6 +226,6 @@ def version():
     """
     dir_path = os.path.dirname(os.path.realpath(__file__))
     version = {}
-    with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder, TODO: how to navigate from dataTest.py?
+    with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Colon folder
         exec(fp.read(), version)
     return(version['__version__'])
