@@ -59,7 +59,7 @@ def get_transcriptomics():
 
 def get_circular_RNA():
     """Gets circular_RNA dataframe."""
-    return data["transcriptomics_circular"]
+    return data["circular_RNA"]
 
 def get_miRNA():
     """Gets miRNA dataframe."""
