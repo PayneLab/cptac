@@ -11,9 +11,6 @@
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy import stats
 import CPTAC.Endometrial as en
 from utilities import Utilities
 
@@ -83,7 +80,7 @@ def check_df_shape(df, exp_shape):
         return False
     return True
 
-def check_getter(df, exp_name, exp_dim, exp_headers, coordinates, values): # private
+def check_getter(df, exp_name, exp_dim, exp_headers, coordinates, values): 
     """Test a dataframe's name, dimensions and headers, and three test values, then print whether it passed the test.
 
     Parameters
@@ -159,7 +156,7 @@ def build_omics_regex(genes, suffix=""):
     regex = regex[:-1] + ')' + suffix + '$'
     return regex
 
-def check_appended_column(source_df, dest_df, source_header, dest_header): # private
+def check_appended_column(source_df, dest_df, source_header, dest_header): 
     """Checks whether a column appended to a dataframe has the same values for each index as it has in the dataframe it was taken from.
 
     Parameters:
@@ -309,10 +306,10 @@ def check_mutation_columns(mutations, merged_df, genes, show_location=True):
     return PASS
     
 # Test functions that get dataframes
-def test_get_clinical_filtered():
-    """Test get_clinical with the default parameter unfiltered=False."""
+def test_get_clinical():
+    """Test get_clinical."""
 
-    print('Running test_get_clinical with the default parameter unfiltered=False...')
+    print('Running test_get_clinical...')
 
     df = en.get_clinical()
     name = "clinical"
@@ -324,27 +321,10 @@ def test_get_clinical_filtered():
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
-def test_get_clinical_unfiltered():
-    """Test get_clinical with parameter unfiltered=True."""
+def test_get_derived_molecular():
+    """Test get_derived_molecular."""
 
-    print('Running test_get_clinical with parameter unfiltered=True...')
-
-    df = en.get_clinical(unfiltered=True)
-    print("(NOTE: The unfiltered data warning above was expected.)") # To avoid confusion
-
-    name = "clinical"
-    dimensions = (153, 27)
-    headers = ['Patient_ID', 'Case_excluded', 'Proteomics_Tumor_Normal', 'Country', 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity', 'Path_Stage_Primary_Tumor-pT', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site', 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm', 'Num_full_term_pregnancies']
-    test_coord = ((23, 8), (151, 1), (32, 26))
-    test_vals = ('Normal', 'No', '3')
-
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
-    print_test_result(PASS)
-
-def test_get_derived_molecular_filtered():
-    """Test get_derived_molecular with default parameter unfiltered=False."""
-
-    print('Running test_get_derived_molecular with default parameter unfiltered=False...')
+    print('Running test_get_derived_molecular...')
 
     df = en.get_derived_molecular()
     name = 'derived_molecular'
@@ -356,27 +336,10 @@ def test_get_derived_molecular_filtered():
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
-def test_get_derived_molecular_unfiltered():
-    """Test get_derived_molecular with parameter unfiltered=True."""
+def test_get_experimental_setup():
+    """Test get_experimental_setup."""
 
-    print('Running test_get_derived_molecular with parameter unfiltered=True...')
-
-    df = en.get_derived_molecular(unfiltered=True)
-    print("(NOTE: The unfiltered data warning above was expected.)") # To avoid confusion
-
-    name = 'derived_molecular'
-    dimensions = (153, 118)
-    headers = ['Estrogen_Receptor', 'Estrogen_Receptor_%', 'Progesterone_Receptor', 'Progesterone_Receptor_%', 'MLH1', 'MLH2', 'MSH6', 'PMS2', 'p53', 'Other_IHC_specify', 'Log2_INDEL_per_Mbp', 'Log2_variant_total', 'Log2_SNP_total', 'Log2_INDEL_total', 'Mutation_signature_C>A', 'Mutation_signature_C>G', 'Mutation_signature_C>T', 'Mutation_signature_T>C', 'Mutation_signature_T>A', 'Mutation_signature_T>G']
-    test_coord = ((1, 11), (30, 117), (88, 53))
-    test_vals = (0.005666428, 4.0, -0.37)
-
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
-    print_test_result(PASS)
-
-def test_get_experimental_setup_filtered():
-    """Test get_experimental_setup with default parameter unfiltered=False."""
-
-    print('Running test_get_experimental_setup with default parameter unfiltered=False...')
+    print('Running test_get_experimental_setup...')
 
     df = en.get_experimental_setup()
     name = 'experimental_setup'
@@ -388,27 +351,10 @@ def test_get_experimental_setup_filtered():
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
-def test_get_experimental_setup_unfiltered():
-    """Test get_experimental_setup with parameter unfiltered=True."""
+def test_get_acetylproteomics():
+    """Test get_acetylproteomics."""
 
-    print('Running test_get_experimental_setup with parameter unfiltered=True...')
-
-    df = en.get_experimental_setup(unfiltered=True)
-    print("(NOTE: The unfiltered data warning above was expected.)") # To avoid confusion
-
-    name = 'experimental_setup'
-    dimensions = (153, 26)
-    headers = ['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
-    test_coord = ((3, 24), (15, 15), (101, 0))
-    test_vals = ('YES', '573df828-ddd8-43e5-9dc2-513911ee977f', 4)
-
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
-    print_test_result(PASS)
-
-def test_get_acetylproteomics_filtered():
-    """Test get_acetylproteomics with default parameter unfiltered=False."""
-
-    print('Running test_get_acetylproteomics with default parameter unfiltered=False...')
+    print('Running test_get_acetylproteomics...')
 
     df = en.get_acetylproteomics()
     name = 'acetylproteomics'
@@ -416,23 +362,6 @@ def test_get_acetylproteomics_filtered():
     headers = ['A2M-K1168', 'A2M-K1176', 'A2M-K135', 'A2M-K145', 'A2M-K516', 'A2M-K664', 'A2M-K682', 'AACS-K391', 'AAGAB-K290', 'AAK1-K201', 'ZSCAN31-K215', 'ZSCAN32-K659', 'ZW10-K634', 'ZYX-K24', 'ZYX-K25', 'ZYX-K265', 'ZYX-K272', 'ZYX-K279', 'ZYX-K533', 'ZZZ3-K117']
     test_coord = ((1, 1), (12, 10861), (90, 5849))
     test_vals = (0.47700000000000004, 0.16, 0.4098)
-
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
-    print_test_result(PASS)
-
-def test_get_acetylproteomics_unfiltered():
-    """Test get_acetylproteomics with parameter unfiltered=True."""
-
-    print('Running test_get_acetylproteomics with parameter unfiltered=True...')
-
-    df = en.get_acetylproteomics(unfiltered=True)
-    print("(NOTE: The unfiltered data warning above was expected.)") # To avoid confusion
-
-    name = 'acetylproteomics'
-    dimensions = (153, 10862)
-    headers = ['A2M-K1168', 'A2M-K1176', 'A2M-K135', 'A2M-K145', 'A2M-K516', 'A2M-K664', 'A2M-K682', 'AACS-K391', 'AAGAB-K290', 'AAK1-K201', 'ZSCAN31-K215', 'ZSCAN32-K659', 'ZW10-K634', 'ZYX-K24', 'ZYX-K25', 'ZYX-K265', 'ZYX-K272', 'ZYX-K279', 'ZYX-K533', 'ZZZ3-K117']
-    test_coord = ((1, 1), (15, 10861), (90, 4399))
-    test_vals = (0.47700000000000004, 0.16, 0.6920000000000001)
 
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
@@ -1524,14 +1453,10 @@ def test_append_mutations_invalid_key_types():
 print("\nRunning tests:\n")
 
 print("Testing getters...")
-test_get_clinical_filtered()
-test_get_clinical_unfiltered()
-test_get_derived_molecular_filtered()
-test_get_derived_molecular_unfiltered()
-test_get_experimental_setup_filtered()
-test_get_experimental_setup_unfiltered()
-test_get_acetylproteomics_filtered()
-test_get_acetylproteomics_unfiltered()
+test_get_clinical()
+test_get_derived_molecular()
+test_get_experimental_setup()
+test_get_acetylproteomics()
 test_get_proteomics()
 test_get_transcriptomics()
 test_get_circular_RNA()
@@ -1569,3 +1494,15 @@ test_append_mutations_three_mut_all_omics_no_location()
 test_append_mutations_invalid_key()
 
 print("Version:",en.version())
+
+# Tests to rewrite:
+# test_compare_omics_single_key_invalid
+# mutations df dimensions
+# test mutation cols
+# version not working?
+#Traceback (most recent call last):
+#  File "CPTAC/Endometrial/tests.py", line 1496, in <module>
+#    print("Version:",en.version())
+#  File "/home/caleb/sourceFiles/anaconda3/envs/CPTAC/lib/python3.7/site-packages/CPTAC/Endometrial/__init__.py", line 249, in version
+#    with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder
+#NameError: name 'dir_path' is not defined

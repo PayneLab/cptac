@@ -215,6 +215,7 @@ def version():
     Returns
     Version number
     """
+    dir_path = os.path.dirname(os.path.realpath(__file__))
     version = {}
     with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder, TODO: how to navigate from dataTest.py?
         exec(fp.read(), version)

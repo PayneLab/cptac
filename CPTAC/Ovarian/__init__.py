@@ -181,6 +181,7 @@ def embargo():
 
 def version():
     """Print the version number of the CPTAC package."""
+    dir_path = os.path.dirname(os.path.realpath(__file__))
     version = {}
     with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder
     	exec(fp.read(), version)

@@ -85,6 +85,21 @@ def get_dictionary():
             dictionary[line[0]] = line[1]
     return dictionary
 
+def rename_df(data, old, new):
+    """Rename a dataframe in the data dictionary, and set that name as the key, deleting the old key.
+
+    Parameters:
+    data (dict of str keys, pandas DataFrame values): The data dictionary containing the dataframe to be renamed.
+    old (str): The old name.
+    new (str): The new name.
+
+    Returns: None
+    """
+    df = data[old]
+    df.name = new
+    data[new] = df
+    del data[old]
+
 def get_dataframes():
     """Load all of the endometrial dataframes, and format them properly.
 
@@ -180,35 +195,12 @@ def get_dataframes():
     clinical_no_case_excluded.name = clinical.name
     data["clinical"] = clinical_no_case_excluded
 
-    # Fix names: "transcriptomics_linear" to "transcriptomics", "phosphoproteomics_site" to
-    # "phosphoproteomics", "somatic_maf" to "somatic_mutation", "somatic" to "somatic_mutations_binary"
-    tran_old_name = "transcriptomics_linear"
-    tran_new_name = "transcriptomics"
-    tran = data[tran_old_name]
-    tran.name = tran_new_name
-    data[tran_new_name] = tran
-    del data[tran_old_name]
-
-    phos_old_name = "phosphoproteomics_site"
-    phos_new_name = "phosphoproteomics"
-    phos = data[phos_old_name]
-    phos.name = phos_new_name
-    data[phos_new_name] = phos
-    del data[phos_old_name]
-
-    mut_old_name = "somatic_maf"
-    mut_new_name = "somatic_mutation"
-    mut = data[mut_old_name]
-    mut.name = mut_new_name
-    data[mut_new_name] = mut
-    del data[mut_old_name]
-
-    mut_bin_old_name = "somatic"
-    mut_bin_new_name = "somatic_mutation_binary"
-    mut_bin = data[mut_bin_old_name]
-    mut_bin.name = mut_bin_new_name
-    data[mut_bin_new_name] = mut_bin
-    del data[mut_bin_old_name]
+    # Fix names
+    rename_df(data, old="transcriptomics_linear", new="transcriptomics")
+    rename_df(data, old="phosphoproteomics_site", new="phosphoproteomics")
+    rename_df(data, old="transcriptomics_circular", new="circular_RNA")
+    rename_df(data, old="somatic_maf", new="somatic_mutation")
+    rename_df(data, old="somatic", new="somatic_mutation_binary")
 
     # Rename indicies to "Sample_ID", since that's what they all are.
     for name in data.keys():
@@ -218,3 +210,4 @@ def get_dataframes():
 
     warning()
     return data
+

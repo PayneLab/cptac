@@ -57,8 +57,6 @@ class Utilities:
         df = pd.DataFrame(index=omics_df.index) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
         for gene in genes:
             selected = self.get_col_from_omics(omics_df, gene) # Get the columns for that gene from the dataframe
-            if selected is None: # If it didn't match any columns, get_col_from_omics will have printed an error message. Return None.
-                return
             df = df.join(selected, how='left') # Otherwise, append the columns to our dataframe we'll return.
         df.name = "{} for {} genes".format(omics_df.name, len(genes)) # Name the dataframe!
         return df
@@ -178,10 +176,10 @@ class Utilities:
         omics_selected = self.get_omics_from_str_or_list(omics_df, omics_cols)
 
         if (df_selected is not None) and (omics_selected is not None): # If either selector returned None, the key(s) didn't match any columns, and it printed an informative error message already. We'll return None.
-            df = df_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
-            df = df.sort_index() # Sort rows in ascending order
-            df.name = "{}, with {}".format(df_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
-            return df
+            df_joined = df_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
+            df_joined = df_joined.sort_index() # Sort rows in ascending order
+            df_joined.name = "{}, with {}".format(df_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
+            return df_joined
 
 # Next 4 functions are for working with mutation data
     def get_mutations_for_gene(self, mutations, gene):
