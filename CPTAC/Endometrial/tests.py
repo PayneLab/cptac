@@ -156,54 +156,51 @@ def build_omics_regex(genes, suffix=""):
     regex = regex[:-1] + ')' + suffix + '$'
     return regex
 
-def check_appended_column(source_df, dest_df, source_header, dest_header): 
-    """Checks whether a column appended to a dataframe has the same values for each index as it has in the dataframe it was taken from.
-
-    Parameters:
-    source_df (pandas.core.frame.DataFrame): the dataframe the column was taken from.
-    dest_df (pandas.core.frame.DataFrame): the dataframe the column was appended to (with the column appended to it).
-    source_header (str): the column's header in the source dataframe.
-    dest_header (str): the column's header in the dataframe it was appended to.
-
-    Returns:
-    bool: Indicates whether the column in the destination dataframe and the column in the source dataframe had the same values for each index.
-    """
-    PASS = True
-
-    original_column = source_df[source_header]
-    merged_column = dest_df[dest_header]
-
-    # Sort columns. If they're in different orders in the dataframes, that's fine as long as the right samples are with the right data. But we do need them in the same order for series.equal.
-    original_column = original_column.sort_index()
-    merged_column = merged_column.sort_index()
-
-    if not original_column.equals(merged_column):
-        PASS = False
-        for idx in merged_column.index:
-            merged_value = merged_column.loc[idx]
-            original_value = original_column.loc[idx]
-            if (merged_value != original_value) and (pd.notna(merged_value) or pd.notna(original_value)):
-                print("Merged dataframe had incorrect values.\n\tSample: {}\tColumn: {}\n\tExpected: {}\tActual: {}\n".format(idx, dest_header, original_value, merged_value))
-    return PASS
-
-def check_appended_columns(source_df, dest_df, headers):
+def check_appended_columns(source_df, dest_df, source_headers, dest_headers=None):
     """Checks whether a column or list of columns appended to a dataframe have the same values for each index in that dataframe as they had in the dataframe they were taken from.
 
     Parameters:
     source_df (pandas.core.frame.DataFrame): The dataframe the columns were taken from.
     dest_df (pandas.core.frame.DataFrame): The dataframe the columns were appended to (with them appended to it).
-    header (str or list or pandas.core.indexes.base.Index): The header(s) of the columns in source_df. str if one, list or index of str if multiple. Header(s) in dest_df will be constructed from this, and the name of source_df.
+    source_headers (str, or list or array-like of str): The header(s) of the columns to test in source_df. str if one, list or array-like of str if multiple. 
+    dest_headers (str, or list or array-like of str, optional): The header(s) of the columns to test in dest_df. str if one, list or array-like of str if multiple. If provided, must be in the same order as their corresponding headers in source_headers. If not provided, header(s) in dest_df will be constructed by appending an underscore and source_df.name to each of the source_headers.
     
     Returns:
     bool: Indicates whether the specified column(s) in dest_df had the same values for each index as they did in source_df.
     """
     PASS = True
-    if isinstance(headers, str):
-        headers = [headers]
-    for source_header in headers:
-        dest_header = source_header + '_' + source_df.name
-        if not check_appended_column(source_df, dest_df, source_header, dest_header):
-            PASS = False
+    if isinstance(source_headers, str):
+        source_headers = [source_headers]
+
+    original_dest_headers = dest_headers # Copy for later, so we can continue running conditionals based on whether dest_headers was provided
+    if dest_headers is None:
+        dest_headers = [header + '_' + source_df.name for header in source_headers] # Construct what the source_headers will be in the merged dataframe
+    elif isinstance(dest_headers, str):
+        dest_headers = [dest_headers]
+
+    source_selection = source_df[source_headers] # Select all of the columns to test from the source dataframe
+    dest_selection = dest_df[dest_headers]
+
+    if original_dest_headers is None:
+        dest_selection = dest_selection.rename(columns=lambda x: x.split('_')[0])
+    else:
+        dest_rename_dict = dict(zip(dest_headers, source_headers)) # Create a dict mapping a dest header to its corresponding source header. This is why if dest_headers is provided, the headers must be in the same order as their corresponding headers in source_headers.
+        dest_selection = dest_selection.rename(columns=dest_rename_dict)
+
+    if not source_selection.equals(dest_selection):
+        PASS = False
+        diff_bools = source_selection.eq(dest_selection)
+        diff_cols = diff_bools.columns
+        for col in diff_cols:
+            if not diff_bools[col].all():
+                source_col = source_selection[col]
+                dest_col = dest_selection[col]
+                col_bools = source_col.eq(dest_col)
+                source_col_diffs = source_col[~col_bools]
+                dest_col_diffs = dest_col[~col_bools]
+                diffs_df = pd.DataFrame({"Source":source_col_diffs, "Merged":dest_col_diffs})
+                print("Merged dataframe had incorrect values. Column: {}\nValues:\n{}\n\n".format(col, diffs_df))
+
     return PASS
 
 def check_invalid_columns(invalid_cols, exp_num_invalid):
@@ -234,13 +231,13 @@ def check_invalid_columns(invalid_cols, exp_num_invalid):
 
     return PASS
 
-def check_mutation_columns_one_gene(mutations, merged_df, gene, show_location):
+def check_mutation_columns(mutations, merged_df, genes, show_location=True):
     """
     Parameters
     mutations (pandas.core.frame.DataFrame): The somatic_mutation dataframe.
-    merged_df (pandas.core.frame.DataFrame): The merged datframe.
-    gene (str): The gene the mutation data was collected for.
-    show_location (bool): Whether the location column was included in merged_df.
+    merged_df (pandas.core.frame.DataFrame): The merged dataframe.
+    gene (str or list): The gene(s) the mutation data was collected for. str if one, list of str if multiple.
+    show_location (bool, optional): Whether the location column was included in merged_df. Default is True.
 
     Returns
     bool: Indicates whether the mutation data for that gene and each sample in the merged dataframe matched the data in the somatic_mutation dataframe.
@@ -252,87 +249,93 @@ def check_mutation_columns_one_gene(mutations, merged_df, gene, show_location):
     sample_col = 'Sample_ID'
     location_col = 'Location'
     mutation_col = 'Mutation'
-    status_col = 'Sample_Status'
-    merged_location_col = gene + '_' + location_col
-    merged_mutation_col = gene + '_' + mutation_col
+    sample_status_col = 'Sample_Status'
+    mutation_status_col = "Mutation_Status"
 
-    # Load all the mutations for the gene
-    gene_df = mutations.loc[mutations[gene_col] == gene] 
+    # Get a map of sample IDs to sample statuses, so we can check the Sample_Status column
+    sample_status_map = en.get_sample_status_map()
 
-    for sample in merged_df.index.values:
-        # Get the rows for just this sample from our two dataframes
-        sample_df = gene_df.loc[gene_df.index == sample]
-        merged_sample_df = merged_df.loc[merged_df.index == sample]
-
-        if len(sample_df.index) == 0: # There were no mutations for that gene in this sample
-            original_location = [['No_mutation']]
-            if sample <= 'S104':
-                original_mutation = [['Wildtype_Tumor']]
-            else:
-                original_mutation = [['Wildtype_Normal']]
-            sample_dict = { # Create a prep dictionary with what the values for the different columns should be
-                sample_col:[sample], # This will be our index
-                mutation_col:original_mutation, 
-                location_col:original_location}
-            sample_df = pd.DataFrame(data=sample_dict, index=sample_dict[sample_col]) # Make that dict a dataframe, and set it as our sample_df
-
-        elif len(sample_df.index) == 1: # There was one mutation for that gene in this sample
-            original_mutation = sample_df.loc[sample, mutation_col] # Get the values
-            original_location = sample_df.loc[sample, location_col]
-
-            sample_df.at[sample, mutation_col] = [original_mutation] # Put them inside of lists, to match the merged dataframe.
-            sample_df.at[sample, location_col] = [original_location] 
-
-        else: # There were multiple mutations for that gene in this sample
-            original_mutations = sample_df[mutation_col].tolist() 
-            original_locations = sample_df[location_col].tolist()
-
-            original_mutations = [original_mutations] # In the merged dataframe, all of the multiple mutations/location values will be in one cell, in a list
-            original_locations = [original_locations] # So, we nest each mutation/location list inside another list, so that the inner list isn't unpacked when we create our df.
-
-            sample_dict = { # Create a prep dictionary with the column values
-                sample_col:[sample], # This will be our index
-                mutation_col:original_mutations,
-                location_col:original_locations}
-            sample_df = pd.DataFrame(data=sample_dict, index=sample_dict[sample_col]) # Make it a dataframe, and set it as our sample_df
-
-        # Test our location and mutation columns
-        if show_location: # Only try to test the location if it was included haha
-            if not check_appended_column(sample_df, merged_sample_df, location_col, merged_location_col):
-                PASS = False
-        if not check_appended_column(sample_df, merged_sample_df, mutation_col, merged_mutation_col):
-            PASS = False
-
-        # Test our Sample_Status column
-        if sample <= 'S104': # Figure out what our sample status should be
-            original_status = 'Tumor'
-        else:
-            original_status = 'Normal'
-        sample_df = sample_df.assign(**{status_col:original_status}) # Append a Sample_Status column to our original values dataframe, with what the value should be, for comparison to the merged dataframe.
-        if not check_appended_column(sample_df, merged_sample_df, status_col, status_col):
-            PASS = False
-
-    return PASS
-
-def check_mutation_columns(mutations, merged_df, genes, show_location=True):
-    """
-    Parameters
-    mutations (pandas.core.frame.DataFrame): The somatic_mutation dataframe.
-    merged_df (pandas.core.frame.DataFrame): The merged datframe.
-    gene (str or list): The gene(s) the mutation data was collected for. str if one, list of str if multiple.
-    show_location (bool, optional): Whether the location column was included in merged_df. Default is True.
-
-    Returns
-    bool: Indicates whether the mutation data for that gene and each sample in the merged dataframe matched the data in the somatic_mutation dataframe.
-    """
-    PASS = True
     if isinstance(genes, str):
         genes = [genes]
+
+    # Loop through all the genes
     for gene in genes:
-        if not check_mutation_columns_one_gene(mutations, merged_df, gene, show_location):
-            PASS = False
+        # Set two more column names that vary by gene
+        merged_location_col = gene + '_' + location_col
+        merged_mutation_col = gene + '_' + mutation_col
+        merged_mutation_status_col = gene + '_' + mutation_status_col
+
+        # Load all the mutations for the gene
+        gene_df = mutations.loc[mutations[gene_col] == gene] 
+
+        for sample in merged_df.index.values:
+            # Get the rows for just this sample from our two dataframes
+            sample_df = gene_df.loc[gene_df.index == sample]
+            merged_sample_df = merged_df.loc[merged_df.index == sample]
+
+            if len(sample_df.index) == 0: # There were no mutations for that gene in this sample
+                original_location = [['No_mutation']]
+                if sample_status_map[sample] == "Tumor":
+                    original_mutation = [['Wildtype_Tumor']]
+                    original_mutation_status = "Wildtype_Tumor"
+                else:
+                    original_mutation = [['Wildtype_Normal']]
+                    original_mutation_status = "Wildtype_Normal"
+                sample_dict = { # Create a prep dictionary with what the values for the different columns should be
+                    sample_col:[sample], # This will be our index
+                    mutation_col:original_mutation, 
+                    location_col:original_location}
+                sample_df = pd.DataFrame(data=sample_dict, index=sample_dict[sample_col]) # Make that dict a dataframe, and set it as our sample_df
+
+            elif len(sample_df.index) == 1: # There was one mutation for that gene in this sample
+                original_mutation = sample_df.loc[sample, mutation_col] # Get the values
+                original_location = sample_df.loc[sample, location_col]
+
+                sample_df.at[sample, mutation_col] = [original_mutation] # Put them inside of lists, to match the merged dataframe.
+                sample_df.at[sample, location_col] = [original_location] 
+
+                original_mutation_status = "Single_mutation"
+
+            else: # There were multiple mutations for that gene in this sample
+                original_mutations = sample_df[mutation_col].tolist() 
+                original_locations = sample_df[location_col].tolist()
+
+                original_mutations = [original_mutations] # In the merged dataframe, all of the multiple mutations/location values will be in one cell, in a list
+                original_locations = [original_locations] # So, we nest each mutation/location list inside another list, so that the inner list isn't unpacked when we create our df.
+
+                sample_dict = { # Create a prep dictionary with the column values
+                    sample_col:[sample], # This will be our index
+                    mutation_col:original_mutations,
+                    location_col:original_locations}
+                sample_df = pd.DataFrame(data=sample_dict, index=sample_dict[sample_col]) # Make it a dataframe, and set it as our sample_df
+
+                original_mutation_status = "Multiple_mutation"
+
+            # Add a Sample_Status column to our original data df
+            if sample_status_map[sample] == "Tumor": # Figure out what our sample status should be
+                original_sample_status = 'Tumor'
+            else:
+                original_sample_status = 'Normal'
+            sample_df = sample_df.assign(**{sample_status_col:original_sample_status}) # Append a Sample_Status column to our original values dataframe, with what the value should be, for comparison to the merged dataframe.
+
+            # Append a Sample_Status column to our original values dataframe, with what the value should be, for comparison to the merged dataframe.
+            sample_df = sample_df.assign(**{mutation_status_col:original_mutation_status}) 
+
+            # TODO: Add mutation status column, check, change dest to merge
+
+            # Make a list of our columns to test
+            source_cols_to_test = [mutation_col, sample_status_col, mutation_status_col]
+            dest_cols_to_test = [merged_mutation_col, sample_status_col, merged_mutation_status_col]
+            if show_location: # Only test the location column if it was included
+                source_cols_to_test.append(location_col)
+                dest_cols_to_test.append(merged_location_col)
+
+            # Test the columns
+            if not check_appended_columns(sample_df, merged_sample_df, source_cols_to_test, dest_cols_to_test):
+                PASS = False
+
     return PASS
-    
+
 # Test functions that get dataframes
 def test_get_clinical():
     """Test get_clinical."""
@@ -547,7 +550,7 @@ def test_get_mutations_binary():
 
 # Test merging and appending functions
 def test_compare_omics_source_preservation():
-    """Tests that compare_omics does not alter the dataframes it pulls data from."""
+    """Test that compare_omics does not alter the dataframes it pulls data from."""
     print("Running test_compare_omics_source_preservation...")
     PASS = True
 
@@ -578,7 +581,7 @@ def test_compare_omics_source_preservation():
     print_test_result(PASS)
 
 def test_compare_omics_default_parameters():
-    """Tests compare_omics with default parameters cols1=None and cols2=None."""
+    """Test compare_omics with default parameters cols1=None and cols2=None."""
     print("Running test_compare_omics_default_parameters...")
     PASS = True
 
@@ -617,7 +620,7 @@ def test_compare_omics_default_parameters():
     print_test_result(PASS)
 
 def test_compare_omics_one_gene():
-    """Tests compare_omics with one genes for cols1 and cols2."""
+    """Test compare_omics with one genes for cols1 and cols2."""
     print("Running test_compare_omics_one_gene...")
     PASS = True
 
@@ -669,7 +672,7 @@ def test_compare_omics_one_gene():
     print_test_result(PASS)
 
 def test_compare_omics_multiple_genes():
-    """Tests compare_omics with lists of genes for cols1 and cols2."""
+    """Test compare_omics with lists of genes for cols1 and cols2."""
     print("Running test_compare_omics_multiple_genes...")
     PASS = True
 
@@ -1018,7 +1021,7 @@ def test_compare_omics_both_list_with_invalid_key():
     print_test_result(PASS)
 
 def test_compare_omics_invalid_key_types():
-    """Tests that compare_omics will gracefully handle a key of an invalid type."""
+    """Test that compare_omics will gracefully handle a key of an invalid type."""
     print("Running test_compare_omics_invalid_key_types...")
     PASS = True
 
@@ -1030,7 +1033,7 @@ def test_compare_omics_invalid_key_types():
     prot_valid = 'TP53'
     acet_valid = 'AACS'
     int_key = 100
-    prot_valid_list = ['TP53', 'AURKA', 'PIK3CA']
+    prot_valid_list = ['TP53', 'AURKA', 'PIK3R1']
 
     # Test a key of type int
     comp = en.compare_omics(prot, acet, prot_valid, int_key)
@@ -1060,7 +1063,7 @@ def test_append_mutations_source_preservation():
     mut = en.get_mutations()
     acet = en.get_acetylproteomics()
     mut_gene = 'TP53'
-    mut_genes = ['TP53', 'PIK3CA']
+    mut_genes = ['TP53', 'PIK3R1']
     acet_gene = 'AAGAB'
     acet_genes = ['AACS', 'ZW10']
 
@@ -1097,7 +1100,7 @@ def test_append_mutations_one_mut_one_omics():
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
     phos_gene = 'AAGAB'
-    mut_gene = 'PIK3CA'
+    mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
     appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_gene)
@@ -1142,7 +1145,7 @@ def test_append_mutations_one_mut_three_omics():
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
     phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
-    mut_gene = 'PIK3CA'
+    mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
     appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_genes)
@@ -1186,7 +1189,7 @@ def test_append_mutations_one_mut_all_omics():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
-    mut_gene = 'PIK3CA'
+    mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
     appended = en.append_mutations_to_omics(phos, mut_gene)
@@ -1226,7 +1229,7 @@ def test_append_mutations_three_mut_one_omics():
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
     phos_gene = 'AAGAB'
-    mut_genes = ['PIK3CA', 'TP53', 'AURKA']
+    mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
     appended = en.append_mutations_to_omics(phos, mut_genes, omics_genes=phos_gene)
@@ -1271,7 +1274,7 @@ def test_append_mutations_three_mut_three_omics():
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
     phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
-    mut_genes = ['PIK3CA', 'TP53', 'AURKA']
+    mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
     appended = en.append_mutations_to_omics(phos, mut_genes, omics_genes=phos_genes)
@@ -1315,7 +1318,7 @@ def test_append_mutations_three_mut_all_omics():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
-    mut_genes = ['PIK3CA', 'TP53', 'AURKA']
+    mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
     appended = en.append_mutations_to_omics(phos, mut_genes)
@@ -1355,7 +1358,7 @@ def test_append_mutations_one_mut_one_omics_no_location():
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
     phos_gene = 'AAGAB'
-    mut_gene = 'PIK3CA'
+    mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
     appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_gene, show_location=False)
@@ -1400,7 +1403,7 @@ def test_append_mutations_one_mut_three_omics_no_location():
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
     phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
-    mut_gene = 'PIK3CA'
+    mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
     appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_genes, show_location=False)
@@ -1444,7 +1447,7 @@ def test_append_mutations_one_mut_all_omics_no_location():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
-    mut_gene = 'PIK3CA'
+    mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
     appended = en.append_mutations_to_omics(phos, mut_gene, show_location=False)
@@ -1484,7 +1487,7 @@ def test_append_mutations_three_mut_one_omics_no_location():
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
     phos_gene = 'AAGAB'
-    mut_genes = ['PIK3CA', 'TP53', 'AURKA']
+    mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
     appended = en.append_mutations_to_omics(phos, mut_genes, omics_genes=phos_gene, show_location=False)
@@ -1529,7 +1532,7 @@ def test_append_mutations_three_mut_three_omics_no_location():
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
     phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
-    mut_genes = ['PIK3CA', 'TP53', 'AURKA']
+    mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
     appended = en.append_mutations_to_omics(phos, mut_genes, omics_genes=phos_genes, show_location=False)
@@ -1573,7 +1576,7 @@ def test_append_mutations_three_mut_all_omics_no_location():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
-    mut_genes = ['PIK3CA', 'TP53', 'AURKA']
+    mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
     appended = en.append_mutations_to_omics(phos, mut_genes, show_location=False)
@@ -1613,7 +1616,7 @@ def test_append_mutations_invalid_key():
     # Load our dataframe to test with, and set our keys to use
     acet = en.get_acetylproteomics()
     invalid = 'lorem ipsum'
-    invalid_list = ['PIK3CA', 'TAF1', 'GP6', 'lorem ipsum']
+    invalid_list = ['PIK3R1', 'TAF1', 'GP6', 'lorem ipsum']
 
     # Test one invalid key
     appended = en.append_mutations_to_omics(acet, invalid)
@@ -1642,7 +1645,7 @@ def test_append_mutations_invalid_key_types():
     # Load our dataframe to test with, and set our keys to use
     prot = en.get_proteomics()
     int_key = 44
-    dict_key = {0:"TP53", 1:"PIK3CA", 2:"AURKA"}
+    dict_key = {0:"TP53", 1:"PIK3R1", 2:"AURKA"}
 
     # Test a key of type int
     appended = en.append_mutations_to_omics(acet, int_key)
@@ -1662,6 +1665,144 @@ def test_append_mutations_invalid_key_types():
 
     # Print whether the test passed
     print_test_result(PASS)
+
+def test_append_metadata_source_preservation():
+    """Test that append_metadata_to_omics does not alter the dataframes it pulls data from."""
+    print("Running test_append_metadata_source_preservation...")
+    PASS = True
+
+    # Load the source dataframes, and set our variables
+    clin = en.get_clinical()
+    derived_mol = en.get_derived_molecular()
+    exp_setup = en.get_experimental_setup()
+    phos = en.get_phosphoproteomics()
+
+    clin_col = "Country"
+    clin_cols = ["Country", "tumor_Stage-Pathological", "LVSI"]
+    derived_mol_col = "CIBERSORT_Eosinophils" 
+    derived_mol_cols = ["CIBERSORT_Eosinophils", "Pathway_activity_JAK.STAT", "Progesterone_Receptor_%"]
+    exp_setup_col = "RNAseq_R1_UUID"
+    exp_setup_cols = ["RNAseq_R1_UUID", "Methylation_available", "WXS_tumor_UUID"]
+    phos_col = "ZZZ3"
+    phos_cols = ["AAAS", "AAED1"]
+
+    # Copy the source dataframes, to compare at the end
+    clin_copy = clin.copy()
+    derived_mol_copy = derived_mol.copy()
+    exp_setup_copy = exp_setup.copy()
+    phos_copy = phos.copy()
+
+    # Call append_metadata_to_omics a bunch of times
+    en.append_metadata_to_omics(clin, phos)
+    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_col)
+    en.append_metadata_to_omics(clin, phos, omics_cols=phos_col)
+    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_col, omics_cols=phos_col)
+    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_cols)
+    en.append_metadata_to_omics(clin, phos, omics_cols=phos_cols)
+    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_cols, omics_cols=phos_col)
+    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_col, omics_cols=phos_cols)
+    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_cols, omics_cols=phos_cols)
+
+    en.append_metadata_to_omics(derived_mol, phos)
+    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_col)
+    en.append_metadata_to_omics(derived_mol, phos, omics_cols=phos_col)
+    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_col, omics_cols=phos_col)
+    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_cols)
+    en.append_metadata_to_omics(derived_mol, phos, omics_cols=phos_cols)
+    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_cols, omics_cols=phos_col)
+    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_col, omics_cols=phos_cols)
+    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_cols, omics_cols=phos_cols)
+
+    en.append_metadata_to_omics(exp_setup, phos)
+    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_col)
+    en.append_metadata_to_omics(exp_setup, phos, omics_cols=phos_col)
+    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_col, omics_cols=phos_col)
+    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_cols)
+    en.append_metadata_to_omics(exp_setup, phos, omics_cols=phos_cols)
+    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_cols, omics_cols=phos_col)
+    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_col, omics_cols=phos_cols)
+    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_cols, omics_cols=phos_cols)
+
+    # Check that the source dataframes weren't changed
+    if not clin.equals(clin_copy):
+        print("clinical dataframe was altered by append_metadata_to_omics.")
+        PASS = False
+
+    if not derived_mol.equals(derived_mol_copy):
+        print("derived_molecular dataframe was altered by append_metadata_to_omics.")
+        PASS = False
+
+    if not exp_setup.equals(exp_setup_copy):
+        print("experimental_setup dataframe was altered by append_metadata_to_omics.")
+        PASS = False
+
+    if not phos.equals(phos_copy):
+        print("phosphoproteomics dataframe was altered by append_metadata_to_omics.")
+        PASS = False
+
+    # Indicate whether the test passed
+    print_test_result(PASS)
+
+# One meta one omics
+def test_append_metadata_one_meta_one_omics():
+    """Test append_metadata_to_omics with one metadata column and one omics gene."""
+    print("Running test_append_metadata_one_meta_one_omics...")
+    PASS = True
+
+    # Load the source dataframes
+    derived_mol = en.get_derived_molecular()
+    phos = en.get_phosphoproteomics()
+
+    # Run the function, make sure it returned properly
+    meta_col = "Purity_Stroma"
+    phos_gene = "USP36"
+    appended = en.append_metadata_to_omics(derived_mol, phos, metadata_cols=meta_col, omics_cols=phos_col)
+    if not check_returned_is_df(appended):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip other tests, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = "{} from {}, with {} for {}".format(meta_col, derived_mol.name, phos.name, phos_gene)
+    if not check_df_name(appended, exp_name):
+        PASS = False
+
+    # Get the columns that should've been selected from phosphoproteomics
+    phos_suffix = "-.*"
+    phos_regex = build_omics_regex(phos_gene, suffix=phos_suffix)
+    phos_cols = phos.filter(regex=phos_regex)
+
+    # Check dataframe shape
+
+    # Check column values
+
+    # Print whether the test passed
+
+
+# One meta three omics
+
+# One meta all omics
+
+# Three meta one omics
+
+# Three meta three omics
+
+# Three meta all omics
+
+# All meta one omics
+
+# All meta three omics
+
+# All meta all omics (default parameters)
+
+# All valid dfs (omics or meta)
+
+# Invalid dfs
+
+# Invalid keys
+
+# Invalid key types
+
 
 print("\nRunning tests:\n")
 
@@ -1692,7 +1833,10 @@ test_compare_omics_one_invalid_key()
 test_compare_omics_both_invalid_keys()
 test_compare_omics_one_list_with_invalid_key()
 test_compare_omics_both_list_with_invalid_key()
-test_compare_omics_invalid_key_types() #
+test_compare_omics_invalid_key_types() 
+
+test_append_metadata_source_preservation()
+
 test_append_mutations_source_preservation()
 test_append_mutations_one_mut_one_omics()
 test_append_mutations_one_mut_three_omics()

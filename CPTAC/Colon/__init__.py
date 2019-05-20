@@ -122,14 +122,14 @@ def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     # Return the merge.
     return Utilities().compare_omics(omics_df1, omics_df2, cols1, cols2)
 
-def append_metadata_to_omics(metadata_df, omics_df, metadata_cols=None, omics_cols=None):
+def append_metadata_to_omics(metadata_df, omics_df, metadata_cols=None, omics_genes=None):
     """Joins columns from a metadata dataframe (clinical or derived_molecular) to part or all of an omics dataframe. Intersection (inner join) of indicies is used.
 
     Parameters:
     metadata_df (pandas DataFrame): Metadata dataframe to select columns from. Either clinical or derived_molecular.
     omics_df (pandas DataFrame): Omics dataframe to append the metadata columns to.
     metadata_cols (str, or list or array-like of str, optional): Column(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select the entire metadata dataframe.
-    omics_cols (str, or list or array-like of str, optional): Column(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select entire dataframe.
+    omics_genes (str, or list or array-like of str, optional): Gene(s) to select data for from the omics dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select entire dataframe.
 
     Returns:
     pandas DataFrame: The selected metadata columns, merged with all or part of the omics dataframe.
@@ -156,7 +156,7 @@ def append_metadata_to_omics(metadata_df, omics_df, metadata_cols=None, omics_co
         return
 
     # Return the merge.
-    return Utilities().append_metadata_to_omics(metadata_df, omics_df, metadata_cols, omics_cols)
+    return Utilities().append_metadata_to_omics(metadata_df, omics_df, metadata_cols, omics_genes)
 
 def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, show_location=True):
     """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.

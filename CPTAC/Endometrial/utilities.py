@@ -160,20 +160,20 @@ class Utilities:
         else: # If it's none of those, they done messed up. Tell 'em.
             print("Columns parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(cols, type(cols)))
 
-    def append_metadata_to_omics(self, df, omics_df, df_cols, omics_cols):
+    def append_metadata_to_omics(self, df, omics_df, df_cols, omics_genes):
         """Append all or part of the given metadata dataframe to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.
 
         Parameters:
         df (pandas DataFrame): The metadata dataframe from which we'll select our columns to append.
         omics_df (pandas DataFrame): The omics dataframe to append to.
         df_cols (str, or list or array-like of str): Column(s) to select from the metadata dataframe. str if one column, list or array-like of strings if multiple.
-        omics_cols (str, or list or array-like of str): Gene(s) to select data for from the omics dataframe. Passing None will select the entire omics dataframe.
+        omics_genes (str, or list or array-like of str): Gene(s) to select data for from the omics dataframe. Passing None will select the entire omics dataframe.
 
         Returns:
         pandas DataFrame: The selected columns from the metadata dataframe, appended to the selected columns from the omics dataframe.
         """  
         df_selected = self.get_metadata_from_str_or_list(df, df_cols)
-        omics_selected = self.get_omics_from_str_or_list(omics_df, omics_cols)
+        omics_selected = self.get_omics_from_str_or_list(omics_df, omics_genes)
 
         if (df_selected is not None) and (omics_selected is not None): # If either selector returned None, the key(s) didn't match any columns, and it printed an informative error message already. We'll return None.
             df_joined = df_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
