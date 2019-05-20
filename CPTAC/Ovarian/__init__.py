@@ -40,21 +40,27 @@ def list_api():
     help(__name__)
 
 def get_data():
+    """Return a dictionary with all dataframes in the dataset as values, and their names as the keys."""
     return data
 
 def get_clinical():
+    """Get the clinical dataframe."""
     return data.get("clinical")
 
 def get_treatment():
+    """Get the treatment dataframe."""
     return data.get("treatment")
 
 def get_CNV():
+    """Get the CNV dataframe."""
     return data.get("CNV")
 
 def get_phosphoproteomics():
+    """Get the phosphoproteomics dataframe."""
     return data.get("phosphoproteomics")
 
 def get_proteomics():
+    """Get the proteomics dataframe."""
     return data.get("proteomics")
 
 def get_mutations():
@@ -62,6 +68,7 @@ def get_mutations():
     return data.get("somatic_mutation")
 
 def get_transcriptomics():
+    """Get the transcriptomics dataframe."""
     return data.get("transcriptomics")
 
 def get_phosphosites(genes):
