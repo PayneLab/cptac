@@ -200,7 +200,7 @@ def get_dataframes():
     rename_df(data, old="phosphoproteomics_site", new="phosphoproteomics")
     rename_df(data, old="transcriptomics_circular", new="circular_RNA")
     rename_df(data, old="somatic_maf", new="somatic_mutation")
-    rename_df(data, old="somatic", new="somatic_mutation_binary")
+    rename_df(data, old="somatic_binary", new="somatic_mutation_binary")
 
     # Rename indicies to "Sample_ID", since that's what they all are.
     for name in data.keys():
