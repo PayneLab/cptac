@@ -2053,16 +2053,119 @@ def test_append_metadata_all_meta_one_omics():
     print_test_result(PASS)
 
 # All meta three omics
+def test_append_metadata_all_meta_three_omics():
+    """Test append_metadata_to_omics with the default of None for metadata_cols, which should select the entire dataframe, and three omics genes."""
+    print("Running test_append_metadata_all_meta_three_omics...")
+    PASS = True
+
+    # Load the source dataframes
+    derived_mol = en.get_derived_molecular()
+    phos = en.get_phosphoproteomics()
+
+    # Run the function, make sure it returned properly
+    phos_genes = ["USP36", "TMEM209", "STXBP5"]
+    appended = en.append_metadata_to_omics(derived_mol, phos, omics_genes=phos_genes)
+    if not check_returned_is_df(appended):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip other tests, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = "{}, with {} for {} genes".format(derived_mol.name, phos.name, len(phos_genes))
+    if not check_df_name(appended, exp_name):
+        PASS = False
+
+    # Get the columns that should've been selected from phosphoproteomics
+    phos_suffix = "-.*"
+    phos_regex = build_omics_regex(phos_genes, suffix=phos_suffix)
+    phos_cols = phos.filter(regex=phos_regex)
+
+    # Check dataframe shape
+    exp_num_rows = len(derived_mol.index.intersection(phos.index))
+    exp_num_cols = len(phos_cols.columns) + len(derived_mol.columns)
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(appended, exp_shape):
+        PASS = False
+
+    # Check column values
+    if not check_appended_columns(derived_mol, appended, derived_mol.columns, derived_mol.columns):
+        PASS = False
+
+    if not check_appended_columns(phos, appended, phos_cols.columns):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
 
 # All meta all omics (default parameters)
+def test_append_metadata_default_parameters():
+    """Test append_metadata_to_omics with the default parameters of None for metadata_cols and omics_genes, which should cause it to select the entire metadata and omics dataframes."""
+    print("Running test_append_metadata_default_parameters...")
+    PASS = True
+
+    # Load the source dataframes
+    derived_mol = en.get_derived_molecular()
+    phos = en.get_phosphoproteomics()
+
+    # Run the function, make sure it returned properly
+    appended = en.append_metadata_to_omics(derived_mol, phos)
+    if not check_returned_is_df(appended):
+        PASS = False
+        print_test_result(PASS)
+        return # Skip other tests, since they won't work if it's not a dataframe.
+
+    # Check dataframe name
+    exp_name = "{}, with {}".format(derived_mol.name, phos.name)
+    if not check_df_name(appended, exp_name):
+        PASS = False
+
+    # Check dataframe shape
+    exp_num_rows = len(derived_mol.index.intersection(phos.index))
+    exp_num_cols = len(phos.columns) + len(derived_mol.columns)
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(appended, exp_shape):
+        PASS = False
+
+    # Check column values
+    if not check_appended_columns(derived_mol, appended, derived_mol.columns, derived_mol.columns):
+        PASS = False
+
+    if not check_appended_columns(phos, appended, phos.columns):
+        PASS = False
+
+    # Print whether the test passed
+    print_test_result(PASS)
+
 
 # All valid dfs (omics or meta)
+def test_append_metadata_all_dfs():
+    """Test that append_metadata_to_omics works with all dataframes that are valid for the function."""
+
+    # Load our dataframes to test, and set the keys we'll use.
+    clin = en.get_clinical()
+    derived_mol = en.get_derived_molecular()
+    exp_setup = en.get_exp_setup()
+
+    acet = en.get_acetylproteomics()
+    CNA = en.get_CNA()
+    phosg = en.get_phosphoproteomics_gene()
+    phoss = en.get_phosphoproteomics()
+    prot = en.get_proteomics()
+    tran = en.get_transcriptomics()
+
+    # Call append_metadata_to_omics on the dataframes
+
+    # Check the return values
+
+    # Print whether the test passed
 
 # Invalid dfs
 
 # Invalid keys
 
 # Invalid key types
+
+# ADD ALL DFS TEST FOR MUT
 
 
 print("\nRunning tests:\n")
@@ -2104,6 +2207,8 @@ test_append_metadata_three_meta_one_omics()
 test_append_metadata_three_meta_three_omics()
 test_append_metadata_three_meta_all_omics()
 test_append_metadata_all_meta_one_omics()
+test_append_metadata_all_meta_three_omics()
+test_append_metadata_default_parameters()
 
 #test_append_mutations_source_preservation()
 #test_append_mutations_one_mut_one_omics()
