@@ -45,6 +45,9 @@ def get_data():
 def get_clinical():
     return data.get("clinical")
 
+def get_treatment():
+    return data.get("treatment")
+
 def get_CNV():
     return data.get("CNV")
 
@@ -114,17 +117,27 @@ def compare_omics(omics_df1, omics_df2, cols1=None, cols2=None):
     # Return the merge.
     return Utilities().compare_omics(omics_df1, omics_df2, cols1, cols2)
 
-def append_clinical_to_omics(omics_df, clinical_cols=None, omics_genes=None):
-    """Append columns from clinical dataframe to part or all of an omics dataframe. Intersection (inner join) of indicies is used.
+def append_metadata_to_omics(metadata_df, omics_df, metadata_cols=None, omics_genes=None):
+    """Append columns from metadata dataframe to part or all of an omics dataframe. Intersection (inner join) of indicies is used.
 
     Parameters:
-    omics_df (pandas DataFrame): Omics dataframe to append the clinical columns to.
-    clinical_cols (str, or list or array-like of str, optional): Column(s) to select from the clinical dataframe. str if one gene, list or array-like of str if multiple. Default of None will select all columns in the dataframe.
+    omics_df (pandas DataFrame): Omics dataframe to append the metadata columns to.
+    metadata_cols (str, or list or array-like of str, optional): Column(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default of None will select all columns in the dataframe.
     omics_genes (str, or list or array-like of str, optional): Gene(s) to select data for from the omics dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
 
     Returns:
-    pandas DataFrame: The selected clinical columns, merged with all or part of the omics dataframe.
+    pandas DataFrame: The selected metadata columns, merged with all or part of the omics dataframe.
     """
+    # Make sure metadata_df is the right kind of dataframe
+    valid_metadata_dfs = [
+        'clinical',
+        'treatment']
+    if (metadata_df.name not in valid_metadata_dfs):
+        print("{} is not a valid dataframe for metadata_df parameter. Valid options:".format(metadata_df.name))
+        for df_name in valid_metadata_dfs:
+            print('\t' + df_name)
+        return
+
     # Make sure omics_df is the right kind of dataframe
     valid_dfs = [
         'phosphoproteomics',
@@ -138,8 +151,7 @@ def append_clinical_to_omics(omics_df, clinical_cols=None, omics_genes=None):
         return
 
     # Return the merge.
-    clinical = get_clinical()
-    return Utilities().append_metadata_to_omics(clinical, omics_df, clinical_cols, omics_genes)
+    return Utilities().append_metadata_to_omics(metadata_df, omics_df, metadata_cols, omics_genes)
 
 def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, show_location=True):
     """Select all mutations for specified gene(s), and append to all or part of the given omics dataframe. Intersection (inner join) of indicies is used.

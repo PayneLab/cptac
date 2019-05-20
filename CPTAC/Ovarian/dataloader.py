@@ -48,9 +48,16 @@ def create_dataframe(path):
         df.name = df_name
         return df
     elif df_name == "clinical":
-        df = pd.read_csv(path, sep="\t")
-        df = df.set_index("PPID")
+        df = pd.read_csv(path, sep=",", index_col=0)
+        df = df.rename(columns={"Participant_ID":"Patient_ID"})
+        df = df.set_index("Patient_ID")
         df = df[~df.index.duplicated(keep="first")]
+        df.name = df_name
+        return df
+    elif df_name == "treatment":
+        df = pd.read_csv(path, sep=",", index_col=0)
+        df = df.rename(columns={"Participant_ID":"Patient_ID"})
+        df = df.set_index("Patient_ID")
         df.name = df_name
         return df
     elif df_name == "phosphoproteomics":

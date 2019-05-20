@@ -1695,33 +1695,33 @@ def test_append_metadata_source_preservation():
     # Call append_metadata_to_omics a bunch of times
     en.append_metadata_to_omics(clin, phos)
     en.append_metadata_to_omics(clin, phos, metadata_cols=clin_col)
-    en.append_metadata_to_omics(clin, phos, omics_cols=phos_col)
-    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_col, omics_cols=phos_col)
+    en.append_metadata_to_omics(clin, phos, omics_genes=phos_col)
+    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_col, omics_genes=phos_col)
     en.append_metadata_to_omics(clin, phos, metadata_cols=clin_cols)
-    en.append_metadata_to_omics(clin, phos, omics_cols=phos_cols)
-    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_cols, omics_cols=phos_col)
-    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_col, omics_cols=phos_cols)
-    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_cols, omics_cols=phos_cols)
+    en.append_metadata_to_omics(clin, phos, omics_genes=phos_cols)
+    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_cols, omics_genes=phos_col)
+    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_col, omics_genes=phos_cols)
+    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_cols, omics_genes=phos_cols)
 
     en.append_metadata_to_omics(derived_mol, phos)
     en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_col)
-    en.append_metadata_to_omics(derived_mol, phos, omics_cols=phos_col)
-    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_col, omics_cols=phos_col)
+    en.append_metadata_to_omics(derived_mol, phos, omics_genes=phos_col)
+    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_col, omics_genes=phos_col)
     en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_cols)
-    en.append_metadata_to_omics(derived_mol, phos, omics_cols=phos_cols)
-    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_cols, omics_cols=phos_col)
-    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_col, omics_cols=phos_cols)
-    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_cols, omics_cols=phos_cols)
+    en.append_metadata_to_omics(derived_mol, phos, omics_genes=phos_cols)
+    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_cols, omics_genes=phos_col)
+    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_col, omics_genes=phos_cols)
+    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_cols, omics_genes=phos_cols)
 
     en.append_metadata_to_omics(exp_setup, phos)
     en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_col)
-    en.append_metadata_to_omics(exp_setup, phos, omics_cols=phos_col)
-    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_col, omics_cols=phos_col)
+    en.append_metadata_to_omics(exp_setup, phos, omics_genes=phos_col)
+    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_col, omics_genes=phos_col)
     en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_cols)
-    en.append_metadata_to_omics(exp_setup, phos, omics_cols=phos_cols)
-    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_cols, omics_cols=phos_col)
-    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_col, omics_cols=phos_cols)
-    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_cols, omics_cols=phos_cols)
+    en.append_metadata_to_omics(exp_setup, phos, omics_genes=phos_cols)
+    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_cols, omics_genes=phos_col)
+    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_col, omics_genes=phos_cols)
+    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_cols, omics_genes=phos_cols)
 
     # Check that the source dataframes weren't changed
     if not clin.equals(clin_copy):
@@ -1754,16 +1754,16 @@ def test_append_metadata_one_meta_one_omics():
     phos = en.get_phosphoproteomics()
 
     # Run the function, make sure it returned properly
-    meta_col = "Purity_Stroma"
+    derived_mol_col = "Purity_Stroma"
     phos_gene = "USP36"
-    appended = en.append_metadata_to_omics(derived_mol, phos, metadata_cols=meta_col, omics_cols=phos_col)
+    appended = en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_col, omics_genes=phos_gene)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
     # Check dataframe name
-    exp_name = "{} from {}, with {} for {}".format(meta_col, derived_mol.name, phos.name, phos_gene)
+    exp_name = "{} from {}, with {} for {}".format(derived_mol_col, derived_mol.name, phos.name, phos_gene)
     if not check_df_name(appended, exp_name):
         PASS = False
 
@@ -1773,11 +1773,21 @@ def test_append_metadata_one_meta_one_omics():
     phos_cols = phos.filter(regex=phos_regex)
 
     # Check dataframe shape
+    exp_num_rows = len(derived_mol.index.intersection(phos.index))
+    exp_num_cols = len(phos_cols.columns) + 1
+    exp_shape = (exp_num_rows, exp_num_cols)
+    if not check_df_shape(appended, exp_shape):
+        PASS = False
 
     # Check column values
+    if not check_appended_columns(derived_mol, appended, derived_mol_col, derived_mol_col):
+        PASS = False
+
+    if not check_appended_columns(phos, appended, phos_cols.columns):
+        PASS = False
 
     # Print whether the test passed
-
+    print_test_result(PASS)
 
 # One meta three omics
 
@@ -1805,51 +1815,52 @@ def test_append_metadata_one_meta_one_omics():
 
 
 print("\nRunning tests:\n")
-
-print("Testing getters...")
-test_get_clinical()
-test_get_derived_molecular()
-test_get_experimental_setup()
-test_get_acetylproteomics()
-test_get_proteomics()
-test_get_transcriptomics()
-test_get_circular_RNA()
-test_get_miRNA()
-test_get_CNA()
-test_get_phosphoproteomics()
-test_get_phosphoproteomics_gene()
-test_get_phosphosites()
-test_get_mutations()
-test_get_mutations_binary()
-
-print("\nTesting compare and append functions...")
-test_compare_omics_source_preservation()
-test_compare_omics_default_parameters()
-test_compare_omics_one_gene()
-test_compare_omics_multiple_genes()
-test_compare_omics_all_dfs()
-test_compare_omics_invalid_dfs()
-test_compare_omics_one_invalid_key()
-test_compare_omics_both_invalid_keys()
-test_compare_omics_one_list_with_invalid_key()
-test_compare_omics_both_list_with_invalid_key()
-test_compare_omics_invalid_key_types() 
+ 
+#print("Testing getters...")
+#test_get_clinical()
+#test_get_derived_molecular()
+#test_get_experimental_setup()
+#test_get_acetylproteomics()
+#test_get_proteomics()
+#test_get_transcriptomics()
+#test_get_circular_RNA()
+#test_get_miRNA()
+#test_get_CNA()
+#test_get_phosphoproteomics()
+#test_get_phosphoproteomics_gene()
+#test_get_phosphosites()
+#test_get_mutations()
+#test_get_mutations_binary()
+#
+#print("\nTesting compare and append functions...")
+#test_compare_omics_source_preservation()
+#test_compare_omics_default_parameters()
+#test_compare_omics_one_gene()
+#test_compare_omics_multiple_genes()
+#test_compare_omics_all_dfs()
+#test_compare_omics_invalid_dfs()
+#test_compare_omics_one_invalid_key()
+#test_compare_omics_both_invalid_keys()
+#test_compare_omics_one_list_with_invalid_key()
+#test_compare_omics_both_list_with_invalid_key()
+#test_compare_omics_invalid_key_types() 
 
 test_append_metadata_source_preservation()
+test_append_metadata_one_meta_one_omics()
 
-test_append_mutations_source_preservation()
-test_append_mutations_one_mut_one_omics()
-test_append_mutations_one_mut_three_omics()
-test_append_mutations_one_mut_all_omics()
-test_append_mutations_three_mut_one_omics()
-test_append_mutations_three_mut_three_omics()
-test_append_mutations_three_mut_all_omics()
-test_append_mutations_one_mut_all_omics_no_location()
-test_append_mutations_one_mut_one_omics_no_location()
-test_append_mutations_one_mut_three_omics_no_location()
-test_append_mutations_three_mut_one_omics_no_location()
-test_append_mutations_three_mut_three_omics_no_location()
-test_append_mutations_three_mut_all_omics_no_location()
-test_append_mutations_invalid_key()
+#test_append_mutations_source_preservation()
+#test_append_mutations_one_mut_one_omics()
+#test_append_mutations_one_mut_three_omics()
+#test_append_mutations_one_mut_all_omics()
+#test_append_mutations_three_mut_one_omics()
+#test_append_mutations_three_mut_three_omics()
+#test_append_mutations_three_mut_all_omics()
+#test_append_mutations_one_mut_all_omics_no_location()
+#test_append_mutations_one_mut_one_omics_no_location()
+#test_append_mutations_one_mut_three_omics_no_location()
+#test_append_mutations_three_mut_one_omics_no_location()
+#test_append_mutations_three_mut_three_omics_no_location()
+#test_append_mutations_three_mut_all_omics_no_location()
+#test_append_mutations_invalid_key()
 
 print("Version:",en.version())
