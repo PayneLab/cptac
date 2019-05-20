@@ -159,6 +159,9 @@ def get_interacting_proteins_string(protein, number=25):
                 interacting_proteins.append(entry["preferredName_A"])
             if entry["preferredName_B"] not in interacting_proteins:
                 interacting_proteins.append(entry["preferredName_B"])
+
+	if protein not in interacting_proteins:
+		interacting_proteins.append(protein)
         
         return interacting_proteins
         
