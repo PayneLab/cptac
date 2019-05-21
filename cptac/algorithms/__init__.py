@@ -160,8 +160,8 @@ def get_interacting_proteins_string(protein, number=25):
             if entry["preferredName_B"] not in interacting_proteins:
                 interacting_proteins.append(entry["preferredName_B"])
 
-	if protein not in interacting_proteins:
-		interacting_proteins.append(protein)
+        if protein not in interacting_proteins:
+            interacting_proteins.append(protein)
         
         return interacting_proteins
         
@@ -280,13 +280,13 @@ def get_frequently_mutated(cancer_type, cutoff=.1):
     #import CPTAC and pandas
     import pandas as pd
     if cancer_type == "endometrial" or cancer_type == "Endometrial":
-        import CPTAC.Endometrial as CPTAC
+        import cptac.endometrial as CPTAC
         
     elif cancer_type == "colon" or cancer_type == "Colon":
-        import CPTAC.Colon as CPTAC
+        import cptac.colon as CPTAC
         
     elif cancer_type == "ovarian" or cancer_type == "Ovarian":
-        import CPTAC.Ovarian as CPTAC
+        import cptac.ovarian as CPTAC
     
     else:
         print("Please enter a valid cancer type.")
