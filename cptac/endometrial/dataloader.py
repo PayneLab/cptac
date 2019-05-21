@@ -112,6 +112,7 @@ def get_dataframes():
     data_directory = dir_path + os.sep + "data" + os.sep
     path = data_directory + "*.*"
     files = glob.glob(path) # Puts all files into iterable variable
+    files = [one_file for one_file in files if "definitions.txt" not in one_file] # Take out the definition.txt file, since we load it through get_dictionary()
     data = {}
     print("Loading cptac endometrial data:")
     for file in files: # Loops through files variable
@@ -121,9 +122,6 @@ def get_dataframes():
         except IOError:
             print("Error reading ", file)
             print("Check that all file names coincide with dataframe.py specs.")
-
-    # Remove definitions dataframe from list--we don't need it
-    del data["definitions"]
 
     # Separate out clinical, derived_molecular, and experimental_setup dataframes
     all_clinical = data["clinical"]

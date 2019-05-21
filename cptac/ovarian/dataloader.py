@@ -193,10 +193,11 @@ def get_dataframes():
     data['clinical'] = master_clinical # Replace the clinical dataframe in the data dictionary with our new and improved version!
 
     # Give the treatment dataframe a Sample_ID index, but keep the Patient_ID index as a column, since this is more patient associated data
+    data["treatment"] = set_sample_id_index(data["treatment"], sample_id_dict, drop_patient_ids=False) # Replace the patient id index with a sample id index in the clinical dataframe. Keep the patient ids so we can maps sample ids to their patient ids.
 
     # Give the other dataframes Sample_ID indicies, but don't keep the old index, since we have a mapping in the clinical dataframe of all sample ids to their patient ids.
     for name in data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
-        if name != 'clinical':
+        if name != 'clinical' and name != "treatment":
             data[name] = set_sample_id_index(data[name], sample_id_dict, drop_patient_ids=True)
 
     warning() #displays warning
