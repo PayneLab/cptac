@@ -11,7 +11,7 @@
 
 import pandas as pd
 import numpy as np
-import CPTAC.Endometrial as en
+import cptac.endometrial as en
 from utilities import Utilities
 
 def print_test_result(PASS):

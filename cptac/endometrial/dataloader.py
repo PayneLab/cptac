@@ -77,7 +77,7 @@ def get_dictionary():
     print("Loading Dictionary...")
     dictionary = {}
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    data_directory = dir_path + os.sep + "Data" + os.sep
+    data_directory = dir_path + os.sep + "data" + os.sep
     with open(data_directory + "definitions.txt", "r") as dict_file:
         for line in dict_file.readlines():
             line = line.strip()
@@ -109,11 +109,11 @@ def get_dataframes():
     dict of pandas DataFrame: A dictionary containing all the endometrial dataframes as values, with their names as keys.
     """
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    data_directory = dir_path + os.sep + "Data" + os.sep
+    data_directory = dir_path + os.sep + "data" + os.sep
     path = data_directory + "*.*"
     files = glob.glob(path) # Puts all files into iterable variable
     data = {}
-    print("Loading CPTAC Endometrial data:")
+    print("Loading cptac endometrial data:")
     for file in files: # Loops through files variable
         try:
             df = create_dataframe(file)

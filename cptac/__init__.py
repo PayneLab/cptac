@@ -16,9 +16,9 @@ import os
 def list_data():
     """List all available datasets."""
     print("Available datasets:")
-    print("Endometrial")
-    print("Ovarian")
-    print("Colon")
+    print("endometrial")
+    print("ovarian")
+    print("colon")
 
 def list_api():
     """Print docstrings for all accessible functions."""
@@ -30,14 +30,14 @@ def embargo():
     webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
 
 def version():
-    """Print version number of CPTAC package."""
+    """Print version number of cptac package."""
     version = {}
     with open(dir_path + os.sep + "version.py") as fp:
     	exec(fp.read(), version)
     return(version['__version__'])
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-message = "Welcome to the CPTAC data service package. Available datasets may be viewed using CPTAC.list_data(). In order to access a specific data set, import a CPTAC subfolder using either \'import CPTAC.Dataset\' or \'from CPTAC import Dataset\'.\n"
+message = "Welcome to the cptac data service package. Available datasets may be viewed using cptac.list_data(). In order to access a specific data set, import a cptac subfolder using either \'import cptac.dataset\' or \'from cptac import dataset\'.\n"
 wrapped_list = textwrap.wrap(message)
 for line in wrapped_list:
     print(line)

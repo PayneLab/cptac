@@ -97,11 +97,11 @@ def get_dataframes():
     dict of pandas DataFrame: A dictionary containing all the colon dataframes as values, with their names as keys.
     """
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    data_directory = dir_path + os.sep + "Data" + os.sep
+    data_directory = dir_path + os.sep + "data" + os.sep
     path = data_directory + "*.*"
     files = glob.glob(path) # Puts all files into iterable variable
     data = {}
-    print("Loading CPTAC Colon data:")
+    print("Loading cptac colon data:")
     for file in files: # Loops through files variable
         try:
             df = create_dataframe(file)

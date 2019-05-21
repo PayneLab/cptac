@@ -10,7 +10,7 @@
 #   limitations under the License.
 
 import pandas as pd
-import CPTAC.Colon as co
+import cptac.colon as co
 
 def check_df_name(df, expected_name):
     """Checks that a dataframe has a "name" attribute, and that it has the proper value."""

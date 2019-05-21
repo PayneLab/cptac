@@ -10,7 +10,7 @@
 #   limitations under the License.
 
 import pandas as pd
-import CPTAC.Ovarian as ov
+import cptac.ovarian as ov
 
 class Basic:
     def __init__(self):

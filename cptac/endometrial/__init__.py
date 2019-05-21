@@ -19,13 +19,13 @@ from .dataloader import get_dataframes
 from .dataloader import get_dictionary
 from .utilities import Utilities
 
-message = "You have loaded the CPTAC Endometrial dataset. To view available dataframes, use CPTAC.Endometrial.list_data(). To view available functions for accessing and manipulating the dataframes, use CPTAC.Endometrial.list_api()."
+message = "You have loaded the cptac endometrial dataset. To view available dataframes, use cptac.endometrial.list_data(). To view available functions for accessing and manipulating the dataframes, use cptac.endometrial.list_api()."
 wrapped_list = textwrap.wrap(message)
 for line in wrapped_list:
     print(line)
 
 data_version = "2.1"
-print("Endometrial Data Version: {}\n".format(data_version))
+print("endometrial data version: {}\n".format(data_version))
 
 dictionary = dataloader.get_dictionary()
 data = dataloader.get_dataframes()
@@ -232,7 +232,7 @@ def define(term):
     if term in dictionary:
         print(dictionary[term])
     else:
-        print(term, "not found in dictionary. Alternatively, CPTAC.define() can be used to perform a web search of the term provided.")
+        print(term, "not found in dictionary. Alternatively, cptac.define() can be used to perform a web search of the term provided.")
 
 def search(term):
     """Search for a term in a web browser.
@@ -252,9 +252,9 @@ def embargo():
     webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
 
 def version():
-    """Print version number of CPTAC package."""
+    """Print version number of cptac package."""
     dir_path = os.path.dirname(os.path.realpath(__file__))
     version = {}
-    with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to CPTAC folder from Endometrial folder
+    with open(dir_path + os.sep + ".." + os.sep + "version.py") as fp: #.. required to navigate up to cptac folder from endometrial folder
     	exec(fp.read(), version)
     return(version['__version__'])

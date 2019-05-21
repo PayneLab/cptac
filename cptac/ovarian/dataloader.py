@@ -144,20 +144,20 @@ def set_sample_id_index(df, sample_id_dict, drop_patient_ids): # private
     return return_df
 
 def get_dataframes():
-    """Load all of the Ovarian dataframes, and format them properly.
+    """Load all of the ovarian dataframes, and format them properly.
 
     Parameters: None
 
     Returns:
     dict of pandas DataFrame: A dictionary containing all of the endometrial dataframes as values, with their names as keys.
     """
-    dir_path = os.path.dirname(os.path.realpath(__file__)) #gets path to CPTAC package
-    data_directory = dir_path + os.sep + "Data" + os.sep #appends Data to path
+    dir_path = os.path.dirname(os.path.realpath(__file__)) #gets path to cptac package
+    data_directory = dir_path + os.sep + "data" + os.sep #appends Data to path
     path = data_directory + os.sep + "*.*" #appends "*.*" to path, which looks for all files
     files = glob.glob(path) #puts all files into iterable variable
 
     # Load the dataframes
-    print("Loading CPTAC Ovarian data:")
+    print("Loading cptac ovarian data:")
     data = {}
     for file in files: #loops through files variable
         df = create_dataframe(file)
@@ -191,6 +191,8 @@ def get_dataframes():
             clinical_status_col.append("Tumor")
     master_clinical.insert(1, "Sample_Tumor_Normal", clinical_status_col)
     data['clinical'] = master_clinical # Replace the clinical dataframe in the data dictionary with our new and improved version!
+
+    # Give the treatment dataframe a Sample_ID index, but keep the Patient_ID index as a column, since this is more patient associated data
 
     # Give the other dataframes Sample_ID indicies, but don't keep the old index, since we have a mapping in the clinical dataframe of all sample ids to their patient ids.
     for name in data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
