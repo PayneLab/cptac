@@ -1,7 +1,9 @@
 from setuptools import setup
+import os.path
 
 version = {}
-with open('cptac/version.py') as fp:
+version_path = os.path.join("cptac", "version.py") 
+with open(version_path) as fp:
 	exec(fp.read(), version)
 
 setup(name='cptac',
