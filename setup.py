@@ -9,7 +9,7 @@ version_path = path.join(cptac_path, "version.py")
 with open(version_path) as fp:
 	exec(fp.read(), version)
 
-# Get the long description from the README file
+# Get the long description from the README.md file
 readme_path = path.join(path_here, "README.md")
 with open(readme_path) as readme_file:
     readme_text = readme_file.read()
