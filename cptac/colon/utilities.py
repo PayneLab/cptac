@@ -30,7 +30,7 @@ class Utilities:
         pandas DataFrame: The selected column(s) from the dataframe.
         """
         if omics_df.name == 'phosphoproteomics' or omics_df.name == 'acetylproteomics':
-            col_regex = gene + "_.*" # Build a regex to get all columns that match the gene
+            col_regex = "^{}_.*$".format(gene) # Build a regex to get all columns that match the gene
         else:
             col_regex = '^{}$'.format(gene)
 
@@ -306,14 +306,14 @@ class Utilities:
             merge = merge.join(sample_status_map, how="left") 
 
             # Fill in Wildtype_Normal or Wildtype_Tumor for NaN values (i.e., no mutation data for that sample) in merged dataframe mutation columns
-            mutation_regex = r'.*_Mutation$' # Construct regex to find all mutation columns
+            mutation_regex = r'^.*_Mutation$' # Construct regex to find all mutation columns
             mutation_cols = [col for col in merge.columns.values if re.match(mutation_regex, col)] # Get a list of all mutation columns
             for mutation_col in mutation_cols:
                 merge.loc[(merge['Sample_Status'] == "Normal") & (pd.isnull(merge[mutation_col])), mutation_col] = [[["Wildtype_Normal"]]] # Change all NaN mutation values for Normal samples to Wildtype_Normal. Triple nested list causes .loc to insert the value as ['Wildtype_Normal'], like we want it to, instead of unpacking the list.
                 merge.loc[(merge['Sample_Status'] == "Tumor") & (pd.isnull(merge[mutation_col])), mutation_col] = [[["Wildtype_Tumor"]]] # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
 
             # Depending on show_location, either fill NaN values in the merged dataframe location columns with "No_mutation", or just drop the location columns altogether
-            location_regex = r'.*_Location$' # Construct regex to find all location columns
+            location_regex = r'^.*_Location$' # Construct regex to find all location columns
             location_cols = [col for col in merge.columns.values if re.match(location_regex, col)] # Get a list of all location columns
             for location_col in location_cols:
                 if show_location:
@@ -322,7 +322,7 @@ class Utilities:
                     merge = merge.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
 
             # Fill NaN values in Mutation_Status column with either Wildtype_Tumor or Wildtype_Normal
-            mutation_status_regex = r".*_Mutation_Status$" # Construct a regex to find all Mutation_Status columns
+            mutation_status_regex = r"^.*_Mutation_Status$" # Construct a regex to find all Mutation_Status columns
             mutation_status_cols = [col for col in merge.columns.values if re.match(mutation_status_regex, col)] # Get a list of all Mutation_Status columns
             for mutation_status_col in mutation_status_cols:
                 merge.loc[(merge['Sample_Status'] == "Normal") & (pd.isnull(merge[mutation_status_col])), mutation_status_col] = "Wildtype_Normal" # Change all NaN mutation status values for Normal samples to Wildtype_Normal
