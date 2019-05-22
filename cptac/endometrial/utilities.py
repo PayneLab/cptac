@@ -209,7 +209,8 @@ class Utilities:
         # Create an empty dataframe, which we'll fill with the mutation and location data as lists
         prep_index = gene_mutations.index.copy().drop_duplicates()
         prep_columns = gene_mutations.columns
-        prep_cols_with_mut_status = prep_columns.union([mutation_status_col], sort=False) # Add a mutation_status column, which will indicate if there are 1 or multiple mutations
+        mutation_status_idx = pd.Index([mutation_status_col]) # Prep mutation_status_col to be appended
+        prep_cols_with_mut_status = prep_columns.append(mutation_status_idx) # Add a mutation_status column, which will indicate if there are 1 or multiple mutations
         mutation_lists = pd.DataFrame(index=prep_index, columns=prep_cols_with_mut_status)
 
         # Get the mutation(s), mutation status, and location information for this gene and sample

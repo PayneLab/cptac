@@ -57,8 +57,6 @@ class Utilities:
         df = pd.DataFrame(index=omics_df.index) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
         for gene in genes:
             selected = self.get_col_from_omics(omics_df, gene) # Get the columns for that gene from the dataframe
-            if selected is None: # If it didn't match any columns, get_col_from_omics will have printed an error message. Return None.
-                return
             df = df.join(selected, how='left') # Otherwise, append the columns to our dataframe we'll return.
         df.name = "{} for {} genes".format(omics_df.name, len(genes)) # Name the dataframe!
         return df
@@ -178,10 +176,10 @@ class Utilities:
         omics_selected = self.get_omics_from_str_or_list(omics_df, omics_genes)
 
         if (df_selected is not None) and (omics_selected is not None): # If either selector returned None, the key(s) didn't match any columns, and it printed an informative error message already. We'll return None.
-            df = df_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
-            df = df.sort_index() # Sort rows in ascending order
-            df.name = "{}, with {}".format(df_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
-            return df
+            df_joined = df_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
+            df_joined = df_joined.sort_index() # Sort rows in ascending order
+            df_joined.name = "{}, with {}".format(df_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
+            return df_joined
 
 # Next 4 functions are for working with mutation data
     def get_mutations_for_gene(self, mutations, gene):
@@ -211,7 +209,8 @@ class Utilities:
         # Create an empty dataframe, which we'll fill with the mutation and location data as lists
         prep_index = gene_mutations.index.copy().drop_duplicates()
         prep_columns = gene_mutations.columns
-        prep_cols_with_mut_status = prep_columns.union([mutation_status_col], sort=False) # Add a mutation_status column, which will indicate if there are 1 or multiple mutations
+        mutation_status_idx = pd.Index([mutation_status_col]) # Prep mutation_status_col to be appended
+        prep_cols_with_mut_status = prep_columns.append(mutation_status_idx) # Add a mutation_status column, which will indicate if there are 1 or multiple mutations
         mutation_lists = pd.DataFrame(index=prep_index, columns=prep_cols_with_mut_status)
 
         # Get the mutation(s), mutation status, and location information for this gene and sample
