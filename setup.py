@@ -1,17 +1,16 @@
 from setuptools import setup
-import os.path
-import io.open
+import os.path as path
 
 path_here = path.abspath(path.dirname(__file__))
 
 version = {}
-cptac_path = os.path.join(path_here, "cptac")
-version_path = os.path.join(cptac_path, "version.py") 
+cptac_path = path.join(path_here, "cptac")
+version_path = path.join(cptac_path, "version.py") 
 with open(version_path) as fp:
 	exec(fp.read(), version)
 
 # Get the long description from the README file
-readme_path = os.path.join(path_here, "README.md")
+readme_path = path.join(path_here, "README.md")
 with open(readme_path) as readme_file:
     readme_text = readme_file.read()
 
@@ -24,22 +23,22 @@ setup(name='cptac',
 	author='Dr. Samuel Payne',
 	author_email='sam_payne@byu.edu',
 	license='Apache 2.0',
-	packages=['cptac','cptac.endometrial','cptac.algorithms','cptac.ovarian','cptac.colon'],
+	packages=['cptac','cptac.endometrial','cptac.algorithms','cptac.ovarian','cptac.colon',],
 	install_requires=[
 		'numpy',
-		'pandas>=0.23.*'
+		'pandas>=0.23.*',
 	],
 	classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
-        'License :: OSI Approved :: Apache Software License'
+        'License :: OSI Approved :: Apache Software License',
 	],
 	keywords='bioinformatics cancer proteomics genomics open science open data',
 	python_requires='>=3.5.*',
 	zip_safe=False,
-	include_package_data=True
+	include_package_data=True,
 	project_urls={
 	   'Documentation': 'https://github.com/PayneLab/cptac/tree/master/doc'
-	}
+	},
 	)
