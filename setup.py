@@ -1,11 +1,12 @@
 from setuptools import setup
 import os.path as path
 
+# Get the path to our current directory
 path_here = path.abspath(path.dirname(__file__))
 
+# Get the package version from its universal storage location, cptac/version.py
 version = {}
-cptac_path = path.join(path_here, "cptac")
-version_path = path.join(cptac_path, "version.py") 
+version_path = path.join(path_here, "cptac", "version.py")
 with open(version_path) as fp:
 	exec(fp.read(), version)
 
