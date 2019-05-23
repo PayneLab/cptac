@@ -9,11 +9,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from .endometrial import Endometrial
-from .colon import Colon
-from .ovarian import Ovarian
+from .dataset import DataSet
 
-def list_data()
-    ...
+class Endometrial(DataSet):
 
-def list_api...
+    def __init__(self, data)
+        # Lots of messy code for loading and parsing data...
+
+        self.data = data_dict
