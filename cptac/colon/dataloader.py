@@ -104,7 +104,6 @@ def get_dataframes():
     print("Loading cptac colon data:")
     for file in files: # Loops through files variable
         try:
-            print(file)
             df = create_dataframe(file)
             data[df.name] = df # Maps dataframe name to dataframe
         except IOError:
