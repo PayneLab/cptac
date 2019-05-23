@@ -95,7 +95,7 @@ def get_phosphosites(genes):
     pandas DataFrame: The phosphoproteomics for the specified gene(s).
     """
     phosphoproteomics = get_phosphoproteomics()
-    return Utilities().get_omics_from_str_or_list(phosphoproteomics, genes)
+    return Utilities().get_omics_cols(phosphoproteomics, genes)
 
 def get_mutations():
     """Get the somatic_mutation dataframe."""

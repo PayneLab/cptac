@@ -81,7 +81,7 @@ def get_phosphosites(genes):
     pandas DataFrame: The phosphosites for the specified gene(s).
     """
     phosphoproteomics = get_phosphoproteomics()
-    return Utilities().get_omics_from_str_or_list(phosphoproteomics, genes)
+    return Utilities().get_omics_cols(phosphoproteomics, genes)
 
 def get_sample_status_map():
     """Get a pandas Series from the clinical dataframe, with sample ids as the index, and each sample's status (tumor or normal) as the values."""

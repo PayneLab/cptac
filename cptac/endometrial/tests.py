@@ -359,10 +359,10 @@ def test_get_derived_molecular():
 
     df = en.get_derived_molecular()
     name = 'derived_molecular'
-    dimensions = (144, 118) 
-    headers = ['Estrogen_Receptor', 'Estrogen_Receptor_%', 'Progesterone_Receptor', 'Progesterone_Receptor_%', 'MLH1', 'MLH2', 'MSH6', 'PMS2', 'p53', 'Other_IHC_specify', 'Log2_INDEL_per_Mbp', 'Log2_variant_total', 'Log2_SNP_total', 'Log2_INDEL_total', 'Mutation_signature_C>A', 'Mutation_signature_C>G', 'Mutation_signature_C>T', 'Mutation_signature_T>C', 'Mutation_signature_T>A', 'Mutation_signature_T>G']
+    dimensions = (144, 125) 
+    headers = ['Estrogen_Receptor', 'Estrogen_Receptor_%', 'Progesterone_Receptor', 'Progesterone_Receptor_%', 'MLH1', 'MLH2', 'MSH6', 'PMS2', 'p53', 'Other_IHC_specify', 'Log2_variant_total', 'Log2_SNP_total', 'Log2_INDEL_total', 'Genomics_subtype', 'Mutation_signature_C>A', 'Mutation_signature_C>G', 'Mutation_signature_C>T', 'Mutation_signature_T>C', 'Mutation_signature_T>A', 'Mutation_signature_T>G']
     test_coord = ((3, 4), (30, 117), (80, 52))
-    test_vals = ('Intact nuclear expression', 1.652892562, -0.34)
+    test_vals = ('Intact nuclear expression', 5.459431619, -0.34)
 
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
@@ -1110,7 +1110,7 @@ def test_append_mutations_one_mut_one_omics():
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
-    exp_name = '{} for {}, with Somatic mutation data for {} gene'.format(phos.name, phos_gene, mut_gene)
+    exp_name = '{} for {}, with somatic mutation data for {} gene'.format(phos.name, phos_gene, mut_gene)
     if not check_df_name(appended, exp_name):
         PASS = False
 
@@ -1155,7 +1155,7 @@ def test_append_mutations_one_mut_three_omics():
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
-    exp_name = '{} for {} genes, with Somatic mutation data for {} gene'.format(phos.name, len(phos_genes), mut_gene)
+    exp_name = '{} for {} genes, with somatic mutation data for {} gene'.format(phos.name, len(phos_genes), mut_gene)
     if not check_df_name(appended, exp_name):
         PASS = False
 
@@ -1199,7 +1199,7 @@ def test_append_mutations_one_mut_all_omics():
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
-    exp_name = '{}, with Somatic mutation data for {} gene'.format(phos.name, mut_gene)
+    exp_name = '{}, with somatic mutation data for {} gene'.format(phos.name, mut_gene)
     if not check_df_name(appended, exp_name):
         PASS = False
 
@@ -1239,7 +1239,7 @@ def test_append_mutations_three_mut_one_omics():
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
-    exp_name = '{} for {}, with Somatic mutation data for {} genes'.format(phos.name, phos_gene, len(mut_genes))
+    exp_name = '{} for {}, with somatic mutation data for {} genes'.format(phos.name, phos_gene, len(mut_genes))
     if not check_df_name(appended, exp_name):
         PASS = False
 
@@ -1284,7 +1284,7 @@ def test_append_mutations_three_mut_three_omics():
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
-    exp_name = '{} for {} genes, with Somatic mutation data for {} genes'.format(phos.name, len(phos_genes), len(mut_genes))
+    exp_name = '{} for {} genes, with somatic mutation data for {} genes'.format(phos.name, len(phos_genes), len(mut_genes))
     if not check_df_name(appended, exp_name):
         PASS = False
 
@@ -1328,7 +1328,7 @@ def test_append_mutations_three_mut_all_omics():
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
-    exp_name = '{}, with Somatic mutation data for {} genes'.format(phos.name, len(mut_genes))
+    exp_name = '{}, with somatic mutation data for {} genes'.format(phos.name, len(mut_genes))
     if not check_df_name(appended, exp_name):
         PASS = False
 
@@ -1368,7 +1368,7 @@ def test_append_mutations_one_mut_one_omics_no_location():
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
-    exp_name = '{} for {}, with Somatic mutation data for {} gene'.format(phos.name, phos_gene, mut_gene)
+    exp_name = '{} for {}, with somatic mutation data for {} gene'.format(phos.name, phos_gene, mut_gene)
     if not check_df_name(appended, exp_name):
         PASS = False
 
@@ -1413,7 +1413,7 @@ def test_append_mutations_one_mut_three_omics_no_location():
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
-    exp_name = '{} for {} genes, with Somatic mutation data for {} gene'.format(phos.name, len(phos_genes), mut_gene)
+    exp_name = '{} for {} genes, with somatic mutation data for {} gene'.format(phos.name, len(phos_genes), mut_gene)
     if not check_df_name(appended, exp_name):
         PASS = False
 
@@ -1457,7 +1457,7 @@ def test_append_mutations_one_mut_all_omics_no_location():
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
-    exp_name = '{}, with Somatic mutation data for {} gene'.format(phos.name, mut_gene)
+    exp_name = '{}, with somatic mutation data for {} gene'.format(phos.name, mut_gene)
     if not check_df_name(appended, exp_name):
         PASS = False
 
@@ -1497,7 +1497,7 @@ def test_append_mutations_three_mut_one_omics_no_location():
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
-    exp_name = '{} for {}, with Somatic mutation data for {} genes'.format(phos.name, phos_gene, len(mut_genes))
+    exp_name = '{} for {}, with somatic mutation data for {} genes'.format(phos.name, phos_gene, len(mut_genes))
     if not check_df_name(appended, exp_name):
         PASS = False
 
@@ -1542,7 +1542,7 @@ def test_append_mutations_three_mut_three_omics_no_location():
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
-    exp_name = '{} for {} genes, with Somatic mutation data for {} genes'.format(phos.name, len(phos_genes), len(mut_genes))
+    exp_name = '{} for {} genes, with somatic mutation data for {} genes'.format(phos.name, len(phos_genes), len(mut_genes))
     if not check_df_name(appended, exp_name):
         PASS = False
 
@@ -1586,7 +1586,7 @@ def test_append_mutations_three_mut_all_omics_no_location():
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
-    exp_name = '{}, with Somatic mutation data for {} genes'.format(phos.name, len(mut_genes))
+    exp_name = '{}, with somatic mutation data for {} genes'.format(phos.name, len(mut_genes))
     if not check_df_name(appended, exp_name):
         PASS = False
 
