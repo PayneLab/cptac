@@ -13,6 +13,23 @@ class DataSet:
     def __init__(self):
         self.data = {}
 
+        # These are the omics dataframes that are valid for use in the utilities functions
+        self._valid_omics_dfs = [
+            'acetylproteomics',
+            'proteomics',
+            'transcriptomics', # But not circular_RNA or miRNA--they have incompatible column names.
+            'CNA',
+            'CNV',
+            'phosphoproteomics',
+            'phosphoproteomics_gene']
+
+        # These are the metadata dataframes that are valid for use in the utilities functions
+        self._valid_metadata_dfs = [
+            'clinical',
+            'derived_molecular',
+            'experimental_setup',
+            'treatment']
+
     # Get metadata dataframes
     def get_clinical(self):
         """Get the clinical dataframe."""
@@ -84,12 +101,12 @@ class DataSet:
     def list_data(self):
         """Print list of loaded data frames and dimensions."""
         print("Below are the available endometrial data frames contained in this package:")
-        for dataframe in data.values():
+        for dataframe in self.data.values():
             print("\t", dataframe.name)
             print("\t", "\t", "Dimensions:", dataframe.shape)
 
     # Utilities functions
-    def compare_omics(omics_df1, omics_df2, genes1=None, genes2=None):
+    def compare_omics(self, omics_df1, omics_df2, genes1=None, genes2=None):
         """Take specified column(s) from one omics dataframe, and append to specified columns(s) from another omics dataframe. Intersection (inner join) of indicies is used.
 
         Parameters:
@@ -125,7 +142,7 @@ class DataSet:
             df.name = "{}, with {}".format(selected1.name, selected2.name) # Give it a nice name identifying the data in it.
             return df
 
-    def append_metadata_to_omics(metadata_df, omics_df, metadata_cols=None, omics_genes=None):
+    def append_metadata_to_omics(self, metadata_df, omics_df, metadata_cols=None, omics_genes=None):
         """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_setup) to part or all of an omics dataframe. Intersection (inner join) of indicies is used.
 
         Parameters:
@@ -161,7 +178,7 @@ class DataSet:
             df_joined.name = "{}, with {}".format(metadata_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
             return df_joined
 
-    def append_mutations_to_omics(omics_df, mutation_genes, omics_genes=None, show_location=True):
+    def append_mutations_to_omics(self, omics_df, mutation_genes, omics_genes=None, show_location=True):
         """Select all mutations for specified gene(s), and appends them to all or part of the given omics dataframe. Intersection (inner join) of indicies is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
@@ -406,20 +423,3 @@ pe_Normal'], like we want it to, instead of unpacking the list.
             df.name = "somatic mutation data for {} genes".format(len(genes))
         return df
 
-    # "Private" variables
-    # These are the omics dataframes that are valid for use in the utilities functions
-    _valid_omics_dfs = [
-        'acetylproteomics',
-        'proteomics',
-        'transcriptomics', # But not circular_RNA or miRNA--they have incompatible column names.
-        'CNA',
-        'CNV',
-        'phosphoproteomics',
-        'phosphoproteomics_gene']
-
-    # These are the metadata dataframes that are valid for use in the utilities functions
-    _valid_metadata_dfs = [
-        'clinical',
-        'derived_molecular',
-        'experimental_setup',
-        'treatment']
