@@ -40,6 +40,7 @@ class Utilities:
             return return_df
         else: # If it's none of those, they done messed up. Tell 'em.
             print("Genes parameter \n{}\nis of invalid type {}. Valid types: str, list or array-like of str, or NoneType.".format(genes, type(genes)))
+            return
 
         df = pd.DataFrame(index=omics_df.index.copy()) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
         for gene in genes:
@@ -105,6 +106,7 @@ class Utilities:
             return df
         else: # If it's none of those, they done messed up. Tell 'em.
             print("Columns parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(cols, type(cols)))
+            return
 
         return_df = pd.DataFrame(index=df.index.copy()) # Create an empty dataframe, which we'll fill with the columns we select, and then return.
         for col in cols:
@@ -160,6 +162,7 @@ class Utilities:
             pass
         else: # If it's neither of those, they done messed up. Tell 'em.
             print("Genes parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(genes, type(genes)))
+            return
 
         # Set some column names for use later
         gene_col = "Gene"
