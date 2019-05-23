@@ -1,0 +1,107 @@
+proteomics	The relative protein abundance of each gene for each respective cancer patient.
+transcriptomics	The relative RNA abundance of each gene for each respective cancer patient.
+CNA	The relative copy number alterations of each gene for each respective cancer patient.
+phosphoproteomics	The relative phosphorylated protein abundance of each gene for each respective cancer patient.
+somatic	Data describing the mutations occuring for the somatic tumor samples collected from each respective patient.
+somatic mutations	Data describing the mutations occuring for the somatic tumor samples collected from each respective patient.
+Proteomics_Aliquot_ID	REVISE Identification code of proteomics aliquot.
+Proteomics_Participant_ID	REVISE Identification code for proteomics participant.
+Proteomics_TMT_batch	TMT (tandem mass tag) batch for specified patient's proteomics.
+Proteomics_TMT_plex	TMT (tandem mass tag) plex for specified patient's proteomics.
+Proteomics_TMT_channel	TMT (tandem mass tag) channel for specified patient's proteomics.
+Proteomics_Parent_Sample_IDs	Identification code for parent proteomics sample.
+Proteomics_Tumor_normal	Categorical classification of proteomics patients with tumor or normal (controls, further classified as adjacent normal, enriched normal, and myometrium normal).
+Proteomics_OCT	Categorical specification of whether or not the proteomics patient sample was preserved in an OCT (optimal cutting temperature) medium.
+WXS	REVISE
+WXS_patient_id	Identification code for specified patient.
+WXS_Tumor_sample_id	Identification code for specified patient's tumor sample.
+WXS_Tumor_file	File name for specified patient's tumor sample, beginning with the WXS Tumor sample ID.
+WXS_Tumor_UUID	UUID (universally unique identifier) identification code for specified patient's tumor sample.
+WXS_Tumor_type	Type of tumor for selected patient.
+WXS_Normal_sample_id	Identification code for specified patient's normal sample.
+WXS_Normal_file	File name for specified patient's normal sample, beginning with the WXS Normal sample ID.
+WXS_Normal_UUID	UUID (universally unique identifier) identification code for specified patient's normal sample.
+WXS_Normal_type	Type of normal sample for specified patient.
+RNAseq	REVISE
+RNAseq_sample_id	Identification code for specified patient's RNAseq sample.
+RNAseq_patient_id	Identification code for specified patient.
+RNAseq_sample_type	Type of sample for RNAseq (Primary Tumor, Solid Tissue Normal, etc.)
+RNAseq_UUID_R1	UUID (universally unique identifier) identification code for specified patient's R1 orientation RNAseq sample.
+RNAseq_filename_R1	Filename for specified patient's R1 orientation RNAseq sample.
+RNAseq_UUID_R2	UUID (universally unique identifier) identification code for specified patient's R2 orientation RNAseq sample.
+RNAseq_filename_R2	Filename for specified patient's R2 orientation RNAseq sample.
+methylation_sample_id	Identification code for specified patient's methylation sample.
+Histologic_Grade_(FIGO)	REVISE
+Histologic_Type	REVISE
+Num_full_term_pregnancies	Number of full term pregnancies experienced by the specified patient.
+Tumor_Size_(cm)	Size of tumor (in centimeters) of specified patient.
+FIGO_stage	Categorical classification of FIGO state (I being less severe, IV being more severe)
+Myometrial_invasion_Specify	Categorical classification of whether the myometrial invasion in specified patient was under 50%.
+tumor_Stage_Pathological	Categorical classification of pathological tumor stage for specified patient.
+Diabetes	Categorical classification of whether the specified patient has had diabetes.
+BMI	BMI (body mass index) of specified patient.
+LVSI	Binary specification of whether the specified patient has lymphovascular space invasion.
+Endo_S1G1G2_LVSI	REVISE Binary specification of whether the specified patient has Endo_S1G1G2_LVSI.
+Age	Age of the specified patient.
+CIBERSORT	Analytical tool developed by Newman et al. to provide an estimation of the abundances of member cell types in a mixed cell population, using gene expression data.
+CIBERSORT-T_cells_CD4_memory_resting	CIBERSORT estimated abundance of resting CD4 memory T cells for specified patient.
+CIBERSORT-Dendritic_cells_resting	CIBERSORT estimated abundance of resting dendritic cells for specified patient.
+CIBERSORT-T_cells_regulatory_(Tregs)	CIBERSORT estimated abundance of regulatory T cells for specified patient.
+CIBERSORT-Neutrophils	CIBERSORT estimated abundance of neutrophils white blood cell) for specified patient.
+CIBERSORT-Macrophages_M1	CIBERSORT estimated abundance of M1 macrophages for specified patient.
+CIBERSORT-Macrophages_M2	CIBERSORT estimated abundance of M2 macrophages for specified patient.
+CIBERSORT-Dendritic_cells_activated	CIBERSORT estimated abundance of activated dendritic cells for specified patient.
+CIBERSORT-Monocytes	CIBERSORT estimated abundance of monocytes (white blood cell) for specified patient.
+CIBERSORT-Macrophages_M0	CIBERSORT estimated abundance of M0 macrophages for specified patient.
+CIBERSORT-B_cells_naive	CIBERSORT estimated abundance of naive B cells for specified patient.
+CIBERSORT-NK_cells_activated	CIBERSORT estimated abundance of activated NK (natural killer, aka immune) cells for specified patient.
+CIBERSORT-T-cells_CD4_memory_activated	CIBERSORT estimated abundance of activated CD4 memory T cells for specified patient.
+CIBERSORT-B_cells_memory	CIBERSORT estimated abundance of memory B cells for specified patient.
+CIBERSORT-Plasma_cells	CIBERSORT estimated abundance of plasma cells for specified patient.
+CIBERSORT-T_cells_follicular_helper	CIBERSORT estimated abundance of T follicular helper cells for specified patient.
+CIBERSORT-T_cells_CD8	CIBERSORT estimated abundance of CD8 T cells for specified patient.
+CIBERSORT-T_cells_CD4_naive	CIBERSORT estimated abundance of naive CD4 T cells for specified patient.
+CIBERSORT-Absolute_score	REVISE
+CIBERSORT-Eosinophils	CIBERSORT estimated abundance of eosinophils (white blood cell) for specified patient.
+CIBERSORT-T_cells_gamma_delta	CIBERSORT estimated abundance of gamma delta T cells for specified patient.
+CIBERSORT-NK_cells_resting	CIBERSORT estimated abundance of resting NK (natural killer, aka immune) cells for specified patient.
+CIBERSORT-Mast_cells_resting	CIBERSORT estimated abundance of resting mast cells (type of immune cell) for specified patient.
+CIBERSORT-Mast_cells_activated	CIBERSORT estimated abundance of activiated mast cells (type of immune cell) for specified patient.
+EPIC	Europhean Prospective Investigation into Cancer and Nutrition
+EPIC-Bcells	EPIC estimated abundance of B cells for specified patient.
+EPIC-Endothelial	EPIC estimated abundance of endothelial cells (involved in blood vessels) for specified patient.
+EPIC-CAFs	EPIC estimated abundance of CAFs (cancer-associated fibroblasts) for specified patient.
+EPIC-otherCells	EPIC estimated abundance of other cells for specified patient.
+EPIC-CD8_Tcells	EPIC estimated abundance of CD8 T cells for specified patient.
+EPIC-NKcells	EPIC estimated abundance of NK (natural killer, aka immune) cells for specified patient.
+EPIC-Macrophages	EPIC estimated abundance of macrophages for specified patient.
+EPIC-CD4_Tcells	EPIC estimated abundance of CD4 T cells for specified patient.
+ESTIMATE	Tool for predicting tumor purity and presence of infiltrating stromal/immune cells in tumor tissues (Estimation of STromal and Immune cells in MAlignant Tumor tissues using Expression data).
+ESTIMATE-ImmuneScore	ESTIMATE score for infiltrating immune cells in tumor tissues for specified patient.
+ESTIMATE-StromalScore	ESTIMATE score for infiltrating stromal cells in tumor tissues for specified patient.
+ESTIMATE-ESTIMATEScore	ESTIMATE combined score for infiltrating immune and stromal cells in tumor tissues for specified patient.
+PR_PGR	REVISE
+ER_ESR1	REVISE
+PI3K_RICTOR	REVISE
+PI3K_PIK3R1	REVISE
+PI3K_AKT3	REVISE
+PI3K_MTOR	REVISE
+PI3K_PIK3CB	REVISE
+PI3K_PPP2R1A	REVISE
+PI3K_TSC2	REVISE
+PI3K_PIK3R2	REVISE
+PI3K_PTEN	REVISE
+PI3K_PI3K_pathway	REVISE
+PI3K_TSC1	REVISE
+PI3K_PIK3CCA	REVISE
+TP53_ATM	REVISE
+TP53_RPS6KA3	REVISE
+TP53_TP53	REVISE
+TP53_TP53_pathway	REVISE
+HRD_BRCA1_or_BRCA2	REVISE
+HRD_BRCA2	REVISE
+HRD_BRCA1	REVISE
+MSI	Categorical classification of whether the MSI (microsatellite instablility) is high for specified patient.
+POLE_EDM_status	REVISE
+Histologic_Type_corrected	Corrected categorical classification of histologic type for specified patient.
+Tumor_purity	Categorical classification of whether the tumor purity is normal or low for specified patient.
