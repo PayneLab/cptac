@@ -74,15 +74,6 @@ class DataSet:
     ion in that gene at that location, for each sample."""
         return self._get_dataframe("somatic_mutation_binary")
 
-    # Get map of Sample_ID to Sample_Status
-    def get_sample_status_map(self):
-        """Get a pandas Series from the clinical dataframe, with sample ids as the index, and each sample's status (tumor or normal) as the values."""
-        clinical = get_clinical()
-        raw_map = clinical["Proteomics_Tumor_Normal"]
-        parsed_map = raw_map.where(raw_map == "Tumor", other="Normal") # Replace various types of normal (Adjacent_normal, Myometrium_normal, etc.) with just "Normal"
-        parsed_map.name = "Sample_Status"
-        return parsed_map
-
     # Utilities functions
 
     # Help functions
@@ -108,7 +99,15 @@ class DataSet:
         pandas DataFrame: The desired dataframe, if it exists in this dataset.
         """
         if name in self.data.keys():
-            return self.data[name]
+            return self.data[name].copy() # We copy it, with default deep=True, so edits on their copy don't affect the master
         else:
             print("{} dataframe not included in this dataset.".format(name))
             return
+
+    def _get_sample_status_map(self):
+        """Get a pandas Series from the clinical dataframe, with sample ids as the index, and each sample's status (tumor or normal) as the values."""
+        clinical = get_clinical()
+        raw_map = clinical["Proteomics_Tumor_Normal"] # TODO: Change this to work with all datasets, not just endometrial
+        parsed_map = raw_map.where(raw_map == "Tumor", other="Normal") # Replace various types of normal (Adjacent_normal, Myometrium_normal, etc.) with just "Normal"
+        parsed_map.name = "Sample_Status"
+        return parsed_map
