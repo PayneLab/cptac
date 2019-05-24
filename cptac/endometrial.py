@@ -30,7 +30,7 @@ class Endometrial(DataSet):
 
         # Load the data files into dataframes in the self.data dict
         print("Loading cptac endometrial data:")
-        for file in files: # Loops through files variable
+        for file in files: 
             path_elements = file.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
             file_name_split = file_name.split(".")
