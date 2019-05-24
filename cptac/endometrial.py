@@ -17,7 +17,7 @@ from .dataset import DataSet
 
 class Endometrial(DataSet):
 
-    def __init__(self)
+    def __init__(self):
         """Load all of the endometrial dataframes as values in the self.data dict variable, with names as keys, and format them properly."""
 
         # Call the parent DataSet __init__ function, which initializes some variables we need
@@ -26,7 +26,7 @@ class Endometrial(DataSet):
         # Get the path to the data files
         path_here = os.path.dirname(os.path.realpath(__file__))
         data_path = os.path.join(path_here, "endometrial_data", "*.*")
-        files = glob.glob(data_path) # Puts all files into a list
+        files = glob.glob(data_path) # Put all files into a list
 
         # Load the data files into dataframes in the self.data dict
         print("Loading cptac endometrial data:")
