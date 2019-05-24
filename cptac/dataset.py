@@ -11,8 +11,11 @@
 class DataSet:
 
     def __init__(self):
+
+        # Initialize dataframe dictionary as empty for this parent class
         self.data = {}
 
+        # Assign the valid dfs lists, but make them instance variables so they're easy to overload if needed
         # These are the omics dataframes that are valid for use in the utilities functions
         self._valid_omics_dfs = [
             'acetylproteomics',
@@ -422,4 +425,3 @@ pe_Normal'], like we want it to, instead of unpacking the list.
         else:
             df.name = "somatic mutation data for {} genes".format(len(genes))
         return df
-
