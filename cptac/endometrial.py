@@ -20,7 +20,7 @@ class Endometrial(DataSet):
     def __init__(self):
         """Load all of the endometrial dataframes as values in the self.data dict variable, with names as keys, and format them properly."""
 
-        # Call the parent DataSet __init__ function, which initializes some variables we need
+        # Call the parent DataSet __init__ function, which initializes self.data and other variables we need
         super().__init__()
 
         # Get the path to the data files
