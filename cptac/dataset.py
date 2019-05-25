@@ -11,6 +11,7 @@
 import pandas as pd
 import numpy as np
 import webbrowser
+import re
 
 class DataSet:
 
@@ -109,9 +110,9 @@ class DataSet:
     def list_data(self):
         """Print list of loaded dataframes and dimensions."""
         print("Below are the dataframes contained in this dataset:")
-        for dataframe in sorted(self.data.values()):
-            print("\t", dataframe.name)
-            print("\t", "\t", "Dimensions:", dataframe.shape)
+        for name in sorted(self.data.keys()):
+            df = self.data[name]
+            print("\t{}\n\t\tDimensions: {}".format(df.name, df.shape))
 
     def define(term):
         """Define a term, if it is in the dataset's definitions.
@@ -154,21 +155,21 @@ class DataSet:
         """
         # Make sure it's the right kind of dataframe
         invalid = False
-        if (omics_df1.name not in _valid_omics_dfs):
+        if (omics_df1.name not in self._valid_omics_dfs):
             invalid = True
             print("{} is not a valid dataframe for this function.".format(omics_df1.name))
-        if (omics_df2.name not in _valid_omics_dfs):
+        if (omics_df2.name not in self._valid_omics_dfs):
             invalid = True
             print("{} is not a valid dataframe for this function.".format(omics_df2.name))
         if invalid:
             print("Valid dataframe options:")
-            for df_name in _valid_omics_dfs:
+            for df_name in self._valid_omics_dfs:
                 print('\t' + df_name)
             return
 
         # Select the columns from each dataframe
-        selected1 = self._get_omics_cols(df1, genes1)
-        selected2 = self._get_omics_cols(df2, genes2)
+        selected1 = self._get_omics_cols(omics_df1, genes1)
+        selected2 = self._get_omics_cols(omics_df2, genes2)
 
         if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the gene(s) didn't match any columns, and it printed an informative error message already. We'll return None.
             df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
@@ -189,22 +190,22 @@ class DataSet:
         pandas DataFrame: The selected metadata columns, merged with all or part of the omics dataframe.
         """
         # Make sure metadata_df is the right kind of dataframe
-        if (metadata_df.name not in _valid_metadata_dfs):
+        if (metadata_df.name not in self._valid_metadata_dfs):
             print("{} is not a valid dataframe for metadata_df parameter. Valid options:".format(metadata_df.name))
-            for df_name in _valid_metadata_dfs:
+            for df_name in self._valid_metadata_dfs:
                 print('\t' + df_name)
             return
 
         # Make sure omics_df is the right kind of dataframe
-        if (omics_df.name not in _valid_omics_dfs):
+        if (omics_df.name not in self._valid_omics_dfs):
             print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))
-            for df_name in _valid_omics_dfs:
+            for df_name in self._valid_omics_dfs:
                 print('\t' + df_name)
             return
 
         # Select the columns from each dataframe
-        metadata_selected = self.get_metadata_cols(metadata_df, df_cols)
-        omics_selected = self.get_omics_cols(omics_df, omics_genes)
+        metadata_selected = self._get_metadata_cols(metadata_df, metadata_cols)
+        omics_selected = self._get_omics_cols(omics_df, omics_genes)
 
         if (metadata_selected is not None) and (omics_selected is not None): # If either selector returned None, the key(s) didn't match any columns, and it printed an informative error message already. We'll return None.
             df_joined = metadata_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
@@ -225,22 +226,22 @@ class DataSet:
         pandas DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
         """
         # Make sure omics_df is the right kind of dataframe
-        if (omics_df.name not in _valid_omics_dfs):
+        if (omics_df.name not in self._valid_omics_dfs):
             print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))
-            for df_name in _valid_omics_dfs:
+            for df_name in self._valid_omics_dfs:
                 print('\t' + df_name)
             return
 
         # Select the data from each dataframe
-        somatic_mutation = get_mutations()
-        omics = self.get_omics_cols(omics_df, omics_genes)
-        mutations = self.get_genes_mutations(somatic_mutation, mutation_genes)
+        somatic_mutation = self.get_mutations()
+        omics = self._get_omics_cols(omics_df, omics_genes)
+        mutations = self._get_genes_mutations(somatic_mutation, mutation_genes)
 
         if (omics is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, and an error message was printed. We'll return None.
             merge = omics.join(mutations, how = "left") # Left join omics data and mutation data (left being the omics data)
 
             # Add Sample_Status column by joining the sample_status_map to the merged mutation dataframe. Do a left join so we drop any indicies not in the mutations dataframe.
-            sample_status_map = get_sample_status_map()
+            sample_status_map = self._get_sample_status_map()
             merge = merge.join(sample_status_map, how="left")
 
             # Fill in Wildtype_Normal or Wildtype_Tumor for NaN values (i.e., no mutation data for that sample) in merged dataframe mutation columns
@@ -280,14 +281,18 @@ class DataSet:
         pandas DataFrame: A copy of the desired dataframe, if it exists in this dataset.
         """
         if name in self.data.keys():
-            return self.data[name].copy() # We copy it, with default deep=True, so edits on their copy don't affect the master
+            df = self.data[name]
+            return_df = df.copy() # We copy it, with default deep=True, so edits on their copy don't affect the master
+            return_df.name = df.name
+            return return_df
+            
         else:
             print("{} dataframe not included in this dataset.".format(name))
             return
 
     def _get_sample_status_map(self):
         """Get a pandas Series from the clinical dataframe, with sample ids as the index, and each sample's status (tumor or normal) as the values."""
-        clinical = get_clinical()
+        clinical = self.get_clinical()
         raw_map = clinical["Proteomics_Tumor_Normal"] # TODO: Change this to work with all datasets, not just endometrial
         parsed_map = raw_map.where(raw_map == "Tumor", other="Normal") # Replace various types of normal (Adjacent_normal, Myometrium_normal, etc.) with just "Normal"
         parsed_map.name = "Sample_Status"

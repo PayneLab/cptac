@@ -11,8 +11,7 @@
 
 import pandas as pd
 import numpy as np
-import cptac.endometrial as en
-from utilities import Utilities
+import cptac
 
 def print_test_result(PASS):
     """Prints the result of a test, based on a bool.
@@ -253,7 +252,7 @@ def check_mutation_columns(mutations, merged_df, genes, show_location=True):
     mutation_status_col = "Mutation_Status"
 
     # Get a map of sample IDs to sample statuses, so we can check the Sample_Status column
-    sample_status_map = en.get_sample_status_map()
+    sample_status_map = en._get_sample_status_map()
 
     if isinstance(genes, str):
         genes = [genes]
@@ -2167,6 +2166,7 @@ def test_append_metadata_all_dfs():
 
 # ADD ALL DFS TEST FOR MUT
 
+en = cptac.Endometrial()
 
 print("\nRunning tests:\n")
  
@@ -2225,4 +2225,4 @@ test_append_mutations_three_mut_three_omics_no_location()
 test_append_mutations_three_mut_all_omics_no_location()
 test_append_mutations_invalid_key()
 
-print("Version:",en.version())
+print("Version:", cptac.version())
