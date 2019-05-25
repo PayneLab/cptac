@@ -9,11 +9,42 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import webbrowser
+import textwrap
+import os
 from .endometrial import Endometrial
 from .colon import Colon
 from .ovarian import Ovarian
 
-def list_data()
-    ...
+def list_data():
+    """List all available datasets."""
+    print("Available datasets:")
+    datasets = [
+        "Colon",
+        "Endometrial",
+        "Ovarian",]
+    for dataset in sorted(datasets):
+        print("\t" + dataset)
 
-def list_api...
+def list_api():
+    """Print docstrings for all accessible functions."""
+    help(__name__)
+
+def embargo():
+    """Open CPTAC embargo details in web browser."""
+    print("Opening embargo details in web browser...")
+    webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
+
+def version():
+    """Return version number of cptac package."""
+    version = {}
+    with open("version.py") as fp:
+        exec(fp.read(), version)
+    return(version['__version__'])
+
+message = "Welcome to the cptac data service package. Available datasets may be viewed using cptac.list_data(). In order to access a specific data set, load the dataset and assign it to a variable using 'cptac.NameOfDataset()', e.g. 'en = cptac.Endometrial()'\n"
+wrapped_list = textwrap.wrap(message)
+for line in wrapped_list:
+    print(line)
+
+print("******\nVersion: {}\n******".format(version())

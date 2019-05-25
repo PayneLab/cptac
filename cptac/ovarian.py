@@ -23,9 +23,19 @@ class Ovarian(DataSet):
         # Call the parent Dataset __init__() function, which initializes self.data and other variables we need
         super().__init__()
 
+        # Print welcome message
+        message = "You have loaded the cptac ovarian dataset. To view available dataframes, call the dataset's list_data() method. To view available functions for accessing and manipulating the dataframes, call its list_api() method."
+        wrapped_list = textwrap.wrap(message)
+        for line in wrapped_list:
+            print(line)
+
+        # Print data version
+        data_version = "Most recent release"
+        print("ovarian data version: {}\n".format(data_version))
+
         # Get the path to the data files
         path_here = os.path.dirname(os.path.realpath(__file__)) 
-        data_path = os.path.join(path_here, "ovarian_data", "*.*")
+        data_path = os.path.join(path_here, "data_ovarian", "*.*")
         files = glob.glob(data_path) # Put all the files into a list
 
         # Load the data files into dataframes in the self.data dict
@@ -134,17 +144,17 @@ class Ovarian(DataSet):
                 else:
                     print("Error mapping sample ids in {0} dataframe. Patient_ID {1} did not have corresponding Sample_ID mapped in clinical dataframe. {0} dataframe not loaded.".format(df.name, row))
                     return
-            return_df = df.assign(Sample_ID=sample_id_column)
+            df = df.assign(Sample_ID=sample_id_column)
             old_index_name = df.index.name
             if old_index_name is None:
                 old_index_name = 'index' # When we reset the index, if the old index didn't have a name, the column it's put in will have the default name 'index'
-            return_df = return_df.reset_index() # This gives the dataframe a default numerical index and makes the old index a column, which prevents it from being dropped when we set Sample_ID as the index.
-            return_df = return_df.rename(columns={old_index_name:'Patient_ID'}) # Rename the old index as Patient_ID
-            return_df = return_df.set_index('Sample_ID') # Make the Sample_ID column the index
-            return_df.name = df.name
-            self.data[name] = return_df
+            df = df.reset_index() # This gives the dataframe a default numerical index and makes the old index a column, which prevents it from being dropped when we set Sample_ID as the index.
+            df = df.rename(columns={old_index_name:'Patient_ID'}) # Rename the old index as Patient_ID
+            df = df.set_index('Sample_ID') # Make the Sample_ID column the index
+            df.name = df.name
+            self.data[name] = df
 
-        # Drop the Patient_ID column (old index) from every dataframe except clinical and treatment, since only those two have patient associated data rather sample associated data, and so we preserve a mapping of sample ids to their original patient ids
+        # Drop the Patient_ID column (old index) from every dataframe except clinical and treatment, since only those two have patient associated data rather than just sample associated data, and so we preserve a mapping of sample ids to their original patient ids
         for name in self.data.keys(): 
             if name != 'clinical' and name != "treatment":
                 df = self.data[name]
@@ -153,7 +163,7 @@ class Ovarian(DataSet):
 
         # Print data embargo warning
         print("\n******PLEASE READ******")
-        warning = "WARNING: This data is under a publication embargo until June 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until June 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter embargo() to open the webpage for more details."
+        warning = "WARNING: This data is under a publication embargo until June 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until June 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or cptac.embargo() to open the webpage for more details."
         wrapped_list = textwrap.wrap(warning)
         for line in wrapped_list:
             print(line)

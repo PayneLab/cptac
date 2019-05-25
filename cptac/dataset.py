@@ -8,12 +8,17 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import pandas as pd
+import numpy as np
+import webbrowser
+
 class DataSet:
 
     def __init__(self):
 
-        # Initialize dataframe dictionary as empty for this parent class
+        # Initialize dataframe and definitions dicts as empty for this parent class
         self.data = {}
+        self.definitions = {}
 
         # Assign the valid dfs lists, but make them instance variables so they're easy to overload if needed
         # These are the omics dataframes that are valid for use in the utilities functions
@@ -33,7 +38,7 @@ class DataSet:
             'experimental_setup',
             'treatment']
 
-    # Get metadata dataframes
+    # Methods to get metadata dataframes
     def get_clinical(self):
         """Get the clinical dataframe."""
         return self._get_dataframe("clinical")
@@ -50,7 +55,7 @@ class DataSet:
         """Get the treatment dataframe."""
         return self._get_dataframe("treatment")
 
-    # Get omics dataframes
+    # Methods to get omics dataframes
     def get_acetylproteomics(self):
         """Get the acetylproteomics dataframe."""
         return self._get_dataframe("acetylproteomics")
@@ -87,7 +92,7 @@ class DataSet:
         """TODO: Implement"""
         pass
 
-    # Get mutations dataframes
+    # Methods to get mutations dataframes
     def get_mutations(self):
         """Get the somatic_mutation dataframe."""
         return self._get_dataframe("somatic_mutation")
@@ -96,19 +101,45 @@ class DataSet:
         """Get the somatic_mutation_binary dataframe, which has a binary value indicating, for each location on each gene, whether there was a mutation in that gene at that location, for each sample."""
         return self._get_dataframe("somatic_mutation_binary")
 
-    # Help functions
+    # Help methods
     def list_api(self):
         """Print docstrings for all accessible functions."""
         help(__name__)
 
     def list_data(self):
-        """Print list of loaded data frames and dimensions."""
-        print("Below are the available endometrial data frames contained in this package:")
+        """Print list of loaded dataframes and dimensions."""
+        print("Below are the dataframes contained in this dataset:")
         for dataframe in self.data.values():
             print("\t", dataframe.name)
             print("\t", "\t", "Dimensions:", dataframe.shape)
 
-    # Utilities functions
+    def define(term):
+        """Define a term, if it is in the dataset's definitions.
+
+        Parameters:
+        term (str): term to be defined
+
+        Returns:
+        str: definition of provided term
+        """
+        if term in self.definitions.keys():
+            print(self.definitions[term])
+        else:
+            print(term, "not found in definitions. Alternatively, the search(term) method can be used to perform a web search of the term provided.")
+
+    def search(term):
+        """Search for a term in a web browser.
+
+        Parameters:
+        term (str): term to be searched
+
+        Returns: None
+        """
+        url = "https://www.google.com/search?q=" + term
+        print("Searching for {} in web browser...".format(term))
+        webbrowser.open(url)
+
+    # Utilities methods
     def compare_omics(self, omics_df1, omics_df2, genes1=None, genes2=None):
         """Take specified column(s) from one omics dataframe, and append to specified columns(s) from another omics dataframe. Intersection (inner join) of indicies is used.
 
@@ -239,7 +270,7 @@ pe_Normal'], like we want it to, instead of unpacking the list.
             merge.name = "{}, with {}".format(omics.name, mutations.name) # Give it a name identifying the data in it
             return merge
 
-    # "Private" functions
+    # "Private" methods
     def _get_dataframe(self, name):
         """Check if a dataframe with the given name exists, and return a copy of it if it does.
 
@@ -263,7 +294,7 @@ pe_Normal'], like we want it to, instead of unpacking the list.
         parsed_map.name = "Sample_Status"
         return parsed_map
 
-    # Utilities helper functions
+    # Utilities helper methods
     def _get_omics_cols(self, omics_df, genes):
         """Based on a single gene, or a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
 

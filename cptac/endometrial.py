@@ -23,9 +23,19 @@ class Endometrial(DataSet):
         # Call the parent DataSet __init__ function, which initializes self.data and other variables we need
         super().__init__()
 
+        # Print welcome message
+        message = "You have loaded the cptac endometrial dataset. To view available dataframes, call the dataset's list_data() method. To view available functions for accessing and manipulating the dataframes, call its list_api() method."
+        wrapped_list = textwrap.wrap(message)
+        for line in wrapped_list:
+            print(line)
+
+        # Print the data version
+        data_version = "2.1"
+        print("endometrial data version: {}\n".format(data_version))
+
         # Get the path to the data files
         path_here = os.path.dirname(os.path.realpath(__file__))
-        data_path = os.path.join(path_here, "endometrial_data", "*.*")
+        data_path = os.path.join(path_here, "data_endometrial", "*.*")
         files = glob.glob(data_path) # Put all files into a list
 
         # Load the data files into dataframes in the self.data dict
@@ -47,9 +57,8 @@ class Endometrial(DataSet):
                 self.data[df.name] = df # Maps dataframe name to dataframe
             elif df_name == "somatic":
                 df = pd.read_csv(file, sep = "\t")
-                if "Tumor_Sample_Barcode" in df.columns:
-                    split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n = 1, expand = True)
-                    df["Tumor_Sample_Barcode"] = split_barcode[0]
+                split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n = 1, expand = True) # The first part of the barcode is the patient id, which we need want to make the index
+                df["Tumor_Sample_Barcode"] = split_barcode[0]
                 df = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]]
                 df = df.rename({"Tumor_Sample_Barcode":"Patient_Id","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
                 df.name = "somatic_mutation"
@@ -106,16 +115,20 @@ class Endometrial(DataSet):
         mutations_patient_renamed = mutations.rename(columns={"Patient_Id":"Patient_ID"})
         mutations_patient_indexed = mutations_patient_renamed.set_index("Patient_ID") # Set the index as the Patient_ID column, dropping the default numerical index
         sample_id_col = [] # We're going to create a Sample_ID column for the mutations dataframe
+        map_success = True
         for patient_id in mutations_patient_indexed.index:
             if patient_id in patient_id_map.index:
                 sample_id_col.append(patient_id_map[patient_id]) # Get the sample id corresponding to the patient id
             else: # If there's not a corresponding sample ID for a patient ID, print an error message and return None
-                print("Error mapping sample ids in somatic mutations dataframe. Patient_ID {} did not have corresponding Sample_ID mapped in clinical dataframe. Data loading aborted.".format(patient_id))
-                return
-        mutations_with_sample = mutations_patient_indexed.assign(Sample_ID=sample_id_col) # Add in the Sample_ID column
-        mutations_sample_indexed = mutations_with_sample.set_index("Sample_ID") # Make the Sample_ID column the index
-        mutations_sample_indexed.name = mutations.name
-        self.data["somatic_mutation"] = mutations_sample_indexed
+                print("Error mapping sample ids in somatic_mutation dataframe. Patient_ID {} did not have corresponding Sample_ID mapped in clinical dataframe. somatic_mutation dataframe not loaded.".format(patient_id))
+                map_success = False
+        if map_success:
+            mutations_with_sample = mutations_patient_indexed.assign(Sample_ID=sample_id_col) # Add in the Sample_ID column
+            mutations_sample_indexed = mutations_with_sample.set_index("Sample_ID") # Make the Sample_ID column the index
+            mutations_sample_indexed.name = mutations.name
+            self.data["somatic_mutation"] = mutations_sample_indexed
+        else:
+            del self.data["somatic_mutation"]
 
         # Drop all excluded samples from the dataset. They were excluded due to poor sample quality, etc.
         clinical = self.data["clinical"]
@@ -153,7 +166,7 @@ class Endometrial(DataSet):
 
         # Print data embargo warning
         print("\n","******PLEASE READ******")
-        warning = "WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter embargo() to open the webpage for more details."
+        warning = "WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details."
         wrapped_list = textwrap.wrap(warning)
         for line in wrapped_list:
             print(line)
