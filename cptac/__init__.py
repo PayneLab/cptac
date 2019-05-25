@@ -11,7 +11,7 @@
 
 import webbrowser
 import textwrap
-import os
+import os.path as path
 from .endometrial import Endometrial
 from .colon import Colon
 from .ovarian import Ovarian
@@ -38,7 +38,9 @@ def embargo():
 def version():
     """Return version number of cptac package."""
     version = {}
-    with open("version.py") as fp:
+    path_here = path.abspath(path.dirname(__file__))
+    version_path = path.join(path_here, "version.py")
+    with open(version_path) as fp:
         exec(fp.read(), version)
     return(version['__version__'])
 
@@ -47,4 +49,4 @@ wrapped_list = textwrap.wrap(message)
 for line in wrapped_list:
     print(line)
 
-print("******\nVersion: {}\n******".format(version())
+print("******\nVersion: {}\n******".format(version()))

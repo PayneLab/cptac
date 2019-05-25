@@ -109,7 +109,7 @@ class DataSet:
     def list_data(self):
         """Print list of loaded dataframes and dimensions."""
         print("Below are the dataframes contained in this dataset:")
-        for dataframe in self.data.values():
+        for dataframe in sorted(self.data.values()):
             print("\t", dataframe.name)
             print("\t", "\t", "Dimensions:", dataframe.shape)
 
@@ -247,8 +247,7 @@ class DataSet:
             mutation_regex = r'^.*_Mutation$' # Construct regex to find all mutation columns
             mutation_cols = [col for col in merge.columns.values if re.match(mutation_regex, col)] # Get a list of all mutation columns
             for mutation_col in mutation_cols:
-                merge.loc[(merge['Sample_Status'] == "Normal") & (pd.isnull(merge[mutation_col])), mutation_col] = [[["Wildtype_Normal"]]] # Change all NaN mutation values for Normal samples to Wildtype_Normal. Triple nested list causes .loc to insert the value as ['Wildty
-pe_Normal'], like we want it to, instead of unpacking the list.
+                merge.loc[(merge['Sample_Status'] == "Normal") & (pd.isnull(merge[mutation_col])), mutation_col] = [[["Wildtype_Normal"]]] # Change all NaN mutation values for Normal samples to Wildtype_Normal. Triple nested list causes .loc to insert the value as ['Wildtype_Normal'], like we want it to, instead of unpacking the list.
                 merge.loc[(merge['Sample_Status'] == "Tumor") & (pd.isnull(merge[mutation_col])), mutation_col] = [[["Wildtype_Tumor"]]] # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
 
             # Depending on show_location, either fill NaN values in the merged dataframe location columns with "No_mutation", or just drop the location columns altogether

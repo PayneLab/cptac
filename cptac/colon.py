@@ -12,8 +12,8 @@
 import numpy as np
 import pandas as pd
 import os
-import re
 import glob
+import textwrap
 from .dataset import DataSet
 
 class Colon(DataSet):
@@ -42,7 +42,7 @@ class Colon(DataSet):
         # Load the data into dataframes in the self.data dict
         print("Loading cptac colon data:")
         for file in files: # Loops through files variable
-            path_elements = path.split(os.sep) # Get a list of the levels of the path
+            path_elements = file.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
             file_name_split = file_name.split(".")
             df_name = file_name_split[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
@@ -174,7 +174,7 @@ class Colon(DataSet):
             df = df.rename(columns={old_index_name:'Patient_ID'}) # Rename the old index as Patient_ID
             df = df.set_index('Sample_ID') # Make the Sample_ID column the index, which also drops the default numerical index from reset_index
             df = df.sort_index()
-            df.name = df.name
+            df.name = name
             self.data[name] = df
 
         # Drop Patient_ID column from dataframes other than clinical. Keep it in clinical, so we have a mapping of Sample_ID to Patient_ID for every sample

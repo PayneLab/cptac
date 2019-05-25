@@ -41,7 +41,7 @@ class Ovarian(DataSet):
         # Load the data files into dataframes in the self.data dict
         print("Loading cptac ovarian data:")
         for file in files: 
-            path_elements = path.split(os.sep) # Get a list of all the levels of the path
+            path_elements = file.split(os.sep) # Get a list of all the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
             df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
@@ -61,10 +61,11 @@ class Ovarian(DataSet):
                 df = df.transpose()
                 c_index = df.index.values.tolist()
                 index_no_c = [id[1:] if id.startswith("C") else id for id in c_index]
+                index_no_c = pd.Index(index_no_c)
                 df = df.set_index(index_no_c) # Take C prefix off of indicies for those samples that have them (tumor samples have C, normal have N)
-                idx = df.index.values.tolist()
-                idx_to_drop = [id for id in idx if id.startswith('OV_QC')]
-                df = df.drop(idx_to_drop) # Drop all OV_QC* samples--they're quality control samples not relevant for data analysis
+                full_index = df.index.values.tolist()
+                ids_to_drop = [id for id in full_index if id.startswith('OV_QC')]
+                df = df.drop(ids_to_drop) # Drop all OV_QC* samples--they're quality control samples not relevant for data analysis
                 df.name = df_name
                 self.data[df.name] = df #maps dataframe name to dataframe
 
@@ -126,7 +127,7 @@ class Ovarian(DataSet):
 
         # Add a column, Sample_Tumor_Normal, indicating whether each sample was a tumor or normal sample. Normal samples have a Patient_ID that begins with 'N'.
         clinical_status_col = []
-        for sample in master_clinical["Patient_ID"]:
+        for sample in master_clinical.index:
             if sample[0] == 'N':
                 clinical_status_col.append("Normal")
             else:
@@ -151,7 +152,7 @@ class Ovarian(DataSet):
             df = df.reset_index() # This gives the dataframe a default numerical index and makes the old index a column, which prevents it from being dropped when we set Sample_ID as the index.
             df = df.rename(columns={old_index_name:'Patient_ID'}) # Rename the old index as Patient_ID
             df = df.set_index('Sample_ID') # Make the Sample_ID column the index
-            df.name = df.name
+            df.name = name
             self.data[name] = df
 
         # Drop the Patient_ID column (old index) from every dataframe except clinical and treatment, since only those two have patient associated data rather than just sample associated data, and so we preserve a mapping of sample ids to their original patient ids

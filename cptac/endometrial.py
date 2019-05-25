@@ -152,7 +152,7 @@ class Endometrial(DataSet):
             "transcriptomics_circular":"circular_RNA",
             "phosphoproteomics_site":"phosphoproteomics",
             "somatic_binary":"somatic_mutation_binary",}
-        for old, new in rename_dict.values():
+        for old, new in rename_dict.items():
             rename_df = self.data[old]
             rename_df.name = new
             self.data[new] = rename_df
