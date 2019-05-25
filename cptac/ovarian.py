@@ -160,6 +160,7 @@ class Ovarian(DataSet):
             if name != 'clinical' and name != "treatment":
                 df = self.data[name]
                 df = df.drop(columns="Patient_ID")
+                df.name = name
                 self.data[name] = df
 
         # Print data embargo warning

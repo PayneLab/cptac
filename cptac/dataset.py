@@ -21,6 +21,9 @@ class DataSet:
         self.data = {}
         self.definitions = {}
 
+        # Assign the gene separator for phosphoproteomics and acetylproteomics dataframes. Child class can overload if needed.
+        self._gene_separator = "-"
+
         # Assign the valid dfs lists, but make them instance variables so they're easy to overload if needed
         # These are the omics dataframes that are valid for use in the utilities functions
         self._valid_omics_dfs = [
@@ -110,7 +113,7 @@ class DataSet:
     def list_data(self):
         """Print list of loaded dataframes and dimensions."""
         print("Below are the dataframes contained in this dataset:")
-        for name in sorted(self.data.keys()):
+        for name in sorted(self.data.keys(), key=str.lower):
             df = self.data[name]
             print("\t{}\n\t\tDimensions: {}".format(df.name, df.shape))
 
@@ -325,7 +328,7 @@ class DataSet:
         df = pd.DataFrame(index=omics_df.index.copy()) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
         for gene in genes:
             if omics_df.name == 'phosphoproteomics' or omics_df.name == 'acetylproteomics':
-                col_regex = "^{}-.*$".format(gene) # Build a regex to get all columns that match the gene
+                col_regex = "^{}{}.*$".format(gene, self._gene_separator) # Build a regex to get all columns that match the gene
             else:
                 col_regex = '^{}$'.format(gene)
 

@@ -24,6 +24,9 @@ class Colon(DataSet):
         # Call the parent DataSet __init__ function, which initializes self.data and other variables we need
         super().__init__()
 
+        # Overload the gene separator for phosphoproteomics. In the colon data, it's an underscore, not a dash.
+        self._gene_separator = "_"
+
         # Print welcome message
         message = "You have loaded the cptac colon dataset. To view available dataframes, call the dataset's list_data() method. To view available functions for accessing and manipulating the dataframes, call its list_api() method."
         wrapped_list = textwrap.wrap(message)
@@ -182,4 +185,5 @@ class Colon(DataSet):
             if name != "clinical":
                 df = self.data[name]
                 df = df.drop(columns="Patient_ID")
+                df.name = name
                 self.data[name] = df
