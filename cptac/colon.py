@@ -19,9 +19,9 @@ from .dataset import DataSet
 class Colon(DataSet):
 
     def __init__(self):
-        """Load all of the endometrial dataframes as values in the self.data dict variable, with names as keys, and format them properly."""
+        """Load all of the endometrial dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
 
-        # Call the parent DataSet __init__ function, which initializes self.data and other variables we need
+        # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
         super().__init__()
 
         # Overload the gene separator for phosphoproteomics. In the colon data, it's an underscore, not a dash.
@@ -42,7 +42,7 @@ class Colon(DataSet):
         data_path = os.path.join(path_here, "data_colon", "*.*")
         files = glob.glob(data_path) # Put all files into a list
 
-        # Load the data into dataframes in the self.data dict
+        # Load the data into dataframes in the self._data dict
         print("Loading cptac colon data:")
         for file in files: # Loops through files variable
             path_elements = file.split(os.sep) # Get a list of the levels of the path
@@ -58,41 +58,44 @@ class Colon(DataSet):
                 df = df[["SampleID","Gene","Variant_Type","Protein_Change"]]
                 df = df.rename({"Variant_Type":"Mutation","Protein_Change":"Location"},axis="columns")
                 df.name = "somatic_" + df_name
-            else:
+                self._data[df.name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
+            elif df_name in ("clinical", "miRNA", "mutation_binary", "phosphoproteomics_normal", "phosphoproteomics_tumor", "proteomics_normal", "proteomics_tumor", "transcriptomics"):
                 df = pd.read_csv(file, sep="\t",index_col=0)
                 df = df.transpose()
                 df.name = df_name
-            self.data[df.name] = df # Maps dataframe name to dataframe. self.data was initialized when we called the parent class __init__()
+                self._data[df.name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
+            else:
+                print("Unrecognized file: {}.\nFile not loaded.".format(file))
 
         # Rename mutation_binary dataframe to somatic_mutation_binary
-        df = self.data["mutation_binary"]
+        df = self._data["mutation_binary"]
         df.name = "somatic_mutation_binary"
-        self.data["somatic_mutation_binary"] = df
-        del self.data["mutation_binary"]
+        self._data["somatic_mutation_binary"] = df
+        del self._data["mutation_binary"]
 
         # Separate clinical and derived molecular dataframes
-        all_clinical_data = self.data.get("clinical")
+        all_clinical_data = self._data.get("clinical")
         clinical_df = all_clinical_data.drop(columns=['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity','immuneSubtype', 'CIN', 'Integrated.Phenotype'])
         clinical_df.name = "clinical"
         derived_molecular_df = all_clinical_data[['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity', 'immuneSubtype', 'CIN', 'Integrated.Phenotype']]
         derived_molecular_df.name = "derived_molecular"
 
         # Put them in our data dictionary
-        self.data["clinical"] = clinical_df # Replaces original clinical dataframe
-        self.data["derived_molecular"] = derived_molecular_df
+        self._data["clinical"] = clinical_df # Replaces original clinical dataframe
+        self._data["derived_molecular"] = derived_molecular_df
 
         # Combine the two proteomics dataframes
-        prot_tumor = self.data.get("proteomics_tumor")
-        prot_normal = self.data.get("proteomics_normal") # Normal entries are marked with 'N' on the end of the ID
+        prot_tumor = self._data.get("proteomics_tumor")
+        prot_normal = self._data.get("proteomics_normal") # Normal entries are marked with 'N' on the end of the ID
         prot_combined = prot_tumor.append(prot_normal)
         prot_combined.name = "proteomics"
-        self.data[prot_combined.name] = prot_combined
-        del self.data["proteomics_tumor"]
-        del self.data["proteomics_normal"]
+        self._data[prot_combined.name] = prot_combined
+        del self._data["proteomics_tumor"]
+        del self._data["proteomics_normal"]
 
         # Get phosphoproteomics dataframes, so we can process and combine them
-        phos_tumor = self.data.get("phosphoproteomics_tumor")
-        phos_normal = self.data.get("phosphoproteomics_normal") # Normal entries are not marked
+        phos_tumor = self._data.get("phosphoproteomics_tumor")
+        phos_normal = self._data.get("phosphoproteomics_normal") # Normal entries are not marked
 
         # Mark entries in phosphoproteomics_normal dataframe with an N at the end of the ID, to match proteomics_normal
         phos_normal_indicies = phos_normal.index.values.tolist()
@@ -103,22 +106,23 @@ class Colon(DataSet):
         new_phos_index = pd.Index(phos_normal_indicies)
         phos_normal = phos_normal.set_index(new_phos_index)
 
-        # Combine the two phosphoproteomics dataframes into one dataframe.
+        # Combine the two phosphoproteomics dataframes into one dataframe
         phos_combined = phos_tumor.append(phos_normal)
+        phos_combined = phos_combined.sort_index(axis=1) # Put all the columns in alphabetical order
         phos_combined.name = 'phosphoproteomics'
-        self.data[phos_combined.name] = phos_combined
-        del self.data["phosphoproteomics_tumor"]
-        del self.data["phosphoproteomics_normal"]
+        self._data[phos_combined.name] = phos_combined
+        del self._data["phosphoproteomics_tumor"]
+        del self._data["phosphoproteomics_normal"]
 
         # Rename the somamtic_mutation dataframe's "SampleID" column to "PatientID", then set that as the index, to match the other dataframes
-        new_somatic = self.data["somatic_mutation"]
+        new_somatic = self._data["somatic_mutation"]
         new_somatic = new_somatic.rename(columns={"SampleID":"Patient_ID"})
         new_somatic = new_somatic.set_index("Patient_ID")
         new_somatic.name = "somatic_mutation"
-        self.data["somatic_mutation"] = new_somatic
+        self._data["somatic_mutation"] = new_somatic
 
         # Get a union of all dataframes' indicies, with duplicates removed
-        indicies = [df.index for df in self.data.values()]
+        indicies = [df.index for df in self._data.values()]
         master_index = pd.Index([])
         for index in indicies:
             master_index = master_index.union(index)
@@ -144,8 +148,8 @@ class Colon(DataSet):
 
         # Put a mapping in the clinical dataframe of all patient ids to their sample ids, including patient ids for samples not originally in the clinical dataframe. 
         master_df = pd.DataFrame(index=master_index)
-        master_clinical = self.data['clinical'].join(master_df, how='outer') # Do an outer join with the clinical dataframe, so that clinical has a row for every sample in the dataset
-        master_clinical.name = self.data["clinical"].name
+        master_clinical = self._data['clinical'].join(master_df, how='outer') # Do an outer join with the clinical dataframe, so that clinical has a row for every sample in the dataset
+        master_clinical.name = self._data["clinical"].name
 
         # Add a column to clinical, Sample_Tumor_Normal, indicating whether each sample is a tumor or normal sample. Samples with a Patient_ID ending in N are normal.
         clinical_status_col = []
@@ -157,11 +161,11 @@ class Colon(DataSet):
         master_clinical.insert(1, "Sample_Tumor_Normal", clinical_status_col)
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
-        self.data['clinical'] = master_clinical 
+        self._data['clinical'] = master_clinical 
 
         # Give the other dataframes Sample_ID indicies
-        for name in self.data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
-            df = self.data[name]
+        for name in self._data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
+            df = self._data[name]
             sample_id_column = []
             for row in df.index:
                 if row in sample_id_dict.keys():
@@ -178,12 +182,18 @@ class Colon(DataSet):
             df = df.set_index('Sample_ID') # Make the Sample_ID column the index, which also drops the default numerical index from reset_index
             df = df.sort_index()
             df.name = name
-            self.data[name] = df
+            self._data[name] = df
 
         # Drop Patient_ID column from dataframes other than clinical. Keep it in clinical, so we have a mapping of Sample_ID to Patient_ID for every sample
-        for name in self.data.keys():
+        for name in self._data.keys():
             if name != "clinical":
-                df = self.data[name]
+                df = self._data[name]
                 df = df.drop(columns="Patient_ID")
                 df.name = name
-                self.data[name] = df
+                self._data[name] = df
+
+        # Drop name of column axis for all dataframes
+        for name in self._data.keys():
+            df_rename_col_axis = self._data[name]
+            df_rename_col_axis.columns.name = None
+            self._data[name] = df_rename_col_axis

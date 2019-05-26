@@ -18,7 +18,7 @@ class DataSet:
     def __init__(self):
 
         # Initialize dataframe and definitions dicts as empty for this parent class
-        self.data = {}
+        self._data = {}
         self.definitions = {}
 
         # Assign the gene separator for phosphoproteomics and acetylproteomics dataframes. Child class can overload if needed.
@@ -92,9 +92,17 @@ class DataSet:
         """Get the phosphoproteomics_gene dataframe. The gene level phosphorylation measurement is an aggregate metric which potentially averages together individual measurements of different sites. Use get_phosphoproteomics() to view the data for individual sites."""
         return self._get_dataframe("phosphoproteomics_gene")
 
-    def get_phosphosites(self, gene):
-        """TODO: Implement"""
-        pass
+    def get_phosphosites(self, genes):
+        """Returns dataframe with all phosphosites of specified gene or list of genes.
+
+        Parameters:
+        genes (str, or list or array-like of str): gene or list of genes to use to select phosphosites. str if single, list or array-like of str if multiple.
+
+        Returns:
+        pandas DataFrame: The phosphoproteomics for the specified gene(s).
+        """
+        phosphoproteomics = self.get_phosphoproteomics()
+        return self._get_omics_cols(phosphoproteomics, genes)
 
     # Methods to get mutations dataframes
     def get_mutations(self):
@@ -113,8 +121,8 @@ class DataSet:
     def list_data(self):
         """Print list of loaded dataframes and dimensions."""
         print("Below are the dataframes contained in this dataset:")
-        for name in sorted(self.data.keys(), key=str.lower):
-            df = self.data[name]
+        for name in sorted(self._data.keys(), key=str.lower):
+            df = self._data[name]
             print("\t{}\n\t\tDimensions: {}".format(df.name, df.shape))
 
     def define(term):
@@ -131,7 +139,7 @@ class DataSet:
         else:
             print(term, "not found in definitions. Alternatively, the search(term) method can be used to perform a web search of the term provided.")
 
-    def search(term):
+    def search(self, term):
         """Search for a term in a web browser.
 
         Parameters:
@@ -283,8 +291,8 @@ class DataSet:
         Returns:
         pandas DataFrame: A copy of the desired dataframe, if it exists in this dataset.
         """
-        if name in self.data.keys():
-            df = self.data[name]
+        if name in self._data.keys():
+            df = self._data[name]
             return_df = df.copy() # We copy it, with default deep=True, so edits on their copy don't affect the master
             return_df.name = df.name
             return return_df
@@ -296,10 +304,9 @@ class DataSet:
     def _get_sample_status_map(self):
         """Get a pandas Series from the clinical dataframe, with sample ids as the index, and each sample's status (tumor or normal) as the values."""
         clinical = self.get_clinical()
-        raw_map = clinical["Proteomics_Tumor_Normal"] # TODO: Change this to work with all datasets, not just endometrial
-        parsed_map = raw_map.where(raw_map == "Tumor", other="Normal") # Replace various types of normal (Adjacent_normal, Myometrium_normal, etc.) with just "Normal"
-        parsed_map.name = "Sample_Status"
-        return parsed_map
+        status_map = clinical["Sample_Tumor_Normal"] 
+        status_map.name = "Sample_Status"
+        return status_map
 
     # Utilities helper methods
     def _get_omics_cols(self, omics_df, genes):

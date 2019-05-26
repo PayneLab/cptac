@@ -18,9 +18,9 @@ from .dataset import DataSet
 class Ovarian(DataSet):
 
     def __init__(self):
-        """Load all the ovarian dataframes as values in the self.data dict variable, with names as keys, and format them properly."""
+        """Load all the ovarian dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
 
-        # Call the parent Dataset __init__() function, which initializes self.data and other variables we need
+        # Call the parent Dataset __init__() function, which initializes self._data and other variables we need
         super().__init__()
 
         # Print welcome message
@@ -38,7 +38,7 @@ class Ovarian(DataSet):
         data_path = os.path.join(path_here, "data_ovarian", "*.*")
         files = glob.glob(data_path) # Put all the files into a list
 
-        # Load the data files into dataframes in the self.data dict
+        # Load the data files into dataframes in the self._data dict
         print("Loading cptac ovarian data:")
         for file in files: 
             path_elements = file.split(os.sep) # Get a list of all the levels of the path
@@ -67,14 +67,14 @@ class Ovarian(DataSet):
                 ids_to_drop = [id for id in full_index if id.startswith('OV_QC')]
                 df = df.drop(ids_to_drop) # Drop all OV_QC* samples--they're quality control samples not relevant for data analysis
                 df.name = df_name
-                self.data[df.name] = df #maps dataframe name to dataframe
+                self._data[df.name] = df #maps dataframe name to dataframe
 
             elif df_name == "clinical" or df_name == "treatment":
                 df = pd.read_csv(file, sep=",", index_col=0)
                 df = df.rename(columns={"Participant_ID":"Patient_ID"})
                 df = df.set_index("Patient_ID")
                 df.name = df_name
-                self.data[df.name] = df #maps dataframe name to dataframe
+                self._data[df.name] = df #maps dataframe name to dataframe
 
             elif df_name == "transcriptomics":
                 df = pd.read_csv(file, sep="\t", index_col=0)
@@ -84,7 +84,7 @@ class Ovarian(DataSet):
                 date_cols = ['1-Dec', '1-Sep', '10-Mar', '10-Sep', '11-Sep', '12-Sep', '14-Sep', '15-Sep', '2-Mar', '2-Sep', '3-Mar', '3-Sep', '4-Mar', '4-Sep', '5-Mar', '6-Mar', '6-Sep', '7-Mar', '7-Sep', '8-Mar', '8-Sep', '9-Mar', '9-Sep']
                 df = df.drop(columns=date_cols) # Drop all date values until new data is uploaded
                 df.name = df_name
-                self.data[df.name] = df #maps dataframe name to dataframe
+                self._data[df.name] = df #maps dataframe name to dataframe
 
             elif df_name == "cnv":
                 df = pd.read_csv(file, sep="\t", index_col=0)
@@ -92,7 +92,7 @@ class Ovarian(DataSet):
                 df = df.transpose()
                 df = df.sort_index()
                 df.name = "CNV"
-                self.data[df.name] = df #maps dataframe name to dataframe
+                self._data[df.name] = df #maps dataframe name to dataframe
 
             elif df_name == "somatic_38":
                 df = pd.read_csv(file, sep = "\t", index_col=0)
@@ -103,12 +103,12 @@ class Ovarian(DataSet):
                 parsed_df = parsed_df.rename(columns={"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"})
                 parsed_df = parsed_df.set_index("Patient_ID")
                 parsed_df.name = 'somatic_mutation'
-                self.data[parsed_df.name] = parsed_df #maps dataframe name to dataframe
+                self._data[parsed_df.name] = parsed_df #maps dataframe name to dataframe
             else:
-                print("Error reading ", file)
+                print("Unrecognized file: {}.\nFile not loaded.".format(file))
 
         # Get a union of all dataframes' indicies, with duplicates removed
-        indicies = [df.index for df in self.data.values()]
+        indicies = [df.index for df in self._data.values()]
         master_index = pd.Index([])
         for index in indicies:
             master_index = master_index.union(index)
@@ -122,8 +122,8 @@ class Ovarian(DataSet):
 
         # Put a mapping in the clinical dataframe of all patient ids to their sample ids, including patient ids for samples not originally in the clinical dataframe. 
         master_df = pd.DataFrame(index=master_index)
-        master_clinical = self.data['clinical'].join(master_df, how='outer') # Do an outer join with the clinical dataframe, so that clinical has a row for every sample in the dataset
-        master_clinical.name = self.data["clinical"].name
+        master_clinical = self._data['clinical'].join(master_df, how='outer') # Do an outer join with the clinical dataframe, so that clinical has a row for every sample in the dataset
+        master_clinical.name = self._data["clinical"].name
 
         # Add a column, Sample_Tumor_Normal, indicating whether each sample was a tumor or normal sample. Normal samples have a Patient_ID that begins with 'N'.
         clinical_status_col = []
@@ -133,18 +133,18 @@ class Ovarian(DataSet):
             else:
                 clinical_status_col.append("Tumor")
         master_clinical.insert(1, "Sample_Tumor_Normal", clinical_status_col)
-        self.data['clinical'] = master_clinical # Replace the clinical dataframe in the data dictionary with our new and improved version!
+        self._data['clinical'] = master_clinical # Replace the clinical dataframe in the data dictionary with our new and improved version!
 
         # Give every datafame a Sample_ID index
-        for name in self.data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
-            df = self.data[name]
+        for name in self._data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
+            df = self._data[name]
             sample_id_column = []
             for row in df.index:
                 if row in sample_id_dict.keys():
                     sample_id_column.append(sample_id_dict[row])
                 else:
                     print("Error mapping sample ids in {0} dataframe. Patient_ID {1} did not have corresponding Sample_ID mapped in clinical dataframe. {0} dataframe not loaded.".format(df.name, row))
-                    return
+                    continue
             df = df.assign(Sample_ID=sample_id_column)
             old_index_name = df.index.name
             if old_index_name is None:
@@ -153,15 +153,21 @@ class Ovarian(DataSet):
             df = df.rename(columns={old_index_name:'Patient_ID'}) # Rename the old index as Patient_ID
             df = df.set_index('Sample_ID') # Make the Sample_ID column the index
             df.name = name
-            self.data[name] = df
+            self._data[name] = df
 
         # Drop the Patient_ID column (old index) from every dataframe except clinical and treatment, since only those two have patient associated data rather than just sample associated data, and so we preserve a mapping of sample ids to their original patient ids
-        for name in self.data.keys(): 
+        for name in self._data.keys(): 
             if name != 'clinical' and name != "treatment":
-                df = self.data[name]
+                df = self._data[name]
                 df = df.drop(columns="Patient_ID")
                 df.name = name
-                self.data[name] = df
+                self._data[name] = df
+
+        # Drop name of column axis for all dataframes
+        for name in self._data.keys():
+            df_rename_col_axis = self._data[name]
+            df_rename_col_axis.columns.name = None
+            self._data[name] = df_rename_col_axis
 
         # Print data embargo warning
         print("\n******PLEASE READ******")
