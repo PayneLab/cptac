@@ -37,9 +37,9 @@ class Endometrial(DataSet):
         path_here = os.path.dirname(os.path.realpath(__file__))
         data_path = os.path.join(path_here, "data_endometrial", "*.*")
         files = glob.glob(data_path) # Put all files into a list
+        files = sorted(files, key=str.lower)
 
         # Load the data files into dataframes in the self._data dict
-        print("Loading cptac endometrial data:")
         for file in files: 
             path_elements = file.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
@@ -178,6 +178,15 @@ class Endometrial(DataSet):
             df_rename_col_axis.columns.name = None
             self._data[name] = df_rename_col_axis
 
+        # Load definitions
+        print("\nLoading definitions...")
+        definitions_path = os.path.join(path_here, "data_endometrial", "definitions.txt")
+        with open(definitions_path, "r") as definitions_file:
+            for line in definitions_file.readlines():
+                line = line.strip()
+                line = line.split("\t")
+                self._definitions[line[0]] = line[1]
+
         # Print data embargo warning
         print("\n","******PLEASE READ******")
         warning = "WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details."
@@ -193,24 +202,3 @@ class Endometrial(DataSet):
         parsed_map = raw_map.where(raw_map == "Tumor", other="Normal") # Replace various types of normal (Adjacent_normal, Myometrium_normal, etc.) with just "Normal"
         parsed_map.name = "Sample_Status"
         return parsed_map
-
-# TODO: How is the dictionary going to work? Store it in another instance variable, like the data dict?
-# And maybe give it a less confusing name...
-#    def get_dictionary():
-#        """Get a dictionary of terms for the dataset.
-#
-#        Parameters: None
-#
-#        Returns:
-#        dict: keys are terms, and values are definitions.
-#        """
-#        print("Loading Dictionary...")
-#        dictionary = {}
-#        path_here = os.path.dirname(os.path.realpath(__file__))
-#        data_directory = path_here + os.sep + "data" + os.sep
-#        with open(data_directory + "definitions.txt", "r") as dict_file:
-#            for line in dict_file.readlines():
-#                line = line.strip()
-#                line = line.split("\t")
-#                dictionary[line[0]] = line[1]
-#        return dictionary

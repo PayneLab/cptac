@@ -37,9 +37,9 @@ class Ovarian(DataSet):
         path_here = os.path.dirname(os.path.realpath(__file__)) 
         data_path = os.path.join(path_here, "data_ovarian", "*.*")
         files = glob.glob(data_path) # Put all the files into a list
+        files = sorted(files, key=str.lower)
 
         # Load the data files into dataframes in the self._data dict
-        print("Loading cptac ovarian data:")
         for file in files: 
             path_elements = file.split(os.sep) # Get a list of all the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file

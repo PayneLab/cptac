@@ -19,7 +19,7 @@ class DataSet:
 
         # Initialize dataframe and definitions dicts as empty for this parent class
         self._data = {}
-        self.definitions = {}
+        self._definitions = {}
 
         # Assign the gene separator for phosphoproteomics and acetylproteomics dataframes. Child class can overload if needed.
         self._gene_separator = "-"
@@ -125,17 +125,24 @@ class DataSet:
             df = self._data[name]
             print("\t{}\n\t\tDimensions: {}".format(df.name, df.shape))
 
-    def define(term):
-        """Define a term, if it is in the dataset's definitions.
+    def list_definitions(self):
+        """Print all terms defined in the dataset's list of definitions."""
+        if len(self._definitions.keys()) > 0:
+            for term in sorted(self._definitions.keys(), key=str.lower):
+                print(term)
+        else:
+            print("No definitions provided for this dataset.")
+
+    def define(self, term):
+        """Print the definition a term, if it is in the dataset's list of definitions.
 
         Parameters:
         term (str): term to be defined
 
-        Returns:
-        str: definition of provided term
+        Returns: None
         """
-        if term in self.definitions.keys():
-            print(self.definitions[term])
+        if term in self._definitions.keys():
+            print(self._definitions[term])
         else:
             print(term, "not found in definitions. Alternatively, the search(term) method can be used to perform a web search of the term provided.")
 
