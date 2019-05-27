@@ -21,7 +21,7 @@ class DataSet:
         self._data = {}
         self._definitions = {}
 
-        # Assign the gene separator for phosphoproteomics and acetylproteomics dataframes. Child class can overload if needed.
+        # Assign the gene separator for searching columns of phosphoproteomics and acetylproteomics dataframes. Child class can overload if needed.
         self._gene_separator = "-"
 
         # Assign the valid dfs lists, but make them instance variables so they're easy to overload if needed
@@ -159,31 +159,28 @@ class DataSet:
         webbrowser.open(url)
 
     # Utilities methods
-    def compare_omics(self, omics_df1, omics_df2, genes1=None, genes2=None):
+    def compare_omics(self, omics_df1_name, omics_df2_name, genes1=None, genes2=None):
         """Take specified column(s) from one omics dataframe, and append to specified columns(s) from another omics dataframe. Intersection (inner join) of indicies is used.
 
         Parameters:
-        omics_df1 (pandas DataFrame): First omics dataframe to select columns from.
-        omics_df2 (pandas DataFrame): Second omics dataframe to select columns from.
-        genes1 (str, or list or array-like of str, optional): Gene(s) for column(s) to select from omics_df1. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
-        genes2 (str, or list or array-like of str, optional): Gene(s) for Column(s) to select from omics_df2. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
+        omics_df1_name (str): Name of first omics dataframe to select columns from.
+        omics_df2_name (str): Name of second omics dataframe to select columns from.
+        genes1 (str, or list or array-like of str, optional): Gene(s) for column(s) to select from omics_df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
+        genes2 (str, or list or array-like of str, optional): Gene(s) for Column(s) to select from omics_df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
 
         Returns:
-        pandas DataFrame: The selected columns from omics_df1 and omics_df2, merged into one dataframe.
+        pandas DataFrame: The selected columns from the two omics dataframes, merged into one dataframe.
         """
-        # Make sure it's the right kind of dataframe
-        invalid = False
-        if (omics_df1.name not in self._valid_omics_dfs):
-            invalid = True
-            print("{} is not a valid dataframe for this function.".format(omics_df1.name))
-        if (omics_df2.name not in self._valid_omics_dfs):
-            invalid = True
-            print("{} is not a valid dataframe for this function.".format(omics_df2.name))
-        if invalid:
-            print("Valid dataframe options:")
-            for df_name in self._valid_omics_dfs:
-                print('\t' + df_name)
+        # Make sure they gave us valid dataframe names
+        df1_valid = self._is_valid_omics_df(omics_df1_name)
+        df2_valid = self._is_valid_omics_df(omics_df2_name)
+
+        if (not df1_valid) or (not df2_valid):
             return
+
+        # Get the dataframes
+        omics_df1 = self._get_dataframe(omics_df1_name)
+        omics_df2 = self._get_dataframe(omics_df2_name)
 
         # Select the columns from each dataframe
         selected1 = self._get_omics_cols(omics_df1, genes1)
@@ -195,31 +192,28 @@ class DataSet:
             df.name = "{}, with {}".format(selected1.name, selected2.name) # Give it a nice name identifying the data in it.
             return df
 
-    def append_metadata_to_omics(self, metadata_df, omics_df, metadata_cols=None, omics_genes=None):
+    def append_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None):
         """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_setup) to part or all of an omics dataframe. Intersection (inner join) of indicies is used.
 
         Parameters:
-        metadata_df (pandas DataFrame): Metadata dataframe to select columns from. Either clinical, derived_molecular, or experimental_setup.
-        omics_df (pandas DataFrame): Omics dataframe to append the metadata columns to.
+        metadata_df_name (str): Name of metadata dataframe to select columns from.
+        omics_df_name (str): Name of omics dataframe to append the metadata columns to.
         metadata_cols (str, or list or array-like of str, optional): Column(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select the entire metadata dataframe.
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select data for from the omics dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select entire dataframe.
 
         Returns:
         pandas DataFrame: The selected metadata columns, merged with all or part of the omics dataframe.
         """
-        # Make sure metadata_df is the right kind of dataframe
-        if (metadata_df.name not in self._valid_metadata_dfs):
-            print("{} is not a valid dataframe for metadata_df parameter. Valid options:".format(metadata_df.name))
-            for df_name in self._valid_metadata_dfs:
-                print('\t' + df_name)
+        # Make sure metadata_df_name and omics_df_name are valid for this function
+        metadata_df_valid = self._is_valid_metadata_df(metadata_df_name)
+        omics_df_valid = self._is_valid_omics_df(omics_df_name)
+
+        if (not metadata_df_valid) or (not omics_df_valid):
             return
 
-        # Make sure omics_df is the right kind of dataframe
-        if (omics_df.name not in self._valid_omics_dfs):
-            print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))
-            for df_name in self._valid_omics_dfs:
-                print('\t' + df_name)
-            return
+        # Get the dataframes
+        metadata_df = self._get_dataframe(metadata_df_name)
+        omics_df = self._get_dataframe(omics_df_name)
 
         # Select the columns from each dataframe
         metadata_selected = self._get_metadata_cols(metadata_df, metadata_cols)
@@ -231,11 +225,11 @@ class DataSet:
             df_joined.name = "{}, with {}".format(metadata_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
             return df_joined
 
-    def append_mutations_to_omics(self, omics_df, mutation_genes, omics_genes=None, show_location=True):
+    def append_mutations_to_omics(self, omics_df_name, mutation_genes, omics_genes=None, show_location=True):
         """Select all mutations for specified gene(s), and appends them to all or part of the given omics dataframe. Intersection (inner join) of indicies is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
-        omics_df (pandas DataFrame): Omics dataframe to append the mutation data to.
+        omics_df (str): Name of omics dataframe to append the mutation data to.
         mutation_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
         show_location (bool, optional): Whether to include the Locations column from the mutation dataframe. Defaults to True.
@@ -243,15 +237,13 @@ class DataSet:
         Returns:
         pandas DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
         """
-        # Make sure omics_df is the right kind of dataframe
-        if (omics_df.name not in self._valid_omics_dfs):
-            print("{} is not a valid dataframe for omics_df parameter. Valid options:".format(omics_df.name))
-            for df_name in self._valid_omics_dfs:
-                print('\t' + df_name)
+        # Make sure omics_df is valid for this function
+        if not (self._is_valid_omics_df(omics_df_name)):
             return
 
         # Select the data from each dataframe
         somatic_mutation = self.get_mutations()
+        omics_df = self._get_dataframe(omics_df_name)
         omics = self._get_omics_cols(omics_df, omics_genes)
         mutations = self._get_genes_mutations(somatic_mutation, mutation_genes)
 
@@ -315,7 +307,48 @@ class DataSet:
         status_map.name = "Sample_Status"
         return status_map
 
-    # Utilities helper methods
+    def _is_valid_omics_df(self, df_name):
+        """Tells you whether a dataframe with this name is valid for use as an omics dataframe in one of the utilties functions. Also prints message informing user.
+
+        Parameters:
+        df_name (str): The dataframe name to check.
+
+        Returns:
+        bool: Indicates whether the dataframe of that name would be valid for use as an omics dataframe in a utilities function.
+        """
+        if not isinstance(df_name, str): # Check that they passed a str, since utilities functions used to directly accept dataframes
+            print("Please pass a str for omics dataframe name parameter. You passed a {}".format(type(df_name)))
+            return False
+        if (df_name not in self._valid_omics_dfs):
+            print("{} is not a valid omics dataframe for this function. Valid dataframe options:".format(df_name))
+            for valid_name in self._valid_omics_dfs:
+                if valid_name in self._data.keys(): # Only print it if it's included in this dataset
+                    print('\t' + valid_name)
+            return False
+        else:
+            return True
+
+    def _is_valid_metadata_df(self, df_name):
+        """Tells you whether a dataframe with this name is valid for use as a metadata dataframe in one of the utilties functions. Also prints message informing user.
+
+        Parameters:
+        df_name (str): The dataframe name to check.
+
+        Returns:
+        bool: Indicates whether the dataframe of that name would be valid for use as a metadata dataframe in a utilities function.
+        """
+        if not isinstance(df_name, str): # Check that they passed a str, since utilities functions used to directly accept dataframes
+            print("Please pass a str for metadata dataframe name parameter. You passed a {}".format(type(df_name)))
+            return False
+        if (df_name not in self._valid_metadata_dfs):
+            print("{} is not a valid metadata dataframe for this function. Valid dataframe options:".format(df_name))
+            for valid_name in self._valid_metadata_dfs:
+                if valid_name in self._data.keys(): # Only print it if it's included in this dataset
+                    print('\t' + valid_name)
+            return False
+        else:
+            return True
+
     def _get_omics_cols(self, omics_df, genes):
         """Based on a single gene, or a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
 

@@ -108,6 +108,7 @@ class Colon(DataSet):
 
         # Combine the two phosphoproteomics dataframes into one dataframe
         phos_combined = phos_tumor.append(phos_normal)
+        phos_combined = phos_combined.rename(columns=lambda x: x.split(":")[0]) # Drop everything after ":" in column names--unneeded additional identifiers
         phos_combined = phos_combined.sort_index(axis=1) # Put all the columns in alphabetical order
         phos_combined.name = 'phosphoproteomics'
         self._data[phos_combined.name] = phos_combined
