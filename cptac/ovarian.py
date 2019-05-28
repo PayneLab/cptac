@@ -104,6 +104,8 @@ class Ovarian(DataSet):
                 parsed_df = parsed_df.set_index("Patient_ID")
                 parsed_df.name = 'somatic_mutation'
                 self._data[parsed_df.name] = parsed_df #maps dataframe name to dataframe
+            elif df_name == "definitions":
+                pass # We'll load the definiton separately
             else:
                 print("Unrecognized file: {}.\nFile not loaded.".format(file))
 
@@ -168,6 +170,14 @@ class Ovarian(DataSet):
             df_rename_col_axis = self._data[name]
             df_rename_col_axis.columns.name = None
             self._data[name] = df_rename_col_axis
+
+        # Load definitions
+        definitions_path = os.path.join(path_here, "data_ovarian", "definitions.txt")
+        with open(definitions_path, "r", errors="ignore") as definitions_file:
+            for line in definitions_file.readlines():
+                line = line.strip()
+                line = line.split("\t")
+                self._definitions[line[0]] = line[1]
 
         # Print data embargo warning
         print("\n******PLEASE READ******")

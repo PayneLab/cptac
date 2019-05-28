@@ -144,7 +144,7 @@ class DataSet:
         if term in self._definitions.keys():
             print(self._definitions[term])
         else:
-            print("{} not found in definitions. Alternatively, the search(term) method can be used to perform a web search of the term provided.".format(term))
+            print("{} not found in definitions. Check capitalization. Alternatively, the dataset's search(term) method can be used to perform a web search of the term provided.".format(term))
 
     def search(self, term):
         """Search for a term in a web browser.

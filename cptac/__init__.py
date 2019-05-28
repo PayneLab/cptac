@@ -49,4 +49,4 @@ wrapped_list = textwrap.wrap(message)
 for line in wrapped_list:
     print(line)
 
-print("******\nVersion: {}\n******".format(version()))
+print("\n******\nVersion: {}\n******".format(version()))

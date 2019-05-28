@@ -50,8 +50,8 @@ class Endometrial(DataSet):
             print("Loading {} data...".format(df_name))
             if df_name == "clinical":
                 #temp fix for reading error on clinical_v2:
-                file = open(file, "r", errors="ignore")
-                df = pd.read_csv(file, sep="\t", index_col=0)
+                with open(file, "r", errors="ignore") as clinical_file:
+                    df = pd.read_csv(clinical_file, sep="\t", index_col=0)
                 df = df.sort_index()
                 df.name = df_name
                 self._data[df.name] = df # Maps dataframe name to dataframe
@@ -63,14 +63,14 @@ class Endometrial(DataSet):
                 df = df.rename({"Tumor_Sample_Barcode":"Patient_Id","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
                 df.name = "somatic_mutation"
                 self._data[df.name] = df # Maps dataframe name to dataframe
-            elif df_name == "definitions":
-                pass # We'll load the defintions separately
             elif df_name in ("acetylproteomics", "CNA", "miRNA", "phosphoproteomics_gene", "phosphoproteomics_site", "proteomics", "somatic_binary", "transcriptomics_circular", "transcriptomics_linear"):
                 df = pd.read_csv(file, sep="\t", index_col=0)
                 df = df.transpose()
                 df = df.sort_index()
                 df.name = df_name
                 self._data[df.name] = df # Maps dataframe name to dataframe
+            elif df_name == "definitions":
+                pass # We'll load the defintions separately
             else:
                 print("Unrecognized file: {}.\nFile not loaded.".format(file))
 
@@ -179,7 +179,6 @@ class Endometrial(DataSet):
             self._data[name] = df_rename_col_axis
 
         # Load definitions
-        print("\nLoading definitions...")
         definitions_path = os.path.join(path_here, "data_endometrial", "definitions.txt")
         with open(definitions_path, "r") as definitions_file:
             for line in definitions_file.readlines():
