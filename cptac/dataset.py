@@ -320,7 +320,7 @@ class DataSet:
             print("Please pass a str for omics dataframe name parameter. You passed a {}".format(type(df_name)))
             return False
         if (df_name not in self._valid_omics_dfs):
-            print("{} is not a valid omics dataframe for this function. Valid dataframe options:".format(df_name))
+            print("{} is not a valid omics dataframe for this function. Valid dataframe options in this dataset:".format(df_name))
             for valid_name in self._valid_omics_dfs:
                 if valid_name in self._data.keys(): # Only print it if it's included in this dataset
                     print('\t' + valid_name)
@@ -341,7 +341,7 @@ class DataSet:
             print("Please pass a str for metadata dataframe name parameter. You passed a {}".format(type(df_name)))
             return False
         if (df_name not in self._valid_metadata_dfs):
-            print("{} is not a valid metadata dataframe for this function. Valid dataframe options:".format(df_name))
+            print("{} is not a valid metadata dataframe for this function. Valid dataframe options in this dataset:".format(df_name))
             for valid_name in self._valid_metadata_dfs:
                 if valid_name in self._data.keys(): # Only print it if it's included in this dataset
                     print('\t' + valid_name)

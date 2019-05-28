@@ -24,7 +24,7 @@ class Colon(DataSet):
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
         super().__init__()
 
-        # Overload the gene separator for phosphoproteomics. In the colon data, it's an underscore, not a dash.
+        # Overload the gene separator for column names in the phosphoproteomics dataframe. In the colon data, it's an underscore, not a dash like most datasets.
         self._gene_separator = "_"
 
         # Print welcome message
