@@ -1,4 +1,2 @@
 include README.md
 include cptac/data_endometrial/*
-include cptac/data_ovarian/*
-include cptac/data_colon/*

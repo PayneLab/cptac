@@ -13,16 +13,13 @@ import webbrowser
 import textwrap
 import os.path as path
 from .endometrial import Endometrial
-from .colon import Colon
-from .ovarian import Ovarian
 
 def list_data():
     """List all available datasets."""
     print("Available datasets:")
     datasets = [
-        "Colon",
         "Endometrial",
-        "Ovarian",]
+        ]
     for dataset in sorted(datasets):
         print("\t" + dataset)
 
