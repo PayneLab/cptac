@@ -11,14 +11,20 @@
 
 import webbrowser
 import textwrap
-import os
+import os.path as path
+from .endometrial import Endometrial
+from .colon import Colon
+from .ovarian import Ovarian
 
 def list_data():
     """List all available datasets."""
     print("Available datasets:")
-    print("endometrial")
-    print("ovarian")
-    print("colon")
+    datasets = [
+        "Colon",
+        "Endometrial",
+        "Ovarian",]
+    for dataset in sorted(datasets):
+        print("\t" + dataset)
 
 def list_api():
     """Print docstrings for all accessible functions."""
@@ -30,17 +36,17 @@ def embargo():
     webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
 
 def version():
-    """Print version number of cptac package."""
+    """Return version number of cptac package."""
     version = {}
-    with open(dir_path + os.sep + "version.py") as fp:
-    	exec(fp.read(), version)
+    path_here = path.abspath(path.dirname(__file__))
+    version_path = path.join(path_here, "version.py")
+    with open(version_path) as fp:
+        exec(fp.read(), version)
     return(version['__version__'])
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-message = "Welcome to the cptac data service package. Available datasets may be viewed using cptac.list_data(). In order to access a specific data set, import a cptac subfolder using either \'import cptac.dataset\' or \'from cptac import dataset\'.\n"
+message = "Welcome to the cptac data service package. To view available datasets, enter cptac.list_data(). To access a specific data set, load the dataset and assign it to a variable using 'cptac.NameOfDataset()', e.g. 'en = cptac.Endometrial()'\n"
 wrapped_list = textwrap.wrap(message)
 for line in wrapped_list:
     print(line)
-print("******")
-print("Version:",version())
-print("******")
+
+print("******\nVersion: {}\n******".format(version()))

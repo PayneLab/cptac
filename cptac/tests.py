@@ -11,8 +11,7 @@
 
 import pandas as pd
 import numpy as np
-import cptac.endometrial as en
-from utilities import Utilities
+import cptac
 
 def print_test_result(PASS):
     """Prints the result of a test, based on a bool.
@@ -253,7 +252,7 @@ def check_mutation_columns(mutations, merged_df, genes, show_location=True):
     mutation_status_col = "Mutation_Status"
 
     # Get a map of sample IDs to sample statuses, so we can check the Sample_Status column
-    sample_status_map = en.get_sample_status_map()
+    sample_status_map = en._get_sample_status_map()
 
     if isinstance(genes, str):
         genes = [genes]
@@ -465,9 +464,9 @@ def test_get_CNA():
     df = en.get_CNA()
     name = "CNA"
     dimensions = (95, 28057)
-    headers = ['MFSD14A', 'SASS6', 'TRMT13', 'LRRC39', 'DBT', 'RTCA-AS1', 'RTCA', 'MIR553', 'UBE4B', 'CDC14A', 'TSPY8', 'FAM197Y2', 'FAM197Y4', 'FAM197Y5', 'FAM197Y7', 'FAM197Y8', 'FAM197Y6', 'FAM197Y3', 'RBMY3AP', 'TTTY22']
+    headers = ['A1BG', 'A1BG-AS1', 'A1CF', 'A2M', 'A2M-AS1', 'A2ML1', 'A2MP1', 'A3GALT2', 'A4GALT', 'A4GNT', 'ZWILCH', 'ZWINT', 'ZXDA', 'ZXDB', 'ZXDC', 'ZYG11A', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3']
     test_coord = ((12, 27865), (60, 8), (94, 15439))
-    test_vals = (-0.07, 0.01, 0.03)
+    test_vals = (0.11, 0.01, -0.01)
 
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
@@ -558,12 +557,16 @@ def test_compare_omics_source_preservation():
     prot = en.get_proteomics()
     acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure compare_omics can grab all those values.
 
+    # Set the names
+    prot_name = "proteomics"
+    acet_name = "acetylproteomics"
+
     # Copy the source dataframes so we can make sure later on that compare_omics doesn't alter them.
     prot_copy = prot.copy()
     acet_copy = acet.copy()
 
     # Call compare_omics on the dataframes, and make sure it doesn't return None.
-    compared = en.compare_omics(prot, acet)
+    compared = en.compare_omics(prot_name, acet_name)
     if compared is None:
         print('compare_omics returned None.')
         PASS = False
@@ -589,8 +592,12 @@ def test_compare_omics_default_parameters():
     prot = en.get_proteomics()
     acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure compare_omics can grab all those values.
 
+    # Set the names
+    prot_name = "proteomics"
+    acet_name = "acetylproteomics"
+
     # Run the function, make sure it returned properly
-    compared = en.compare_omics(prot, acet) 
+    compared = en.compare_omics(prot_name, acet_name) 
     if not check_returned_is_df(compared):
         PASS = False
         print_test_result(PASS)
@@ -628,10 +635,14 @@ def test_compare_omics_one_gene():
     prot = en.get_proteomics()
     acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure compare_omics can grab all those values.
 
+    # Set the names
+    prot_name = "proteomics"
+    acet_name = "acetylproteomics"
+
     # Run the function, make sure it returned properly
     prot_gene = 'TP53'
     acet_gene = 'A2M'
-    compared = en.compare_omics(prot, acet, prot_gene, acet_gene) 
+    compared = en.compare_omics(prot_name, acet_name, prot_gene, acet_gene) 
     if not check_returned_is_df(compared):
         PASS = False
         print_test_result(PASS)
@@ -680,10 +691,14 @@ def test_compare_omics_multiple_genes():
     prot = en.get_proteomics()
     acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure compare_omics can grab all those values.
 
+    # Set the names
+    prot_name = "proteomics"
+    acet_name = "acetylproteomics"
+
     # Run the function, make sure it returned properly
     prot_genes = ['A4GALT', 'TP53', 'ZSCAN30']
     acet_genes = ['AAGAB', 'AACS', 'ZW10', 'ZYX']
-    compared = en.compare_omics(prot, acet, prot_genes, acet_genes) 
+    compared = en.compare_omics(prot_name, acet_name, prot_genes, acet_genes) 
     if not check_returned_is_df(compared):
         PASS = False
         print_test_result(PASS)
@@ -729,12 +744,12 @@ def test_compare_omics_all_dfs():
     PASS = True
 
     # Load our dataframes to test, and set our genes. We call individual parameters, to make sure the columns are formatted properly.
-    acet = en.get_acetylproteomics()
-    CNA = en.get_CNA()
-    phosg = en.get_phosphoproteomics_gene()
-    phoss = en.get_phosphoproteomics()
-    prot = en.get_proteomics()
-    tran = en.get_transcriptomics()
+    acet = "acetylproteomics"
+    CNA = "CNA"
+    phosg = "phosphoproteomics_gene"
+    phoss = "phosphoproteomics"
+    prot = "proteomics"
+    tran = "transcriptomics"
     gene1 = 'TP53'
     gene2 = 'AAGAB'
 
@@ -767,8 +782,13 @@ def test_compare_omics_invalid_dfs():
     clin = en.get_clinical()
     tran_cir = en.get_circular_RNA() # Although circular_RNA is an omics dataframe, it's of the wrong format to work with compare_omics
 
+    # Set the names
+    prot_name = "proteomics"
+    clin_name = "clinical"
+    tran_cir_name = "circular_RNA"
+
     # Test with one valid dataframe and one invalid one
-    comp = en.compare_omics(prot, tran_cir)
+    comp = en.compare_omics(prot_name, tran_cir_name)
     if comp is not None:
         print("compare_omics should have returned None when passed the {} dataframe, but instead returned a {}".format(tran_cir.name, type(comp)))
         PASS = False
@@ -776,7 +796,7 @@ def test_compare_omics_invalid_dfs():
         print("(NOTE: The invalid dataframe message above was expected.)")
 
     # Test with two invalid dataframes
-    comp = en.compare_omics(clin, tran_cir)
+    comp = en.compare_omics(clin_name, tran_cir_name)
     if comp is not None:
         print("compare_omics should have returned None when passed the {} and {} dataframes, but instead returned a {}".format(clin.name, tran_cir.name, type(comp)))
         PASS = False
@@ -795,10 +815,14 @@ def test_compare_omics_one_invalid_key():
     prot = en.get_proteomics()
     acet = en.get_acetylproteomics()
 
+    # Set the names
+    prot_name = "proteomics"
+    acet_name = "acetylproteomics"
+
     # Run the function, make sure it returned properly
     invalid = 'gobbledegook'
     acet_valid = 'AACS' 
-    compared = en.compare_omics(prot, acet, invalid, acet_valid)
+    compared = en.compare_omics(prot_name, acet_name, invalid, acet_valid)
     if not check_returned_is_df(compared):
         PASS = False
         print_test_result(PASS)
@@ -847,9 +871,13 @@ def test_compare_omics_both_invalid_keys():
     prot = en.get_proteomics()
     acet = en.get_acetylproteomics()
 
+    # Set the names
+    prot_name = "proteomics"
+    acet_name = "acetylproteomics"
+
     # Run the function, make sure it returned properly
     invalid = 'gobbledegook'
-    compared = en.compare_omics(prot, acet, invalid, invalid)
+    compared = en.compare_omics(prot_name, acet_name, invalid, invalid)
     if not check_returned_is_df(compared):
         PASS = False
         print_test_result(PASS)
@@ -885,20 +913,23 @@ def test_compare_omics_one_list_with_invalid_key():
     print("Running test_compare_omics_one_list_with_invalid_key...")
     PASS = True
 
-    # Load dataframes to test with, and set keys to use
+    # Load dataframes to test with
     prot = en.get_proteomics()
     acet = en.get_acetylproteomics()
 
-    # Run the function, make sure it returned properly
-    invalid = "gobbledegook"
+    # Set the names
+    prot_name = "proteomics"
+    acet_name = "acetylproteomics"
 
+    # Set the keys
+    invalid = "gobbledegook"
     prot_valid_list = ['A4GALT', 'TP53', 'ZSCAN30']
     prot_invalid_list = prot_valid_list.copy()
     prot_invalid_list.append(invalid)
-
     acet_valid_list = ['AAGAB', 'AACS', 'ZW10', 'ZYX']
     
-    compared = en.compare_omics(prot, acet, prot_invalid_list, acet_valid_list)
+    # Run the function, make sure it returned properly
+    compared = en.compare_omics(prot_name, acet_name, prot_invalid_list, acet_valid_list)
     if not check_returned_is_df(compared):
         PASS = False
         print_test_result(PASS)
@@ -954,22 +985,25 @@ def test_compare_omics_both_list_with_invalid_key():
     print("Running test_compare_omics_both_list_with_invalid_key...")
     PASS = True
 
-    # Load dataframes to test with, and set keys to use
+    # Load dataframes to test with
     prot = en.get_proteomics()
     acet = en.get_acetylproteomics()
 
-    # Run the function, make sure it returned properly
-    invalid = "gobbledegook"
+    # Set the names
+    prot_name = "proteomics"
+    acet_name = "acetylproteomics"
 
+    # Set the keys
+    invalid = "gobbledegook"
     prot_valid_list = ['A4GALT', 'TP53', 'ZSCAN30']
     prot_invalid_list = prot_valid_list.copy()
     prot_invalid_list.append(invalid)
-
     acet_valid_list = ['AAGAB', 'AACS', 'ZW10', 'ZYX']
     acet_invalid_list = acet_valid_list.copy()
     acet_invalid_list.append(invalid)
 
-    compared = en.compare_omics(prot, acet, prot_invalid_list, acet_invalid_list)
+    # Run the function, make sure it returned properly
+    compared = en.compare_omics(prot_name, acet_name, prot_invalid_list, acet_invalid_list)
     if not check_returned_is_df(compared):
         PASS = False
         print_test_result(PASS)
@@ -1029,6 +1063,10 @@ def test_compare_omics_invalid_key_types():
     prot = en.get_proteomics()
     acet = en.get_acetylproteomics()
 
+    # Set the names
+    prot_name = "proteomics"
+    acet_name = "acetylproteomics"
+
     # Set our keys to use
     prot_valid = 'TP53'
     acet_valid = 'AACS'
@@ -1036,7 +1074,7 @@ def test_compare_omics_invalid_key_types():
     prot_valid_list = ['TP53', 'AURKA', 'PIK3R1']
 
     # Test a key of type int
-    comp = en.compare_omics(prot, acet, prot_valid, int_key)
+    comp = en.compare_omics(prot_name, acet_name, prot_valid, int_key)
     if comp is not None:
         print("compare_omics should have returned None when passed a key of type int, but instead returned a {}".format(type(comp)))
         PASS = False
@@ -1044,7 +1082,7 @@ def test_compare_omics_invalid_key_types():
         print("(NOTE: The invalid key message above was expected.)")
 
     # Test two keys of type int
-    comp = en.compare_omics(prot, acet, int_key, int_key)
+    comp = en.compare_omics(prot_name, acet_name, int_key, int_key)
     if comp is not None:
         print("compare_omics should have returned None when passed two keys of type int, but instead returned a {}".format(type(comp)))
         PASS = False
@@ -1062,6 +1100,7 @@ def test_append_mutations_source_preservation():
     # Load the source dataframes, set our variables
     mut = en.get_mutations()
     acet = en.get_acetylproteomics()
+    acet_name = "acetylproteomics"
     mut_gene = 'TP53'
     mut_genes = ['TP53', 'PIK3R1']
     acet_gene = 'AAGAB'
@@ -1072,13 +1111,13 @@ def test_append_mutations_source_preservation():
     acet_copy = acet.copy()
 
     # Call append_mutations_to_omics a bunch of times
-    en.append_mutations_to_omics(acet, mut_gene)
-    en.append_mutations_to_omics(acet, mut_genes)
-    en.append_mutations_to_omics(acet, mut_gene, acet_gene)
-    en.append_mutations_to_omics(acet, mut_gene, acet_genes)
-    en.append_mutations_to_omics(acet, mut_genes, acet_gene)
-    en.append_mutations_to_omics(acet, mut_genes, acet_genes)
-    en.append_mutations_to_omics(acet, mut_genes, acet_genes, show_location=False)
+    en.append_mutations_to_omics(acet_name, mut_gene)
+    en.append_mutations_to_omics(acet_name, mut_genes)
+    en.append_mutations_to_omics(acet_name, mut_gene, acet_gene)
+    en.append_mutations_to_omics(acet_name, mut_gene, acet_genes)
+    en.append_mutations_to_omics(acet_name, mut_genes, acet_gene)
+    en.append_mutations_to_omics(acet_name, mut_genes, acet_genes)
+    en.append_mutations_to_omics(acet_name, mut_genes, acet_genes, show_location=False)
 
     # Check that the source dataframes weren't changed
     if not mut.equals(mut_copy):
@@ -1099,11 +1138,12 @@ def test_append_mutations_one_mut_one_omics():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
+    phos_name = "phosphoproteomics"
     phos_gene = 'AAGAB'
     mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_gene)
+    appended = en.append_mutations_to_omics(phos_name, mut_gene, omics_genes=phos_gene)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1144,11 +1184,12 @@ def test_append_mutations_one_mut_three_omics():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
+    phos_name = "phosphoproteomics"
     phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
     mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_genes)
+    appended = en.append_mutations_to_omics(phos_name, mut_gene, omics_genes=phos_genes)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1189,10 +1230,11 @@ def test_append_mutations_one_mut_all_omics():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
+    phos_name = "phosphoproteomics"
     mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_gene)
+    appended = en.append_mutations_to_omics(phos_name, mut_gene)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1228,11 +1270,12 @@ def test_append_mutations_three_mut_one_omics():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
+    phos_name = "phosphoproteomics"
     phos_gene = 'AAGAB'
     mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_genes, omics_genes=phos_gene)
+    appended = en.append_mutations_to_omics(phos_name, mut_genes, omics_genes=phos_gene)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1273,11 +1316,12 @@ def test_append_mutations_three_mut_three_omics():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
+    phos_name = "phosphoproteomics"
     phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
     mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_genes, omics_genes=phos_genes)
+    appended = en.append_mutations_to_omics(phos_name, mut_genes, omics_genes=phos_genes)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1318,10 +1362,11 @@ def test_append_mutations_three_mut_all_omics():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
+    phos_name = "phosphoproteomics"
     mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_genes)
+    appended = en.append_mutations_to_omics(phos_name, mut_genes)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1357,11 +1402,12 @@ def test_append_mutations_one_mut_one_omics_no_location():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
+    phos_name = "phosphoproteomics"
     phos_gene = 'AAGAB'
     mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_gene, show_location=False)
+    appended = en.append_mutations_to_omics(phos_name, mut_gene, omics_genes=phos_gene, show_location=False)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1402,11 +1448,12 @@ def test_append_mutations_one_mut_three_omics_no_location():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
+    phos_name = "phosphoproteomics"
     phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
     mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_gene, omics_genes=phos_genes, show_location=False)
+    appended = en.append_mutations_to_omics(phos_name, mut_gene, omics_genes=phos_genes, show_location=False)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1447,10 +1494,11 @@ def test_append_mutations_one_mut_all_omics_no_location():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
+    phos_name = "phosphoproteomics"
     mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_gene, show_location=False)
+    appended = en.append_mutations_to_omics(phos_name, mut_gene, show_location=False)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1486,11 +1534,12 @@ def test_append_mutations_three_mut_one_omics_no_location():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
+    phos_name = "phosphoproteomics"
     phos_gene = 'AAGAB'
     mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_genes, omics_genes=phos_gene, show_location=False)
+    appended = en.append_mutations_to_omics(phos_name, mut_genes, omics_genes=phos_gene, show_location=False)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1531,11 +1580,12 @@ def test_append_mutations_three_mut_three_omics_no_location():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
+    phos_name = "phosphoproteomics"
     phos_genes = ['AAGAB', 'AACS', 'ZZZ3']
     mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_genes, omics_genes=phos_genes, show_location=False)
+    appended = en.append_mutations_to_omics(phos_name, mut_genes, omics_genes=phos_genes, show_location=False)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1576,10 +1626,11 @@ def test_append_mutations_three_mut_all_omics_no_location():
 
     # Load the source dataframe and set our keys
     phos = en.get_phosphoproteomics()
+    phos_name = "phosphoproteomics"
     mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos, mut_genes, show_location=False)
+    appended = en.append_mutations_to_omics(phos_name, mut_genes, show_location=False)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1615,11 +1666,12 @@ def test_append_mutations_invalid_key():
 
     # Load our dataframe to test with, and set our keys to use
     acet = en.get_acetylproteomics()
+    acet_name = "acetylproteomics"
     invalid = 'lorem ipsum'
     invalid_list = ['PIK3R1', 'TAF1', 'GP6', 'lorem ipsum']
 
     # Test one invalid key
-    appended = en.append_mutations_to_omics(acet, invalid)
+    appended = en.append_mutations_to_omics(acet_name, invalid)
     if appended is not None:
         print("append_mutations_to_omics should have returned None when passed an invalid key, but instead returned a {}".format(type(appended)))
         PASS = False
@@ -1627,7 +1679,7 @@ def test_append_mutations_invalid_key():
         print("(NOTE: The invalid key message above was expected.)")
 
     # Test one invalid key in a list of valid keys
-    appended = en.append_mutations_to_omics(acet, invalid_list)
+    appended = en.append_mutations_to_omics(acet_name, invalid_list)
     if appended is not None:
         print("append_mutations_to_omics should have returned None when passed a list of valid keys containing one invalid key, but instead returned a {}".format(type(appended)))
         PASS = False
@@ -1643,12 +1695,12 @@ def test_append_mutations_invalid_key_types():
     PASS = True
 
     # Load our dataframe to test with, and set our keys to use
-    prot = en.get_proteomics()
+    prot_name = "proteomics"
     int_key = 44
     dict_key = {0:"TP53", 1:"PIK3R1", 2:"AURKA"}
 
     # Test a key of type int
-    appended = en.append_mutations_to_omics(acet, int_key)
+    appended = en.append_mutations_to_omics(prot_name, int_key)
     if appended is not None:
         print("append_mutations_to_omics should have returned None when passed a key of invalid type int, but instead returned a {}".format(type(appended)))
         PASS = False
@@ -1656,7 +1708,7 @@ def test_append_mutations_invalid_key_types():
         print("(NOTE: The invalid key message above was expected.)")
 
     # Test a key of type dict
-    appended = en.append_mutations_to_omics(acet, dict_key)
+    appended = en.append_mutations_to_omics(prot_name, dict_key)
     if appended is not None:
         print("append_mutations_to_omics should have returned None when passed a key of invalid type dict, but instead returned a {}".format(type(appended)))
         PASS = False
@@ -1676,6 +1728,10 @@ def test_append_metadata_source_preservation():
     derived_mol = en.get_derived_molecular()
     exp_setup = en.get_experimental_setup()
     phos = en.get_phosphoproteomics()
+    clin_name = "clinical"
+    derived_mol_name = "derived_molecular"
+    exp_setup_name = "experimental_setup"
+    phos_name = "phosphoproteomics"
 
     clin_col = "Country"
     clin_cols = ["Country", "tumor_Stage-Pathological", "LVSI"]
@@ -1693,35 +1749,35 @@ def test_append_metadata_source_preservation():
     phos_copy = phos.copy()
 
     # Call append_metadata_to_omics a bunch of times
-    en.append_metadata_to_omics(clin, phos)
-    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_col)
-    en.append_metadata_to_omics(clin, phos, omics_genes=phos_col)
-    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_col, omics_genes=phos_col)
-    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_cols)
-    en.append_metadata_to_omics(clin, phos, omics_genes=phos_cols)
-    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_cols, omics_genes=phos_col)
-    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_col, omics_genes=phos_cols)
-    en.append_metadata_to_omics(clin, phos, metadata_cols=clin_cols, omics_genes=phos_cols)
+    en.append_metadata_to_omics(clin_name, phos_name)
+    en.append_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_col)
+    en.append_metadata_to_omics(clin_name, phos_name, omics_genes=phos_col)
+    en.append_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_col, omics_genes=phos_col)
+    en.append_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_cols)
+    en.append_metadata_to_omics(clin_name, phos_name, omics_genes=phos_cols)
+    en.append_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_cols, omics_genes=phos_col)
+    en.append_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_col, omics_genes=phos_cols)
+    en.append_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_cols, omics_genes=phos_cols)
 
-    en.append_metadata_to_omics(derived_mol, phos)
-    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_col)
-    en.append_metadata_to_omics(derived_mol, phos, omics_genes=phos_col)
-    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_col, omics_genes=phos_col)
-    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_cols)
-    en.append_metadata_to_omics(derived_mol, phos, omics_genes=phos_cols)
-    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_cols, omics_genes=phos_col)
-    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_col, omics_genes=phos_cols)
-    en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_cols, omics_genes=phos_cols)
+    en.append_metadata_to_omics(derived_mol_name, phos_name)
+    en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col)
+    en.append_metadata_to_omics(derived_mol_name, phos_name, omics_genes=phos_col)
+    en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col, omics_genes=phos_col)
+    en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols)
+    en.append_metadata_to_omics(derived_mol_name, phos_name, omics_genes=phos_cols)
+    en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols, omics_genes=phos_col)
+    en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col, omics_genes=phos_cols)
+    en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols, omics_genes=phos_cols)
 
-    en.append_metadata_to_omics(exp_setup, phos)
-    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_col)
-    en.append_metadata_to_omics(exp_setup, phos, omics_genes=phos_col)
-    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_col, omics_genes=phos_col)
-    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_cols)
-    en.append_metadata_to_omics(exp_setup, phos, omics_genes=phos_cols)
-    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_cols, omics_genes=phos_col)
-    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_col, omics_genes=phos_cols)
-    en.append_metadata_to_omics(exp_setup, phos, metadata_cols=exp_setup_cols, omics_genes=phos_cols)
+    en.append_metadata_to_omics(exp_setup_name, phos_name)
+    en.append_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_col)
+    en.append_metadata_to_omics(exp_setup_name, phos_name, omics_genes=phos_col)
+    en.append_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_col, omics_genes=phos_col)
+    en.append_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_cols)
+    en.append_metadata_to_omics(exp_setup_name, phos_name, omics_genes=phos_cols)
+    en.append_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_cols, omics_genes=phos_col)
+    en.append_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_col, omics_genes=phos_cols)
+    en.append_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_cols, omics_genes=phos_cols)
 
     # Check that the source dataframes weren't changed
     if not clin.equals(clin_copy):
@@ -1753,10 +1809,14 @@ def test_append_metadata_one_meta_one_omics():
     derived_mol = en.get_derived_molecular()
     phos = en.get_phosphoproteomics()
 
+    # Set the names
+    derived_mol_name = "derived_molecular"
+    phos_name = "phosphoproteomics"
+
     # Run the function, make sure it returned properly
     derived_mol_col = "Purity_Stroma"
     phos_gene = "USP36"
-    appended = en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_col, omics_genes=phos_gene)
+    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col, omics_genes=phos_gene)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1799,10 +1859,14 @@ def test_append_metadata_one_meta_three_omics():
     derived_mol = en.get_derived_molecular()
     phos = en.get_phosphoproteomics()
 
+    # Set the names
+    derived_mol_name = "derived_molecular"
+    phos_name = "phosphoproteomics"
+
     # Run the function, make sure it returned properly
     derived_mol_col = "Purity_Stroma"
     phos_genes = ["USP36", "TMEM209", "STXBP5"]
-    appended = en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_col, omics_genes=phos_genes)
+    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col, omics_genes=phos_genes)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1845,9 +1909,13 @@ def test_append_metadata_one_meta_all_omics():
     derived_mol = en.get_derived_molecular()
     phos = en.get_phosphoproteomics()
 
+    # Set the names
+    derived_mol_name = "derived_molecular"
+    phos_name = "phosphoproteomics"
+
     # Run the function, make sure it returned properly
     derived_mol_col = "Purity_Stroma"
-    appended = en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_col)
+    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1885,10 +1953,14 @@ def test_append_metadata_three_meta_one_omics():
     derived_mol = en.get_derived_molecular()
     phos = en.get_phosphoproteomics()
 
+    # Set the names
+    derived_mol_name = "derived_molecular"
+    phos_name = "phosphoproteomics"
+
     # Run the function, make sure it returned properly
     derived_mol_cols = ["Purity_Stroma", "POLE_subtype", "CIBERSORT_T _cells _CD4 _memory _resting"]
     phos_gene = "USP36"
-    appended = en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_cols, omics_genes=phos_gene)
+    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols, omics_genes=phos_gene)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1931,10 +2003,14 @@ def test_append_metadata_three_meta_three_omics():
     derived_mol = en.get_derived_molecular()
     phos = en.get_phosphoproteomics()
 
+    # Set the names
+    derived_mol_name = "derived_molecular"
+    phos_name = "phosphoproteomics"
+
     # Run the function, make sure it returned properly
     derived_mol_cols = ["Purity_Stroma", "POLE_subtype", "CIBERSORT_T _cells _CD4 _memory _resting"]
     phos_genes = ["USP36", "TMEM209", "STXBP5"]
-    appended = en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_cols, omics_genes=phos_genes)
+    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols, omics_genes=phos_genes)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -1977,9 +2053,13 @@ def test_append_metadata_three_meta_all_omics():
     derived_mol = en.get_derived_molecular()
     phos = en.get_phosphoproteomics()
 
+    # Set the names
+    derived_mol_name = "derived_molecular"
+    phos_name = "phosphoproteomics"
+
     # Run the function, make sure it returned properly
     derived_mol_cols = ["Purity_Stroma", "POLE_subtype", "CIBERSORT_T _cells _CD4 _memory _resting"]
-    appended = en.append_metadata_to_omics(derived_mol, phos, metadata_cols=derived_mol_cols)
+    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -2017,9 +2097,13 @@ def test_append_metadata_all_meta_one_omics():
     derived_mol = en.get_derived_molecular()
     phos = en.get_phosphoproteomics()
 
+    # Set the names
+    derived_mol_name = "derived_molecular"
+    phos_name = "phosphoproteomics"
+
     # Run the function, make sure it returned properly
     phos_gene = "USP36"
-    appended = en.append_metadata_to_omics(derived_mol, phos, omics_genes=phos_gene)
+    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, omics_genes=phos_gene)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -2062,9 +2146,13 @@ def test_append_metadata_all_meta_three_omics():
     derived_mol = en.get_derived_molecular()
     phos = en.get_phosphoproteomics()
 
+    # Set the names
+    derived_mol_name = "derived_molecular"
+    phos_name = "phosphoproteomics"
+
     # Run the function, make sure it returned properly
     phos_genes = ["USP36", "TMEM209", "STXBP5"]
-    appended = en.append_metadata_to_omics(derived_mol, phos, omics_genes=phos_genes)
+    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, omics_genes=phos_genes)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -2107,8 +2195,12 @@ def test_append_metadata_default_parameters():
     derived_mol = en.get_derived_molecular()
     phos = en.get_phosphoproteomics()
 
+    # Set the names
+    derived_mol_name = "derived_molecular"
+    phos_name = "phosphoproteomics"
+
     # Run the function, make sure it returned properly
-    appended = en.append_metadata_to_omics(derived_mol, phos)
+    appended = en.append_metadata_to_omics(derived_mol_name, phos_name)
     if not check_returned_is_df(appended):
         PASS = False
         print_test_result(PASS)
@@ -2167,6 +2259,7 @@ def test_append_metadata_all_dfs():
 
 # ADD ALL DFS TEST FOR MUT
 
+en = cptac.Endometrial()
 
 print("\nRunning tests:\n")
  
@@ -2225,4 +2318,4 @@ test_append_mutations_three_mut_three_omics_no_location()
 test_append_mutations_three_mut_all_omics_no_location()
 test_append_mutations_invalid_key()
 
-print("Version:",en.version())
+print("Version:", cptac.version())
