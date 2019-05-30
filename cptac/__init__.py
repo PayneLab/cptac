@@ -44,7 +44,7 @@ def version():
         exec(fp.read(), version)
     return(version['__version__'])
 
-message = "Welcome to the cptac data service package. To view available datasets, enter cptac.list_data(). To access a specific data set, load the dataset and assign it to a variable using 'cptac.NameOfDataset()', e.g. 'en = cptac.Endometrial()'\n"
+message = "Welcome to cptac, a python package for disseminating cancer proteogenomics data. To view available datasets, enter 'cptac.list_data()'. Extensive tutorials are available at https://github.com/PayneLab/cptac'\n"
 wrapped_list = textwrap.wrap(message)
 for line in wrapped_list:
     print(line)

@@ -24,7 +24,7 @@ class Endometrial(DataSet):
         super().__init__()
 
         # Print welcome message
-        message = "You have loaded the cptac endometrial dataset. To view available dataframes, call the dataset's list_data() method. To view available functions for accessing and manipulating the dataframes, call its list_api() method."
+        message = "You have loaded the cptac endometrial dataset. To view data available data, call the dataset's list_data() method. To view available functions for accessing and manipulating the data, call list_api()."
         wrapped_list = textwrap.wrap(message)
         for line in wrapped_list:
             print(line)

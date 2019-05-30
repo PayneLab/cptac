@@ -14,6 +14,11 @@ import webbrowser
 import re
 
 class DataSet:
+    """
+    Note that all cancer datasets are class objects that inherit from cptac.dataset. Therefore
+    the same function calls exist for cptac.Endometrial, cptac.Colon, etc.
+    """
+
 
     def __init__(self):
 
