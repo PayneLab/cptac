@@ -28,6 +28,7 @@ setup(name='cptac',
 	install_requires=[
 		'numpy',
 		'pandas>=0.23.*',
+		'wget',
 	],
 	classifiers=[
         'Development Status :: 3 - Alpha',
