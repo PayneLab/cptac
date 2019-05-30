@@ -10,14 +10,14 @@ pip install cptac
 ```
 
 ## Setting up for Jupyter notebooks
-If you want the package available within Jupyter, you can install it in your base conda environment. To do this, open a bash shell and do the following:
+If you want the package available within Jupyter, you can install it in your base conda environment. To do this, open a bash shell and run the following:
 ```
 conda activate
 pip install cptac
 ```
 
 ## Opening the data in Python
-After installation, open Python anywhere on your system and use our method by entering:
+After installation, open Python anywhere on your system and import our package by entering:
 
 ```
 import cptac
