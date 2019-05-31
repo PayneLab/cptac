@@ -15,6 +15,7 @@ import os
 import glob
 import textwrap
 from .dataset import DataSet
+from .fileloader import check_data
 
 class Colon(DataSet):
 
@@ -27,7 +28,13 @@ class Colon(DataSet):
         # Overload the gene separator for column names in the phosphoproteomics dataframe. In the colon data, it's an underscore, not a dash like most datasets.
         self._gene_separator = "_"
 
+        # Check the data files. If they're not downloaded, download them. If they're out of date, update them.
+        path_here = os.path.abspath(os.path.dirname(__file__))
+        data_directory = os.path.join(path_here, "data_colon")
+        check_data(data_directory)
+
         # Print welcome message
+        print() # Add a newline
         message = "You have loaded the cptac colon dataset. To view available dataframes, call the dataset's list_data() method. To view available functions for accessing and manipulating the dataframes, call its list_api() method."
         wrapped_list = textwrap.wrap(message)
         for line in wrapped_list:
@@ -38,9 +45,9 @@ class Colon(DataSet):
         print("colon data version: {}\n".format(data_version))
 
         # Get the path to the data files
-        path_here = os.path.dirname(os.path.realpath(__file__))
-        data_path = os.path.join(path_here, "data_colon", "*.*")
-        files = glob.glob(data_path) # Put all files into a list
+        all_data_path = os.path.join(data_directory, "*.*")
+        files = glob.glob(all_data_path) # Put all files into a list
+        files = [file for file in files if not os.path.isdir(file)] # Take out the urls directory
         files = sorted(files, key=str.lower)
 
         # Load the data into dataframes in the self._data dict

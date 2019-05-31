@@ -14,6 +14,7 @@ import os
 import glob
 import textwrap
 from .dataset import DataSet
+from .fileloader import check_data
 
 class Endometrial(DataSet):
 
@@ -23,7 +24,13 @@ class Endometrial(DataSet):
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
         super().__init__()
 
+        # Check the data files. If they're not downloaded, download them. If they're out of date, update them.
+        path_here = os.path.abspath(os.path.dirname(__file__))
+        data_directory = os.path.join(path_here, "data_endometrial")
+        check_data(data_directory)
+
         # Print welcome message
+        print() # Add a newline
         message = "You have loaded the cptac endometrial dataset. To view data available data, call the dataset's list_data() method. To view available functions for accessing and manipulating the data, call list_api()."
         wrapped_list = textwrap.wrap(message)
         for line in wrapped_list:
@@ -34,9 +41,9 @@ class Endometrial(DataSet):
         print("endometrial data version: {}\n".format(data_version))
 
         # Get the path to the data files
-        path_here = os.path.dirname(os.path.realpath(__file__))
-        data_path = os.path.join(path_here, "data_endometrial", "*.*")
-        files = glob.glob(data_path) # Put all files into a list
+        all_data_path = os.path.join(data_directory, "*.*")
+        files = glob.glob(all_data_path) # Put all files into a list
+        files = [file for file in files if not os.path.isdir(file)] # Take out the urls directory
         files = sorted(files, key=str.lower)
 
         # Load the data files into dataframes in the self._data dict
