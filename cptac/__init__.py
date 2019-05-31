@@ -26,10 +26,6 @@ def list_data():
     for dataset in sorted(datasets):
         print("\t" + dataset)
 
-def list_api():
-    """Print docstrings for all accessible functions."""
-    help(__name__)
-
 def embargo():
     """Open CPTAC embargo details in web browser."""
     print("Opening embargo details in web browser...")
@@ -44,7 +40,7 @@ def version():
         exec(fp.read(), version)
     return(version['__version__'])
 
-message = "Welcome to cptac, a python package for disseminating cancer proteogenomics data. To view available datasets, enter 'cptac.list_data()'. Extensive tutorials are available at https://github.com/PayneLab/cptac'\n"
+message = "Welcome to cptac, a python package for disseminating cancer proteogenomics data. To view available datasets, enter 'cptac.list_data()'. Extensive tutorials are available at https://github.com/PayneLab/cptac/tree/master/doc\n"
 wrapped_list = textwrap.wrap(message)
 for line in wrapped_list:
     print(line)

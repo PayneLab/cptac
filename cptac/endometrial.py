@@ -29,13 +29,6 @@ class Endometrial(DataSet):
         data_directory = os.path.join(path_here, "data_endometrial")
         check_data(data_directory)
 
-        # Print welcome message
-        print() # Add a newline
-        message = "You have loaded the cptac endometrial dataset. To view data available data, call the dataset's list_data() method. To view available functions for accessing and manipulating the data, call list_api()."
-        wrapped_list = textwrap.wrap(message)
-        for line in wrapped_list:
-            print(line)
-
         # Print the data version
         data_version = "2.1"
         print("endometrial data version: {}\n".format(data_version))
@@ -195,7 +188,7 @@ class Endometrial(DataSet):
 
         # Print data embargo warning
         print("\n","******PLEASE READ******")
-        warning = "WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details."
+        warning = "WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details."
         wrapped_list = textwrap.wrap(warning)
         for line in wrapped_list:
             print(line)

@@ -119,10 +119,6 @@ class DataSet:
         return self._get_dataframe("somatic_mutation_binary")
 
     # Help methods
-    def list_api(self):
-        """Print docstrings for all accessible functions."""
-        help(__name__)
-
     def list_data(self):
         """Print list of loaded dataframes and dimensions."""
         print("Below are the dataframes contained in this dataset:")
