@@ -34,7 +34,7 @@ def check_data(data_path):
             local_hashes[data_file] = None
 
     # Download server checksums file into temp file, read them into a dict, and delete temp file
-    server_checksums_path = download_from_urls_dict(urls_dict, checksums_file_name, data_path)
+    server_checksums_path = download_from_urls_dict(checksums_file_name, urls_dict, data_path)
     server_checksums = load_dict(server_checksums_path) # File names are keys, checksums are values    
     os.remove(server_checksums_path) # Remove the file once we have the data
 
@@ -46,7 +46,7 @@ def check_data(data_path):
 
         local_checksum = local_hashes[name]
         if local_checksum is None: # The file didn't previously exist on the local machine
-            downloaded_path = download_from_urls_dict(urls_dict, name, data_path)
+            downloaded_path = download_from_urls_dict(name, urls_dict, data_path)
 
         elif local_checksum != server_checksum: # The file is on the local machine, but out of date.
             update_response = input("File {} is out-of-date. Would you like to update it (y/n)? ".format(os.path.join(data_path, name)))
@@ -54,7 +54,7 @@ def check_data(data_path):
             while not valid_input:
                 if update_response == 'y':
                     valid_input = True
-                    downloaded_path = download_from_urls_dict(urls_dict, name, data_path)
+                    downloaded_path = download_from_urls_dict(name, urls_dict, data_path)
                     print("{} updated to most current version.".format(downloaded_path))
                 elif update_response == 'n':
                     valid_input = True
@@ -88,12 +88,12 @@ def load_dict(path):
 
     return data_dict
 
-def download_from_urls_dict(urls_dict, file_name, dir_path):
+def download_from_urls_dict(file_name, urls_dict, dir_path):
     """Download a file from a url and save it to the given location.
 
     Parameters:
-    urls_dict (dict): A dict containing the desired file's name as a key, and its url as the corresponding value.
     file_name (str): The name of the desired file.
+    urls_dict (dict): A dict containing the desired file's name as a key, and its url as the corresponding value.
     dir_path (str): The path to the directory to download the file to.
 
     Returns:
