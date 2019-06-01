@@ -1,6 +1,7 @@
 import hashlib
 import os
 import wget
+import glob
 
 def check_data(data_path):
     """Checks that all data files that should be in the given directory exist and are up to date. Downloads or re-downloads files as needed.
@@ -15,7 +16,7 @@ def check_data(data_path):
     # Get our file with the urls for each of the data files, and read it into a dict
     urls_path = os.path.join(data_path, "urls", "urls.tsv") 
     urls_dict = load_dict(urls_path) # File names are keys, urls are values
-    checksums_file_name = "checksums.tsv.tmp" # This is one of the values in our dict.
+    checksums_file_name = "server_checksums.tsv" # This is one of the values in our dict.
 
     # For each file in the url dict, put the local hash in a dict. If it doesn't exist, put None in the dict.
     local_hashes = {}
@@ -41,7 +42,7 @@ def check_data(data_path):
     # Download or re-download files as needed
     for name, server_checksum in server_checksums.items():
         if name not in local_hashes.keys():
-            print("This dataset has been updated to include a new data file: {0}. Please update the cptac package in order access the {0} file.".format(name))
+            print("\n ******NEW DATA******\nThis dataset has been updated to include a new data file: {0}. Please update the cptac package in order access the {0} file.\n".format(name))
             continue
 
         local_checksum = local_hashes[name]
@@ -49,7 +50,7 @@ def check_data(data_path):
             downloaded_path = download_from_urls_dict(name, urls_dict, data_path)
 
         elif local_checksum != server_checksum: # The file is on the local machine, but out of date.
-            update_response = input("File {} is out-of-date. Would you like to update it (y/n)? ".format(os.path.join(data_path, name)))
+            update_response = input("File '{}' is out-of-date. Would you like to update it (y/n)? ".format(os.path.join(data_path, name)))
             valid_input = False
             while not valid_input:
                 if update_response == 'y':
@@ -58,7 +59,7 @@ def check_data(data_path):
                     print("{} updated to most current version.".format(downloaded_path))
                 elif update_response == 'n':
                     valid_input = True
-                    print("\n ******WARNING******\nFile {} not updated. We recommend updating it as soon as possible, to have the most current data.\n".format(os.path.join(data_path, name)))
+                    print("\n ******WARNING******\nFile '{}' not updated. We recommend updating it as soon as possible, to have the most current data.\n".format(os.path.join(data_path, name)))
                 else: 
                     update_response = input("Invalid response. Please enter 'y' for yes or 'n' for no: ")
 
@@ -106,7 +107,14 @@ def download_from_urls_dict(file_name, urls_dict, dir_path, print_download_msg=T
 
     if print_download_msg:
         print("Downloading {}...".format(file_name))
-    downloaded_path = wget.download(file_url, local_file_path)
+    try:
+        downloaded_path = wget.download(file_url, local_file_path)
+    finally: # Delete any *.tmp files, in case a download was interrupted.
+        tmp_files_path = os.path.join(dir_path, "*.tmp")
+        tmp_files = glob.glob(tmp_files_path)
+        for tmp_file in tmp_files:
+            os.remove(tmp_file)
+            print("\nTemporary file '{}' removed during clean-up. A file download may have been interrupted.".format(tmp_file))
     print() # Add a newline after wget's download status bar
 
     return downloaded_path

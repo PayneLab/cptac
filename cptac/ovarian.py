@@ -13,6 +13,7 @@ import pandas as pd
 import os
 import glob
 import textwrap
+import datetime
 from .dataset import DataSet
 from .fileloader import check_data
 
@@ -28,13 +29,6 @@ class Ovarian(DataSet):
         path_here = os.path.abspath(os.path.dirname(__file__))
         data_directory = os.path.join(path_here, "data_ovarian")
         check_data(data_directory)
-
-        # Print welcome message
-        print() # Add a newline
-        message = "You have loaded the cptac ovarian dataset. To view available dataframes, call the dataset's list_data() method. To view available functions for accessing and manipulating the dataframes, call its list_api() method."
-        wrapped_list = textwrap.wrap(message)
-        for line in wrapped_list:
-            print(line)
 
         # Print data version
         data_version = "Most recent release"
@@ -54,12 +48,12 @@ class Ovarian(DataSet):
 
             # Load the file, based on what it is
             print("Loading {} data...".format(df_name))
-            if df_name == "proteomics" or df_name == "phosphoproteomics":
+            if file_name == "proteomics.txt.gz" or file_name == "phosphoproteomics.txt.gz":
                 df = pd.read_csv(file, sep="\t", index_col = 0)
-                if df_name == "proteomics":
+                if file_name == "proteomics.txt.gz":
                     df = df[df["hgnc_symbol"].notnull()] # Drops all nan values in hgnc_symbol column
                     df = df.set_index("hgnc_symbol")
-                else: # df is phosphoproteomics
+                elif file_name == "phosphoproteomics.txt.gz":
                     df = df[df["site"].notnull()] # Drops all nan values in site column
                     df = df.drop(["refseq_peptide","Peptide"],axis=1)
                     df = df.set_index("site")
@@ -76,14 +70,14 @@ class Ovarian(DataSet):
                 df.name = df_name
                 self._data[df.name] = df #maps dataframe name to dataframe
 
-            elif df_name == "clinical" or df_name == "treatment":
+            elif file_name == "clinical.csv.gz" or file_name == "treatment.csv.gz":
                 df = pd.read_csv(file, sep=",", index_col=0)
                 df = df.rename(columns={"Participant_ID":"Patient_ID"})
                 df = df.set_index("Patient_ID")
                 df.name = df_name
                 self._data[df.name] = df #maps dataframe name to dataframe
 
-            elif df_name == "transcriptomics":
+            elif file_name == "transcriptomics.tsv.gz":
                 df = pd.read_csv(file, sep="\t", index_col=0)
                 df = df.sort_index()
                 df = df.transpose()
@@ -93,7 +87,7 @@ class Ovarian(DataSet):
                 df.name = df_name
                 self._data[df.name] = df #maps dataframe name to dataframe
 
-            elif df_name == "cnv":
+            elif file_name == "cnv.tsv.gz":
                 df = pd.read_csv(file, sep="\t", index_col=0)
                 df = df.sort_index()
                 df = df.transpose()
@@ -101,7 +95,7 @@ class Ovarian(DataSet):
                 df.name = "CNV"
                 self._data[df.name] = df #maps dataframe name to dataframe
 
-            elif df_name == "somatic_38":
+            elif file_name == "somatic_38.maf.gz":
                 df = pd.read_csv(file, sep = "\t", index_col=0)
                 df = df.reset_index()
                 split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n = 1, expand = True) # The first part of the barcode is the patient id, which we need to make a Patient_ID column
@@ -111,7 +105,7 @@ class Ovarian(DataSet):
                 parsed_df = parsed_df.set_index("Patient_ID")
                 parsed_df.name = 'somatic_mutation'
                 self._data[parsed_df.name] = parsed_df #maps dataframe name to dataframe
-            elif df_name == "definitions":
+            elif file_name == "definitions.txt":
                 pass # We'll load the definiton separately
             else:
                 print("Unrecognized file: {}.\nFile not loaded.".format(file))
@@ -186,9 +180,12 @@ class Ovarian(DataSet):
                 line = line.split("\t")
                 self._definitions[line[0]] = line[1]
 
-        # Print data embargo warning
-        print("\n******PLEASE READ******")
-        warning = "WARNING: This data is under a publication embargo until June 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until June 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or cptac.embargo() to open the webpage for more details."
-        wrapped_list = textwrap.wrap(warning)
-        for line in wrapped_list:
-            print(line)
+        # Print data embargo warning, if the date hasn't passed yet.
+        today = datetime.date.today()
+        embargo_date = datetime.date(2019, 6, 1)
+        if today < embargo_date:
+            print("\n******PLEASE READ******")
+            warning = "WARNING: This data is under a publication embargo until June 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until June 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or cptac.embargo() to open the webpage for more details."
+            wrapped_list = textwrap.wrap(warning)
+            for line in wrapped_list:
+                print(line)

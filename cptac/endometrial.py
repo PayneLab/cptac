@@ -13,6 +13,7 @@ import pandas as pd
 import os
 import glob
 import textwrap
+import datetime
 from .dataset import DataSet
 from .fileloader import check_data
 
@@ -48,14 +49,14 @@ class Endometrial(DataSet):
 
             # Load the file, based on what it is
             print("Loading {} data...".format(df_name))
-            if df_name == "clinical":
-                #temp fix for reading error on clinical_v2:
+            if file_name == "clinical.txt":
+                # Fix for reading error on clinical.txt:
                 with open(file, "r", errors="ignore") as clinical_file:
                     df = pd.read_csv(clinical_file, sep="\t", index_col=0)
                 df = df.sort_index()
                 df.name = df_name
                 self._data[df.name] = df # Maps dataframe name to dataframe
-            elif df_name == "somatic":
+            elif file_name == "somatic.maf.gz":
                 df = pd.read_csv(file, sep = "\t")
                 split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n = 1, expand = True) # The first part of the barcode is the patient id, which we need want to make the index
                 df["Tumor_Sample_Barcode"] = split_barcode[0]
@@ -63,13 +64,13 @@ class Endometrial(DataSet):
                 df = df.rename({"Tumor_Sample_Barcode":"Patient_Id","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
                 df.name = "somatic_mutation"
                 self._data[df.name] = df # Maps dataframe name to dataframe
-            elif df_name in ("acetylproteomics", "CNA", "miRNA", "phosphoproteomics_gene", "phosphoproteomics_site", "proteomics", "somatic_binary", "transcriptomics_circular", "transcriptomics_linear"):
+            elif file_name in ("acetylproteomics.cct.gz", "CNA.cct.gz", "miRNA.cct.gz", "phosphoproteomics_gene.cct.gz", "phosphoproteomics_site.cct.gz", "proteomics.cct.gz", "somatic_binary.cbt.gz", "transcriptomics_circular.cct.gz", "transcriptomics_linear.cct.gz"):
                 df = pd.read_csv(file, sep="\t", index_col=0)
                 df = df.transpose()
                 df = df.sort_index()
                 df.name = df_name
                 self._data[df.name] = df # Maps dataframe name to dataframe
-            elif df_name == "definitions":
+            elif file_name == "definitions.txt":
                 pass # We'll load the defintions separately
             else:
                 print("Unrecognized file: {}.\nFile not loaded.".format(file))
@@ -179,19 +180,22 @@ class Endometrial(DataSet):
             self._data[name] = df_rename_col_axis
 
         # Load definitions
-        definitions_path = os.path.join(path_here, "data_endometrial", "definitions.txt")
+        definitions_path = os.path.join(data_directory, "definitions.txt")
         with open(definitions_path, "r") as definitions_file:
             for line in definitions_file.readlines():
                 line = line.strip()
                 line = line.split("\t")
                 self._definitions[line[0]] = line[1]
 
-        # Print data embargo warning
-        print("\n","******PLEASE READ******")
-        warning = "WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details."
-        wrapped_list = textwrap.wrap(warning)
-        for line in wrapped_list:
-            print(line)
+        # Print data embargo warning, if the date hasn't passed yet.
+        today = datetime.date.today()
+        embargo_date = datetime.date(2019, 7, 1)
+        if today < embargo_date:
+            print("\n","******PLEASE READ******")
+            warning = "WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details."
+            wrapped_list = textwrap.wrap(warning)
+            for line in wrapped_list:
+                print(line)
 
     # Overload the self._get_sample_status_map function to work with "Proteomics_Tumor_Normal" column instead of default "Sample_Tumor_Normal" column
     def _get_sample_status_map(self):

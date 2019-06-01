@@ -13,7 +13,6 @@ import numpy as np
 import pandas as pd
 import os
 import glob
-import textwrap
 from .dataset import DataSet
 from .fileloader import check_data
 
@@ -32,13 +31,6 @@ class Colon(DataSet):
         path_here = os.path.abspath(os.path.dirname(__file__))
         data_directory = os.path.join(path_here, "data_colon")
         check_data(data_directory)
-
-        # Print welcome message
-        print() # Add a newline
-        message = "You have loaded the cptac colon dataset. To view available dataframes, call the dataset's list_data() method. To view available functions for accessing and manipulating the dataframes, call its list_api() method."
-        wrapped_list = textwrap.wrap(message)
-        for line in wrapped_list:
-            print(line)
 
         # Print data version
         data_version = "Most recent release"
@@ -59,14 +51,14 @@ class Colon(DataSet):
 
             # Load the file, based on what it is
             print("Loading {} data...".format(df_name))
-            if df_name == "mutation":
+            if file_name == "mutation.txt.gz":
                 df = pd.read_csv(file, sep="\t")
                 df = df.sort_values(by="SampleID")
                 df = df[["SampleID","Gene","Variant_Type","Protein_Change"]]
                 df = df.rename({"Variant_Type":"Mutation","Protein_Change":"Location"},axis="columns")
                 df.name = "somatic_" + df_name
                 self._data[df.name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
-            elif df_name in ("clinical", "miRNA", "mutation_binary", "phosphoproteomics_normal", "phosphoproteomics_tumor", "proteomics_normal", "proteomics_tumor", "transcriptomics"):
+            elif file_name in ("clinical.tsi.gz", "miRNA.cct.gz", "mutation_binary.cbt.gz", "phosphoproteomics_normal.gz", "phosphoproteomics_tumor.gz", "proteomics_normal.cct.gz", "proteomics_tumor.cct.gz", "transcriptomics.gz"):
                 df = pd.read_csv(file, sep="\t",index_col=0)
                 df = df.transpose()
                 df.name = df_name
