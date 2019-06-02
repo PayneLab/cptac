@@ -56,7 +56,7 @@ def check_data(data_path):
                 if update_response == 'y':
                     valid_input = True
                     downloaded_path = download_from_urls_dict(name, urls_dict, data_path)
-                    print("{} updated to most current version.".format(downloaded_path))
+                    print("{} updated to most current version.\n**********".format(downloaded_path))
                 elif update_response == 'n':
                     valid_input = True
                     print("\n ******WARNING******\nFile '{}' not updated. We recommend updating it as soon as possible, to have the most current data.\n".format(os.path.join(data_path, name)))
@@ -102,13 +102,17 @@ def download_from_urls_dict(file_name, urls_dict, dir_path, print_download_msg=T
     """
     file_url = urls_dict[file_name]
     local_file_path = os.path.join(dir_path, file_name)
-    if os.path.isfile(local_file_path):
-        os.remove(local_file_path) # Remove the old file if it already exists, so we can replace it
 
     if print_download_msg:
         print("Downloading {}...".format(file_name))
     try:
         downloaded_path = wget.download(file_url, local_file_path)
+        if downloaded_path != local_file_path: # This happens when we replace a file--wget appends " (1)" to the file name
+            if os.path.isfile(local_file_path):
+                os.remove(local_file_path) # Remove the old file, if it exists
+            os.rename(downloaded_path, local_file_path) # Rename the new file to the desired name
+            downloaded_path = local_file_path # Update downloaded_path to the new location of the downloaded file.
+
     finally: # Delete any *.tmp files, in case a download was interrupted.
         tmp_files_path = os.path.join(dir_path, "*.tmp")
         tmp_files = glob.glob(tmp_files_path)
