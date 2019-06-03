@@ -267,58 +267,99 @@ def get_interacting_proteins(protein, number=25):
 
 
 def get_frequently_mutated(cancer_type, cutoff=.1):  
-    """take cancer type to import CPTAC and find the frequently mutated genes compared to the cutoff
+    """take cancer type to import cptac and find the frequently mutated genes in total tumors compared to the cutoff.
         
         Parameters:
         cancer_type (string): type of  cancer 
         cutoff (float): used as comparison to determine status of gene mutation frequency
         
         Returns:
-        freq_mutated (pd.DataFrame): DataFrame of frequently mutated genes passing the cutoff
-            and percent mutated (mutated genes / total tumors)"""    
+        freq_mutated_df (pd.DataFrame): DataFrame of frequently mutated genes passing the cutoff
+            and Total_Mutated (mutated genes / total tumors), percent Truncated, and percent Missence
+        
+        There are many types of mutations catagorized into the columns Truncated and Missence. 
+        The Truncated column includes: Frame_Shift_Del, Frame_Shift_Ins, Splice_Site, Nonsense_Mutation, Nonstop_Mutation
+        The Missence column includes: In_Frame_Del, In_Frame_Ins, Missense_Mutation
+        These columns count multiple mutations of one gene in the same sample, so percentages in the last two columns may 
+        exceed the Total_Mutated column(which only counts if the gene was mutated once)"""    
     
-    #import CPTAC and pandas
-    import pandas as pd
+    # import cptac
+    
+    #import pandas as pd
+    import cptac
+    colon = False
     if cancer_type == "endometrial" or cancer_type == "Endometrial":
-        import cptac.endometrial as CPTAC
+        cptac = cptac.Endometrial()
         
     elif cancer_type == "colon" or cancer_type == "Colon":
-        import cptac.colon as CPTAC
+        import cptac.colon as cptac
+        colon = True
         
     elif cancer_type == "ovarian" or cancer_type == "Ovarian":
-        import cptac.ovarian as CPTAC
+        import cptac.ovarian as cptac
     
     else:
-        print("Please enter a valid cancer type.")
-        return None
-        
-    gene_and_freq_d = {}  
-        
+        str_cancer_options = '\n' + 'Options: endometrial, ovarian, colon'
+        print("Please enter a valid cancer type.", str_cancer_options)
+        return 0
+    
     # get data frames
-    somatic = CPTAC.get_mutations()
-    proteomics = CPTAC.get_proteomics()
-    gene = 'PTEN'
-    omics_mutations = CPTAC.append_mutations_to_omics(mutation_genes=gene, omics_df=proteomics, omics_genes=gene)
-    gene_mutated = somatic.loc[somatic['Gene'] == gene]
+    somatic_mutations = cptac.get_mutations()
+    proteomics = cptac.get_proteomics()
+    sample_status_map = cptac._get_sample_status_map()
+    merged_mutations = somatic_mutations.join(sample_status_map, how="left") 
     
-    # unique genes
-    unique_genes = somatic['Gene'].unique()
-    
-    # get total tumor patients
-    tumors = omics_mutations.loc[omics_mutations['Sample_Status'] == 'Tumor']
-    total_tumor_patients = len(tumors)
+    # standardize mutation names 
+    if colon == True:
+        mutation_equivalents = {'frameshift substitution': 'Frame_Shift_Del' , 'frameshift deletion': 'Frame_Shift_Del', 
+            'frameshift insertion': 'Frame_Shift_Ins', 'stopgain': 'Nonsense_Mutation ', 'stoploss':'Nonstop_Mutation',
+            'nonsynonymous SNV': 'Missense_Mutation','nonframeshift insertion': 'In_Frame_Ins',
+            'nonframeshift deletion': 'In_Frame_Del', 'nonframeshift substitution': 'Missense_Mutation'}
+        merged_mutations = merged_mutations.replace(to_replace = mutation_equivalents)
         
-    #find frequently mutated
-    if gene_mutated.columns[0] == 'Gene':
-        for gene in unique_genes:
-            gene_mutated = somatic.loc[somatic['Gene'] == gene].index
-            num_gene_mutated = len(gene_mutated.unique())
-            percentage = (num_gene_mutated / total_tumor_patients)
-            if percentage > cutoff:
-                gene_and_freq_d[gene] = percentage
+    # get list of unique genes
+    unique_genes = somatic_mutations['Gene'].unique()
     
+    # get total tumors/patients
+    sample_status_series = sample_status_map.value_counts()
+    total_tumor_patients = sample_status_series[0]
+        
+    # find frequently mutated genes and their total mutated fraction. Create lists for frequently mutated genes and fraction.
+    freq_mut = []
+    total_fraction_mutated = []
+    for gene in unique_genes:
+        gene_mutated = merged_mutations.loc[merged_mutations['Gene'] == gene]
+        gene_mutated = gene_mutated.index.unique()
+        num_gene_mutated = len(gene_mutated)
+        fraction = (num_gene_mutated / total_tumor_patients)
+        if fraction > cutoff:
+            freq_mut.append(gene)
+            total_fraction_mutated.append(fraction)
+    
+    # find truncated fraction
+    truncated = []
+    for gene in freq_mut:
+        gene_mutated = merged_mutations.loc[merged_mutations['Gene'] == gene]
+        truncated_df = gene_mutated.loc[(gene_mutated['Mutation'] != 'In_Frame_Del') & 
+            (gene_mutated['Mutation'] != 'In_Frame_Ins') & (gene_mutated['Mutation'] != 'Missense_Mutation')] 
+        samples_trunc = truncated_df.index.unique()
+        num_trunc_mut = len(samples_trunc)
+        fraction_trunc = (num_trunc_mut / total_tumor_patients)
+        truncated.append(fraction_trunc)
+
+    # find missence fraction 
+    missence = []
+    for gene in freq_mut:
+        gene_mutated = merged_mutations.loc[merged_mutations['Gene'] == gene]
+        missence_mutations = gene_mutated.loc[(gene_mutated['Mutation'] == 'In_Frame_Ins') | (gene_mutated['Mutation'] == 'In_Frame_Del') | (gene_mutated['Mutation'] == 'Missense_Mutation')]
+        samples_miss = missence_mutations.index.unique()
+        num_miss_mut = len(samples_miss)
+        fraction_miss = (num_miss_mut / total_tumor_patients)
+        missence.append(fraction_miss)
+        
     # create dataframe
-    freq_mutated_df = pd.DataFrame(gene_and_freq_d.items())
-    freq_mutated_df.columns = ['Gene', 'Percent Mutated']
+    merged_lists = list(zip(freq_mut, total_fraction_mutated, truncated, missence))
+    freq_mutated_df = pd.DataFrame(merged_lists, columns =['Gene', 'Fraction_Mutated', 'Truncation', 'Missence'])
+    freq_mutated_df.name = 'frequently_mutated'
                    
     return freq_mutated_df
