@@ -5,3 +5,8 @@ __pychache__/
 dist/
 build/
 .DS_Store
+
+# Exclude data files
+cptac/data_colon/*.*
+cptac/data_endometrial/*.*
+cptac/data_ovarian/*.*
