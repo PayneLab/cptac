@@ -56,7 +56,7 @@ def check_data(data_path):
                 if update_response == 'y':
                     valid_input = True
                     downloaded_path = download_from_urls_dict(name, urls_dict, data_path)
-                    print("{} updated to most current version.\n**********".format(downloaded_path))
+                    print("{} updated to most current version.\n\n**********".format(downloaded_path))
                 elif update_response == 'n':
                     valid_input = True
                     print("\n ******WARNING******\nFile '{}' not updated. We recommend updating it as soon as possible, to have the most current data.\n".format(os.path.join(data_path, name)))
