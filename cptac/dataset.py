@@ -26,6 +26,9 @@ class DataSet:
         self._data = {}
         self._definitions = {}
 
+        # Initialize the _cancer_type instance variable
+        self._cancer_type = None
+
         # Assign the gene separator for searching columns of phosphoproteomics and acetylproteomics dataframes. Child class can overload if needed.
         self._gene_separator = "-"
 
@@ -133,6 +136,10 @@ class DataSet:
                 print(term)
         else:
             print("No definitions provided for this dataset.")
+
+    def get_cancer_type(self):
+        """Return the cancer type for this dataset, as a string."""
+        return self._cancer_type
 
     def define(self, term):
         """Print the definition a term, if it is in the dataset's list of definitions.

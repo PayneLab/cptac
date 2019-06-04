@@ -24,6 +24,9 @@ class Colon(DataSet):
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
         super().__init__()
 
+        # Set the _cancer_type instance variable
+        self._cancer_type = "colon"
+
         # Overload the gene separator for column names in the phosphoproteomics dataframe. In the colon data, it's an underscore, not a dash like most datasets.
         self._gene_separator = "_"
 

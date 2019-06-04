@@ -25,6 +25,9 @@ class Endometrial(DataSet):
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
         super().__init__()
 
+        # Set the _cancer_type instance variable 
+        self._cancer_type = "endometrial"
+
         # Check the data files. If they're not downloaded, download them. If they're out of date, update them.
         path_here = os.path.abspath(os.path.dirname(__file__))
         data_directory = os.path.join(path_here, "data_endometrial")

@@ -25,6 +25,9 @@ class Ovarian(DataSet):
         # Call the parent Dataset __init__() function, which initializes self._data and other variables we need
         super().__init__()
 
+        # Set the cancer_type instance variable 
+        self._cancer_type = "ovarian"
+
         # Check the data files. If they're not downloaded, download them. If they're out of date, update them.
         path_here = os.path.abspath(os.path.dirname(__file__))
         data_directory = os.path.join(path_here, "data_ovarian")
