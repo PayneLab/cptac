@@ -53,7 +53,7 @@ class Colon(DataSet):
             df_name = file_name_split[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
             # Load the file, based on what it is
-            print("Loading {} data...".format(df_name))
+            print("Loading {} data...".format(df_name), end='\r') # Carriage return ending causes previous line to be erased.
             if file_name == "mutation.txt.gz":
                 df = pd.read_csv(file, sep="\t")
                 df = df.sort_values(by="SampleID")
@@ -68,6 +68,7 @@ class Colon(DataSet):
                 self._data[df.name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
             else:
                 print("Unrecognized file: {}.\nFile not loaded.".format(file))
+            print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
         # Rename mutation_binary dataframe to somatic_mutation_binary
         df = self._data["mutation_binary"]

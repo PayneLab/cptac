@@ -11,7 +11,7 @@ def check_data(data_path):
 
     Returns: None
     """
-    print("Checking that data files are up-to-date...")
+    print("Checking that data files are up-to-date...", end='\r')
 
     # Get our file with the urls for each of the data files, and read it into a dict
     urls_path = os.path.join(data_path, "urls", "urls.tsv") 
@@ -35,7 +35,7 @@ def check_data(data_path):
             local_hashes[data_file] = None
 
     # Download server checksums file into temp file, read them into a dict, and delete temp file
-    server_checksums_path = download_from_urls_dict(checksums_file_name, urls_dict, data_path, print_download_msg=False)
+    server_checksums_path = download_from_urls_dict(checksums_file_name, urls_dict, data_path)
     server_checksums = load_dict(server_checksums_path) # File names are keys, checksums are values    
     os.remove(server_checksums_path) # Remove the file once we have the data
 
@@ -51,6 +51,10 @@ def check_data(data_path):
 
         elif local_checksum != server_checksum: # The file is on the local machine, but out of date.
             update_response = input("File '{}' is out-of-date. Would you like to update it (y/n)? ".format(os.path.join(data_path, name)))
+
+            print("\033[F", end='\r') # Use ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the message we printed
+            print("\033[K", end='\r') # Clear previously printed line
+
             valid_input = False
             while not valid_input:
                 if update_response == 'y':
@@ -62,8 +66,6 @@ def check_data(data_path):
                     print("\n ******WARNING******\nFile '{}' not updated. We recommend updating it as soon as possible, to have the most current data.\n".format(os.path.join(data_path, name)))
                 else: 
                     update_response = input("Invalid response. Please enter 'y' for yes or 'n' for no: ")
-
-    print("Data check complete.")
 
 def load_dict(path):
     """Read a given tsv file into a dict.
@@ -88,14 +90,13 @@ def load_dict(path):
 
     return data_dict
 
-def download_from_urls_dict(file_name, urls_dict, dir_path, print_download_msg=True):
+def download_from_urls_dict(file_name, urls_dict, dir_path):
     """Download a file from a url and save it to the given location.
 
     Parameters:
     file_name (str): The name of the desired file.
     urls_dict (dict): A dict containing the desired file's name as a key, and its url as the corresponding value.
     dir_path (str): The path to the directory to download the file to.
-    print_download_msg (bool): Whether to print a message telling the user which file we're downloading. (Note: Even if False, wget will still print the download status bar).
 
     Returns:
     str: The path the file was downloaded to.
@@ -103,8 +104,6 @@ def download_from_urls_dict(file_name, urls_dict, dir_path, print_download_msg=T
     file_url = urls_dict[file_name]
     local_file_path = os.path.join(dir_path, file_name)
 
-    if print_download_msg:
-        print("Downloading {}...".format(file_name))
     try:
         downloaded_path = wget.download(file_url, local_file_path)
         if downloaded_path != local_file_path: # This happens when we replace a file--wget appends " (1)" to the file name
@@ -119,6 +118,8 @@ def download_from_urls_dict(file_name, urls_dict, dir_path, print_download_msg=T
         for tmp_file in tmp_files:
             os.remove(tmp_file)
             print("\nTemporary file '{}' removed during clean-up. A file download may have been interrupted.".format(tmp_file))
-    print() # Add a newline after wget's download status bar
+
+    print(end='\r') # Reset the cursor to the beginning of the line, so we can clear the download bar in the next line.
+    print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
     return downloaded_path

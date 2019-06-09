@@ -50,7 +50,7 @@ class Ovarian(DataSet):
             df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
             # Load the file, based on what it is
-            print("Loading {} data...".format(df_name))
+            print("Loading {} data...".format(df_name), end='\r') # Carriage return ending causes previous line to be erased.
             if file_name == "proteomics.txt.gz" or file_name == "phosphoproteomics.txt.gz":
                 df = pd.read_csv(file, sep="\t", index_col = 0)
                 if file_name == "proteomics.txt.gz":
@@ -112,6 +112,7 @@ class Ovarian(DataSet):
                 pass # We'll load the definiton separately
             else:
                 print("Unrecognized file: {}.\nFile not loaded.".format(file))
+            print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
         # Get a union of all dataframes' indicies, with duplicates removed
         indicies = [df.index for df in self._data.values()]

@@ -51,7 +51,7 @@ class Endometrial(DataSet):
             df_name = file_name_split[0] # Dataframe name will be the first section of file name; i.e. proteomics.txt.gz becomes proteomics
 
             # Load the file, based on what it is
-            print("Loading {} data...".format(df_name))
+            print("Loading {} data...".format(df_name), end='\r') # Carriage return ending causes previous line to be erased.
             if file_name == "clinical.txt":
                 # Fix for reading error on clinical.txt:
                 with open(file, "r", errors="ignore") as clinical_file:
@@ -77,6 +77,8 @@ class Endometrial(DataSet):
                 pass # We'll load the defintions separately
             else:
                 print("Unrecognized file: {}.\nFile not loaded.".format(file))
+
+            print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
         # Separate out clinical, derived_molecular, and experimental_setup dataframes
         all_clinical = self._data["clinical"]
@@ -194,7 +196,7 @@ class Endometrial(DataSet):
         today = datetime.date.today()
         embargo_date = datetime.date(2019, 7, 1)
         if today < embargo_date:
-            print("\n","******PLEASE READ******")
+            print("******PLEASE READ******")
             warning = "WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details."
             wrapped_list = textwrap.wrap(warning)
             for line in wrapped_list:
