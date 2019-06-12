@@ -28,20 +28,32 @@ class Ovarian(DataSet):
         # Set the cancer_type instance variable 
         self._cancer_type = "ovarian"
 
-        # Check the data files. If they're not downloaded, download them. If they're out of date, update them.
+        # Update the index
         path_here = os.path.abspath(os.path.dirname(__file__))
-        data_directory = os.path.join(path_here, "data_ovarian")
-        check_data(data_directory)
+        dataset_path = os.path.join(path_here, "data_ovarian")
+        updated = update_index(dataset_path)
 
-        # Print data version
-        data_version = "Most recent release"
-        print("ovarian data version: {}\n".format(data_version))
+        # If version was "latest" and the latest installed version isn't the latest version in the index, tell them.
+        index = get_index(dataset_path)
+        if version == "latest":
+            version = get_latest_version_number(index, dataset_path)
+            if version is None: # Latest version installed did not match latest in index. get_latest_version_number already printed error message.
+                return None
+
+        # Check that they chose a valid version
+        if version not in index.keys():
+            print(f"{version} is an invalid version for this dataset. Valid versions: {', '.join(index.keys())}")
+            return None
+
+        # Check that they've installed the version they requested
+        version_dir = f"ovarian_v{version}"
+        version_path = os.path.join(dataset_path, version_dir)
+        if not os.path.isdir(version_path):
+            print(f"{version} not installed. To install, run 'cptac.sync(dataset='ovarian', version='{version}')'.")
 
         # Get the path to the data files
-        all_data_path = os.path.join(data_directory, "*.*")
-        files = glob.glob(all_data_path) # Put all the files into a list
-        files = [file for file in files if not os.path.isdir(file)] # Take out the urls directory
-        files = sorted(files, key=str.lower)
+        data_path = os.path.join(version_path, "*.*")
+        files = glob.glob(data_path) # Put all files into a list
 
         # Load the data files into dataframes in the self._data dict
         for file in files: 

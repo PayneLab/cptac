@@ -15,7 +15,7 @@ import glob
 import textwrap
 import datetime
 from .dataset import DataSet
-from .sync import update_index, get_index, get_latest_version_number
+from .utilites import get_version_path
 
 class Endometrial(DataSet):
 
@@ -28,28 +28,10 @@ class Endometrial(DataSet):
         # Set the _cancer_type instance variable 
         self._cancer_type = "endometrial"
 
-        # Update the index
-        path_here = os.path.abspath(os.path.dirname(__file__))
-        dataset_path = os.path.join(path_here, "data_endometrial")
-        updated = update_index(dataset_path)
-
-        # If the latest installed version isn't the latest version in the index, tell them.
-        index = get_index(dataset_path)
-        if version == "latest":
-            version = get_latest_version_number(index, dataset_path)
-            if version is None: # Latest version installed did not match latest in index. get_latest_version_number already printed error message.
-                return False
-
-        # Check that they chose a valid version
-        if version not in index.keys():
-            print(f"{version} is an invalid version for this dataset. Valid versions: {', '.join(index.keys())}")
-            return False
-
-        # Check that they've installed the version they requested
-        version_dir = f"endometrial_v{version}"
-        version_path = os.path.join(dataset_path, version_dir)
-        if not os.path.isdir(version_path):
-            print(f"{version} not installed. To install, run 'cptac.sync(dataset='endometrial', version='{version}')'.")
+        # Get the version path
+        version_path = get_version_path("endometrial", version)
+        if version_path is None: # Validation error. get_version_path already printed an error message.
+            return None
 
         # Get the path to the data files
         data_path = os.path.join(version_path, "*.*")
