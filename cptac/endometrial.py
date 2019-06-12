@@ -15,7 +15,7 @@ import glob
 import textwrap
 import datetime
 from .dataset import DataSet
-from .utilites import get_version_path
+from .sync import get_version_path
 
 class Endometrial(DataSet):
 

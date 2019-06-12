@@ -15,11 +15,11 @@ import glob
 import textwrap
 import datetime
 from .dataset import DataSet
-from .fileloader import check_data
+from .sync import get_version_path
 
 class Ovarian(DataSet):
 
-    def __init__(self):
+    def __init__(self, version="latest"):
         """Load all the ovarian dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
 
         # Call the parent Dataset __init__() function, which initializes self._data and other variables we need
@@ -28,28 +28,10 @@ class Ovarian(DataSet):
         # Set the cancer_type instance variable 
         self._cancer_type = "ovarian"
 
-        # Update the index
-        path_here = os.path.abspath(os.path.dirname(__file__))
-        dataset_path = os.path.join(path_here, "data_ovarian")
-        updated = update_index(dataset_path)
-
-        # If version was "latest" and the latest installed version isn't the latest version in the index, tell them.
-        index = get_index(dataset_path)
-        if version == "latest":
-            version = get_latest_version_number(index, dataset_path)
-            if version is None: # Latest version installed did not match latest in index. get_latest_version_number already printed error message.
-                return None
-
-        # Check that they chose a valid version
-        if version not in index.keys():
-            print(f"{version} is an invalid version for this dataset. Valid versions: {', '.join(index.keys())}")
+        # Get the version path
+        version_path = get_version_path("endometrial", version)
+        if version_path is None: # Validation error. get_version_path already printed an error message.
             return None
-
-        # Check that they've installed the version they requested
-        version_dir = f"ovarian_v{version}"
-        version_path = os.path.join(dataset_path, version_dir)
-        if not os.path.isdir(version_path):
-            print(f"{version} not installed. To install, run 'cptac.sync(dataset='ovarian', version='{version}')'.")
 
         # Get the path to the data files
         data_path = os.path.join(version_path, "*.*")

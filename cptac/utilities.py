@@ -1,6 +1,16 @@
+#   Copyright 2018 Samuel Payne sam_payne@byu.edu
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#       http://www.apache.org/licenses/LICENSE-2.0
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 import hashlib
 import os
-from .sync import update_index
 
 def get_dataset_path(dataset):
     """Get the path to the main directory for a dataset.
@@ -33,13 +43,13 @@ def validate_version(version, dataset_path, index):
     """
     if version in index.keys():
         return version
-    elif version.lower == "latest":
+    elif version.lower() == "latest":
         index_latest = max(index.keys(), key=float) # See what the highest version in the index is
         latest_installed = get_latest_installed(dataset_path)
         if (index_latest == latest_installed) or (latest_installed is None):
             return index_latest
         else:
-            print(f"Ambiguous request for latest version. Latest version in index is {index_latest}, but latest version installed locally is {latest_installed}. To download the latest version in the index, run cptac.sync with '{index_latest}' as the version parameter. To perform your requested action with the latest version that is installed locally, run you desired function with '{latest_installed}' as the version parameter.")
+            print(f"Ambiguous request for latest version. Latest version in index is {index_latest}, but latest version installed locally is {latest_installed}. To download the latest version in the index, run cptac.sync with '{index_latest}' as the version parameter. To perform your requested action with the latest version that is installed locally, run your desired function with '{latest_installed}' as the version parameter.")
             return None
     else:
         print(f"{version} is an invalid version for this dataset. Valid versions: {', '.join(index.keys())}")
@@ -148,33 +158,3 @@ def hash_bytes(bytes):
     hasher.update(bytes)
     hash = hasher.hexdigest()
     return hash
-
-def get_version_path(dataset, version)
-    """Check that a version is valid and installed, then return the path to the version's directory.
-    
-    Parameters:
-    dataset (str): The name of the dataset to perform the chores for.
-    version (sr): The version of the dataset to perform the chores for.
-
-    Returns:
-    str: The path to the data files for specified version of the dataset.
-    """
-    # Get the path to the dataset's main directory
-    dataset_path = get_dataset_path("endometrial")
-
-    # Update the index, if possible
-    update_index(dataset_path) # If there's no internet, this will return False, but we don't care
-    index = get_index(dataset_path)
-
-    # Validate the version, which includes parsing if it's "latest"
-    version = validate_version(version, dataset_path, index)
-    if version is None: # Validation error
-        return None
-
-    # Check that they've installed the version they requested
-    version_path = os.path.join(dataset_path, f"endometrial_v{version}")
-    if os.path.isdir(version_path):
-        return version_path
-    else:
-        print(f"{version} not installed. To install, run 'cptac.sync(dataset='endometrial', version='{version}')'.")
-        return None

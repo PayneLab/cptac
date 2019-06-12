@@ -14,11 +14,11 @@ import pandas as pd
 import os
 import glob
 from .dataset import DataSet
-from .fileloader import check_data
+from .sync import get_version_path
 
 class Colon(DataSet):
 
-    def __init__(self):
+    def __init__(self, version="latest"):
         """Load all of the endometrial dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
 
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
@@ -30,20 +30,14 @@ class Colon(DataSet):
         # Overload the gene separator for column names in the phosphoproteomics dataframe. In the colon data, it's an underscore, not a dash like most datasets.
         self._gene_separator = "_"
 
-        # Check the data files. If they're not downloaded, download them. If they're out of date, update them.
-        path_here = os.path.abspath(os.path.dirname(__file__))
-        data_directory = os.path.join(path_here, "data_colon")
-        check_data(data_directory)
-
-        # Print data version
-        data_version = "Most recent release"
-        print("colon data version: {}\n".format(data_version))
+        # Get the version path
+        version_path = get_version_path("endometrial", version)
+        if version_path is None: # Validation error. get_version_path already printed an error message.
+            return None
 
         # Get the path to the data files
-        all_data_path = os.path.join(data_directory, "*.*")
-        files = glob.glob(all_data_path) # Put all files into a list
-        files = [file for file in files if not os.path.isdir(file)] # Take out the urls directory
-        files = sorted(files, key=str.lower)
+        data_path = os.path.join(version_path, "*.*")
+        files = glob.glob(data_path) # Put all files into a list
 
         # Load the data into dataframes in the self._data dict
         for file in files: # Loops through files variable
