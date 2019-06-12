@@ -18,51 +18,24 @@ def sync(dataset, version="latest"):
 
     # Get the path to our data directory
     path_here = os.path.abspath(os.path.dirname(__file__))
-    dataset_dir = "data_" + dataset
+    dataset_dir = f"data_{dataset}"
     dataset_path = os.path.join(path_here, dataset_dir)
     if not os.path.isdir(dataset_path):
         print(f"{dataset} is not a valid dataset.")
         return False
 
-    # Define our file names we'll need
-    index_urls_file = "index_urls.tsv"
-    index_hash_file = "index_hash.txt"
-    index_file = "index.txt"
-
-    # Get, from the server, what the md5 hash of our index file should be
-    index_urls_path = os.path.join(dataset_path, index_urls_file)
-    urls_dict = parse_tsv_dict(index_urls_path)
-    index_hash_url = urls_dict.get(index_hash_file)
-
-    print(f"Checking that index is up-to-date...", end='\r')
-    server_index_hash = download_text(index_hash_url).strip()
-    print("\033[K", end='\r') # Erase the status message
-
-    if server_index_hash is None:
+    updated = update_index(dataset_path)
+    if not updated:
         print("Insufficient internet to sync. Check your internet connection.")
         return False
 
-    # Check our index against the server hash, and update it if needed.
-    index_path = os.path.join(dataset_path, index_file)
-    local_index_hash = hash_file(index_path)
-    if local_index_hash != server_index_hash:
-        index_url = urls_dict.get(index_file)
-        index_downloaded_path = download_file(index_url, index_path, server_index_hash)
-        if index_downloaded_path is None:
-            print("Insufficient internet to sync. Check your internet connection.")
-            return False
-
     # Load the index
-    index = parse_index(index_path)
+    index = get_index(dataset_path)
 
-    # If they chose to sync "latest", make sure the locally installed latest is the latest version
+    # If they chose to sync "latest", get the latest version number
     if version == "latest":
-        server_latest = max(index.keys(), key=float) # See what the highest version in the server index is
-        local_latest = get_local_latest(dataset_path)
-        if server_latest == local_latest:
-            version = server_latest
-        else:
-            print(f"Ambiguous request to sync latest version. Latest version on server is {server_latest}, but latest version installed locally is {local_latest}. To download the latest version that exists on the server, run 'cptac.sync(dataset='{dataset}', version='{server_latest}')'. To sync the latest version that currently exists locally, run 'cptac.sync(dataset='{dataset}', version='{local_latest}')'.")
+        version = get_latest_version_number(index, dataset_path)
+        if version is None: # Latest version installed did not match latest in index. get_latest_version_number already printed error message.
             return False
 
     # Check that they chose a valid version
@@ -73,7 +46,6 @@ def sync(dataset, version="latest"):
     # If they haven't downloaded this version previously, make a new directory for it
     version_dir = f"{dataset}_v{version}"
     version_path = os.path.join(dataset_path, version_dir)
-
     if not os.path.isdir(version_path):
         os.mkdir(version_path)
 
@@ -92,38 +64,97 @@ def sync(dataset, version="latest"):
             if downloaded_path is None:
                 print("Insufficient internet to sync. Check your internet connection.")
                 return False
-
     return True
 
-def get_local_latest(data_path):
-    """Return the latest version number installed in a data directory.
+def get_latest_version_number(index, dataset_path):
+    """Check that latest locally installed data is same version as latest version in index. If so, return latest version number; else, return None.
 
     Parameters:
-    data_path (str): The path to the directory containing the data files.
+    index (dict): The parsed index for the dataset.
+    dataset_path (str): The path to the dataset's main directory
+
+    Returns: 
+    str: The latest version number.
+    """
+    index_latest = max(index.keys(), key=float) # See what the highest version in the index is
+    latest_installed = get_latest_installed(dataset_path)
+    if (index_latest == latest_installed) or (latest_installed is None):
+        return index_latest
+    else:
+        print(f"Ambiguous request for latest version. Latest version in index is {index_latest}, but latest version installed locally is {latest_installed}. To download the latest version in the index, run cptac.sync with '{index_latest}' as the version parameter. To perform your requested action with the latest version that is installed locally, run your desired function with '{latest_installed}' as the version parameter.")
+        return None
+
+def update_index(dataset_path):
+    """Check if the index of the given dataset is up to date with server version, and update it if needed.
+
+    Parameters:
+    dataset_path (str): The path to the dataset to check the index of.
+
+    Returns:
+    bool: Indicates if we were able to check the index and update if needed (i.e. we had internet)
+    """
+    # Define our file names we'll need
+    index_urls_file = "index_urls.tsv"
+    index_hash_file = "index_hash.txt"
+    index_file = "index.txt"
+
+    # Get, from the server, what the md5 hash of our index file should be
+    index_urls_path = os.path.join(dataset_path, index_urls_file)
+    urls_dict = parse_tsv_dict(index_urls_path)
+    index_hash_url = urls_dict.get(index_hash_file)
+
+    print(f"Checking that index is up-to-date...", end='\r')
+    server_index_hash = download_text(index_hash_url).strip()
+    print("\033[K", end='\r') # Erase the status message
+
+    if server_index_hash is None: # I.e., we have no internet
+        return False
+    else:
+        index_path = os.path.join(dataset_path, index_file)
+        local_index_hash = hash_file(index_path)
+        if local_index_hash == server_index_hash:
+            return True
+        else:
+            index_url = urls_dict.get(index_file)
+            index_downloaded_path = download_file(index_url, index_path, server_index_hash)
+            if index_downloaded_path is None:
+                return False
+            else:
+                return True
+
+def get_latest_installed(dataset_path):
+    """Return the latest version number installed in a dataset directory.
+
+    Parameters:
+    dataset_path (str): The path to the directory containing the data files.
 
     Returns:
     str: The latest version installed locally.
     """
-    dirs = [dir.strip() for dir in os.listdir(data_path)
-                if os.path.isdir(os.path.join(data_path, dir))]
+    dirs = [dir.strip() for dir in os.listdir(dataset_path)
+                if os.path.isdir(os.path.join(dataset_path, dir))]
     
-    data_dir = data_path.split(os.sep)[-1]
-    dataset_name = data_dir.split('_')[1] # For example, we get 'endometrial' from 'data_endometrial'
+    dataset_dir = dataset_path.split(os.sep)[-1]
+    dataset_name = dataset_dir.split('_')[1] # For example, we get 'endometrial' from 'data_endometrial'
     version_dir_prefix = dataset_name + '_v'
     versions = [dir.replace(version_dir_prefix, '') for dir in dirs
                     if dir.startswith(version_dir_prefix)]
-    local_latest = max(versions, key=float)
-    return local_latest
+    if len(versions) == 0:
+        return None
+    latest_installed = max(versions, key=float)
+    return latest_installed
 
-def parse_index(index_path):
-    """Read the given index file into a nested dictionary.
+def get_index(dataset_path):
+    """Get the index for a dataset, as a nested dictionary
 
     Parameters:
-    index_path (str): The path to the file containing the index
+    dataset_path (str): The path the dataset you want the index of.
 
     Returns:
     dict: The index, as a nested dictionary.
     """
+    index_file = "index.txt"
+    index_path = os.path.join(dataset_path, index_file)
     with open(index_path, 'r') as index_file:
         index_lines = index_file.readlines()
 

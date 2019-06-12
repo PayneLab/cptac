@@ -2259,7 +2259,7 @@ def test_append_metadata_all_dfs():
 
 # ADD ALL DFS TEST FOR MUT
 
-en = cptac.Endometrial()
+en = cptac.Endometrial(version="latest")
 
 print("\nRunning tests:\n")
  
