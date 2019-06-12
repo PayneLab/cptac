@@ -31,7 +31,7 @@ class Endometrial(DataSet):
         # Check the data files. If they're not downloaded, download them. If they're out of date, update them.
         path_here = os.path.abspath(os.path.dirname(__file__))
         data_directory = os.path.join(path_here, "data_endometrial")
-        check_data(data_directory)
+#        check_data(data_directory)
 
         # Print the data version
         data_version = "2.1"
