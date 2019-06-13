@@ -171,7 +171,7 @@ class Ovarian(DataSet):
             self._data[name] = df_rename_col_axis
 
         # Load definitions
-        definitions_path = os.path.join(path_here, "data_ovarian", "definitions.txt")
+        definitions_path = os.path.join(version_path, "definitions.txt")
         with open(definitions_path, "r", errors="ignore") as definitions_file:
             for line in definitions_file.readlines():
                 line = line.strip()
