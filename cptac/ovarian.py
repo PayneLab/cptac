@@ -15,7 +15,7 @@ import glob
 import textwrap
 import datetime
 from .dataset import DataSet
-from .sync import get_version_path
+from .sync import get_version_files_paths
 
 class Ovarian(DataSet):
 
@@ -28,25 +28,55 @@ class Ovarian(DataSet):
         # Set the cancer_type instance variable 
         self._cancer_type = "ovarian"
 
-        # Get the version path
-        version_path = get_version_path("ovarian", version)
-        if version_path is None: # Validation error. get_version_path already printed an error message.
+        # Get the paths to all the data files
+        data_files = [
+            "clinical.csv.gz",
+            "cnv.tsv.gz",
+            "definitions.txt",
+            "phosphoproteomics.txt.gz",
+            "proteomics.txt.gz",
+            "somatic_38.maf.gz",
+            "transcriptomics.tsv.gz",
+            "treatment.csv.gz"]
+        data_files_paths = get_version_files_paths(self._cancer_type, version, data_files)
+        if data_files_paths is None: # Version validation error. get_version_files_paths already printed an error message.
             return None
 
-        # Get the path to the data files
-        data_path = os.path.join(version_path, "*.*")
-        files = glob.glob(data_path) # Put all files into a list
-
         # Load the data files into dataframes in the self._data dict
-        for file in files: 
-            path_elements = file.split(os.sep) # Get a list of all the levels of the path
+        for file_path in data_files_paths:
+            path_elements = file_path.split(os.sep) # Get a list of all the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
             df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
             # Load the file, based on what it is
             print("Loading {} data...".format(df_name), end='\r') # Carriage return ending causes previous line to be erased.
-            if file_name == "proteomics.txt.gz" or file_name == "phosphoproteomics.txt.gz":
-                df = pd.read_csv(file, sep="\t", index_col = 0)
+
+            if file_name == "clinical.csv.gz" or file_name == "treatment.csv.gz":
+                df = pd.read_csv(file_path, sep=",", index_col=0)
+                df = df.rename(columns={"Participant_ID":"Patient_ID"})
+                df = df.set_index("Patient_ID")
+                df.name = df_name
+                self._data[df.name] = df #maps dataframe name to dataframe
+
+            elif file_name == "cnv.tsv.gz":
+                df = pd.read_csv(file_path, sep="\t", index_col=0)
+                df = df.sort_index()
+                df = df.transpose()
+                df = df.sort_index()
+                df.name = "CNV"
+                self._data[df.name] = df #maps dataframe name to dataframe
+
+            elif file_name == "definitions.txt":
+                with open(file_path, "r", errors="ignore") as definitions_file:
+                    for line in definitions_file.readlines():
+                        line = line.strip()
+                        line = line.split("\t")
+                        term = line[0]
+                        definition = line[1]
+                        self._definitions[term] = definition
+
+            elif file_name == "phosphoproteomics.txt.gz" or file_name == "proteomics.txt.gz":
+                df = pd.read_csv(file_path, sep="\t", index_col = 0)
                 if file_name == "proteomics.txt.gz":
                     df = df[df["hgnc_symbol"].notnull()] # Drops all nan values in hgnc_symbol column
                     df = df.set_index("hgnc_symbol")
@@ -67,33 +97,8 @@ class Ovarian(DataSet):
                 df.name = df_name
                 self._data[df.name] = df #maps dataframe name to dataframe
 
-            elif file_name == "clinical.csv.gz" or file_name == "treatment.csv.gz":
-                df = pd.read_csv(file, sep=",", index_col=0)
-                df = df.rename(columns={"Participant_ID":"Patient_ID"})
-                df = df.set_index("Patient_ID")
-                df.name = df_name
-                self._data[df.name] = df #maps dataframe name to dataframe
-
-            elif file_name == "transcriptomics.tsv.gz":
-                df = pd.read_csv(file, sep="\t", index_col=0)
-                df = df.sort_index()
-                df = df.transpose()
-                df = df.sort_index()
-                date_cols = ['1-Dec', '1-Sep', '10-Mar', '10-Sep', '11-Sep', '12-Sep', '14-Sep', '15-Sep', '2-Mar', '2-Sep', '3-Mar', '3-Sep', '4-Mar', '4-Sep', '5-Mar', '6-Mar', '6-Sep', '7-Mar', '7-Sep', '8-Mar', '8-Sep', '9-Mar', '9-Sep']
-                df = df.drop(columns=date_cols) # Drop all date values until new data is uploaded
-                df.name = df_name
-                self._data[df.name] = df #maps dataframe name to dataframe
-
-            elif file_name == "cnv.tsv.gz":
-                df = pd.read_csv(file, sep="\t", index_col=0)
-                df = df.sort_index()
-                df = df.transpose()
-                df = df.sort_index()
-                df.name = "CNV"
-                self._data[df.name] = df #maps dataframe name to dataframe
-
             elif file_name == "somatic_38.maf.gz":
-                df = pd.read_csv(file, sep = "\t", index_col=0)
+                df = pd.read_csv(file_path, sep = "\t", index_col=0)
                 df = df.reset_index()
                 split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n = 1, expand = True) # The first part of the barcode is the patient id, which we need to make a Patient_ID column
                 df["Tumor_Sample_Barcode"] = split_barcode[0]
@@ -102,10 +107,17 @@ class Ovarian(DataSet):
                 parsed_df = parsed_df.set_index("Patient_ID")
                 parsed_df.name = 'somatic_mutation'
                 self._data[parsed_df.name] = parsed_df #maps dataframe name to dataframe
-            elif file_name == "definitions.txt":
-                pass # We'll load the definiton separately
-            else:
-                print("Unrecognized file: {}.\nFile not loaded.".format(file))
+
+            elif file_name == "transcriptomics.tsv.gz":
+                df = pd.read_csv(file_path, sep="\t", index_col=0)
+                df = df.sort_index()
+                df = df.transpose()
+                df = df.sort_index()
+                date_cols = ['1-Dec', '1-Sep', '10-Mar', '10-Sep', '11-Sep', '12-Sep', '14-Sep', '15-Sep', '2-Mar', '2-Sep', '3-Mar', '3-Sep', '4-Mar', '4-Sep', '5-Mar', '6-Mar', '6-Sep', '7-Mar', '7-Sep', '8-Mar', '8-Sep', '9-Mar', '9-Sep']
+                df = df.drop(columns=date_cols) # Drop all date values until new data is uploaded
+                df.name = df_name
+                self._data[df.name] = df #maps dataframe name to dataframe
+
             print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
         # Get a union of all dataframes' indicies, with duplicates removed
@@ -169,14 +181,6 @@ class Ovarian(DataSet):
             df_rename_col_axis = self._data[name]
             df_rename_col_axis.columns.name = None
             self._data[name] = df_rename_col_axis
-
-        # Load definitions
-        definitions_path = os.path.join(version_path, "definitions.txt")
-        with open(definitions_path, "r", errors="ignore") as definitions_file:
-            for line in definitions_file.readlines():
-                line = line.strip()
-                line = line.split("\t")
-                self._definitions[line[0]] = line[1]
 
         # Print data embargo warning, if the date hasn't passed yet.
         today = datetime.date.today()

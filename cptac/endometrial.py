@@ -15,7 +15,7 @@ import glob
 import textwrap
 import datetime
 from .dataset import DataSet
-from .sync import get_version_path
+from .sync import get_version_files_paths
 
 class Endometrial(DataSet):
 
@@ -28,49 +28,65 @@ class Endometrial(DataSet):
         # Set the _cancer_type instance variable 
         self._cancer_type = "endometrial"
 
-        # Get the version path
-        version_path = get_version_path("endometrial", version)
-        if version_path is None: # Validation error. get_version_path already printed an error message.
+        # Get the paths to all the data files
+        data_files = [
+            "acetylproteomics.cct.gz", 
+            "clinical.txt", 
+            "CNA.cct.gz", 
+            "definitions.txt",
+            "miRNA.cct.gz", 
+            "phosphoproteomics_gene.cct.gz", 
+            "phosphoproteomics_site.cct.gz", 
+            "proteomics.cct.gz", 
+            "somatic_binary.cbt.gz", 
+            "somatic.maf.gz", 
+            "transcriptomics_circular.cct.gz", 
+            "transcriptomics_linear.cct.gz"]
+        data_files_paths = get_version_files_paths(self._cancer_type, version, data_files)
+        if data_files_paths is None: # Version validation error. get_version_files_paths already printed an error message.
             return None
 
-        # Get the path to the data files
-        data_path = os.path.join(version_path, "*.*")
-        files = glob.glob(data_path) # Put all files into a list
-
         # Load the data files into dataframes in the self._data dict
-        for file in files: 
-            path_elements = file.split(os.sep) # Get a list of the levels of the path
+        for file_path in data_files_paths: 
+            path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
-            file_name_split = file_name.split(".")
-            df_name = file_name_split[0] # Dataframe name will be the first section of file name; i.e. proteomics.txt.gz becomes proteomics
+            df_name = file_name.split(".")[0] # Dataframe name will be the first section of file name; i.e. proteomics.txt.gz becomes proteomics
 
             # Load the file, based on what it is
             print("Loading {} data...".format(df_name), end='\r') # Carriage return ending causes previous line to be erased.
+
             if file_name == "clinical.txt":
                 # Fix for reading error on clinical.txt:
-                with open(file, "r", errors="ignore") as clinical_file:
+                with open(file_path, "r", errors="ignore") as clinical_file:
                     df = pd.read_csv(clinical_file, sep="\t", index_col=0)
                 df = df.sort_index()
                 df.name = df_name
                 self._data[df.name] = df # Maps dataframe name to dataframe
+
+            elif file_name == "definitions.txt":
+                with open(file_path, "r") as definitions_file:
+                    for line in definitions_file.readlines():
+                        line = line.strip()
+                        line = line.split("\t")
+                        term = line[0]
+                        definition = line[1]
+                        self._definitions[term] = definition
+
             elif file_name == "somatic.maf.gz":
-                df = pd.read_csv(file, sep = "\t")
+                df = pd.read_csv(file_path, sep = "\t")
                 split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n = 1, expand = True) # The first part of the barcode is the patient id, which we need want to make the index
                 df["Tumor_Sample_Barcode"] = split_barcode[0]
                 df = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]]
                 df = df.rename({"Tumor_Sample_Barcode":"Patient_Id","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
                 df.name = "somatic_mutation"
                 self._data[df.name] = df # Maps dataframe name to dataframe
-            elif file_name in ("acetylproteomics.cct.gz", "CNA.cct.gz", "miRNA.cct.gz", "phosphoproteomics_gene.cct.gz", "phosphoproteomics_site.cct.gz", "proteomics.cct.gz", "somatic_binary.cbt.gz", "transcriptomics_circular.cct.gz", "transcriptomics_linear.cct.gz"):
-                df = pd.read_csv(file, sep="\t", index_col=0)
+
+            else:
+                df = pd.read_csv(file_path, sep="\t", index_col=0)
                 df = df.transpose()
                 df = df.sort_index()
                 df.name = df_name
                 self._data[df.name] = df # Maps dataframe name to dataframe
-            elif file_name == "definitions.txt":
-                pass # We'll load the defintions separately
-            else:
-                print("Unrecognized file: {}.\nFile not loaded.".format(file))
 
             print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
@@ -177,14 +193,6 @@ class Endometrial(DataSet):
             df_rename_col_axis = self._data[name]
             df_rename_col_axis.columns.name = None
             self._data[name] = df_rename_col_axis
-
-        # Load definitions
-        definitions_path = os.path.join(version_path, "definitions.txt")
-        with open(definitions_path, "r") as definitions_file:
-            for line in definitions_file.readlines():
-                line = line.strip()
-                line = line.split("\t")
-                self._definitions[line[0]] = line[1]
 
         # Print data embargo warning, if the date hasn't passed yet.
         today = datetime.date.today()

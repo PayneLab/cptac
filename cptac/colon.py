@@ -14,7 +14,7 @@ import pandas as pd
 import os
 import glob
 from .dataset import DataSet
-from .sync import get_version_path
+from .sync import get_version_files_paths
 
 class Colon(DataSet):
 
@@ -30,38 +30,45 @@ class Colon(DataSet):
         # Overload the gene separator for column names in the phosphoproteomics dataframe. In the colon data, it's an underscore, not a dash like most datasets.
         self._gene_separator = "_"
 
-        # Get the version path
-        version_path = get_version_path("colon", version)
-        if version_path is None: # Validation error. get_version_path already printed an error message.
+        # Get the paths to all the data files
+        data_files = [
+            "clinical.tsi.gz",
+            "miRNA.cct.gz",
+            "mutation_binary.cbt.gz",
+            "mutation.txt.gz",
+            "phosphoproteomics_normal.gz",
+            "phosphoproteomics_tumor.gz",
+            "proteomics_normal.cct.gz",
+            "proteomics_tumor.cct.gz",
+            "transcriptomics.gz"]
+        data_files_paths = get_version_files_paths(self._cancer_type, version, data_files)
+        if data_files_paths is None: # Version validation error. get_version_files_paths already printed an error message.
             return None
 
-        # Get the path to the data files
-        data_path = os.path.join(version_path, "*.*")
-        files = glob.glob(data_path) # Put all files into a list
-
         # Load the data into dataframes in the self._data dict
-        for file in files: # Loops through files variable
-            path_elements = file.split(os.sep) # Get a list of the levels of the path
+        for file_path in data_files_paths: # Loops through files variable
+            path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
             file_name_split = file_name.split(".")
             df_name = file_name_split[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
             # Load the file, based on what it is
             print("Loading {} data...".format(df_name), end='\r') # Carriage return ending causes previous line to be erased.
+
             if file_name == "mutation.txt.gz":
-                df = pd.read_csv(file, sep="\t")
+                df = pd.read_csv(file_path, sep="\t")
                 df = df.sort_values(by="SampleID")
                 df = df[["SampleID","Gene","Variant_Type","Protein_Change"]]
                 df = df.rename({"Variant_Type":"Mutation","Protein_Change":"Location"},axis="columns")
                 df.name = "somatic_" + df_name
                 self._data[df.name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
-            elif file_name in ("clinical.tsi.gz", "miRNA.cct.gz", "mutation_binary.cbt.gz", "phosphoproteomics_normal.gz", "phosphoproteomics_tumor.gz", "proteomics_normal.cct.gz", "proteomics_tumor.cct.gz", "transcriptomics.gz"):
-                df = pd.read_csv(file, sep="\t",index_col=0)
+
+            else:
+                df = pd.read_csv(file_path, sep="\t",index_col=0)
                 df = df.transpose()
                 df.name = df_name
                 self._data[df.name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
-            else:
-                print("Unrecognized file: {}.\nFile not loaded.".format(file))
+
             print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
         # Rename mutation_binary dataframe to somatic_mutation_binary

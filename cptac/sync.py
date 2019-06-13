@@ -154,15 +154,16 @@ def download_file(url, path, server_hash):
             print("\033[K", end='\r') # Erase the downloading message
             return path
 
-def get_version_path(dataset, version):
-    """Check that a version is valid and installed, then return the path to the version's directory.
+def get_version_files_paths(dataset, version, data_files):
+    """Check that a version is valid and installed, then return the paths to the data files for that version.
 
     Parameters:
     dataset (str): The name of the dataset to perform the chores for.
-    version (sr): The version of the dataset to perform the chores for.
+    version (str): The version of the dataset to perform the chores for.
+    data_files: (list of str): The file names to get paths for.
 
     Returns:
-    str: The path to the data files for specified version of the dataset.
+    list of str: The paths to the given data files for specified version of the dataset.
     """
     # Get the path to the dataset's main directory
     dataset_path = get_dataset_path(dataset)
@@ -178,8 +179,13 @@ def get_version_path(dataset, version):
 
     # Check that they've installed the version they requested
     version_path = os.path.join(dataset_path, f"{dataset}_v{version}")
-    if os.path.isdir(version_path):
-        return version_path
-    else:
+    if not os.path.isdir(version_path):
         print(f"{version} not installed. To install, run 'cptac.sync(dataset='{dataset}', version='{version}')'.")
         return None
+
+    data_files_paths = []
+    for data_file in data_files:
+        file_path = os.path.join(version_path, data_file)
+        data_files_paths.append(file_path)
+
+    return data_files_paths
