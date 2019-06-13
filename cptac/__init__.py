@@ -10,7 +10,6 @@
 #   limitations under the License.
 
 import webbrowser
-import textwrap
 import os.path as path
 from .endometrial import Endometrial
 from .colon import Colon
@@ -39,10 +38,3 @@ def version():
     with open(version_path) as fp:
         exec(fp.read(), version)
     return(version['__version__'])
-
-message = "Welcome to cptac, a python package for disseminating cancer proteogenomics data. To view available datasets, enter 'cptac.list_data()'. Extensive tutorials are available at https://github.com/PayneLab/cptac/tree/master/doc\n"
-wrapped_list = textwrap.wrap(message)
-for line in wrapped_list:
-    print(line)
-
-print("\n******\nVersion: {}\n******".format(version()))
