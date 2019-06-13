@@ -31,7 +31,7 @@ class Colon(DataSet):
         self._gene_separator = "_"
 
         # Get the version path
-        version_path = get_version_path("endometrial", version)
+        version_path = get_version_path("colon", version)
         if version_path is None: # Validation error. get_version_path already printed an error message.
             return None
 

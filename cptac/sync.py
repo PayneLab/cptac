@@ -165,7 +165,7 @@ def get_version_path(dataset, version):
     str: The path to the data files for specified version of the dataset.
     """
     # Get the path to the dataset's main directory
-    dataset_path = get_dataset_path("endometrial")
+    dataset_path = get_dataset_path(dataset)
 
     # Update the index, if possible
     update_index(dataset_path) # If there's no internet, this will return False, but we don't care
@@ -177,9 +177,9 @@ def get_version_path(dataset, version):
         return None
 
     # Check that they've installed the version they requested
-    version_path = os.path.join(dataset_path, f"endometrial_v{version}")
+    version_path = os.path.join(dataset_path, f"{dataset}_v{version}")
     if os.path.isdir(version_path):
         return version_path
     else:
-        print(f"{version} not installed. To install, run 'cptac.sync(dataset='endometrial', version='{version}')'.")
+        print(f"{version} not installed. To install, run 'cptac.sync(dataset='{dataset}', version='{version}')'.")
         return None

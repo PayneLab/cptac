@@ -29,7 +29,7 @@ class Ovarian(DataSet):
         self._cancer_type = "ovarian"
 
         # Get the version path
-        version_path = get_version_path("endometrial", version)
+        version_path = get_version_path("ovarian", version)
         if version_path is None: # Validation error. get_version_path already printed an error message.
             return None
 
