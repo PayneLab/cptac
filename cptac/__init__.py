@@ -12,7 +12,6 @@
 import webbrowser
 import textwrap
 import os.path as path
-from .sync import sync
 from .endometrial import Endometrial
 from .colon import Colon
 from .ovarian import Ovarian

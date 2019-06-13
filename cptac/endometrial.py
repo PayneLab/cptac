@@ -198,7 +198,6 @@ class Endometrial(DataSet):
         today = datetime.date.today()
         embargo_date = datetime.date(2019, 7, 1)
         if today < embargo_date:
-            print("******PLEASE READ******")
             warning = "WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details."
             wrapped_list = textwrap.wrap(warning)
             for line in wrapped_list:

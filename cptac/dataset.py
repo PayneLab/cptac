@@ -180,8 +180,8 @@ class DataSet:
         pandas DataFrame: The selected columns from the two omics dataframes, merged into one dataframe.
         """
         # Make sure they gave us valid dataframe names
-        df1_valid = self._is_valid_omics_df(omics_df1_name)
-        df2_valid = self._is_valid_omics_df(omics_df2_name)
+        df1_valid = self._is_valid_df(omics_df1_name, "omics")
+        df2_valid = self._is_valid_df(omics_df2_name, "omics")
 
         if (not df1_valid) or (not df2_valid):
             return
@@ -213,8 +213,8 @@ class DataSet:
         pandas DataFrame: The selected metadata columns, merged with all or part of the omics dataframe.
         """
         # Make sure metadata_df_name and omics_df_name are valid for this function
-        metadata_df_valid = self._is_valid_metadata_df(metadata_df_name)
-        omics_df_valid = self._is_valid_omics_df(omics_df_name)
+        metadata_df_valid = self._is_valid_df(metadata_df_name, "metadata")
+        omics_df_valid = self._is_valid_df(omics_df_name, "omics")
 
         if (not metadata_df_valid) or (not omics_df_valid):
             return
@@ -246,7 +246,7 @@ class DataSet:
         pandas DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
         """
         # Make sure omics_df is valid for this function
-        if not (self._is_valid_omics_df(omics_df_name)):
+        if not (self._is_valid_df(omics_df_name, "omics")):
             return
 
         # Select the data from each dataframe
@@ -315,42 +315,30 @@ class DataSet:
         status_map.name = "Sample_Status"
         return status_map
 
-    def _is_valid_omics_df(self, df_name):
-        """Tells you whether a dataframe with this name is valid for use as an omics dataframe in one of the utilties functions. Also prints message informing user.
+    def _is_valid_df(self, df_name, df_type):
+        """Tells you whether a dataframe with this name is valid for use as an omics or metadata dataframe in one of the utilties functions. Also prints message informing user.
 
         Parameters:
         df_name (str): The dataframe name to check.
+        df_type (str): Which type of dataframe we're validating--either "omics" or "metadata"
 
         Returns:
-        bool: Indicates whether the dataframe of that name would be valid for use as an omics dataframe in a utilities function.
+        bool: Indicates whether the dataframe of that name would be valid for use as an omics or metadata dataframe in a utilities function.
         """
         if not isinstance(df_name, str): # Check that they passed a str, since utilities functions used to directly accept dataframes
-            print("Please pass a str for omics dataframe name parameter. You passed a {}".format(type(df_name)))
+            print(f"Please pass a str for {df_type} dataframe name parameter. You passed a {type(df_name)}")
             return False
-        if (df_name not in self._valid_omics_dfs):
-            print("{} is not a valid omics dataframe for this function. Valid dataframe options in this dataset:".format(df_name))
-            for valid_name in self._valid_omics_dfs:
-                if valid_name in self._data.keys(): # Only print it if it's included in this dataset
-                    print('\t' + valid_name)
-            return False
+
+        if df_type == "omics":
+            valid_dfs = self._valid_omics_dfs
+        elif df_type == "metadata":
+            valid_dfs = self._valid_metadata_dfs
         else:
-            return True
+            return None
 
-    def _is_valid_metadata_df(self, df_name):
-        """Tells you whether a dataframe with this name is valid for use as a metadata dataframe in one of the utilties functions. Also prints message informing user.
-
-        Parameters:
-        df_name (str): The dataframe name to check.
-
-        Returns:
-        bool: Indicates whether the dataframe of that name would be valid for use as a metadata dataframe in a utilities function.
-        """
-        if not isinstance(df_name, str): # Check that they passed a str, since utilities functions used to directly accept dataframes
-            print("Please pass a str for metadata dataframe name parameter. You passed a {}".format(type(df_name)))
-            return False
-        if (df_name not in self._valid_metadata_dfs):
-            print("{} is not a valid metadata dataframe for this function. Valid dataframe options in this dataset:".format(df_name))
-            for valid_name in self._valid_metadata_dfs:
+        if (df_name not in valid_dfs):
+            print(f"{df_name} is not a valid {df_type} dataframe for this function. Valid dataframe options in this dataset:")
+            for valid_name in valid_dfs:
                 if valid_name in self._data.keys(): # Only print it if it's included in this dataset
                     print('\t' + valid_name)
             return False

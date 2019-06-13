@@ -181,13 +181,3 @@ class Ovarian(DataSet):
             df_rename_col_axis = self._data[name]
             df_rename_col_axis.columns.name = None
             self._data[name] = df_rename_col_axis
-
-        # Print data embargo warning, if the date hasn't passed yet.
-        today = datetime.date.today()
-        embargo_date = datetime.date(2019, 6, 1)
-        if today < embargo_date:
-            print("\n******PLEASE READ******")
-            warning = "WARNING: This data is under a publication embargo until June 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but the data may not be in a publication until June 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or cptac.embargo() to open the webpage for more details."
-            wrapped_list = textwrap.wrap(warning)
-            for line in wrapped_list:
-                print(line)
