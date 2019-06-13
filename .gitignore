@@ -9,6 +9,7 @@ build/
 # Exclude data files
 cptac/data_colon/*
 cptac/data_endometrial/*
-cptac/data_ovarian/*.*
+cptac/data_ovarian/*
 !cptac/data_colon/index_urls.tsv
 !cptac/data_endometrial/index_urls.tsv
+!cptac/data_ovarian/index_urls.tsv
