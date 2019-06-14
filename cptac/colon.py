@@ -71,6 +71,8 @@ class Colon(DataSet):
 
             print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
+        print("Formatting dataframes...", end="\r")
+
         # Rename mutation_binary dataframe to somatic_mutation_binary
         df = self._data["mutation_binary"]
         df.name = "somatic_mutation_binary"
@@ -202,3 +204,6 @@ class Colon(DataSet):
             df_rename_col_axis = self._data[name]
             df_rename_col_axis.columns.name = None
             self._data[name] = df_rename_col_axis
+
+        # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
+        print("\033[K", end='\r') 

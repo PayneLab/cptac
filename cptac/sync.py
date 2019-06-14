@@ -63,11 +63,20 @@ def sync(dataset, version="latest"):
 
         if local_hash != server_hash:
             file_url = file_index.get("url")
+
             if dataset == "gbm" and password is None:
                 password = getpass.getpass()
                 print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
                 print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
+
             downloaded_path = download_file(file_url, file_path, server_hash, password)
+
+            while downloaded_path == "wrong_password":
+                password = getpass.getpass(prompt="Wrong password. Try again: ")
+                print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
+                print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
+                downloaded_path = download_file(file_url, file_path, server_hash, password)
+
             if downloaded_path is None:
                 print("Insufficient internet to sync. Check your internet connection.")
                 return False
@@ -170,9 +179,8 @@ def download_file(url, path, server_hash, password=None):
                         'request_token': token}
                     response = session.post(post_url, data=payload)
 
-            response.raise_for_status() # Raises a requests HTTPError if the response code was unsuccessful
+            response.raise_for_status() # Raises a requests.HTTPError if the response code was unsuccessful
         except requests.RequestException: # Parent class for all exceptions in the requests module
-            print("\033[K", end='\r') # Erase the downloading message
             return None
             
         local_hash = hash_bytes(response.content)
@@ -181,6 +189,9 @@ def download_file(url, path, server_hash, password=None):
                 dest.write(response.content)
             print("\033[K", end='\r') # Erase the downloading message
             return path
+        elif response.text.strip().startswith("<!DOCTYPE html>"): # The password was wrong, so we just got a webpage
+            print("\033[K", end='\r') # Erase the downloading message
+            return "wrong_password"
 
 def get_version_files_paths(dataset, version, data_files):
     """Check that a version is valid and installed, then return the paths to the data files for that version.

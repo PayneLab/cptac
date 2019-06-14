@@ -120,6 +120,8 @@ class Ovarian(DataSet):
 
             print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
+        print("Formatting dataframes...", end="\r")
+
         # Get a union of all dataframes' indicies, with duplicates removed
         indicies = [df.index for df in self._data.values()]
         master_index = pd.Index([])
@@ -181,3 +183,6 @@ class Ovarian(DataSet):
             df_rename_col_axis = self._data[name]
             df_rename_col_axis.columns.name = None
             self._data[name] = df_rename_col_axis
+
+        # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
+        print("\033[K", end='\r') 

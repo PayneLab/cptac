@@ -52,7 +52,7 @@ def validate_version(version, dataset_path, index):
         if (index_latest == latest_installed) or (latest_installed is None):
             return index_latest
         else:
-            print(f"Ambiguous request for latest version. Latest version in index is {index_latest}, but latest version installed locally is {latest_installed}. To download the latest version in the index, run cptac.sync with '{index_latest}' as the version parameter. To perform your requested action with the latest version that is installed locally, run your desired function with '{latest_installed}' as the version parameter.")
+            print(f"Ambiguous request for latest version. Latest version in index is {index_latest}, but latest version installed locally is {latest_installed}. To download the latest version in the index, run cptac.sync with '{index_latest}' as the version parameter. To run your function with the latest version that is installed locally, run the function with '{latest_installed}' as the version parameter.")
             return None
     else:
         print(f"{version} is an invalid version for this dataset. Valid versions: {', '.join(index.keys())}")
