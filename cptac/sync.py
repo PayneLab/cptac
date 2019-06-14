@@ -54,7 +54,10 @@ def sync(dataset, version="latest"):
 
     # Check the files in that version of the dataset. Download if don't exist, and update if have been changed.
     version_index = index.get(version)
-    password = None
+    if dataset == "gbm":
+        password = getpass.getpass()
+    else:
+        password = None
     for data_file in version_index.keys():
         file_index = version_index.get(data_file)
         file_path = os.path.join(version_path, data_file)
@@ -63,8 +66,6 @@ def sync(dataset, version="latest"):
 
         if local_hash != server_hash:
             file_url = file_index.get("url")
-            if dataset == "gbm":
-                password = getpass.getpass()
             downloaded_path = download_file(file_url, file_path, server_hash, password)
             if downloaded_path is None:
                 print("Insufficient internet to sync. Check your internet connection.")
@@ -170,6 +171,7 @@ def download_file(url, path, server_hash, password=None):
 
             response.raise_for_status() # Raises a requests HTTPError if the response code was unsuccessful
         except requests.RequestException: # Parent class for all exceptions in the requests module
+            print("\033[K", end='\r') # Erase the downloading message
             return None
             
         local_hash = hash_bytes(response.content)
