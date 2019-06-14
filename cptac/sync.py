@@ -54,10 +54,7 @@ def sync(dataset, version="latest"):
 
     # Check the files in that version of the dataset. Download if don't exist, and update if have been changed.
     version_index = index.get(version)
-    if dataset == "gbm":
-        password = getpass.getpass()
-    else:
-        password = None
+    password = None
     for data_file in version_index.keys():
         file_index = version_index.get(data_file)
         file_path = os.path.join(version_path, data_file)
@@ -66,6 +63,10 @@ def sync(dataset, version="latest"):
 
         if local_hash != server_hash:
             file_url = file_index.get("url")
+            if dataset == "gbm" and password is None:
+                password = getpass.getpass()
+                print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
+                print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
             downloaded_path = download_file(file_url, file_path, server_hash, password)
             if downloaded_path is None:
                 print("Insufficient internet to sync. Check your internet connection.")
