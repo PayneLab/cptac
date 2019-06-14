@@ -11,6 +11,8 @@
 
 import os
 import requests
+import getpass
+import bs4
 from .utilities import *
 
 def sync(dataset, version="latest"):
@@ -52,6 +54,7 @@ def sync(dataset, version="latest"):
 
     # Check the files in that version of the dataset. Download if don't exist, and update if have been changed.
     version_index = index.get(version)
+    password = None
     for data_file in version_index.keys():
         file_index = version_index.get(data_file)
         file_path = os.path.join(version_path, data_file)
@@ -60,7 +63,9 @@ def sync(dataset, version="latest"):
 
         if local_hash != server_hash:
             file_url = file_index.get("url")
-            downloaded_path = download_file(file_url, file_path, server_hash)
+            if dataset == "gbm":
+                password = getpass.getpass()
+            downloaded_path = download_file(file_url, file_path, server_hash, password)
             if downloaded_path is None:
                 print("Insufficient internet to sync. Check your internet connection.")
                 return False
@@ -122,13 +127,14 @@ def download_text(url):
     text = response.text.strip()
     return text
 
-def download_file(url, path, server_hash): 
+def download_file(url, path, server_hash, password=None): 
     """Download a file from a given url to the specified location.
 
     Parameters:
     url (str): The direct download url for the file.
     path (str): The path to the file (not just the directory) to save the file to on the local machine.
     server_hash (str): The hash for the file, to check it against. If check fails, try download one more time, then throw an exception.
+    password (str, optional): If the file is password protected, the password for it. Unneeded otherwise.
 
     Returns:
     str: The path the file was downloaded to.
@@ -142,7 +148,26 @@ def download_file(url, path, server_hash):
 
     for i in range(2):
         try:
-            response = requests.get(url, allow_redirects=True)
+            if password is None:
+                response = requests.get(url, allow_redirects=True)
+            else: # The file is password protected
+                with requests.Session() as session: # Use a session object to save cookies
+                    # Construct the urls for our GET and POST requests
+                    get_url = url
+                    post_url = get_url.replace("https://byu.box.com/shared", "https://byu.app.box.com/public")
+
+                    # Send initial GET request and parse the request token out of the response
+                    get_response = session.get(get_url) 
+                    soup = bs4.BeautifulSoup(get_response.text, "html.parser")
+                    token_tag = soup.find(id="request_token")
+                    token = token_tag.get("value")
+
+                    # Send a POST request, with the password and token, to get the data
+                    payload = {
+                        'password': password,
+                        'request_token': token}
+                    response = session.post(post_url, data=payload)
+
             response.raise_for_status() # Raises a requests HTTPError if the response code was unsuccessful
         except requests.RequestException: # Parent class for all exceptions in the requests module
             return None
