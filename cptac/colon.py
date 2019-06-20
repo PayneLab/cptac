@@ -19,7 +19,7 @@ from .sync import get_version_files_paths
 class Colon(DataSet):
 
     def __init__(self, version="latest"):
-        """Load all of the endometrial dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
+        """Load all of the colon dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
 
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
         super().__init__()
