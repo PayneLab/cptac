@@ -69,6 +69,8 @@ def sync(dataset, version="latest"):
             if downloaded_path is None:
                 print("Insufficient internet to sync. Check your internet connection.")
                 return False
+
+    print("Data sync successful.")
     return True
 
 def update_index(dataset_path):
@@ -205,7 +207,7 @@ def get_version_files_paths(dataset, version, data_files):
     # Check that they've installed the version they requested
     version_path = os.path.join(dataset_path, f"{dataset}_v{version}")
     if not os.path.isdir(version_path):
-        print(f"{version} not installed. To install, run 'cptac.sync(dataset='{dataset}', version='{version}')'.")
+        print(f"Data version {version} not installed. To install, run 'cptac.sync(dataset='{dataset}', version='{version}')'.")
         return None
 
     data_files_paths = []
