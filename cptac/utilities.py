@@ -30,29 +30,44 @@ def get_dataset_path(dataset):
         print(f"{dataset} is not a valid dataset.")
         return None
 
-def validate_version(version, dataset_path, index):
+def validate_version(version, dataset, dataset_path, index, use_context):
     """Check that a given version number is valid. If version is "latest", check that index and installed latest match.
 
     Parameters:
     version (str): The version number to validate.
+    dataset (str): The name of the dataset we're validating the version for.
     dataset_path (str): The path to the dataset the version is for.
     index (dict): The parsed index for the dataset.
+    use_context (str): Either "sync" or "load", depending on whether the function is being called as part of a data sync or a dataset loading. Allows for more detailed error messages. Pass None if you don't want more detailed error messages.
 
     Returns:
-    str: The version number, if valid input. Else None.
+    str: The version number, if valid input. If they passed the "latest" keyword but their latest installed didn't match the latest in the index, then return "ambiguous_latest". Else return None.
     """
+    # See what the highest version in the index is
+    index_latest = max(index.keys(), key=float)
+
+    # Parse and validate the version they passed
     if version in index.keys():
+        if float(version) < float(index_latest): # Print a warning if they're using an old version
+            print(f"WARNING: You are using an old data version. Latest is {index_latest}. You are using {version}.")
         return version
+
     elif version.lower() == "latest":
-        index_latest = max(index.keys(), key=float) # See what the highest version in the index is
         latest_installed = get_latest_installed(dataset_path)
         if (index_latest == latest_installed) or (latest_installed is None):
             return index_latest
-        else:
-            print(f"Ambiguous request for latest version. Latest version in index is {index_latest}, but latest version installed locally is {latest_installed}. To download the latest version in the index, run cptac.sync with '{index_latest}' as the version parameter. To perform your requested action with the latest version that is installed locally, run your desired function with '{latest_installed}' as the version parameter.")
+        else: # If their latest installed version is different from the latest version recorded in the index, then we don't know which one they meant when they passed "latest".
+            print(f"You requested the latest version. Latest version is {index_latest}, which is not installed locally. To download it, run \"cptac.sync(dataset='{dataset}', version='{index_latest}')\".", end=' ') # Replace default newliine ending with a space, so the next message is continuous.
+            
+            if use_context == "sync":
+                print(f"To instead sync the older version that is already installed, run \"cptac.sync(dataset='{dataset}', version='{latest_installed}')\".")
+            elif use_context == "load":
+                print(f"You will then be able to load the latest version by calling \"cptac.{dataset.title()}()\". Or, to instead load the older version that is already installed, call \"cptac.{dataset.title()}(version='{latest_installed}')\".")
+            else:
+                print() # Print a newline to finish off the base error message, since we ended it without a newline in case we were going to print a more detailed message.
             return None
     else:
-        print(f"{version} is an invalid version for this dataset. Valid versions: {', '.join(index.keys())}")
+        print(f"{version} is an invalid version for the {dataset} dataset. Valid versions: {', '.join(index.keys())}")
         return None
 
 def get_latest_installed(dataset_path):
