@@ -16,7 +16,7 @@ Tutorials for this package describe how to use the package functions for researc
 </ul>
 
 ## Requirements
-This package is intended to run on Python 3.6 with pandas 0.23.4. It also requires the numpy and requests packages. In the tutorials, we use seaborn 0.9.0 for data visualization. 
+This package is intended to run on Python 3.6 with pandas 0.23.4. It also requires the packages numpy, requests, and bs4. In the tutorials, we use seaborn 0.9.0 for data visualization. 
 
 ## License
 This package contains LICENSE.md document which describes the license for use. Please note the difference between the license as it applies to code versus data.
