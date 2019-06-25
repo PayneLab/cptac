@@ -29,6 +29,7 @@ setup(name='cptac',
 		'numpy',
 		'pandas>=0.23.*',
 		'requests',
+		'bs4',
 	],
 	classifiers=[
         'Development Status :: 3 - Alpha',
