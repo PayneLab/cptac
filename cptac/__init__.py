@@ -39,3 +39,7 @@ def version():
     with open(version_path) as fp:
         exec(fp.read(), version)
     return(version['__version__'])
+
+def how_to_cite():
+    """Give instructions for citing CPTAC datasets."""
+    print("For instructions on how to cite a specific dataset, please call its how_to_cite method, e.g. cptac.Endometrial().how_to_cite()")
