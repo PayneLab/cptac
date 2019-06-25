@@ -41,7 +41,8 @@ def sync(dataset, version="latest"):
     index = get_index(dataset_path)
 
     # Validate the version number, including parsing if it's "latest"
-    version = validate_version(version, dataset_path, index)
+    use_context = "sync"
+    version = validate_version(version, dataset, dataset_path, index, use_context)
     if version is None: # Invalid version, or latest version installed did not match latest in index. get_latest_version_number already printed error message.
         return False
 
@@ -69,6 +70,8 @@ def sync(dataset, version="latest"):
             if downloaded_path is None:
                 print("Insufficient internet to sync. Check your internet connection.")
                 return False
+
+    print("Data sync successful.")
     return True
 
 def update_index(dataset_path):
@@ -180,11 +183,11 @@ def download_file(url, path, server_hash, password=None):
             return path
 
 def get_version_files_paths(dataset, version, data_files):
-    """Check that a version is valid and installed, then return the paths to the data files for that version.
+    """For dataset loading. Check that a version is valid and installed, then return the paths to the data files for that version.
 
     Parameters:
-    dataset (str): The name of the dataset to perform the chores for.
-    version (str): The version of the dataset to perform the chores for.
+    dataset (str): The name of the dataset to get the paths for.
+    version (str): The version of the dataset to get the paths for.
     data_files: (list of str): The file names to get paths for.
 
     Returns:
@@ -198,14 +201,15 @@ def get_version_files_paths(dataset, version, data_files):
     index = get_index(dataset_path)
 
     # Validate the version, which includes parsing if it's "latest"
-    version = validate_version(version, dataset_path, index)
+    use_context = "load"
+    version = validate_version(version, dataset, dataset_path, index, use_context)
     if version is None: # Validation error
         return None
 
     # Check that they've installed the version they requested
     version_path = os.path.join(dataset_path, f"{dataset}_v{version}")
     if not os.path.isdir(version_path):
-        print(f"{version} not installed. To install, run 'cptac.sync(dataset='{dataset}', version='{version}')'.")
+        print(f"Data version {version} is not installed. To install, run \"cptac.sync(dataset='{dataset}', version='{version}')\".")
         return None
 
     data_files_paths = []
