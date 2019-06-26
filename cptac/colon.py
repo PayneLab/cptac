@@ -19,7 +19,7 @@ from .sync import get_version_files_paths
 class Colon(DataSet):
 
     def __init__(self, version="latest"):
-        """Load all of the endometrial dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
+        """Load all of the colon dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
 
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
         super().__init__()
@@ -70,6 +70,8 @@ class Colon(DataSet):
                 self._data[df.name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
 
             print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
+
+        print("Formatting dataframes...", end="\r")
 
         # Rename mutation_binary dataframe to somatic_mutation_binary
         df = self._data["mutation_binary"]
@@ -203,6 +205,8 @@ class Colon(DataSet):
             df_rename_col_axis.columns.name = None
             self._data[name] = df_rename_col_axis
 
+        # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
+        print("\033[K", end='\r') 
 
     # Overload the default how_to_cite function, to provide the specific publication information for the Colon dataset
     def how_to_cite(self):

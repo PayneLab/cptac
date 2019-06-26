@@ -6,10 +6,14 @@ dist/
 build/
 .DS_Store
 
-# Exclude data files
+# Exclude data files, since they're stored remotely
 cptac/data_colon/*
 cptac/data_endometrial/*
+cptac/mockup_data_gbm/*
 cptac/data_ovarian/*
+
+# Include index url files
 !cptac/data_colon/index_urls.tsv
 !cptac/data_endometrial/index_urls.tsv
+!cptac/mockup_data_gbm/index_urls.tsv
 !cptac/data_ovarian/index_urls.tsv
