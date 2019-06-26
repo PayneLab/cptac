@@ -72,9 +72,11 @@ def sync(dataset, version="latest"):
     password = None
     total_files = len(files_to_sync)
 
+    password_protected_datasets = ["gbm"]
+
     for data_file in files_to_sync:
 
-        if dataset == "gbm" and password is None:
+        if (dataset in password_protected_datasets) and (password is None):
             password = getpass.getpass()
             print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
             print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
