@@ -22,10 +22,7 @@ def get_dataset_path(dataset):
     str: The path to the main directory of the specified dataset.
     """
     path_here = os.path.abspath(os.path.dirname(__file__))
-    if dataset == "gbm":
-        dataset_dir = "mockup_data_gbm"
-    else:
-        dataset_dir = f"data_{dataset}"
+    dataset_dir = f"data_{dataset}"
     dataset_path = os.path.join(path_here, dataset_dir)
     if os.path.isdir(dataset_path):
         return dataset_path

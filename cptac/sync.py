@@ -71,8 +71,7 @@ def sync(dataset, version="latest"):
     # Download or update the files that need it
     password = None
     total_files = len(files_to_sync)
-
-    password_protected_datasets = ["gbm"]
+    password_protected_datasets = [] # We don't have any right now, but we have the functionality.
 
     for data_file in files_to_sync:
 
