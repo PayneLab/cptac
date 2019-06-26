@@ -6,7 +6,7 @@ dist/
 build/
 .DS_Store
 
-# Exclude data files
+# Exclude data files, since they're stored remotely
 cptac/data_colon/*
 cptac/data_endometrial/*
 cptac/mockup_data_gbm/*

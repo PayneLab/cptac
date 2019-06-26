@@ -53,34 +53,50 @@ def sync(dataset, version="latest"):
     if not os.path.isdir(version_path):
         os.mkdir(version_path)
 
-    # Check the files in that version of the dataset. Download if don't exist, and update if have been changed.
+    # Get a list of all files that need to be downloaded or updated
     version_index = index.get(version)
-    password = None
+    files_to_sync = []
     for data_file in version_index.keys():
+        # Get the server hash
         file_index = version_index.get(data_file)
-        file_path = os.path.join(version_path, data_file)
-        local_hash = hash_file(file_path) # Returns None if file doesn't exist, which will also fail the hash comparison later and lead to an update
         server_hash = file_index.get("hash")
 
+        # Get the local hash
+        file_path = os.path.join(version_path, data_file)
+        local_hash = hash_file(file_path) # Returns None if file doesn't exist, which will also fail the hash comparison later and lead to an update
+
         if local_hash != server_hash:
-            file_url = file_index.get("url")
+            files_to_sync.append(data_file)
 
-            if dataset == "gbm" and password is None:
-                password = getpass.getpass()
-                print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
-                print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
+    # Download or update the files that need it
+    password = None
+    total_files = len(files_to_sync)
 
-            downloaded_path = download_file(file_url, file_path, server_hash, password)
+    for data_file in files_to_sync:
 
-            while downloaded_path == "wrong_password":
-                password = getpass.getpass(prompt="Wrong password. Try again: ")
-                print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
-                print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
-                downloaded_path = download_file(file_url, file_path, server_hash, password)
+        if dataset == "gbm" and password is None:
+            password = getpass.getpass()
+            print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
+            print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
 
-            if downloaded_path is None:
-                print("Insufficient internet to sync. Check your internet connection.")
-                return False
+        file_index = version_index.get(data_file)
+        server_hash = file_index.get("hash")
+        file_url = file_index.get("url")
+
+        file_path = os.path.join(version_path, data_file)
+        file_number = files_to_sync.index(data_file) + 1
+
+        downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_number=file_number, total_files=total_files)
+
+        while downloaded_path == "wrong_password":
+            password = getpass.getpass(prompt="Wrong password. Try again: ")
+            print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
+            print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
+            downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_number=file_number, total_files=total_files)
+
+        if downloaded_path is None:
+            print("Insufficient internet to sync. Check your internet connection.")
+            return False
 
     print("Data sync successful.")
     return True
@@ -141,7 +157,7 @@ def download_text(url):
     text = response.text.strip()
     return text
 
-def download_file(url, path, server_hash, password=None): 
+def download_file(url, path, server_hash, password=None, file_number=None, total_files=None): 
     """Download a file from a given url to the specified location.
 
     Parameters:
@@ -149,6 +165,8 @@ def download_file(url, path, server_hash, password=None):
     path (str): The path to the file (not just the directory) to save the file to on the local machine.
     server_hash (str): The hash for the file, to check it against. If check fails, try download one more time, then throw an exception.
     password (str, optional): If the file is password protected, the password for it. Unneeded otherwise.
+    file_number (int, optional): Which file this is in a batch of files, if you want to print a "File 1/15", "File 2/15", etc. sort of message. Must also pass total_files parameter.
+    total_files (int, optional): The total number of files in the download batch, if you're printing that. Must also pass file_number parameter.
 
     Returns:
     str: The path the file was downloaded to.
@@ -158,7 +176,12 @@ def download_file(url, path, server_hash, password=None):
         action = "Updating"
     else:
         action = "Downloading"
-    print(f"{action} {file_name}...", end='\r')
+
+    batch_status = ''
+    if (file_number is not None) and (total_files is not None):
+        batch_status = f" ({file_number}/{total_files})"
+
+    print(f"{action} {file_name}{batch_status}...", end='\r')
 
     for i in range(2):
         try:
