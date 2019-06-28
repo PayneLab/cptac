@@ -2,3 +2,4 @@ include README.md
 include cptac/data_colon/index_urls.tsv
 include cptac/data_endometrial/index_urls.tsv
 include cptac/data_ovarian/index_urls.tsv
+include cptac/data_renalccrcc/index_urls.tsv

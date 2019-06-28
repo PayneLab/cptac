@@ -15,6 +15,7 @@ from .sync import sync
 from .endometrial import Endometrial
 from .colon import Colon
 from .ovarian import Ovarian
+from .renalccrcc import RenalCcrcc
 
 def list_data():
     """List all available datasets."""

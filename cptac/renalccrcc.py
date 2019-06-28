@@ -34,7 +34,10 @@ class RenalCcrcc(DataSet):
         # FILL: If needed, overload the self._valid_omics_dfs and self._valid_metadata_dfs variables that were initialized in the parent DataSet init.
 
         # Get the paths to all the data files
-        data_files = [] # FILL: Insert the new dataset's data file names into this list.
+        data_files = [
+            "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz",
+            "RNA_clinical.csv.gz",
+            "RNA_Normal_Tumor_185_samples.tsv.gz"]
         data_files_paths = get_version_files_paths(self._cancer_type, version, data_files)
         if data_files_paths is None: # Version validation error. get_version_files_paths already printed an error message.
             return None
@@ -43,13 +46,31 @@ class RenalCcrcc(DataSet):
         for file_path in data_files_paths: # Loops through files variable
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
-            file_name_split = file_name.split(".")
-            df_name = file_name_split[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
+            df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
             # Load the file, based on what it is
             print("Loading {} data...".format(df_name), end='\r') # Carriage return ending causes previous line to be erased.
 
-            # FILL: Here, insert conditional statements to load all the data files as dataframes into the self._data dictionary. Consult existing datasets for examples.
+            if file_name == "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz":
+                df = pd.read_csv(file_path, sep='\t', dtype={"PUBMED":object}) # "PUBMED" column has mixed types, so we specify object as the dtype to prevent a warning from printing. We don't actually use the column, so that's all we need to do.
+                split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n=1, expand=True) # The first part of the barcode is the patient id, which we need want to make the index
+                df["Tumor_Sample_Barcode"] = split_barcode[0]
+                df = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]]
+                df = df.rename({"Tumor_Sample_Barcode":"Patient_Id","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')                
+                df.name = "somatic_mutation"
+                self._data[df.name] = df
+
+            if file_name == "RNA_clinical.csv.gz":
+                df = pd.read_csv(file_path)
+                df.name = "mRNA_key"
+                self._data[df.name] = df
+
+            if file_name == "RNA_Normal_Tumor_185_samples.tsv.gz":
+                df = pd.read_csv(file_path, sep='\t')
+                df = df.sort_index()
+                df = df.transpose()
+                df.name = "mRNA"
+                self._data[df.name] = df
 
             print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 

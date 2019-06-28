@@ -129,18 +129,12 @@ class Ovarian(DataSet):
             master_index = master_index.union(index)
             master_index = master_index.drop_duplicates()
 
-        # Generate a sample ID for each patient ID
-        sample_id_dict = {}
-        for i in range(len(master_index)):
-            patient_id = master_index[i]
-            sample_id_dict[patient_id] = "S{:0>3}".format(i + 1) # Use string formatter to give each sample id the format S*** filled with zeroes, e.g. S001 or S023
-
-        # Put a mapping in the clinical dataframe of all patient ids to their sample ids, including patient ids for samples not originally in the clinical dataframe. 
+        # Outer join the master_index with the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset
         master_df = pd.DataFrame(index=master_index)
-        master_clinical = self._data['clinical'].join(master_df, how='outer') # Do an outer join with the clinical dataframe, so that clinical has a row for every sample in the dataset
+        master_clinical = self._data['clinical'].join(master_df, how='outer')
         master_clinical.name = self._data["clinical"].name
 
-        # Add a column, Sample_Tumor_Normal, indicating whether each sample was a tumor or normal sample. Normal samples have a Patient_ID that begins with 'N'.
+        # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample was a tumor or normal sample. Normal samples have a Patient_ID that begins with 'N'.
         clinical_status_col = []
         for sample in master_clinical.index:
             if sample[0] == 'N':
@@ -148,18 +142,32 @@ class Ovarian(DataSet):
             else:
                 clinical_status_col.append("Tumor")
         master_clinical.insert(1, "Sample_Tumor_Normal", clinical_status_col)
-        self._data['clinical'] = master_clinical # Replace the clinical dataframe in the data dictionary with our new and improved version!
+
+        # Replace the clinical dataframe in the data dictionary with our new and improved version!
+        self._data['clinical'] = master_clinical 
+
+        # Generate a sample ID for each patient ID
+        sample_id_dict = {}
+        for i in range(len(master_index)):
+            patient_id = master_index[i]
+            sample_id_dict[patient_id] = "S{:0>3}".format(i + 1) # Use string formatter to give each sample id the format S*** filled with zeroes, e.g. S001 or S023
 
         # Give every datafame a Sample_ID index
         for name in self._data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
             df = self._data[name]
             sample_id_column = []
+
+            map_failed = False
             for row in df.index:
                 if row in sample_id_dict.keys():
                     sample_id_column.append(sample_id_dict[row])
                 else:
                     print("Error mapping sample ids in {0} dataframe. Patient_ID {1} did not have corresponding Sample_ID mapped in clinical dataframe. {0} dataframe not loaded.".format(df.name, row))
-                    continue
+                    map_failed = True
+            if map_failed:
+                del self._data[name]
+                continue
+
             df = df.assign(Sample_ID=sample_id_column)
             old_index_name = df.index.name
             if old_index_name is None:

@@ -13,7 +13,7 @@ import os
 import requests
 import getpass
 import bs4
-from .utilities import *
+from .file_utilities import *
 
 def sync(dataset, version="latest"):
     """Sync the specified version of the specified dataset.

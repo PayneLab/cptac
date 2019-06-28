@@ -144,7 +144,7 @@ class Endometrial(DataSet):
                 map_success = False
         if map_success:
             mutations_with_sample = mutations_patient_indexed.assign(Sample_ID=sample_id_col) # Add in the Sample_ID column
-            mutations_sample_indexed = mutations_with_sample.set_index("Sample_ID") # Make the Sample_ID column the index
+            mutations_sample_indexed = mutations_with_sample.set_index("Sample_ID") # Make the Sample_ID column the index, dropping the old Patient_ID index
             mutations_sample_indexed.name = mutations.name
             self._data["somatic_mutation"] = mutations_sample_indexed
         else:
