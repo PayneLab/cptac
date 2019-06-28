@@ -16,6 +16,7 @@ import textwrap
 import datetime
 from .dataset import DataSet
 from .sync import get_version_files_paths
+from .dataframe_tools import *
 
 class Ovarian(DataSet):
 
@@ -55,16 +56,14 @@ class Ovarian(DataSet):
                 df = pd.read_csv(file_path, sep=",", index_col=0)
                 df = df.rename(columns={"Participant_ID":"Patient_ID"})
                 df = df.set_index("Patient_ID")
-                df.name = df_name
-                self._data[df.name] = df #maps dataframe name to dataframe
+                self._data[df_name] = df #maps dataframe name to dataframe
 
             elif file_name == "cnv.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
                 df = df.sort_index()
                 df = df.transpose()
                 df = df.sort_index()
-                df.name = "CNV"
-                self._data[df.name] = df #maps dataframe name to dataframe
+                self._data["CNV"] = df #maps dataframe name to dataframe
 
             elif file_name == "definitions.txt":
                 with open(file_path, "r", errors="ignore") as definitions_file:
@@ -94,8 +93,7 @@ class Ovarian(DataSet):
                 full_index = df.index.values.tolist()
                 ids_to_drop = [id for id in full_index if id.startswith('OV_QC')]
                 df = df.drop(ids_to_drop) # Drop all OV_QC* samples--they're quality control samples not relevant for data analysis
-                df.name = df_name
-                self._data[df.name] = df #maps dataframe name to dataframe
+                self._data[df_name] = df #maps dataframe name to dataframe
 
             elif file_name == "somatic_38.maf.gz":
                 df = pd.read_csv(file_path, sep = "\t", index_col=0)
@@ -105,8 +103,7 @@ class Ovarian(DataSet):
                 parsed_df = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]] # We only want these columns
                 parsed_df = parsed_df.rename(columns={"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"})
                 parsed_df = parsed_df.set_index("Patient_ID")
-                parsed_df.name = 'somatic_mutation'
-                self._data[parsed_df.name] = parsed_df #maps dataframe name to dataframe
+                self._data['somatic_mutation'] = parsed_df #maps dataframe name to dataframe
 
             elif file_name == "transcriptomics.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
@@ -115,75 +112,41 @@ class Ovarian(DataSet):
                 df = df.sort_index()
                 date_cols = ['1-Dec', '1-Sep', '10-Mar', '10-Sep', '11-Sep', '12-Sep', '14-Sep', '15-Sep', '2-Mar', '2-Sep', '3-Mar', '3-Sep', '4-Mar', '4-Sep', '5-Mar', '6-Mar', '6-Sep', '7-Mar', '7-Sep', '8-Mar', '8-Sep', '9-Mar', '9-Sep']
                 df = df.drop(columns=date_cols) # Drop all date values until new data is uploaded
-                df.name = df_name
-                self._data[df.name] = df #maps dataframe name to dataframe
+                self._data[df_name] = df #maps dataframe name to dataframe
 
             print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
         print("Formatting dataframes...", end="\r")
 
         # Get a union of all dataframes' indicies, with duplicates removed
-        indicies = [df.index for df in self._data.values()]
-        master_index = pd.Index([])
-        for index in indicies:
-            master_index = master_index.union(index)
-            master_index = master_index.drop_duplicates()
+        master_index = unionize_indicies(self._data)
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN
         master_clinical = self._data['clinical'].reindex(master_index)
-        master_clinical.name = self._data["clinical"].name
 
         # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample was a tumor or normal sample. Normal samples have a Patient_ID that begins with 'N'.
-        clinical_status_col = []
-        for sample in master_clinical.index:
-            if sample[0] == 'N':
-                clinical_status_col.append("Normal")
-            else:
-                clinical_status_col.append("Tumor")
+        clinical_status_col = generate_sample_status_col(master_clinical, normal_test=lambda sample: sample[0] == 'N')
         master_clinical.insert(0, "Sample_Tumor_Normal", clinical_status_col)
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = master_clinical 
 
         # Generate a sample ID for each patient ID
-        sample_id_dict = {}
-        for i in range(len(master_index)):
-            patient_id = master_index[i]
-            sample_id_dict[patient_id] = "S{:0>3}".format(i + 1) # Use string formatter to give each sample id the format S*** filled with zeroes, e.g. S001 or S023
+        sample_id_dict = generate_sample_id_map(master_index)
 
         # Give every datafame a Sample_ID index
         for name in self._data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
             df = self._data[name]
-            sample_id_column = []
+            df.index.name = "Patient_ID"
+            keep_old = name in ("clinical", "treatment") # Keep the old Patient_ID index as a column in clinical and treatment, so we have a record of it.
 
-            map_failed = False
-            for row in df.index:
-                if row in sample_id_dict.keys():
-                    sample_id_column.append(sample_id_dict[row])
-                else:
-                    print("Error mapping sample ids in {0} dataframe. Patient_ID {1} did not have corresponding Sample_ID mapped in clinical dataframe. {0} dataframe not loaded.".format(df.name, row))
-                    map_failed = True
-            if map_failed:
+            df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
+            if df is None:
+                print(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have a corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.")
                 del self._data[name]
                 continue
 
-            df = df.assign(Sample_ID=sample_id_column)
-            old_index_name = df.index.name
-            if old_index_name is None:
-                old_index_name = 'index' # When we reset the index, if the old index didn't have a name, the column it's put in will have the default name 'index'
-            df = df.reset_index() # This gives the dataframe a default numerical index and makes the old index a column, which prevents it from being dropped when we set Sample_ID as the index.
-            df = df.rename(columns={old_index_name:'Patient_ID'}) # Rename the old index as Patient_ID
-            df = df.set_index('Sample_ID') # Make the Sample_ID column the index
-            df.name = name
             self._data[name] = df
-
-        # Drop the Patient_ID column (old index) from every dataframe except clinical and treatment, since only those two have patient associated data rather than just sample associated data, and so we preserve a mapping of sample ids to their original patient ids
-        for name in self._data.keys(): 
-            if name != 'clinical' and name != "treatment":
-                df = self._data[name]
-                df = df.drop(columns="Patient_ID")
-                df.name = name
-                self._data[name] = df
 
         # Drop name of column axis for all dataframes
         for name in self._data.keys():

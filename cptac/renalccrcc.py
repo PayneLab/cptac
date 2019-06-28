@@ -57,20 +57,17 @@ class RenalCcrcc(DataSet):
                 df["Tumor_Sample_Barcode"] = split_barcode[0]
                 df = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]]
                 df = df.rename({"Tumor_Sample_Barcode":"Patient_Id","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')                
-                df.name = "somatic_mutation"
-                self._data[df.name] = df
+                self._data["somatic_mutation"] = df
 
             if file_name == "RNA_clinical.csv.gz":
                 df = pd.read_csv(file_path)
-                df.name = "mRNA_key"
-                self._data[df.name] = df
+                self._data["transcriptomics_key"] = df
 
             if file_name == "RNA_Normal_Tumor_185_samples.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
                 df = df.sort_index()
                 df = df.transpose()
-                df.name = "mRNA"
-                self._data[df.name] = df
+                self._data["transcriptomics"] = df
 
             print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
@@ -82,8 +79,7 @@ class RenalCcrcc(DataSet):
         #     - Sample_ID numbers must be of the format S***, e.g. S001, S028, S144
         #     - clinical dataframe must contain a Patient_ID column that contains the Patient_ID for each sample
         #     - If the data did not come indexed with Sample_ID numbers, look at the Ovarian dataset for an example of generating Sample_ID numbers and mapping them to Patient_ID numbers.
-        # - Each dataframe must have its name stored, all lowercase, in the DataFrame.name attribute.
-        # - Each dataframe's name must match the format for that type of dataframe in all the other datasets. 
+        # - Each dataframe's key must match the format for that type of dataframe in all the other datasets. 
         #     - E.g., if your binary mutations dataframe is named mutations_binary, you'd need to rename it to somatic_mutation_binary to match the other datasets' binary mutation dataframes.
         # - If the new dataset has a dataframe not included in any other datasets, you must write a getter for it in the parent DataSet class, found in cptac/dataset.py
         # - You'd also need to add the new dataframe's name to self._valid_omics_dfs if it's a valid omics df for the DataSet merge functions, or self._valid_metadata_dfs if it's a valid metadata df for DataSet.append_metadata_to_omics

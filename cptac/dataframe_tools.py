@@ -77,7 +77,7 @@ def reindex_dataframe(df, reindex_map, new_index_name, keep_old): # This can rei
     new_index_list = []
     for row in df.index:
         if row in reindex_map.keys():
-            new_index_list.append(reindex_map[row]) # TODO: Does this work?
+            new_index_list.append(reindex_map[row])
         else:
             return None
 

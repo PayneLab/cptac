@@ -16,6 +16,7 @@ import textwrap
 import datetime
 from .dataset import DataSet
 from .sync import get_version_files_paths
+from .dataframe_tools import *
 
 class Endometrial(DataSet):
 
@@ -60,8 +61,7 @@ class Endometrial(DataSet):
                 with open(file_path, "r", errors="ignore") as clinical_file:
                     df = pd.read_csv(clinical_file, sep="\t", index_col=0)
                 df = df.sort_index()
-                df.name = df_name
-                self._data[df.name] = df # Maps dataframe name to dataframe
+                self._data[df_name] = df # Maps dataframe name to dataframe
 
             elif file_name == "definitions.txt":
                 with open(file_path, "r") as definitions_file:
@@ -78,15 +78,13 @@ class Endometrial(DataSet):
                 df["Tumor_Sample_Barcode"] = split_barcode[0]
                 df = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]]
                 df = df.rename({"Tumor_Sample_Barcode":"Patient_Id","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
-                df.name = "somatic_mutation"
-                self._data[df.name] = df # Maps dataframe name to dataframe
+                self._data["somatic_mutation"] = df # Maps dataframe name to dataframe
 
             else:
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
                 df = df.transpose()
                 df = df.sort_index()
-                df.name = df_name
-                self._data[df.name] = df # Maps dataframe name to dataframe
+                self._data[df_name] = df # Maps dataframe name to dataframe
 
             print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
@@ -101,7 +99,6 @@ class Endometrial(DataSet):
             'tumor_Stage-Pathological', 'FIGO_stage', 'LVSI', 'BMI', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site',
             'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm',   'Num_full_term_pregnancies']]
         clinical = clinical.rename(columns={"Proteomics_Participant_ID":"Patient_ID"})
-        clinical.name = "clinical"
         self._data["clinical"] = clinical
 
         derived_molecular = all_clinical.drop(['Proteomics_Participant_ID', 'Case_excluded',  'Proteomics_Tumor_Normal',  'Country',
@@ -113,14 +110,12 @@ class Endometrial(DataSet):
             'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'WXS_tumor_filename',
             'WXS_tumor_UUID', 'WGS_normal_sample_type', 'WGS_normal_UUID', 'WGS_tumor_sample_type', 'WGS_tumor_UUID', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID',
             'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'], axis=1)
-        derived_molecular.name = "derived_molecular"
         self._data["derived_molecular"] = derived_molecular
 
         experimental_setup = all_clinical[['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs',
             'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'WXS_tumor_filename',
             'WXS_tumor_UUID', 'WGS_normal_sample_type', 'WGS_normal_UUID', 'WGS_tumor_sample_type', 'WGS_tumor_UUID', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID',
             'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']]
-        experimental_setup.name = "experimental_setup"
         self._data["experimental_setup"] = experimental_setup
 
         # Add Sample_ID column to somatic_mutations dataframe and make it the index
@@ -134,21 +129,12 @@ class Endometrial(DataSet):
         mutations = self._data["somatic_mutation"]
         mutations_patient_renamed = mutations.rename(columns={"Patient_Id":"Patient_ID"})
         mutations_patient_indexed = mutations_patient_renamed.set_index("Patient_ID") # Set the index as the Patient_ID column, dropping the default numerical index
-        sample_id_col = [] # We're going to create a Sample_ID column for the mutations dataframe
-        map_success = True
-        for patient_id in mutations_patient_indexed.index:
-            if patient_id in patient_id_map.index:
-                sample_id_col.append(patient_id_map[patient_id]) # Get the sample id corresponding to the patient id
-            else: # If there's not a corresponding sample ID for a patient ID, print an error message and return None
-                print("Error mapping sample ids in somatic_mutation dataframe. Patient_ID {} did not have corresponding Sample_ID mapped in clinical dataframe. somatic_mutation dataframe not loaded.".format(patient_id))
-                map_success = False
-        if map_success:
-            mutations_with_sample = mutations_patient_indexed.assign(Sample_ID=sample_id_col) # Add in the Sample_ID column
-            mutations_sample_indexed = mutations_with_sample.set_index("Sample_ID") # Make the Sample_ID column the index, dropping the old Patient_ID index
-            mutations_sample_indexed.name = mutations.name
-            self._data["somatic_mutation"] = mutations_sample_indexed
-        else:
+        mutations_sample_indexed = reindex_dataframe(mutations_patient_indexed, patient_id_map, "Sample_ID", keep_old=False)
+        if mutations_sample_indexed is None:
             del self._data["somatic_mutation"]
+            print("Error mapping sample ids in somatic_mutation dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. somatic_mutation dataframe not loaded.")
+        else:
+            self._data["somatic_mutation"] = mutations_sample_indexed
 
         # Drop all excluded samples from the dataset. They were excluded due to poor sample quality, etc.
         clinical = self._data["clinical"]
@@ -157,19 +143,16 @@ class Endometrial(DataSet):
         for name in self._data.keys(): # Loop over the keys instead of directly over the dict, so we're not altering the structure we're looping over
             df = self._data[name]
             df_filtered = df.drop(index=cases_to_drop, errors="ignore")
-            df_filtered.name = df.name
             self._data[name] = df_filtered
 
         # Drop Case_excluded column from clinical, now that we've dropped all excluded cases in the dataset.
         clinical = self._data["clinical"]
         clinical_no_case_excluded = clinical.drop(columns=["Case_excluded"])
-        clinical_no_case_excluded.name = clinical.name
         self._data["clinical"] = clinical_no_case_excluded
 
         # Sort CNA dataframe columns alphabetically
         cna = self._data["CNA"]
         cna_sorted = cna.sort_index(axis=1)
-        cna_sorted.name = cna.name
         self._data["CNA"] = cna_sorted
 
         # Fix dataframe names
@@ -179,9 +162,7 @@ class Endometrial(DataSet):
             "phosphoproteomics_site":"phosphoproteomics",
             "somatic_binary":"somatic_mutation_binary",}
         for old, new in rename_dict.items():
-            rename_df = self._data[old]
-            rename_df.name = new
-            self._data[new] = rename_df
+            self._data[new] = self._data[old]
             del self._data[old]
 
         # Rename indicies to "Sample_ID", since that's what they all are.

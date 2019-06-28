@@ -15,6 +15,7 @@ import os
 import glob
 from .dataset import DataSet
 from .sync import get_version_files_paths
+from .dataframe_tools import *
 
 class Colon(DataSet):
 
@@ -60,14 +61,12 @@ class Colon(DataSet):
                 df = df.sort_values(by="SampleID")
                 df = df[["SampleID","Gene","Variant_Type","Protein_Change"]]
                 df = df.rename({"Variant_Type":"Mutation","Protein_Change":"Location"},axis="columns")
-                df.name = "somatic_" + df_name
-                self._data[df.name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
+                self._data["somatic_" + df_name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
 
             else:
                 df = pd.read_csv(file_path, sep="\t",index_col=0)
                 df = df.transpose()
-                df.name = df_name
-                self._data[df.name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
+                self._data[df_name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
 
             print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
@@ -75,16 +74,13 @@ class Colon(DataSet):
 
         # Rename mutation_binary dataframe to somatic_mutation_binary
         df = self._data["mutation_binary"]
-        df.name = "somatic_mutation_binary"
         self._data["somatic_mutation_binary"] = df
         del self._data["mutation_binary"]
 
         # Separate clinical and derived molecular dataframes
         all_clinical_data = self._data.get("clinical")
         clinical_df = all_clinical_data.drop(columns=['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity','immuneSubtype', 'CIN', 'Integrated.Phenotype'])
-        clinical_df.name = "clinical"
         derived_molecular_df = all_clinical_data[['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity', 'immuneSubtype', 'CIN', 'Integrated.Phenotype']]
-        derived_molecular_df.name = "derived_molecular"
 
         # Put them in our data dictionary
         self._data["clinical"] = clinical_df # Replaces original clinical dataframe
@@ -94,8 +90,7 @@ class Colon(DataSet):
         prot_tumor = self._data.get("proteomics_tumor")
         prot_normal = self._data.get("proteomics_normal") # Normal entries are marked with 'N' on the end of the ID
         prot_combined = prot_tumor.append(prot_normal)
-        prot_combined.name = "proteomics"
-        self._data[prot_combined.name] = prot_combined
+        self._data["proteomics"] = prot_combined
         del self._data["proteomics_tumor"]
         del self._data["proteomics_normal"]
 
@@ -116,8 +111,7 @@ class Colon(DataSet):
         phos_combined = phos_tumor.append(phos_normal)
         phos_combined = phos_combined.rename(columns=lambda x: x.split(":")[0]) # Drop everything after ":" in column names--unneeded additional identifiers
         phos_combined = phos_combined.sort_index(axis=1) # Put all the columns in alphabetical order
-        phos_combined.name = 'phosphoproteomics'
-        self._data[phos_combined.name] = phos_combined
+        self._data['phosphoproteomics'] = phos_combined
         del self._data["phosphoproteomics_tumor"]
         del self._data["phosphoproteomics_normal"]
 
@@ -125,15 +119,10 @@ class Colon(DataSet):
         new_somatic = self._data["somatic_mutation"]
         new_somatic = new_somatic.rename(columns={"SampleID":"Patient_ID"})
         new_somatic = new_somatic.set_index("Patient_ID")
-        new_somatic.name = "somatic_mutation"
         self._data["somatic_mutation"] = new_somatic
 
         # Get a union of all dataframes' indicies, with duplicates removed
-        indicies = [df.index for df in self._data.values()]
-        master_index = pd.Index([])
-        for index in indicies:
-            master_index = master_index.union(index)
-            master_index = master_index.drop_duplicates()
+        master_index = unionize_indicies(self._data)
 
         # Sort this master_index so all the samples with an N suffix are last. Because the N is a suffix, not a prefix, this is kind of messy.
         status_df = pd.DataFrame(master_index, columns=['Patient_ID']) # Create a new dataframe with the master_index as a column called "Patient_ID"
@@ -149,60 +138,30 @@ class Colon(DataSet):
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
         master_clinical = self._data['clinical'].reindex(master_index)
-        master_clinical.name = self._data["clinical"].name
 
         # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample is a tumor or normal sample. Samples with a Patient_ID ending in N are normal.
-        clinical_status_col = []
-        for sample in master_clinical.index:
-            if sample[-1] == 'N':
-                clinical_status_col.append("Normal")
-            else:
-                clinical_status_col.append("Tumor")
+        clinical_status_col = generate_sample_status_col(master_clinical, normal_test=lambda sample: sample[-1] == 'N')
         master_clinical.insert(0, "Sample_Tumor_Normal", clinical_status_col)
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = master_clinical 
 
         # Generate a sample ID for each patient ID
-        sample_id_dict = {}
-        for i in range(len(master_index)):
-            patient_id = master_index[i]
-            sample_id_dict[patient_id] = "S{:0>3}".format(i + 1) # Use string formatter to give each sample id the format S*** filled with zeroes, e.g. S001, S023, or S112
+        sample_id_dict = generate_sample_id_map(master_index)
 
         # Give all the dataframes Sample_ID indicies
         for name in self._data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
             df = self._data[name]
-            sample_id_column = []
+            df.index.name = "Patient_ID"
+            keep_old = name == "clinical" # Keep the old Patient_ID index as a column in the clinical dataframe, so we have a record of it.
 
-            map_failed = False
-            for row in df.index:
-                if row in sample_id_dict.keys():
-                    sample_id_column.append(sample_id_dict[row])
-                else:
-                    print("Error mapping sample ids in {0} dataframe. Patient_ID {1} did not have corresponding Sample_ID mapped in clinical dataframe. {0} dataframe not loaded.".format(df.name, row))
-                    map_failed = True
-            if map_failed:
+            df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
+            if df is None:
+                print("Error mapping sample ids in {0} dataframe. Patient_ID {1} did not have corresponding Sample_ID mapped in clinical dataframe. {0} dataframe not loaded.".format(name, row))
                 del self._data[name]
                 continue
 
-            df = df.assign(Sample_ID=sample_id_column)
-            old_index_name = df.index.name
-            if old_index_name is None:
-                old_index_name = 'index' # If the current index doesn't have a name, the column it's put in when we do reset_index will have the default name of 'index'
-            df = df.reset_index() # This gives the dataframe a default numerical index and makes the old index a column, which prevents it from being dropped when we set Sample_ID as the index.
-            df = df.rename(columns={old_index_name:'Patient_ID'}) # Rename the old index as Patient_ID
-            df = df.set_index('Sample_ID') # Make the Sample_ID column the index, which also drops the default numerical index from reset_index
-            df = df.sort_index()
-            df.name = name
             self._data[name] = df
-
-        # Drop Patient_ID column from dataframes other than clinical. Keep it in clinical, so we have a mapping of Sample_ID to Patient_ID for every sample
-        for name in self._data.keys():
-            if name != "clinical":
-                df = self._data[name]
-                df = df.drop(columns="Patient_ID")
-                df.name = name
-                self._data[name] = df
 
         # Drop name of column axis for all dataframes
         for name in self._data.keys():
