@@ -147,9 +147,8 @@ class Colon(DataSet):
         status_df = status_df.sort_values(by=['Status', 'Patient_ID'], ascending=[False, True]) # Sorts first by status, and in descending order, so "Tumor" samples are first
         master_index = status_df["Patient_ID"].tolist()
 
-        # Outer join the master_index to the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset
-        master_df = pd.DataFrame(index=master_index)
-        master_clinical = self._data['clinical'].join(master_df, how='outer')
+        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
+        master_clinical = self._data['clinical'].reindex(master_index)
         master_clinical.name = self._data["clinical"].name
 
         # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample is a tumor or normal sample. Samples with a Patient_ID ending in N are normal.
@@ -159,7 +158,7 @@ class Colon(DataSet):
                 clinical_status_col.append("Normal")
             else:
                 clinical_status_col.append("Tumor")
-        master_clinical.insert(1, "Sample_Tumor_Normal", clinical_status_col)
+        master_clinical.insert(0, "Sample_Tumor_Normal", clinical_status_col)
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = master_clinical 

@@ -27,16 +27,25 @@ def unionize_indicies(dataset):
         master_index = master_index.drop_duplicates()
     return master_index
 
-def add_sample_status_col(df, tumor_test)
-    """Add a Sample_Status column to a dataframe.
+def generate_sample_status_col(df, normal_test):
+    """Add a sample status column, called Sample_Tumor_Normal, to a dataframe.
 
     Parameters:
     df (pandas DataFrame): The dataframe to add Sample_Status column to.
-    tumor_test (function): A function that takes a given Patient_ID and returns a bool indicating whether it corresponds to a tumor sample.
+    normal_test (function): A function that takes a given Patient_ID and returns a bool indicating whether it corresponds to a normal sample.
 
     Returns:
-    pandas DataFrame: A copy of df, with the Sample_Status column inserted.
+    pandas Series: A sample status column for the dataframe.
     """
+    sample_status_list = []
+    for sample in df.index:
+        if normal_test(sample):
+            sample_status_list.append("Normal")
+        else:
+            sample_status_list.append("Tumor")
+
+    sample_status_col = pd.Series(data=sample_status_list, index=df.index.copy())
+    return sample_status_col
 
 def generate_sample_id_map(master_index):
     """Generate sample ids for all samples in a dataset, and map them to the existing index.
@@ -65,27 +74,16 @@ def reindex_dataframe(df, reindex_map, new_index_name, keep_old): # This can rei
     Returns:
     pandas DataFrame: A copy of the given dataframe, with the new index. None if mapping failed.
     """
-    df_name = df.name
-
-    new_index = pd.Index(name=new_index_name)
+    new_index_list = []
     for row in df.index:
         if row in reindex_map.keys():
-            new_index.append(reindex_map[row]) # TODO: Does this work?
+            new_index_list.append(reindex_map[row]) # TODO: Does this work?
         else:
             return None
 
     if keep_old:
-        df = df.reset_index() # This gives the dataframe a default numerical index and makes the old index a column, preventing it from being dropped when we set the new index.
-    df = df.reindex(new_index)
+        df = df.reset_index() # This gives the dataframe a numerical index and makes the old index a column, so it's not dropped when we set the new index.
+    df = df.assign(**{new_index_name: new_index_list})
+    df = df.set_index(new_index_name) # Make the Sample_ID column the index
     df = df.sort_index()
-    df.name = df_name
     return df
-
-def unname_col_axes_in_dataset(dataset):
-    """Set None for the name of all column axes of all dataframes in a dataset.
-
-    Parameters:
-    dataset (dict of str: pandas DataFrame): The dataset to unname the column axes of.
-
-    Returns: None
-    """
