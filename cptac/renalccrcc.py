@@ -15,6 +15,7 @@ import os
 import glob
 from .dataset import DataSet
 from .sync import get_version_files_paths
+from .dataframe_tools import *
 
 class RenalCcrcc(DataSet):
 
@@ -36,6 +37,8 @@ class RenalCcrcc(DataSet):
         # Get the paths to all the data files
         data_files = [
             "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz",
+            "ccrccMethylGeneLevelByMean.txt.gz",
+            "kirc_wgs_cnv_gene.csv.gz",
             "RNA_clinical.csv.gz",
             "RNA_Normal_Tumor_185_samples.tsv.gz"]
         data_files_paths = get_version_files_paths(self._cancer_type, version, data_files)
@@ -56,14 +59,26 @@ class RenalCcrcc(DataSet):
                 split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n=1, expand=True) # The first part of the barcode is the patient id, which we need want to make the index
                 df["Tumor_Sample_Barcode"] = split_barcode[0]
                 df = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]]
-                df = df.rename({"Tumor_Sample_Barcode":"Patient_Id","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')                
+                df = df.rename(columns={"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"})                
+                df = df.sort_values(by=["Patient_ID", "Gene"])
+                df = df.set_index("Patient_ID")
                 self._data["somatic_mutation"] = df
+            
+            if file_name == "ccrccMethylGeneLevelByMean.txt.gz":
+                df = pd.read_csv(file_path, sep='\t')
+                df = df.transpose
+                self._data["methylation"] = df
 
-            if file_name == "RNA_clinical.csv.gz":
+            if file_name == "kirc_wgs_cnv_gene.csv.gz":
                 df = pd.read_csv(file_path)
-                self._data["transcriptomics_key"] = df
+                self._data["CNV"] = df
 
-            if file_name == "RNA_Normal_Tumor_185_samples.tsv.gz":
+            elif file_name == "RNA_clinical.csv.gz":
+                df = pd.read_csv(file_path, header=None, names=["Patient_ID", "Sample_Status", "RNA_ID"])
+                df = df.set_index("RNA_ID")
+                transcriptomics_map = df["Patient_ID"].to_dict()                
+
+            elif file_name == "RNA_Normal_Tumor_185_samples.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
                 df = df.sort_index()
                 df = df.transpose()
@@ -72,6 +87,11 @@ class RenalCcrcc(DataSet):
             print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
         print("Formatting dataframes...", end="\r")
+
+        # Use the transcriptomics_map we read in from the RNA_clinical.csv.gz file to reindex transcriptomics dataframe with patient ids
+        tran = self._data["transcriptomics"]
+        tran_reindexed = reindex_dataframe(tran, transcriptomics_map, new_index_name="Patient_ID", keep_old=False)
+        self._data["transcriptomics"] = tran_reindexed
 
         # FILL: Here, write code to format your dataframes properly. Requirements:
         # - All dataframes must be indexed by Sample_ID, not Patient_ID.

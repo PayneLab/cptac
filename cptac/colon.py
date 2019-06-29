@@ -60,7 +60,9 @@ class Colon(DataSet):
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.sort_values(by="SampleID")
                 df = df[["SampleID","Gene","Variant_Type","Protein_Change"]]
-                df = df.rename({"Variant_Type":"Mutation","Protein_Change":"Location"},axis="columns")
+                df = df.rename(columns={"SampleID":"Patient_ID", "Variant_Type":"Mutation", "Protein_Change":"Location"})
+                df = df.sort_values(by=["Patient_ID", "Gene"])
+                df = df.set_index("Patient_ID")
                 self._data["somatic_" + df_name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
 
             else:
@@ -114,12 +116,6 @@ class Colon(DataSet):
         self._data['phosphoproteomics'] = phos_combined
         del self._data["phosphoproteomics_tumor"]
         del self._data["phosphoproteomics_normal"]
-
-        # Rename the somamtic_mutation dataframe's "SampleID" column to "PatientID", then set that as the index, to match the other dataframes
-        new_somatic = self._data["somatic_mutation"]
-        new_somatic = new_somatic.rename(columns={"SampleID":"Patient_ID"})
-        new_somatic = new_somatic.set_index("Patient_ID")
-        self._data["somatic_mutation"] = new_somatic
 
         # Get a union of all dataframes' indicies, with duplicates removed
         master_index = unionize_indicies(self._data)

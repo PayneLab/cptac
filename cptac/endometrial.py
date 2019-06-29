@@ -77,7 +77,9 @@ class Endometrial(DataSet):
                 split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n = 1, expand = True) # The first part of the barcode is the patient id, which we need want to make the index
                 df["Tumor_Sample_Barcode"] = split_barcode[0]
                 df = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]]
-                df = df.rename({"Tumor_Sample_Barcode":"Patient_Id","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
+                df = df.rename({"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
+                df = df.sort_values(by=["Patient_ID", "Gene"])
+                df = df.set_index("Patient_ID")
                 self._data["somatic_mutation"] = df # Maps dataframe name to dataframe
 
             else:
@@ -127,14 +129,12 @@ class Endometrial(DataSet):
         patient_id_map = patient_id_df["Sample_ID"] # Make the mapping a series. Patient_ID will be the index.
 
         mutations = self._data["somatic_mutation"]
-        mutations_patient_renamed = mutations.rename(columns={"Patient_Id":"Patient_ID"})
-        mutations_patient_indexed = mutations_patient_renamed.set_index("Patient_ID") # Set the index as the Patient_ID column, dropping the default numerical index
-        mutations_sample_indexed = reindex_dataframe(mutations_patient_indexed, patient_id_map, "Sample_ID", keep_old=False)
-        if mutations_sample_indexed is None:
+        mutations_reindexed = reindex_dataframe(mutations, patient_id_map, "Sample_ID", keep_old=False)
+        if mutations_reindexed is None:
             del self._data["somatic_mutation"]
             print("Error mapping sample ids in somatic_mutation dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. somatic_mutation dataframe not loaded.")
         else:
-            self._data["somatic_mutation"] = mutations_sample_indexed
+            self._data["somatic_mutation"] = mutations_reindexed
 
         # Drop all excluded samples from the dataset. They were excluded due to poor sample quality, etc.
         clinical = self._data["clinical"]

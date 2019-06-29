@@ -100,10 +100,11 @@ class Ovarian(DataSet):
                 df = df.reset_index()
                 split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n = 1, expand = True) # The first part of the barcode is the patient id, which we need to make a Patient_ID column
                 df["Tumor_Sample_Barcode"] = split_barcode[0]
-                parsed_df = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]] # We only want these columns
-                parsed_df = parsed_df.rename(columns={"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"})
-                parsed_df = parsed_df.set_index("Patient_ID")
-                self._data['somatic_mutation'] = parsed_df #maps dataframe name to dataframe
+                df = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]] # We only want these columns
+                df = df.rename(columns={"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"})
+                df = df.sort_values(by=["Patient_ID", "Gene"])
+                df = df.set_index("Patient_ID")
+                self._data['somatic_mutation'] = df
 
             elif file_name == "transcriptomics.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
