@@ -38,7 +38,6 @@ class DataSet:
             'acetylproteomics',
             'proteomics',
             'transcriptomics', # But not circular_RNA or miRNA--they have incompatible column names.
-            'CNA',
             'CNV',
             'phosphoproteomics',
             'phosphoproteomics_gene']
@@ -72,25 +71,21 @@ class DataSet:
         """Get the acetylproteomics dataframe."""
         return self._get_dataframe("acetylproteomics")
 
-    def get_proteomics(self):
-        """Get the proteomics dataframe."""
-        return self._get_dataframe("proteomics")
-
-    def get_transcriptomics(self):
-        """Get the transcriptomics dataframe."""
-        return self._get_dataframe("transcriptomics")
-
     def get_circular_RNA(self):
         """Get the circular_RNA dataframe."""
         return self._get_dataframe("circular_RNA")
 
+    def get_CNV(self):
+        """Get the CNV dataframe."""
+        return self._get_dataframe("CNV")
+
+    def get_methylation(self):
+        """Get the methylation dataframe."""
+        return self._get_dataframe("methylation")
+
     def get_miRNA(self):
         """Get the miRNA dataframe."""
         return self._get_dataframe("miRNA")
-
-    def get_CNA(self):
-        """Get the CNA dataframe."""
-        return self._get_dataframe("CNA")
 
     def get_phosphoproteomics(self):
         """Get the phosphoproteomics dataframe."""
@@ -110,6 +105,14 @@ class DataSet:
         pandas DataFrame: The phosphoproteomics for the specified gene(s).
         """
         return self._get_omics_cols("phosphoproteomics", genes)
+
+    def get_proteomics(self):
+        """Get the proteomics dataframe."""
+        return self._get_dataframe("proteomics")
+
+    def get_transcriptomics(self):
+        """Get the transcriptomics dataframe."""
+        return self._get_dataframe("transcriptomics")
 
     # Methods to get mutations dataframes
     def get_mutations(self):
@@ -278,6 +281,18 @@ class DataSet:
                 merge.loc[(merge['Sample_Status'] == "Tumor") & (pd.isnull(merge[mutation_status_col])), mutation_status_col] = "Wildtype_Tumor" # Change all NaN mutation status values for Tumor samples to Wildtype_Tumor
 
             return merge
+
+    def filter_merged_mutations(df, priority_map=None):
+        """Take a dataframe merged from an omics dataframe and a mutations dataframe, and convert the lists of one to more mutations to just one mutation per row.
+
+        Parameters:
+        df (pandas DataFrame): The dataframe with lists of one or more mutations.
+        priority_map (list, optional): A list of mutation types or hotspots to prioritize, in order of priority. Default of None will 
+
+        Returns:
+        pandas DataFrame: The merged dataframe, with the mutations filtered to one per row.
+        """
+        pass
 
     # "Private" methods
     def _get_dataframe(self, name):

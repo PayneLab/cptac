@@ -66,11 +66,25 @@ class RenalCcrcc(DataSet):
             
             if file_name == "ccrccMethylGeneLevelByMean.txt.gz":
                 df = pd.read_csv(file_path, sep='\t')
-                df = df.transpose
+                df = df.sort_index()
+                df = df.transpose()
+                df.index.name = "Patient_ID"
                 self._data["methylation"] = df
 
             if file_name == "kirc_wgs_cnv_gene.csv.gz":
                 df = pd.read_csv(file_path)
+                df = df.drop(columns="gene_id")
+                df = df.set_index("gene_name")
+                df = df.sort_index()
+                df = df.transpose()
+
+                # Parse a Patient_ID index out of the current index
+                barcode_col = df.index.to_series()
+                split_barcode = barcode_col.str.split("_", n=1, expand=True) # The first part of the barcode is the patient id, which we want to make the index
+                df.index = pd.Index(split_barcode[1])
+                df.index.name = "Patient_ID"
+
+                df = df.sort_index()
                 self._data["CNV"] = df
 
             elif file_name == "RNA_clinical.csv.gz":
@@ -92,6 +106,46 @@ class RenalCcrcc(DataSet):
         tran = self._data["transcriptomics"]
         tran_reindexed = reindex_dataframe(tran, transcriptomics_map, new_index_name="Patient_ID", keep_old=False)
         self._data["transcriptomics"] = tran_reindexed
+
+        # Generate master index
+        master_index = unionize_indicies(self._data)
+        
+        # Join master index with clinical df
+        master_clinical = pd.DataFrame(index=master_index)
+
+        # Add Sample_Status column to clinical df
+        clinical_status_col = generate_sample_status_col(master_clinical, normal_test=lambda sample: sample[-1] == 'N')
+        master_clinical.insert(0, "Sample_Tumor_Normal", clinical_status_col)
+
+        # Replace the clinical dataframe in the data dictionary with our new and improved version!
+        self._data['clinical'] = master_clinical
+
+        # Generate a sample ID for each patient ID
+        sample_id_dict = generate_sample_id_map(master_index)
+
+        # Give all the dataframes Sample_ID indicies
+        dfs_to_delete = [] #
+        for name in self._data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
+            df = self._data[name]
+            df.index.name = "Patient_ID"
+            keep_old = name == "clinical" # Keep the old Patient_ID index as a column in the clinical dataframe, so we have a record of it.
+
+            df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
+            if df is None:
+                print(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.")
+                dfs_to_delete.append(name)
+                continue
+
+            self._data[name] = df
+
+        for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
+            del self._data[name]
+
+        # Drop name of column axis for all dataframes
+        for name in self._data.keys():
+            df = self._data[name]
+            df.columns.name = None
+            self._data[name] = df
 
         # FILL: Here, write code to format your dataframes properly. Requirements:
         # - All dataframes must be indexed by Sample_ID, not Patient_ID.

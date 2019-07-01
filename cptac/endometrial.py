@@ -140,7 +140,7 @@ class Endometrial(DataSet):
         clinical = self._data["clinical"]
         cases_to_drop = clinical[clinical["Case_excluded"] == "Yes"].index
 
-        for name in self._data.keys(): # Loop over the keys instead of directly over the dict, so we're not altering the structure we're looping over
+        for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
             df = self._data[name]
             df_filtered = df.drop(index=cases_to_drop, errors="ignore")
             self._data[name] = df_filtered
@@ -150,13 +150,14 @@ class Endometrial(DataSet):
         clinical_no_case_excluded = clinical.drop(columns=["Case_excluded"])
         self._data["clinical"] = clinical_no_case_excluded
 
-        # Sort CNA dataframe columns alphabetically
+        # Sort CNV dataframe columns alphabetically
         cna = self._data["CNA"]
         cna_sorted = cna.sort_index(axis=1)
         self._data["CNA"] = cna_sorted
 
         # Fix dataframe names
         rename_dict = { # Keys are old names, values are new names
+            "CNA":"CNV",
             "transcriptomics_linear":"transcriptomics",
             "transcriptomics_circular":"circular_RNA",
             "phosphoproteomics_site":"phosphoproteomics",
@@ -166,28 +167,19 @@ class Endometrial(DataSet):
             del self._data[old]
 
         # Rename indicies to "Sample_ID", since that's what they all are.
-        for name in self._data.keys():
+        for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
             df_rename_index = self._data[name]
             df_rename_index.index.name = "Sample_ID"
             self._data[name] = df_rename_index
 
         # Drop name of column axis for all dataframes
-        for name in self._data.keys():
-            df_rename_col_axis = self._data[name]
-            df_rename_col_axis.columns.name = None
-            self._data[name] = df_rename_col_axis
+        for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
+            df = self._data[name]
+            df.columns.name = None
+            self._data[name] = df
 
         # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
         print("\033[K", end='\r') 
-
-        # Print data embargo warning, if the date hasn't passed yet.
-        today = datetime.date.today()
-        embargo_date = datetime.date(2019, 7, 1)
-        if today < embargo_date:
-            warning = "WARNING: This data is under a publication embargo until July 1, 2019. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details."
-            wrapped_list = textwrap.wrap(warning)
-            for line in wrapped_list:
-                print(line)
 
     # Overload the self._get_sample_status_map function to work with "Proteomics_Tumor_Normal" column instead of default "Sample_Tumor_Normal" column
     def _get_sample_status_map(self):

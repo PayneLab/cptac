@@ -146,24 +146,28 @@ class Colon(DataSet):
         sample_id_dict = generate_sample_id_map(master_index)
 
         # Give all the dataframes Sample_ID indicies
-        for name in self._data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
+        dfs_to_delete = [] # If there's an issue reindexing a dataframe, we delete it. That shouldn't ever happen...
+        for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
             df = self._data[name]
             df.index.name = "Patient_ID"
             keep_old = name == "clinical" # Keep the old Patient_ID index as a column in the clinical dataframe, so we have a record of it.
 
             df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
             if df is None:
-                print("Error mapping sample ids in {0} dataframe. Patient_ID {1} did not have corresponding Sample_ID mapped in clinical dataframe. {0} dataframe not loaded.".format(name, row))
-                del self._data[name]
+                print(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.")
+                dfs_to_delete.append(name)
                 continue
 
             self._data[name] = df
 
+        for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
+            del self._data[name]
+
         # Drop name of column axis for all dataframes
-        for name in self._data.keys():
-            df_rename_col_axis = self._data[name]
-            df_rename_col_axis.columns.name = None
-            self._data[name] = df_rename_col_axis
+        for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
+            df = self._data[name]
+            df.columns.name = None
+            self._data[name] = df
 
         # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
         print("\033[K", end='\r') 
