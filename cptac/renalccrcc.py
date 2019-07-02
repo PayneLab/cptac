@@ -36,8 +36,11 @@ class RenalCcrcc(DataSet):
 
         # Get the paths to all the data files
         data_files = [
+            "6_CPTAC3_CCRCC_Phospho_abundance_phosphopeptide_protNorm=2_CB.tsv.gz",
+            "6_CPTAC3_CCRCC_Phospho_abundance_phosphosite_protNorm=2_CB.tsv.gz",
             "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz",
             "ccrccMethylGeneLevelByMean.txt.gz",
+            "cptac-metadata.xls.gz",
             "kirc_wgs_cnv_gene.csv.gz",
             "RNA_clinical.csv.gz",
             "RNA_Normal_Tumor_185_samples.tsv.gz"]
@@ -54,7 +57,36 @@ class RenalCcrcc(DataSet):
             # Load the file, based on what it is
             print("Loading {} data...".format(df_name), end='\r') # Carriage return ending causes previous line to be erased.
 
-            if file_name == "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz":
+            if file_name == "6_CPTAC3_CCRCC_Phospho_abundance_phosphopeptide_protNorm=2_CB.tsv.gz":
+                df = pd.read_csv(file_path, sep='\t')
+                df = df.set_index("Gene")
+                df = df.drop(columns=[
+                    "Index",
+                    "Peptide",
+                    "ReferenceIntensity"])
+                df = df.transpose()
+                self._data["phosphoproteomics_gene"] = df
+
+            elif file_name == "6_CPTAC3_CCRCC_Phospho_abundance_phosphosite_protNorm=2_CB.tsv.gz":
+                df = pd.read_csv(file_path, sep='\t')
+
+                # Parse out the sites and append to gene names
+                old_index = df["Index"]
+                split_index = old_index.str.rsplit("_", n=1, expand=True)
+                sites = split_index[1]
+                genes = df["Gene"]
+                genes_with_sites = genes.str.cat(sites, sep='-')
+                df["Gene"] = genes_with_sites
+
+                df = df.set_index("Gene")
+                df = df.drop(columns=[
+                    "Index",
+                    "Peptide",
+                    "ReferenceIntensity"])
+                df = df.transpose()
+                self._data["phosphoproteomics"] = df
+            
+            elif file_name == "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz":
                 df = pd.read_csv(file_path, sep='\t', dtype={"PUBMED":object}) # "PUBMED" column has mixed types, so we specify object as the dtype to prevent a warning from printing. We don't actually use the column, so that's all we need to do.
                 split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n=1, expand=True) # The first part of the barcode is the patient id, which we need want to make the index
                 df["Tumor_Sample_Barcode"] = split_barcode[0]
@@ -63,15 +95,19 @@ class RenalCcrcc(DataSet):
                 df = df.sort_values(by=["Patient_ID", "Gene"])
                 df = df.set_index("Patient_ID")
                 self._data["somatic_mutation"] = df
+
+            elif file_name == "cptac-metadata.xls.gz":
+                df = pd.read_csv(file_path, index_col=0)
+                self._data["clinical"] = df
             
-            if file_name == "ccrccMethylGeneLevelByMean.txt.gz":
+            elif file_name == "ccrccMethylGeneLevelByMean.txt.gz":
                 df = pd.read_csv(file_path, sep='\t')
                 df = df.sort_index()
                 df = df.transpose()
                 df.index.name = "Patient_ID"
                 self._data["methylation"] = df
 
-            if file_name == "kirc_wgs_cnv_gene.csv.gz":
+            elif file_name == "kirc_wgs_cnv_gene.csv.gz":
                 df = pd.read_csv(file_path)
                 df = df.drop(columns="gene_id")
                 df = df.set_index("gene_name")
@@ -102,20 +138,59 @@ class RenalCcrcc(DataSet):
 
         print("Formatting dataframes...", end="\r")
 
-        # Use the transcriptomics_map we read in from the RNA_clinical.csv.gz file to reindex transcriptomics dataframe with patient ids
+        # Get our clinical dataframe, for help with reindexing
+        clinical = self._data["clinical"]
+
+        # Number the pooled samples in the clinical index, so it doesn't have duplicate values in its index, which would mess up merging
+        # Also prepend "N" to the index values of normal samples
+        new_index = []
+        rename_counter = 1 # We start at 1 to match the pooled sample numbers in the Specimen.Label column.
+        for index, row in clinical.iterrows():
+            if index == "pooled sample":
+                index = f"pooled_sample_{rename_counter:0>2}"
+                rename_counter +=1
+            elif row["Type"] == "Normal":
+                index = "N" + index
+            new_index.append(index)
+
+        clinical.index = new_index
+        clinical.index.name = "Patient_ID" # Name the index Patient_ID, since that's what it is.
+
+        # Rename the Type column in the clinical dataframe to Sample_Tumor_Normal, to match other datasets.
+        clinical = clinical.rename(columns={"Type": "Sample_Tumor_Normal"})
+
+        # Use the RNA.ID column from clinical dataframe to reindex transcriptomics dataframe with patient ids
+        tran_map_col = clinical["RNA.ID"] # Get a series mapping all the RNA IDs to Patient IDs
+        tran_map_col = tran_map_col.dropna()
+        tran_map_df = tran_map_col.reset_index() # Give it a default numerical index (old Patient_ID index becomes a column). This turns the Series into a DataFrame.
+        tran_map_df = tran_map_df.set_index("RNA.ID") # Make the RNA.ID the index
+        tran_map = tran_map_df["Patient_ID"] # Select the Patient_ID column, to make tran_map just a series again.
+
         tran = self._data["transcriptomics"]
         tran_reindexed = reindex_dataframe(tran, transcriptomics_map, new_index_name="Patient_ID", keep_old=False)
         self._data["transcriptomics"] = tran_reindexed
 
-        # Generate master index
-        master_index = unionize_indicies(self._data)
-        
-        # Join master index with clinical df
-        master_clinical = pd.DataFrame(index=master_index)
+        # Use the Specimen.Label columns from clinical dataframe to reindex the phosphoproteomics dataframes with patient ids
+        phos_map_col = clinical["Specimen.Label"] # Get a series mapping all the specimen labels to Patient IDs
+        phos_map_col = phos_map_col.dropna()
+        phos_map_df = phos_map_col.reset_index() # Give it a default numerical index (old Patient_ID index becomes a column). This turns the Series into a DataFrame.
+        phos_map_df = phos_map_df.set_index("Specimen.Label") # Make the Specimen.Label column the index
+        phos_map = phos_map_df["Patient_ID"] # Select the Patient_ID column, to make phos_map just a series again.
 
-        # Add Sample_Status column to clinical df
-        clinical_status_col = generate_sample_status_col(master_clinical, normal_test=lambda sample: sample[-1] == 'N')
-        master_clinical.insert(0, "Sample_Tumor_Normal", clinical_status_col)
+        phos = self._data["phosphoproteomics"]
+        phos_gene = self._data["phosphoproteomics_gene"]
+
+        phos_reindexed = reindex_dataframe(phos, phos_map, new_index_name="Patient_ID", keep_old=False)
+        phos_gene_reindexed = reindex_dataframe(phos, phos_map, new_index_name="Patient_ID", keep_old=False)
+
+        self._data["phosphoproteomics"] = phos_reindexed
+        self._data["phosphoproteomics_gene"] = phos_gene_reindexed
+
+        # Get a union of all dataframes' indicies, with duplicates removed
+        master_index = unionize_indicies(self._data)
+
+        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
+        master_clinical = clinical.reindex(master_index)
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = master_clinical
@@ -162,6 +237,7 @@ class RenalCcrcc(DataSet):
         # - If multiple dataframes are contained in one file--e.g. clinical and derived_molecular data are both in clinical.txt, as in Endometrial--separate them out here.
         # - Make sure that column names are consistent--e.g., all Patient_ID columns should be labeled as such, not as Clinical_Patient_Key or something else. Rename columns as necessary to match this.
         # - The clinical dataframe must contain a Sample_Tumor_Normal column, which contains either "Tumor" or "Normal" for each sample, according to its status.
+        # - Make sure the clinical dataframe doesn't have repeated values in its index, such as "pooled_sample". This would mess up creating our master index.
         # - Only the clinical dataframe should contain a Patient_ID column. The other dataframes should contain just a Sample_ID index, and the data.
         # - The column axis of each dataframe should have None as the value of its .name attribute
         # - The index of each dataframe should have "Sample_ID" as the value of its .name attribute, since that's what the index is.

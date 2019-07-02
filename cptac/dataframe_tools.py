@@ -67,7 +67,7 @@ def reindex_dataframe(df, reindex_map, new_index_name, keep_old): # This can rei
 
     Parameters:
     df (pandas DataFrame): The dataframe to reindex.
-    reindex_map (dict): A dictionary with the old index values as the keys, and the new ones as the values.
+    reindex_map (dict or pandas Series): A dictionary or pandas Series with the old index values as the keys or index, and the new ones as the values.
     new_index_name (str): The desired name for the new index.
     keep_old (bool): Whether to retain the old index in the dataframe as a column.
 
@@ -76,7 +76,7 @@ def reindex_dataframe(df, reindex_map, new_index_name, keep_old): # This can rei
     """
     new_index_list = []
     for row in df.index:
-        if row in reindex_map.keys():
+        if row in reindex_map.keys(): # This works for a dict or a pandas Series, because Series have a .keys() attribute that's an alias for the index
             new_index_list.append(reindex_map[row])
         else:
             return None
