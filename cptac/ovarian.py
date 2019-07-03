@@ -15,7 +15,7 @@ import glob
 import textwrap
 import datetime
 from .dataset import DataSet
-from .sync import get_version_files_paths
+from .download import get_version_files_paths
 from .dataframe_tools import *
 
 class Ovarian(DataSet):

@@ -14,7 +14,7 @@ import pandas as pd
 import os
 import glob
 from .dataset import DataSet
-from .sync import get_version_files_paths
+from .download import get_version_files_paths
 from .dataframe_tools import *
 
 class RenalCcrcc(DataSet):
@@ -42,7 +42,6 @@ class RenalCcrcc(DataSet):
             "ccrccMethylGeneLevelByMean.txt.gz",
             "cptac-metadata.xls.gz",
             "kirc_wgs_cnv_gene.csv.gz",
-            "RNA_clinical.csv.gz",
             "RNA_Normal_Tumor_185_samples.tsv.gz"]
         data_files_paths = get_version_files_paths(self._cancer_type, version, data_files)
         if data_files_paths is None: # Version validation error. get_version_files_paths already printed an error message.
@@ -123,11 +122,6 @@ class RenalCcrcc(DataSet):
                 df = df.sort_index()
                 self._data["CNV"] = df
 
-            elif file_name == "RNA_clinical.csv.gz":
-                df = pd.read_csv(file_path, header=None, names=["Patient_ID", "Sample_Status", "RNA_ID"])
-                df = df.set_index("RNA_ID")
-                transcriptomics_map = df["Patient_ID"].to_dict()                
-
             elif file_name == "RNA_Normal_Tumor_185_samples.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
                 df = df.sort_index()
@@ -160,27 +154,18 @@ class RenalCcrcc(DataSet):
         clinical = clinical.rename(columns={"Type": "Sample_Tumor_Normal"})
 
         # Use the RNA.ID column from clinical dataframe to reindex transcriptomics dataframe with patient ids
-        tran_map_col = clinical["RNA.ID"] # Get a series mapping all the RNA IDs to Patient IDs
-        tran_map_col = tran_map_col.dropna()
-        tran_map_df = tran_map_col.reset_index() # Give it a default numerical index (old Patient_ID index becomes a column). This turns the Series into a DataFrame.
-        tran_map_df = tran_map_df.set_index("RNA.ID") # Make the RNA.ID the index
-        tran_map = tran_map_df["Patient_ID"] # Select the Patient_ID column, to make tran_map just a series again.
-
+        tran_map = get_reindex_map(clinical["RNA.ID"])
         tran = self._data["transcriptomics"]
-        tran_reindexed = reindex_dataframe(tran, transcriptomics_map, new_index_name="Patient_ID", keep_old=False)
+        tran_reindexed = reindex_dataframe(tran, tran_map, new_index_name="Patient_ID", keep_old=False)
         self._data["transcriptomics"] = tran_reindexed
 
-        # Use the Specimen.Label columns from clinical dataframe to reindex the phosphoproteomics dataframes with patient ids
-        phos_map_col = clinical["Specimen.Label"] # Get a series mapping all the specimen labels to Patient IDs
-        phos_map_col = phos_map_col.dropna()
-        phos_map_df = phos_map_col.reset_index() # Give it a default numerical index (old Patient_ID index becomes a column). This turns the Series into a DataFrame.
-        phos_map_df = phos_map_df.set_index("Specimen.Label") # Make the Specimen.Label column the index
-        phos_map = phos_map_df["Patient_ID"] # Select the Patient_ID column, to make phos_map just a series again.
+        # Use the Specimen.Label columns from clinical dataframe to reindex the phosphoproteomics and phosphoproteomics_gene dataframes with patient ids
+        phos_map = get_reindex_map(clinical["Specimen.Label"])
 
         phos = self._data["phosphoproteomics"]
-        phos_gene = self._data["phosphoproteomics_gene"]
-
         phos_reindexed = reindex_dataframe(phos, phos_map, new_index_name="Patient_ID", keep_old=False)
+
+        phos_gene = self._data["phosphoproteomics_gene"]
         phos_gene_reindexed = reindex_dataframe(phos, phos_map, new_index_name="Patient_ID", keep_old=False)
 
         self._data["phosphoproteomics"] = phos_reindexed

@@ -47,6 +47,32 @@ def generate_sample_status_col(df, normal_test):
     sample_status_col = pd.Series(data=sample_status_list, index=df.index.copy())
     return sample_status_col
 
+def get_reindex_map(series):
+    """Generate a reindexing map from a series where the index is the new indicies, and the values are the old indicies.
+
+    Parameters:
+    series (pandas Series): The series to generate the reindex map from.
+
+    Returns:
+    pandas Series: The reindexing map, with the old inidicies as the index, and the new indicies as the values.
+    """
+    old_index_name = series.name
+    new_index_name = series.index.name
+    if new_index_name is None:
+        new_index_name = "index" # This is the default name pandas gives unnamed indicies when they're made columns
+
+    # Check that the mapping is one to one
+    series = series.dropna()
+    if len(series) != len(series.drop_duplicates()):
+        print("Error: Mapping is not one to one.")
+        return
+
+    # Make the index the values, and the values the index
+    df = series.reset_index()
+    df = df.set_index(old_index_name)
+    reindex_map = df[new_index_name]
+    return reindex_map
+
 def generate_sample_id_map(master_index):
     """Generate sample ids for all samples in a dataset, and map them to the existing index.
 

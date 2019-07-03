@@ -11,7 +11,7 @@
 
 import webbrowser
 import os.path as path
-from .sync import sync
+from .download import download
 from .endometrial import Endometrial
 from .colon import Colon
 from .ovarian import Ovarian

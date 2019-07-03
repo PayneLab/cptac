@@ -14,7 +14,7 @@ import pandas as pd
 import os
 import glob
 from .dataset import DataSet
-from .sync import get_version_files_paths
+from .download import get_version_files_paths
 from .dataframe_tools import *
 
 class Colon(DataSet):

@@ -15,7 +15,7 @@ import glob
 import textwrap
 import datetime
 from .dataset import DataSet
-from .sync import get_version_files_paths
+from .download import get_version_files_paths
 from .dataframe_tools import *
 
 class Endometrial(DataSet):
@@ -124,9 +124,7 @@ class Endometrial(DataSet):
         clinical = self._data["clinical"] # We need the Patient_ID column from clinical, to map sample ids to patient ids. The sample ids are the clinical index, and the patient ids are in the Patient_ID column.
         patient_id_col = clinical.loc[clinical["Proteomics_Tumor_Normal"] == "Tumor", "Patient_ID"] # We only want to generate a map for tumor samples, because all the normal samples are from the same patients as the tumor samples, so they have duplicate patient ids.
         patient_id_col.index.name = "Sample_ID" # Label the sample id column (it's currently the index)
-        patient_id_df = patient_id_col.reset_index() # Make the sample id index accessible as a column
-        patient_id_df = patient_id_df.set_index("Patient_ID") # Set Patient_ID as the index, so we can look up a Sample_ID given a Patient_ID
-        patient_id_map = patient_id_df["Sample_ID"] # Make the mapping a series. Patient_ID will be the index.
+        patient_id_map = get_reindex_map(patient_id_col)
 
         mutations = self._data["somatic_mutation"]
         mutations_reindexed = reindex_dataframe(mutations, patient_id_map, "Sample_ID", keep_old=False)

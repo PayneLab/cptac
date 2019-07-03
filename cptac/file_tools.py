@@ -38,7 +38,7 @@ def validate_version(version, dataset, dataset_path, index, use_context):
     dataset (str): The name of the dataset we're validating the version for.
     dataset_path (str): The path to the dataset the version is for.
     index (dict): The parsed index for the dataset.
-    use_context (str): Either "sync" or "load", depending on whether the function is being called as part of a data sync or a dataset loading. Allows for more detailed error messages. Pass None if you don't want more detailed error messages.
+    use_context (str): Either "download" or "constructor", depending on whether the function is being called as part of a data download or a dataset loading. Allows for more detailed error messages. Pass None if you don't want more detailed error messages.
 
     Returns:
     str: The version number, if valid input. If they passed the "latest" keyword but their latest installed didn't match the latest in the index, then return "ambiguous_latest". Else return None.
@@ -49,7 +49,7 @@ def validate_version(version, dataset, dataset_path, index, use_context):
     # Parse and validate the version they passed
     if version in index.keys():
         if float(version) < float(index_latest): # Print a warning if they're using an old version
-            print(f"WARNING: You are using an old data version. Latest is {index_latest}. You are using {version}.")
+            print(f"WARNING: Old data version. Latest is {index_latest}. This is {version}.")
         return version
 
     elif version.lower() == "latest":
@@ -57,18 +57,15 @@ def validate_version(version, dataset, dataset_path, index, use_context):
         if (index_latest == latest_installed) or (latest_installed is None):
             return index_latest
         else: # If their latest installed version is different from the latest version recorded in the index, then we don't know which one they meant when they passed "latest".
-            if use_context == "sync":
-                message = f"You requested to sync the {dataset} dataset. Latest version is {index_latest}, which is not installed locally. To download it, run \"cptac.sync(dataset='{dataset}', version='{index_latest}')\". To instead sync the older version that is already installed, run \"cptac.sync(dataset='{dataset}', version='{latest_installed}')\"."
-            elif use_context == "load":
-                message = f"You requested to load the {dataset} dataset. Latest version is {index_latest}, which is not installed locally. To download it, run \"cptac.sync(dataset='{dataset}', version='{index_latest}')\". You will then be able to load the latest version by calling \"cptac.{dataset.title()}()\". Or, to instead load the older version that is already installed, call \"cptac.{dataset.title()}(version='{latest_installed}')\"."
-            else:
-                message = f"You requested the latest version. Latest version is {index_latest}, which is not installed locally. To download it, run \"cptac.sync(dataset='{dataset}', version='{index_latest}')\"."
-
-            print(message)
-            return None
+            if use_context == "download":
+                print(f"NOTE: Downloading new version of {dataset} dataset: {index_latest}. This will now be the default version when the dataset is loaded. If you wish to load an older version of the data, you must specify it with the version parameter when you load the dataset.")
+                return index_latest
+            elif use_context == "constructor":
+                print(f"You requested to load the {dataset} dataset. Latest version is {index_latest}, which is not installed locally. To download it, run \"cptac.download(dataset='{dataset}')\". You will then be able to load the latest version of the dataset. To skip this and instead load the older version that is already installed, call \"cptac.{dataset.title()}(version='{latest_installed}')\".")
+                return
     else:
         print(f"{version} is an invalid version for the {dataset} dataset. Valid versions: {', '.join(index.keys())}")
-        return None
+        return
 
 def get_latest_installed(dataset_path):
     """Return the latest version number installed in a dataset directory.
