@@ -94,7 +94,7 @@ def download(dataset, version="latest", redownload=False):
         file_path = os.path.join(version_path, data_file)
         file_number = files_to_download.index(data_file) + 1
 
-        downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_message="data source files", file_number=file_number, total_files=total_files)
+        downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_message="data files", file_number=file_number, total_files=total_files)
 
         while downloaded_path == "wrong_password":
             password = getpass.getpass(prompt="Wrong password. Try again: ")

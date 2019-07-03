@@ -14,6 +14,7 @@ import os
 import glob
 import textwrap
 import datetime
+import IPython
 from .dataset import DataSet
 from .download import get_version_files_paths
 from .dataframe_tools import *
@@ -43,6 +44,7 @@ class Endometrial(DataSet):
             "somatic.maf.gz", 
             "transcriptomics_circular.cct.gz", 
             "transcriptomics_linear.cct.gz"]
+
         data_files_paths = get_version_files_paths(self._cancer_type, version, data_files)
         if data_files_paths is None: # Version validation error. get_version_files_paths already printed an error message.
             return None
@@ -54,7 +56,7 @@ class Endometrial(DataSet):
             df_name = file_name.split(".")[0] # Dataframe name will be the first section of file name; i.e. proteomics.txt.gz becomes proteomics
 
             # Load the file, based on what it is
-            print("Loading {} data...".format(df_name), end='\r') # Carriage return ending causes previous line to be erased.
+            print(f"Loading {df_name} data...", end='\r') # Carriage return ending causes previous line to be erased.
 
             if file_name == "clinical.txt":
                 # Fix for reading error on clinical.txt:
@@ -88,7 +90,7 @@ class Endometrial(DataSet):
                 df = df.sort_index()
                 self._data[df_name] = df # Maps dataframe name to dataframe
 
-            print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
+            IPython.display.clear_output(wait=True)
 
         print("Formatting dataframes...", end='\r')
 
@@ -176,8 +178,7 @@ class Endometrial(DataSet):
             df.columns.name = None
             self._data[name] = df
 
-        # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
-        print("\033[K", end='\r') 
+        IPython.display.clear_output()
 
     # Overload the self._get_sample_status_map function to work with "Proteomics_Tumor_Normal" column instead of default "Sample_Tumor_Normal" column
     def _get_sample_status_map(self):
