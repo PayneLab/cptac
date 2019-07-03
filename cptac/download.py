@@ -254,7 +254,7 @@ def get_version_files_paths(dataset, version, data_files):
     # Check that they've installed the version they requested
     version_path = os.path.join(dataset_path, f"{dataset}_v{version}")
     if not os.path.isdir(version_path):
-        print(f"Data version {version} is not installed. To install, run \"cptac.download(dataset='{dataset}')\".")
+        print(f"Data version {version} is not installed. To install, run \"cptac.download(dataset='{dataset}', version='{version}')\".")
         return None
 
     data_files_paths = []

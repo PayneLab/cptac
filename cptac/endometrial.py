@@ -14,7 +14,6 @@ import os
 import glob
 import textwrap
 import datetime
-import IPython
 from .dataset import DataSet
 from .download import get_version_files_paths
 from .dataframe_tools import *
@@ -90,7 +89,8 @@ class Endometrial(DataSet):
                 df = df.sort_index()
                 self._data[df_name] = df # Maps dataframe name to dataframe
 
-            IPython.display.clear_output(wait=True)
+            # Use an ANSI escape sequence to clear the previously printed line (cursor was already set to beginning of line)
+            print("\033[K", end='\r')
 
         print("Formatting dataframes...", end='\r')
 
@@ -178,7 +178,8 @@ class Endometrial(DataSet):
             df.columns.name = None
             self._data[name] = df
 
-        IPython.display.clear_output()
+        # Use an ANSI escape sequence to clear the previously printed line (cursor was already set to beginning of line)
+        print("\033[K", end='\r')
 
     # Overload the self._get_sample_status_map function to work with "Proteomics_Tumor_Normal" column instead of default "Sample_Tumor_Normal" column
     def _get_sample_status_map(self):
