@@ -56,33 +56,36 @@ class Colon(DataSet):
             # Load the file, based on what it is
             print("Loading {} data...".format(df_name), end='\r') # Carriage return ending causes previous line to be erased.
 
-            if file_name == "mutation.txt.gz":
-                df = pd.read_csv(file_path, sep="\t")
-                df = df.sort_values(by="SampleID")
-                df = df[["SampleID","Gene","Variant_Type","Protein_Change"]]
-                df = df.rename(columns={"SampleID":"Patient_ID", "Variant_Type":"Mutation", "Protein_Change":"Location"})
-                df = df.sort_values(by=["Patient_ID", "Gene"])
-                df = df.set_index("Patient_ID")
-                self._data["somatic_" + df_name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
-
-            else:
-                df = pd.read_csv(file_path, sep="\t",index_col=0)
-                df = df.transpose()
-                self._data[df_name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
+            df = pd.read_csv(file_path, sep="\t",index_col=0)
+            df = df.transpose()
+            self._data[df_name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
 
             print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
         print("Formatting dataframes...", end="\r")
 
+        # Reformat and rename the somatic_mutation dataframe
+        mut = self._data["mutation"]
+        mut = mut.transpose() # Transpose it back to its original orientation
+        mut = mut.sort_values(by="SampleID")
+        mut = mut[["SampleID","Gene","Variant_Type","Protein_Change"]]
+        mut = mut.rename(columns={"SampleID":"Patient_ID", "Variant_Type":"Mutation", "Protein_Change":"Location"})
+        mut = mut.sort_values(by=["Patient_ID", "Gene"])
+        mut = mut.set_index("Patient_ID")
+        self._data["somatic_mutation"] = mut # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
+        del self._data["mutation"] # Delete the old version with the old name
+
         # Rename mutation_binary dataframe to somatic_mutation_binary
-        df = self._data["mutation_binary"]
-        self._data["somatic_mutation_binary"] = df
+        self._data["somatic_mutation_binary"] = self._data["mutation_binary"]
         del self._data["mutation_binary"]
 
         # Separate clinical and derived molecular dataframes
         all_clinical_data = self._data.get("clinical")
         clinical_df = all_clinical_data.drop(columns=['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity','immuneSubtype', 'CIN', 'Integrated.Phenotype'])
         derived_molecular_df = all_clinical_data[['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity', 'immuneSubtype', 'CIN', 'Integrated.Phenotype']]
+
+        # Format clinical dataframe
+        clinical_df = clinical_df.astype({"Age": float, "CEA": float, "mutation_rate": float}) # For one reason or another, these weren't automatically cast on loading.
 
         # Put them in our data dictionary
         self._data["clinical"] = clinical_df # Replaces original clinical dataframe
