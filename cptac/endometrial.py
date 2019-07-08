@@ -11,9 +11,6 @@
 
 import pandas as pd
 import os
-import glob
-import textwrap
-import datetime
 from .dataset import DataSet
 from .download import get_version_files_paths
 from .dataframe_tools import *
@@ -49,14 +46,18 @@ class Endometrial(DataSet):
             return None
 
         # Load the data files into dataframes in the self._data dict
+        loading_msg = "Loading dataframes"
         for file_path in data_files_paths: 
+
+            # Print a loading message. We add a dot every time, so the user knows it's not frozen.
+            loading_msg = loading_msg + "."
+            print(loading_msg, end='\r')
+
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
             df_name = file_name.split(".")[0] # Dataframe name will be the first section of file name; i.e. proteomics.txt.gz becomes proteomics
 
             # Load the file, based on what it is
-            print(f"Loading {df_name} data...", end='\r') # Carriage return ending causes previous line to be erased.
-
             if file_name == "clinical.txt":
                 # Fix for reading error on clinical.txt:
                 with open(file_path, "r", errors="ignore") as clinical_file:
@@ -89,10 +90,9 @@ class Endometrial(DataSet):
                 df = df.sort_index()
                 self._data[df_name] = df # Maps dataframe name to dataframe
 
-            # Use an ANSI escape sequence to clear the previously printed line (cursor was already set to beginning of line)
-            print("\033[K", end='\r')
-
-        print("Formatting dataframes...", end='\r')
+        print(' ' * len(loading_msg), end='\r') # Erase the loading message
+        formatting_msg = "Formatting dataframes..."
+        print(formatting_msg, end='\r')
 
         # Separate out clinical, derived_molecular, and experimental_setup dataframes
         all_clinical = self._data["clinical"]
@@ -178,8 +178,7 @@ class Endometrial(DataSet):
             df.columns.name = None
             self._data[name] = df
 
-        # Use an ANSI escape sequence to clear the previously printed line (cursor was already set to beginning of line)
-        print("\033[K", end='\r')
+        print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 
     # Overload the self._get_sample_status_map function to work with "Proteomics_Tumor_Normal" column instead of default "Sample_Tumor_Normal" column
     def _get_sample_status_map(self):

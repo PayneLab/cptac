@@ -292,7 +292,25 @@ class DataSet:
         Returns:
         pandas DataFrame: The merged dataframe, with the mutations filtered to one per row.
         """
-        pass
+        truncations = []
+        missenses = []
+
+        mutation_regex = r'^.*_Mutation$' # Construct regex to find all mutation columns
+        mutation_cols = [col for col in df.columns.values if re.match(mutation_regex, col)] # Get a list of all mutation columns
+
+        location_regex = r'^.*_Location$' # Construct regex to find all location columns
+        location_cols = [col for col in df.columns.values if re.match(location_regex, col)] # Get a list of all location columns
+        
+        mutation_status_regex = r"^.*_Mutation_Status$" # Construct a regex to find all Mutation_Status columns
+        mutation_status_cols = [col for col in df.columns.values if re.match(mutation_status_regex, col)] # Get a list of all Mutation_Status columns
+            
+        filtered_df = pd.DataFrame(index=df.index.copy(), columns=df.columns.copy())
+        filtered_df = filtered_df.drop(columns=mutation_status_cols) # We don't need them
+
+        for index, row in df.iterrows:
+            for i in len(mutation_cols):
+                #mutation_col = 
+                pass
 
     # "Private" methods
     def _get_dataframe(self, name):

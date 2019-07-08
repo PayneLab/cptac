@@ -23,7 +23,8 @@ def list_data():
     datasets = [
         "Colon",
         "Endometrial",
-        "Ovarian",]
+        "Ovarian",
+        "RenalCcrcc",]
     for dataset in sorted(datasets):
         print("\t" + dataset)
 

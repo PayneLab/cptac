@@ -9,10 +9,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import numpy as np
 import pandas as pd
 import os
-import glob
 from .dataset import DataSet
 from .download import get_version_files_paths
 from .dataframe_tools import *
@@ -48,13 +46,16 @@ class RenalCcrcc(DataSet):
             return None
 
         # Load the data into dataframes in the self._data dict
+        loading_msg = "Loading dataframes"
         for file_path in data_files_paths: # Loops through files variable
+
+            # Print a loading message. We add a dot every time, so the user knows it's not frozen.
+            loading_msg = loading_msg + "."
+            print(loading_msg, end='\r')
+
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
             df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
-
-            # Load the file, based on what it is
-            print("Loading {} data...".format(df_name), end='\r') # Carriage return ending causes previous line to be erased.
 
             if file_name == "6_CPTAC3_CCRCC_Phospho_abundance_phosphopeptide_protNorm=2_CB.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
@@ -128,9 +129,9 @@ class RenalCcrcc(DataSet):
                 df = df.transpose()
                 self._data["transcriptomics"] = df
 
-            print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
-
-        print("Formatting dataframes...", end="\r")
+        print(' ' * len(loading_msg), end='\r') # Erase the loading message
+        formatting_msg = "Formatting dataframes..."
+        print(formatting_msg, end='\r')
 
         # Get our clinical dataframe, for help with reindexing
         clinical = self._data["clinical"]
@@ -230,5 +231,4 @@ class RenalCcrcc(DataSet):
         # - Make sure that in dataframes where each column header is the name of a gene, the columns are in alphabetical order.
         # - If the dataset is still under publication embargo, print a warning after it's loaded.
 
-        # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
-        print("\033[K", end='\r') 
+        print(" " * len(formatting_msg), end='\r') # Erase the formatting message

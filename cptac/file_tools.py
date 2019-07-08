@@ -30,6 +30,28 @@ def get_dataset_path(dataset):
         print(f"{dataset} is not a valid dataset.")
         return None
 
+def is_latest_version(version, index):
+    """Determine whether a specific version number is the latest version in the index.
+
+    Parameters:
+    version (str): The version number to check.
+    index (dict): The parsed index for the dataset.
+
+    Returns:
+    bool: Whether the given version number is the latest in the index. Returns None if it's an invalid version.
+    """
+    # Check the version
+    if version == "latest":
+        return True
+    elif version in index.keys():
+        index_latest = max(index.keys(), key=float)
+        if version == index_latest:
+            return True
+        else:
+            return False
+    else:
+        return
+
 def validate_version(version, dataset, dataset_path, index, use_context):
     """Check that a given version number is valid. If version is "latest", check that index and installed latest match.
 
@@ -58,7 +80,7 @@ def validate_version(version, dataset, dataset_path, index, use_context):
             return index_latest
         else: # If their latest installed version is different from the latest version recorded in the index, then we don't know which one they meant when they passed "latest".
             if use_context == "download":
-                print(f"NOTE: Downloading new version of {dataset} dataset: {index_latest}. This will now be the default version when the dataset is loaded. If you wish to load an older version of the data, you must specify it with the version parameter when you load the dataset.")
+                print(f"NOTE: Downloading new version of {dataset} dataset: {index_latest}. This will now be the default version when the dataset is loaded. If you wish to load an older version of the data, you must specify it with the 'version' parameter when you load the dataset.")
                 return index_latest
             elif use_context == "constructor":
                 print(f"You requested to load the {dataset} dataset. Latest version is {index_latest}, which is not installed locally. To download it, run \"cptac.download(dataset='{dataset}')\". You will then be able to load the latest version of the dataset. To skip this and instead load the older version that is already installed, call \"cptac.{dataset.title()}(version='{latest_installed}')\".")

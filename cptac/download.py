@@ -43,7 +43,6 @@ def download(dataset, version="latest", redownload=False):
 
     # Validate the version number, including parsing if it's "latest"
     use_context = "download"
-    original_version_parameter = version # So we can check later if they originally passed "latest", for wording messages.
     version = validate_version(version, dataset, dataset_path, index, use_context)
     if version is None: # Invalid version
         return False
@@ -84,8 +83,6 @@ def download(dataset, version="latest", redownload=False):
 
         if (dataset in password_protected_datasets) and (password is None):
             password = getpass.getpass()
-            print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
-            print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
 
         file_index = version_index.get(data_file)
         server_hash = file_index.get("hash")
@@ -98,8 +95,6 @@ def download(dataset, version="latest", redownload=False):
 
         while downloaded_path == "wrong_password":
             password = getpass.getpass(prompt="Wrong password. Try again: ")
-            print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
-            print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
             downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_number=file_number, total_files=total_files)
 
         if downloaded_path is None:
@@ -129,9 +124,10 @@ def update_index(dataset_path):
     urls_dict = parse_tsv_dict(index_urls_path)
     index_hash_url = urls_dict.get(index_hash_file)
 
-    print(f"Checking that index is up-to-date...", end='\r')
+    checking_msg = "Checking that index is up-to-date..."
+    print(checking_msg, end='\r')
     server_index_hash = download_text(index_hash_url)
-    print("\033[K", end='\r') # Erase the status message
+    print(" " * len(checking_msg), end='\r') # Erase the checking message
 
     if server_index_hash is None: # I.e., we have no internet
         return False
@@ -189,7 +185,8 @@ def download_file(url, path, server_hash, password=None, file_message=None, file
     if file_message is None:
         file_message = path.split(os.sep)[-1]
 
-    print(f"Downloading {file_message}{batch_status}...", end='\r')
+    download_msg = f"Downloading {file_message}{batch_status}..."
+    print(download_msg, end='\r')
 
     for i in range(2):
         try:
@@ -221,10 +218,10 @@ def download_file(url, path, server_hash, password=None, file_message=None, file
         if local_hash == server_hash: # Only replace the old file if the new one downloaded successfully.
             with open(path, 'wb') as dest:
                 dest.write(response.content)
-            print("\033[K", end='\r') # Erase the downloading message
+            print(" " * len(download_msg), end='\r') # Erase the downloading message
             return path
         elif response.text.strip().startswith("<!DOCTYPE html>"): # The password was wrong, so we just got a webpage
-            print("\033[K", end='\r') # Erase the downloading message
+            print(" " * len(download_msg), end='\r') # Erase the downloading message
             return "wrong_password"
 
 def get_version_files_paths(dataset, version, data_files):
@@ -260,6 +257,12 @@ def get_version_files_paths(dataset, version, data_files):
     data_files_paths = []
     for data_file in data_files:
         file_path = os.path.join(version_path, data_file)
+        if not os.path.isfile(file_path): # Check that the file exists
+            if is_latest_version(version, index):
+                print(f"Missing data file '{data_file}'. Call \"cptac.download(dataset='{dataset}')\" to download it. Dataset loading aborted.")
+            else:
+                print(f"Missing data file '{data_file}'. Call \"cptac.download(dataset='{dataset}', version='{version}')\" to download it. Dataset loading aborted.")
+            return
         data_files_paths.append(file_path)
 
     return data_files_paths
