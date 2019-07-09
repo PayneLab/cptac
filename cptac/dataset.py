@@ -171,7 +171,7 @@ class DataSet:
         webbrowser.open(url)
 
     # Utilities methods
-    def compare_omics(self, omics_df1_name, omics_df2_name, genes1=None, genes2=None):
+    def join_omics_to_omics(self, omics_df1_name, omics_df2_name, genes1=None, genes2=None):
         """Take specified column(s) from one omics dataframe, and append to specified columns(s) from another omics dataframe. Intersection (inner join) of indicies is used.
 
         Parameters:
@@ -204,45 +204,12 @@ class DataSet:
             df.name = "{}, with {}".format(selected1.name, selected2.name) # Give it a nice name identifying the data in it.
             return df
 
-    def append_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None):
-        """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_setup) to part or all of an omics dataframe. Intersection (inner join) of indicies is used.
-
-        Parameters:
-        metadata_df_name (str): Name of metadata dataframe to select columns from.
-        omics_df_name (str): Name of omics dataframe to append the metadata columns to.
-        metadata_cols (str, or list or array-like of str, optional): Column(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select the entire metadata dataframe.
-        omics_genes (str, or list or array-like of str, optional): Gene(s) to select data for from the omics dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select entire dataframe.
-
-        Returns:
-        pandas DataFrame: The selected metadata columns, merged with all or part of the omics dataframe.
-        """
-        # Make sure metadata_df_name and omics_df_name are valid for this function
-        metadata_df_valid = self._is_valid_df(metadata_df_name, "metadata")
-        omics_df_valid = self._is_valid_df(omics_df_name, "omics")
-
-        if (not metadata_df_valid) or (not omics_df_valid):
-            return
-
-        # Get the dataframes
-        metadata_df = self._get_dataframe(metadata_df_name)
-        omics_df = self._get_dataframe(omics_df_name)
-
-        # Select the columns from each dataframe
-        metadata_selected = self._get_metadata_cols(metadata_df, metadata_cols)
-        omics_selected = self._get_omics_cols(omics_df, omics_genes)
-
-        if (metadata_selected is not None) and (omics_selected is not None): # If either selector returned None, the key(s) didn't match any columns, and it printed an informative error message already. We'll return None.
-            df_joined = metadata_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
-            df_joined = df_joined.sort_index() # Sort rows in ascending order
-            df_joined.name = "{}, with {}".format(metadata_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
-            return df_joined
-
-    def append_mutations_to_omics(self, omics_df_name, mutation_genes, omics_genes=None, show_location=True):
+    def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, show_location=True):
         """Select all mutations for specified gene(s), and appends them to all or part of the given omics dataframe. Intersection (inner join) of indicies is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
         omics_df (str): Name of omics dataframe to append the mutation data to.
-        mutation_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
+        mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
         show_location (bool, optional): Whether to include the Locations column from the mutation dataframe. Defaults to True.
 
@@ -257,7 +224,7 @@ class DataSet:
         somatic_mutation = self.get_mutations()
         omics_df = self._get_dataframe(omics_df_name)
         omics = self._get_omics_cols(omics_df, omics_genes)
-        mutations = self._get_genes_mutations(somatic_mutation, mutation_genes)
+        mutations = self._get_genes_mutations(somatic_mutation, mutations_genes)
 
         if (omics is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, and an error message was printed. We'll return None.
             merge = omics.join(mutations, how = "left") # Left join omics data and mutation data (left being the omics data)
@@ -291,6 +258,45 @@ class DataSet:
 
             merge.name = "{}, with {}".format(omics.name, mutations.name) # Give it a name identifying the data in it
             return merge
+
+    def join_metadata_to_metadata(self):
+        pass
+
+    def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None):
+        """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_setup) to part or all of an omics dataframe. Intersection (inner join) of indicies is used.
+
+        Parameters:
+        metadata_df_name (str): Name of metadata dataframe to select columns from.
+        omics_df_name (str): Name of omics dataframe to append the metadata columns to.
+        metadata_cols (str, or list or array-like of str, optional): Column(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select the entire metadata dataframe.
+        omics_genes (str, or list or array-like of str, optional): Gene(s) to select data for from the omics dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select entire dataframe.
+
+        Returns:
+        pandas DataFrame: The selected metadata columns, merged with all or part of the omics dataframe.
+        """
+        # Make sure metadata_df_name and omics_df_name are valid for this function
+        metadata_df_valid = self._is_valid_df(metadata_df_name, "metadata")
+        omics_df_valid = self._is_valid_df(omics_df_name, "omics")
+
+        if (not metadata_df_valid) or (not omics_df_valid):
+            return
+
+        # Get the dataframes
+        metadata_df = self._get_dataframe(metadata_df_name)
+        omics_df = self._get_dataframe(omics_df_name)
+
+        # Select the columns from each dataframe
+        metadata_selected = self._get_metadata_cols(metadata_df, metadata_cols)
+        omics_selected = self._get_omics_cols(omics_df, omics_genes)
+
+        if (metadata_selected is not None) and (omics_selected is not None): # If either selector returned None, the key(s) didn't match any columns, and it printed an informative error message already. We'll return None.
+            df_joined = metadata_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
+            df_joined = df_joined.sort_index() # Sort rows in ascending order
+            df_joined.name = "{}, with {}".format(metadata_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
+            return df_joined
+
+    def join_metadata_to_mutations(self):
+        pass
 
     # "Private" methods
     def _get_dataframe(self, name):

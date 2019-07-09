@@ -155,14 +155,14 @@ def build_omics_regex(genes, suffix=""):
     regex = regex[:-1] + ')' + suffix + '$'
     return regex
 
-def check_appended_columns(source_df, dest_df, source_headers, dest_headers=None):
-    """Checks whether a column or list of columns appended to a dataframe have the same values for each index in that dataframe as they had in the dataframe they were taken from.
+def check_joined_columns(source_df, dest_df, source_headers, dest_headers=None):
+    """Checks whether a column or list of columns joined to a dataframe have the same values for each index in that dataframe as they had in the dataframe they were taken from.
 
     Parameters:
     source_df (pandas.core.frame.DataFrame): The dataframe the columns were taken from.
-    dest_df (pandas.core.frame.DataFrame): The dataframe the columns were appended to (with them appended to it).
+    dest_df (pandas.core.frame.DataFrame): The dataframe the columns were joined to (with them joined to it).
     source_headers (str, or list or array-like of str): The header(s) of the columns to test in source_df. str if one, list or array-like of str if multiple. 
-    dest_headers (str, or list or array-like of str, optional): The header(s) of the columns to test in dest_df. str if one, list or array-like of str if multiple. If provided, must be in the same order as their corresponding headers in source_headers. If not provided, header(s) in dest_df will be constructed by appending an underscore and source_df.name to each of the source_headers.
+    dest_headers (str, or list or array-like of str, optional): The header(s) of the columns to test in dest_df. str if one, list or array-like of str if multiple. If provided, must be in the same order as their corresponding headers in source_headers. If not provided, header(s) in dest_df will be constructed by joining an underscore and source_df.name to each of the source_headers.
     
     Returns:
     bool: Indicates whether the specified column(s) in dest_df had the same values for each index as they did in source_df.
@@ -330,7 +330,7 @@ def check_mutation_columns(mutations, merged_df, genes, show_location=True):
                 dest_cols_to_test.append(merged_location_col)
 
             # Test the columns
-            if not check_appended_columns(sample_df, merged_sample_df, source_cols_to_test, dest_cols_to_test):
+            if not check_joined_columns(sample_df, merged_sample_df, source_cols_to_test, dest_cols_to_test):
                 PASS = False
 
     return PASS
@@ -547,57 +547,57 @@ def test_get_mutations_binary():
     PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
-# Test merging and appending functions
-def test_compare_omics_source_preservation():
-    """Test that compare_omics does not alter the dataframes it pulls data from."""
-    print("Running test_compare_omics_source_preservation...")
+# Test merging and joining functions
+def test_join_omics_to_omics_source_preservation():
+    """Test that join_omics_to_omics does not alter the dataframes it pulls data from."""
+    print("Running test_join_omics_to_omics_source_preservation...")
     PASS = True
 
     # Load the source dataframes
     prot = en.get_proteomics()
-    acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure compare_omics can grab all those values.
+    acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure join_omics_to_omics can grab all those values.
 
     # Set the names
     prot_name = "proteomics"
     acet_name = "acetylproteomics"
 
-    # Copy the source dataframes so we can make sure later on that compare_omics doesn't alter them.
+    # Copy the source dataframes so we can make sure later on that join_omics_to_omics doesn't alter them.
     prot_copy = prot.copy()
     acet_copy = acet.copy()
 
-    # Call compare_omics on the dataframes, and make sure it doesn't return None.
-    compared = en.compare_omics(prot_name, acet_name)
+    # Call join_omics_to_omics on the dataframes, and make sure it doesn't return None.
+    compared = en.join_omics_to_omics(prot_name, acet_name)
     if compared is None:
-        print('compare_omics returned None.')
+        print('join_omics_to_omics returned None.')
         PASS = False
 
-    # Use the copies we made at the beginning to make sure that compare_omics didn't alter the source dataframes
+    # Use the copies we made at the beginning to make sure that join_omics_to_omics didn't alter the source dataframes
     if not prot.equals(prot_copy):
-        print("Proteomics dataframe was altered by compare_omics.")
+        print("Proteomics dataframe was altered by join_omics_to_omics.")
         PASS = False
 
     if not acet.equals(acet_copy):
-        print("Acetylproteomics dataframe was altered by compare_omics.")
+        print("Acetylproteomics dataframe was altered by join_omics_to_omics.")
         PASS = False
 
     # Indicate whether the test passed.
     print_test_result(PASS)
 
-def test_compare_omics_default_parameters():
-    """Test compare_omics with default parameters cols1=None and cols2=None."""
-    print("Running test_compare_omics_default_parameters...")
+def test_join_omics_to_omics_default_parameters():
+    """Test join_omics_to_omics with default parameters cols1=None and cols2=None."""
+    print("Running test_join_omics_to_omics_default_parameters...")
     PASS = True
 
     # Load the source dataframes
     prot = en.get_proteomics()
-    acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure compare_omics can grab all those values.
+    acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure join_omics_to_omics can grab all those values.
 
     # Set the names
     prot_name = "proteomics"
     acet_name = "acetylproteomics"
 
     # Run the function, make sure it returned properly
-    compared = en.compare_omics(prot_name, acet_name) 
+    compared = en.join_omics_to_omics(prot_name, acet_name) 
     if not check_returned_is_df(compared):
         PASS = False
         print_test_result(PASS)
@@ -615,25 +615,25 @@ def test_compare_omics_default_parameters():
     if not check_df_shape(compared, exp_shape):
         PASS = False
 
-    # Test that all columns from proteomics were appended, and that values were preserved
-    if not check_appended_columns(prot, compared, prot.columns):
+    # Test that all columns from proteomics were joined, and that values were preserved
+    if not check_joined_columns(prot, compared, prot.columns):
         PASS = False
 
-    # Test that all columns from acetylproteomics were appended, and that values were preserved
-    if not check_appended_columns(acet, compared, acet.columns):
+    # Test that all columns from acetylproteomics were joined, and that values were preserved
+    if not check_joined_columns(acet, compared, acet.columns):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_compare_omics_one_gene():
-    """Test compare_omics with one genes for cols1 and cols2."""
-    print("Running test_compare_omics_one_gene...")
+def test_join_omics_to_omics_one_gene():
+    """Test join_omics_to_omics with one genes for cols1 and cols2."""
+    print("Running test_join_omics_to_omics_one_gene...")
     PASS = True
 
     # Load the source dataframes
     prot = en.get_proteomics()
-    acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure compare_omics can grab all those values.
+    acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure join_omics_to_omics can grab all those values.
 
     # Set the names
     prot_name = "proteomics"
@@ -642,7 +642,7 @@ def test_compare_omics_one_gene():
     # Run the function, make sure it returned properly
     prot_gene = 'TP53'
     acet_gene = 'A2M'
-    compared = en.compare_omics(prot_name, acet_name, prot_gene, acet_gene) 
+    compared = en.join_omics_to_omics(prot_name, acet_name, prot_gene, acet_gene) 
     if not check_returned_is_df(compared):
         PASS = False
         print_test_result(PASS)
@@ -673,23 +673,23 @@ def test_compare_omics_one_gene():
         PASS = False
 
     # Check column values
-    if not check_appended_columns(prot, compared, prot_cols.columns):
+    if not check_joined_columns(prot, compared, prot_cols.columns):
         PASS = False
 
-    if not check_appended_columns(acet, compared, acet_cols.columns):
+    if not check_joined_columns(acet, compared, acet_cols.columns):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_compare_omics_multiple_genes():
-    """Test compare_omics with lists of genes for cols1 and cols2."""
-    print("Running test_compare_omics_multiple_genes...")
+def test_join_omics_to_omics_multiple_genes():
+    """Test join_omics_to_omics with lists of genes for cols1 and cols2."""
+    print("Running test_join_omics_to_omics_multiple_genes...")
     PASS = True
 
     # Load the source dataframes
     prot = en.get_proteomics()
-    acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure compare_omics can grab all those values.
+    acet = en.get_acetylproteomics() # Acetylproteomics and phosphoproteomics have multiple columns for one gene. We use acetylproteomics to make sure join_omics_to_omics can grab all those values.
 
     # Set the names
     prot_name = "proteomics"
@@ -698,7 +698,7 @@ def test_compare_omics_multiple_genes():
     # Run the function, make sure it returned properly
     prot_genes = ['A4GALT', 'TP53', 'ZSCAN30']
     acet_genes = ['AAGAB', 'AACS', 'ZW10', 'ZYX']
-    compared = en.compare_omics(prot_name, acet_name, prot_genes, acet_genes) 
+    compared = en.join_omics_to_omics(prot_name, acet_name, prot_genes, acet_genes) 
     if not check_returned_is_df(compared):
         PASS = False
         print_test_result(PASS)
@@ -729,18 +729,18 @@ def test_compare_omics_multiple_genes():
         PASS = False
 
     # Check column values
-    if not check_appended_columns(prot, compared, prot_cols.columns):
+    if not check_joined_columns(prot, compared, prot_cols.columns):
         PASS = False
 
-    if not check_appended_columns(acet, compared, acet_cols.columns):
+    if not check_joined_columns(acet, compared, acet_cols.columns):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_compare_omics_all_dfs():
-    """Test that compare_omics works will all dataframes that are valid for the function."""
-    print("Running test_compare_omics_all_dfs...")
+def test_join_omics_to_omics_all_dfs():
+    """Test that join_omics_to_omics works will all dataframes that are valid for the function."""
+    print("Running test_join_omics_to_omics_all_dfs...")
     PASS = True
 
     # Load our dataframes to test, and set our genes. We call individual parameters, to make sure the columns are formatted properly.
@@ -753,10 +753,10 @@ def test_compare_omics_all_dfs():
     gene1 = 'TP53'
     gene2 = 'AAGAB'
 
-    # Call compare_omics on the dataframes
-    acet_CNA = en.compare_omics(acet, CNA, gene1, gene2)
-    phosg_phoss = en.compare_omics(phosg, phoss, gene1, gene2)
-    prot_tran = en.compare_omics(prot, tran, gene1, gene2)
+    # Call join_omics_to_omics on the dataframes
+    acet_CNA = en.join_omics_to_omics(acet, CNA, gene1, gene2)
+    phosg_phoss = en.join_omics_to_omics(phosg, phoss, gene1, gene2)
+    prot_tran = en.join_omics_to_omics(prot, tran, gene1, gene2)
 
     # Check the return values
     if not check_returned_is_df(acet_CNA):
@@ -772,15 +772,15 @@ def test_compare_omics_all_dfs():
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_compare_omics_invalid_dfs():
-    """Test that compare_omics will not accept non-omics dataframes, and not accept omics dataframes of the wrong format."""
-    print("Running test_compare_omics_invalid_dfs...")
+def test_join_omics_to_omics_invalid_dfs():
+    """Test that join_omics_to_omics will not accept non-omics dataframes, and not accept omics dataframes of the wrong format."""
+    print("Running test_join_omics_to_omics_invalid_dfs...")
     PASS = True
 
     # Load our dataframes to test with
     prot = en.get_proteomics() # We want to try a mix of valid and invalid dataframes, so we need to load this valid dataframe
     clin = en.get_clinical()
-    tran_cir = en.get_circular_RNA() # Although circular_RNA is an omics dataframe, it's of the wrong format to work with compare_omics
+    tran_cir = en.get_circular_RNA() # Although circular_RNA is an omics dataframe, it's of the wrong format to work with join_omics_to_omics
 
     # Set the names
     prot_name = "proteomics"
@@ -788,17 +788,17 @@ def test_compare_omics_invalid_dfs():
     tran_cir_name = "circular_RNA"
 
     # Test with one valid dataframe and one invalid one
-    comp = en.compare_omics(prot_name, tran_cir_name)
+    comp = en.join_omics_to_omics(prot_name, tran_cir_name)
     if comp is not None:
-        print("compare_omics should have returned None when passed the {} dataframe, but instead returned a {}".format(tran_cir.name, type(comp)))
+        print("join_omics_to_omics should have returned None when passed the {} dataframe, but instead returned a {}".format(tran_cir.name, type(comp)))
         PASS = False
     else:
         print("(NOTE: The invalid dataframe message above was expected.)")
 
     # Test with two invalid dataframes
-    comp = en.compare_omics(clin_name, tran_cir_name)
+    comp = en.join_omics_to_omics(clin_name, tran_cir_name)
     if comp is not None:
-        print("compare_omics should have returned None when passed the {} and {} dataframes, but instead returned a {}".format(clin.name, tran_cir.name, type(comp)))
+        print("join_omics_to_omics should have returned None when passed the {} and {} dataframes, but instead returned a {}".format(clin.name, tran_cir.name, type(comp)))
         PASS = False
     else:
         print("(NOTE: The invalid dataframe message above was expected.)")
@@ -806,9 +806,9 @@ def test_compare_omics_invalid_dfs():
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_compare_omics_one_invalid_key():
-    """Test that compare_omics will gracefully handle one invalid key."""
-    print("Running test_compare_omics_one_invalid_key...")
+def test_join_omics_to_omics_one_invalid_key():
+    """Test that join_omics_to_omics will gracefully handle one invalid key."""
+    print("Running test_join_omics_to_omics_one_invalid_key...")
     PASS = True
 
     # Load the source dataframes
@@ -822,7 +822,7 @@ def test_compare_omics_one_invalid_key():
     # Run the function, make sure it returned properly
     invalid = 'gobbledegook'
     acet_valid = 'AACS' 
-    compared = en.compare_omics(prot_name, acet_name, invalid, acet_valid)
+    compared = en.join_omics_to_omics(prot_name, acet_name, invalid, acet_valid)
     if not check_returned_is_df(compared):
         PASS = False
         print_test_result(PASS)
@@ -856,15 +856,15 @@ def test_compare_omics_one_invalid_key():
         PASS = False
 
     # Check columns for acet_gene
-    if not check_appended_columns(acet, compared, acet_cols.columns):
+    if not check_joined_columns(acet, compared, acet_cols.columns):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_compare_omics_both_invalid_keys():
-    """Test that compare_omics will gracefully handle two invalid keys."""
-    print("Running test_compare_omics_both_invalid_keys...")
+def test_join_omics_to_omics_both_invalid_keys():
+    """Test that join_omics_to_omics will gracefully handle two invalid keys."""
+    print("Running test_join_omics_to_omics_both_invalid_keys...")
     PASS = True
 
     # Load dataframes to test with, and set keys to use
@@ -877,7 +877,7 @@ def test_compare_omics_both_invalid_keys():
 
     # Run the function, make sure it returned properly
     invalid = 'gobbledegook'
-    compared = en.compare_omics(prot_name, acet_name, invalid, invalid)
+    compared = en.join_omics_to_omics(prot_name, acet_name, invalid, invalid)
     if not check_returned_is_df(compared):
         PASS = False
         print_test_result(PASS)
@@ -908,9 +908,9 @@ def test_compare_omics_both_invalid_keys():
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_compare_omics_one_list_with_invalid_key():
-    """Test that compare_omics will gracefully handle a list of valid keys containing one invalid key."""
-    print("Running test_compare_omics_one_list_with_invalid_key...")
+def test_join_omics_to_omics_one_list_with_invalid_key():
+    """Test that join_omics_to_omics will gracefully handle a list of valid keys containing one invalid key."""
+    print("Running test_join_omics_to_omics_one_list_with_invalid_key...")
     PASS = True
 
     # Load dataframes to test with
@@ -929,7 +929,7 @@ def test_compare_omics_one_list_with_invalid_key():
     acet_valid_list = ['AAGAB', 'AACS', 'ZW10', 'ZYX']
     
     # Run the function, make sure it returned properly
-    compared = en.compare_omics(prot_name, acet_name, prot_invalid_list, acet_valid_list)
+    compared = en.join_omics_to_omics(prot_name, acet_name, prot_invalid_list, acet_valid_list)
     if not check_returned_is_df(compared):
         PASS = False
         print_test_result(PASS)
@@ -970,19 +970,19 @@ def test_compare_omics_one_list_with_invalid_key():
         PASS = False
 
     # Check columns for valid genes in prot_invalid_list
-    if not check_appended_columns(prot, compared, prot_cols.columns):
+    if not check_joined_columns(prot, compared, prot_cols.columns):
         PASS = False
 
     # Check columns for acet_valid_list
-    if not check_appended_columns(acet, compared, acet_cols.columns):
+    if not check_joined_columns(acet, compared, acet_cols.columns):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_compare_omics_both_list_with_invalid_key():
-    """Test that compare_omics will gracefully handle two lists of valid keys, each containing one invalid key."""
-    print("Running test_compare_omics_both_list_with_invalid_key...")
+def test_join_omics_to_omics_both_list_with_invalid_key():
+    """Test that join_omics_to_omics will gracefully handle two lists of valid keys, each containing one invalid key."""
+    print("Running test_join_omics_to_omics_both_list_with_invalid_key...")
     PASS = True
 
     # Load dataframes to test with
@@ -1003,7 +1003,7 @@ def test_compare_omics_both_list_with_invalid_key():
     acet_invalid_list.append(invalid)
 
     # Run the function, make sure it returned properly
-    compared = en.compare_omics(prot_name, acet_name, prot_invalid_list, acet_invalid_list)
+    compared = en.join_omics_to_omics(prot_name, acet_name, prot_invalid_list, acet_invalid_list)
     if not check_returned_is_df(compared):
         PASS = False
         print_test_result(PASS)
@@ -1044,19 +1044,19 @@ def test_compare_omics_both_list_with_invalid_key():
         PASS = False
 
     # Check columns for valid genes in prot_invalid_list
-    if not check_appended_columns(prot, compared, prot_cols.columns):
+    if not check_joined_columns(prot, compared, prot_cols.columns):
         PASS = False
 
     # Check columns for valid genes in acet_invalid_list
-    if not check_appended_columns(acet, compared, acet_cols.columns):
+    if not check_joined_columns(acet, compared, acet_cols.columns):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_compare_omics_invalid_key_types():
-    """Test that compare_omics will gracefully handle a key of an invalid type."""
-    print("Running test_compare_omics_invalid_key_types...")
+def test_join_omics_to_omics_invalid_key_types():
+    """Test that join_omics_to_omics will gracefully handle a key of an invalid type."""
+    print("Running test_join_omics_to_omics_invalid_key_types...")
     PASS = True
 
     # Load our dataframes
@@ -1074,17 +1074,17 @@ def test_compare_omics_invalid_key_types():
     prot_valid_list = ['TP53', 'AURKA', 'PIK3R1']
 
     # Test a key of type int
-    comp = en.compare_omics(prot_name, acet_name, prot_valid, int_key)
+    comp = en.join_omics_to_omics(prot_name, acet_name, prot_valid, int_key)
     if comp is not None:
-        print("compare_omics should have returned None when passed a key of type int, but instead returned a {}".format(type(comp)))
+        print("join_omics_to_omics should have returned None when passed a key of type int, but instead returned a {}".format(type(comp)))
         PASS = False
     else:
         print("(NOTE: The invalid key message above was expected.)")
 
     # Test two keys of type int
-    comp = en.compare_omics(prot_name, acet_name, int_key, int_key)
+    comp = en.join_omics_to_omics(prot_name, acet_name, int_key, int_key)
     if comp is not None:
-        print("compare_omics should have returned None when passed two keys of type int, but instead returned a {}".format(type(comp)))
+        print("join_omics_to_omics should have returned None when passed two keys of type int, but instead returned a {}".format(type(comp)))
         PASS = False
     else:
         print("(NOTE: The invalid key messages above were expected.)")
@@ -1092,9 +1092,9 @@ def test_compare_omics_invalid_key_types():
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_source_preservation():
-    """Test that append_mutations_to_omics does not alter the dataframes it pulls data from."""
-    print("Running test_append_mutations_source_preservation...")
+def test_join_mutations_source_preservation():
+    """Test that join_omics_to_mutations does not alter the dataframes it pulls data from."""
+    print("Running test_join_mutations_source_preservation...")
     PASS = True
 
     # Load the source dataframes, set our variables
@@ -1110,30 +1110,30 @@ def test_append_mutations_source_preservation():
     mut_copy = mut.copy()
     acet_copy = acet.copy()
 
-    # Call append_mutations_to_omics a bunch of times
-    en.append_mutations_to_omics(acet_name, mut_gene)
-    en.append_mutations_to_omics(acet_name, mut_genes)
-    en.append_mutations_to_omics(acet_name, mut_gene, acet_gene)
-    en.append_mutations_to_omics(acet_name, mut_gene, acet_genes)
-    en.append_mutations_to_omics(acet_name, mut_genes, acet_gene)
-    en.append_mutations_to_omics(acet_name, mut_genes, acet_genes)
-    en.append_mutations_to_omics(acet_name, mut_genes, acet_genes, show_location=False)
+    # Call join_omics_to_mutations a bunch of times
+    en.join_omics_to_mutations(acet_name, mut_gene)
+    en.join_omics_to_mutations(acet_name, mut_genes)
+    en.join_omics_to_mutations(acet_name, mut_gene, acet_gene)
+    en.join_omics_to_mutations(acet_name, mut_gene, acet_genes)
+    en.join_omics_to_mutations(acet_name, mut_genes, acet_gene)
+    en.join_omics_to_mutations(acet_name, mut_genes, acet_genes)
+    en.join_omics_to_mutations(acet_name, mut_genes, acet_genes, show_location=False)
 
     # Check that the source dataframes weren't changed
     if not mut.equals(mut_copy):
-        print("Mutations dataframe was altered by append_mutations_to_omics.")
+        print("Mutations dataframe was altered by join_omics_to_mutations.")
         PASS = False
 
     if not acet.equals(acet_copy):
-        print("Acetylproteomics dataframe was altered by append_mutations_to_omics.")
+        print("Acetylproteomics dataframe was altered by join_omics_to_mutations.")
         PASS = False
 
     # Indicate whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_one_mut_one_omics():
-    """Test append_mutations_to_omics with one mutation gene and one omics gene."""
-    print("Running test_append_mutations_one_mut_one_omics...")
+def test_join_mutations_one_mut_one_omics():
+    """Test join_omics_to_mutations with one mutation gene and one omics gene."""
+    print("Running test_join_mutations_one_mut_one_omics...")
     PASS = True
 
     # Load the source dataframe and set our keys
@@ -1143,15 +1143,15 @@ def test_append_mutations_one_mut_one_omics():
     mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos_name, mut_gene, omics_genes=phos_gene)
-    if not check_returned_is_df(appended):
+    joined = en.join_omics_to_mutations(phos_name, mut_gene, omics_genes=phos_gene)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = '{} for {}, with somatic mutation data for {} gene'.format(phos.name, phos_gene, mut_gene)
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Figure out which phosphoproteomics columns should have been grabbed
@@ -1163,23 +1163,23 @@ def test_append_mutations_one_mut_one_omics():
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos_cols.columns) + 4
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check values in columns
-    if not check_appended_columns(phos, appended, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_gene):
+    if not check_mutation_columns(mutations, joined, mut_gene):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_one_mut_three_omics():
-    """Test append_mutations_to_omics with one mutation gene and three omics genes."""
-    print("Running test_append_mutations_one_mut_three_omics...")
+def test_join_mutations_one_mut_three_omics():
+    """Test join_omics_to_mutations with one mutation gene and three omics genes."""
+    print("Running test_join_mutations_one_mut_three_omics...")
     PASS = True
 
     # Load the source dataframe and set our keys
@@ -1189,15 +1189,15 @@ def test_append_mutations_one_mut_three_omics():
     mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos_name, mut_gene, omics_genes=phos_genes)
-    if not check_returned_is_df(appended):
+    joined = en.join_omics_to_mutations(phos_name, mut_gene, omics_genes=phos_genes)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = '{} for {} genes, with somatic mutation data for {} gene'.format(phos.name, len(phos_genes), mut_gene)
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Figure out which phosphoproteomics columns should have been grabbed
@@ -1209,23 +1209,23 @@ def test_append_mutations_one_mut_three_omics():
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos_cols.columns) + 4
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check values in columns
-    if not check_appended_columns(phos, appended, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_gene):
+    if not check_mutation_columns(mutations, joined, mut_gene):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_one_mut_all_omics():
-    """Test append_mutations_to_omics with one mutation gene, and the default parameter of None for the omics gene, which should give the entire omics dataframe."""
-    print("Running test_append_mutations_one_mut_all_omics...")
+def test_join_mutations_one_mut_all_omics():
+    """Test join_omics_to_mutations with one mutation gene, and the default parameter of None for the omics gene, which should give the entire omics dataframe."""
+    print("Running test_join_mutations_one_mut_all_omics...")
     PASS = True
 
     # Load the source dataframe and set our keys
@@ -1234,38 +1234,38 @@ def test_append_mutations_one_mut_all_omics():
     mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos_name, mut_gene)
-    if not check_returned_is_df(appended):
+    joined = en.join_omics_to_mutations(phos_name, mut_gene)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = '{}, with somatic mutation data for {} gene'.format(phos.name, mut_gene)
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Check dataframe shape
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos.columns) + 4
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check values in columns
-    if not check_appended_columns(phos, appended, phos.columns):
+    if not check_joined_columns(phos, joined, phos.columns):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_gene):
+    if not check_mutation_columns(mutations, joined, mut_gene):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_three_mut_one_omics():
-    """Test append_mutations_to_omics with three mutation genes and one omics gene."""
-    print("Running test_append_mutations_three_mut_one_omics...")
+def test_join_mutations_three_mut_one_omics():
+    """Test join_omics_to_mutations with three mutation genes and one omics gene."""
+    print("Running test_join_mutations_three_mut_one_omics...")
     PASS = True
 
     # Load the source dataframe and set our keys
@@ -1275,15 +1275,15 @@ def test_append_mutations_three_mut_one_omics():
     mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos_name, mut_genes, omics_genes=phos_gene)
-    if not check_returned_is_df(appended):
+    joined = en.join_omics_to_mutations(phos_name, mut_genes, omics_genes=phos_gene)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = '{} for {}, with somatic mutation data for {} genes'.format(phos.name, phos_gene, len(mut_genes))
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Figure out which phosphoproteomics columns should have been grabbed
@@ -1295,23 +1295,23 @@ def test_append_mutations_three_mut_one_omics():
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos_cols.columns) + 10
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check values in columns
-    if not check_appended_columns(phos, appended, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_genes):
+    if not check_mutation_columns(mutations, joined, mut_genes):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_three_mut_three_omics():
-    """Test append_mutations_to_omics with three mutation genes and three omics genes."""
-    print("Running test_append_mutations_three_mut_three_omics...")
+def test_join_mutations_three_mut_three_omics():
+    """Test join_omics_to_mutations with three mutation genes and three omics genes."""
+    print("Running test_join_mutations_three_mut_three_omics...")
     PASS = True
 
     # Load the source dataframe and set our keys
@@ -1321,15 +1321,15 @@ def test_append_mutations_three_mut_three_omics():
     mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos_name, mut_genes, omics_genes=phos_genes)
-    if not check_returned_is_df(appended):
+    joined = en.join_omics_to_mutations(phos_name, mut_genes, omics_genes=phos_genes)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = '{} for {} genes, with somatic mutation data for {} genes'.format(phos.name, len(phos_genes), len(mut_genes))
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Figure out which phosphoproteomics columns should have been grabbed
@@ -1341,23 +1341,23 @@ def test_append_mutations_three_mut_three_omics():
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos_cols.columns) + 10
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check values in columns
-    if not check_appended_columns(phos, appended, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_genes):
+    if not check_mutation_columns(mutations, joined, mut_genes):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_three_mut_all_omics():
-    """Test append_mutations_to_omics with three mutation genes, and the default parameter of None for the omics gene, which should give the entire omics dataframe."""
-    print("Running test_append_mutations_three_mut_all_omics...")
+def test_join_mutations_three_mut_all_omics():
+    """Test join_omics_to_mutations with three mutation genes, and the default parameter of None for the omics gene, which should give the entire omics dataframe."""
+    print("Running test_join_mutations_three_mut_all_omics...")
     PASS = True
 
     # Load the source dataframe and set our keys
@@ -1366,38 +1366,38 @@ def test_append_mutations_three_mut_all_omics():
     mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos_name, mut_genes)
-    if not check_returned_is_df(appended):
+    joined = en.join_omics_to_mutations(phos_name, mut_genes)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = '{}, with somatic mutation data for {} genes'.format(phos.name, len(mut_genes))
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Check dataframe shape
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos.columns) + 10
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check values in columns
-    if not check_appended_columns(phos, appended, phos.columns):
+    if not check_joined_columns(phos, joined, phos.columns):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_genes):
+    if not check_mutation_columns(mutations, joined, mut_genes):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_one_mut_one_omics_no_location():
-    """Test append_mutations_to_omics with one mutation gene and one omics gene, and no location column."""
-    print("Running test_append_mutations_one_mut_one_omics_no_location...")
+def test_join_mutations_one_mut_one_omics_no_location():
+    """Test join_omics_to_mutations with one mutation gene and one omics gene, and no location column."""
+    print("Running test_join_mutations_one_mut_one_omics_no_location...")
     PASS = True
 
     # Load the source dataframe and set our keys
@@ -1407,15 +1407,15 @@ def test_append_mutations_one_mut_one_omics_no_location():
     mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos_name, mut_gene, omics_genes=phos_gene, show_location=False)
-    if not check_returned_is_df(appended):
+    joined = en.join_omics_to_mutations(phos_name, mut_gene, omics_genes=phos_gene, show_location=False)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = '{} for {}, with somatic mutation data for {} gene'.format(phos.name, phos_gene, mut_gene)
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Figure out which phosphoproteomics columns should have been grabbed
@@ -1427,23 +1427,23 @@ def test_append_mutations_one_mut_one_omics_no_location():
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos_cols.columns) + 3
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check values in columns
-    if not check_appended_columns(phos, appended, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_gene, show_location=False):
+    if not check_mutation_columns(mutations, joined, mut_gene, show_location=False):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_one_mut_three_omics_no_location():
-    """Test append_mutations_to_omics with one mutation gene and three omics genes, and no location column."""
-    print("Running test_append_mutations_one_mut_three_omics_no_location...")
+def test_join_mutations_one_mut_three_omics_no_location():
+    """Test join_omics_to_mutations with one mutation gene and three omics genes, and no location column."""
+    print("Running test_join_mutations_one_mut_three_omics_no_location...")
     PASS = True
 
     # Load the source dataframe and set our keys
@@ -1453,15 +1453,15 @@ def test_append_mutations_one_mut_three_omics_no_location():
     mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos_name, mut_gene, omics_genes=phos_genes, show_location=False)
-    if not check_returned_is_df(appended):
+    joined = en.join_omics_to_mutations(phos_name, mut_gene, omics_genes=phos_genes, show_location=False)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = '{} for {} genes, with somatic mutation data for {} gene'.format(phos.name, len(phos_genes), mut_gene)
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Figure out which phosphoproteomics columns should have been grabbed
@@ -1473,23 +1473,23 @@ def test_append_mutations_one_mut_three_omics_no_location():
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos_cols.columns) + 3
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check values in columns
-    if not check_appended_columns(phos, appended, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_gene, show_location=False):
+    if not check_mutation_columns(mutations, joined, mut_gene, show_location=False):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_one_mut_all_omics_no_location():
-    """Test append_mutations_to_omics with one mutation gene, default of None for omics gene (to select all omics), and no location column."""
-    print("Running test_append_mutations_one_mut_all_omics_no_location...")
+def test_join_mutations_one_mut_all_omics_no_location():
+    """Test join_omics_to_mutations with one mutation gene, default of None for omics gene (to select all omics), and no location column."""
+    print("Running test_join_mutations_one_mut_all_omics_no_location...")
     PASS = True
 
     # Load the source dataframe and set our keys
@@ -1498,38 +1498,38 @@ def test_append_mutations_one_mut_all_omics_no_location():
     mut_gene = 'PIK3R1'
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos_name, mut_gene, show_location=False)
-    if not check_returned_is_df(appended):
+    joined = en.join_omics_to_mutations(phos_name, mut_gene, show_location=False)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = '{}, with somatic mutation data for {} gene'.format(phos.name, mut_gene)
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Check dataframe shape
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos.columns) + 3
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check values in columns
-    if not check_appended_columns(phos, appended, phos.columns):
+    if not check_joined_columns(phos, joined, phos.columns):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_gene, show_location=False):
+    if not check_mutation_columns(mutations, joined, mut_gene, show_location=False):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_three_mut_one_omics_no_location():
-    """Test append_mutations_to_omics with three mutation genes and one omics gene, and no location column."""
-    print("Running test_append_mutations_three_mut_one_omics_no_location...")
+def test_join_mutations_three_mut_one_omics_no_location():
+    """Test join_omics_to_mutations with three mutation genes and one omics gene, and no location column."""
+    print("Running test_join_mutations_three_mut_one_omics_no_location...")
     PASS = True
 
     # Load the source dataframe and set our keys
@@ -1539,15 +1539,15 @@ def test_append_mutations_three_mut_one_omics_no_location():
     mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos_name, mut_genes, omics_genes=phos_gene, show_location=False)
-    if not check_returned_is_df(appended):
+    joined = en.join_omics_to_mutations(phos_name, mut_genes, omics_genes=phos_gene, show_location=False)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = '{} for {}, with somatic mutation data for {} genes'.format(phos.name, phos_gene, len(mut_genes))
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Figure out which phosphoproteomics columns should have been grabbed
@@ -1559,23 +1559,23 @@ def test_append_mutations_three_mut_one_omics_no_location():
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos_cols.columns) + 7
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check values in columns
-    if not check_appended_columns(phos, appended, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_genes, show_location=False):
+    if not check_mutation_columns(mutations, joined, mut_genes, show_location=False):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_three_mut_three_omics_no_location():
-    """Test append_mutations_to_omics with three mutation genes and three omics genes, and no location column."""
-    print("Running test_append_mutations_three_mut_three_omics_no_location...")
+def test_join_mutations_three_mut_three_omics_no_location():
+    """Test join_omics_to_mutations with three mutation genes and three omics genes, and no location column."""
+    print("Running test_join_mutations_three_mut_three_omics_no_location...")
     PASS = True
 
     # Load the source dataframe and set our keys
@@ -1585,15 +1585,15 @@ def test_append_mutations_three_mut_three_omics_no_location():
     mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos_name, mut_genes, omics_genes=phos_genes, show_location=False)
-    if not check_returned_is_df(appended):
+    joined = en.join_omics_to_mutations(phos_name, mut_genes, omics_genes=phos_genes, show_location=False)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = '{} for {} genes, with somatic mutation data for {} genes'.format(phos.name, len(phos_genes), len(mut_genes))
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Figure out which phosphoproteomics columns should have been grabbed
@@ -1605,23 +1605,23 @@ def test_append_mutations_three_mut_three_omics_no_location():
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos_cols.columns) + 7
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check values in columns
-    if not check_appended_columns(phos, appended, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_genes, show_location=False):
+    if not check_mutation_columns(mutations, joined, mut_genes, show_location=False):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_three_mut_all_omics_no_location():
-    """Test append_mutations_to_omics with three mutation genes, default of None for the omics gene (to select all omics), and no location column."""
-    print("Running test_append_mutations_three_mut_all_omics_no_location...")
+def test_join_mutations_three_mut_all_omics_no_location():
+    """Test join_omics_to_mutations with three mutation genes, default of None for the omics gene (to select all omics), and no location column."""
+    print("Running test_join_mutations_three_mut_all_omics_no_location...")
     PASS = True
 
     # Load the source dataframe and set our keys
@@ -1630,38 +1630,38 @@ def test_append_mutations_three_mut_all_omics_no_location():
     mut_genes = ['PIK3R1', 'TP53', 'AURKA']
 
     # Run the function, make sure it returned properly
-    appended = en.append_mutations_to_omics(phos_name, mut_genes, show_location=False)
-    if not check_returned_is_df(appended):
+    joined = en.join_omics_to_mutations(phos_name, mut_genes, show_location=False)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = '{}, with somatic mutation data for {} genes'.format(phos.name, len(mut_genes))
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Check dataframe shape
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos.columns) + 7
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check values in columns
-    if not check_appended_columns(phos, appended, phos.columns):
+    if not check_joined_columns(phos, joined, phos.columns):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
-    if not check_mutation_columns(mutations, appended, mut_genes, show_location=False):
+    if not check_mutation_columns(mutations, joined, mut_genes, show_location=False):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_invalid_key():
-    """Test that append_mutations_to_omics gracefully handles invalid mutation gene keys."""
-    print("Running test_append_mutations_invalid_key...")
+def test_join_mutations_invalid_key():
+    """Test that join_omics_to_mutations gracefully handles invalid mutation gene keys."""
+    print("Running test_join_mutations_invalid_key...")
     PASS = True
 
     # Load our dataframe to test with, and set our keys to use
@@ -1671,17 +1671,17 @@ def test_append_mutations_invalid_key():
     invalid_list = ['PIK3R1', 'TAF1', 'GP6', 'lorem ipsum']
 
     # Test one invalid key
-    appended = en.append_mutations_to_omics(acet_name, invalid)
-    if appended is not None:
-        print("append_mutations_to_omics should have returned None when passed an invalid key, but instead returned a {}".format(type(appended)))
+    joined = en.join_omics_to_mutations(acet_name, invalid)
+    if joined is not None:
+        print("join_omics_to_mutations should have returned None when passed an invalid key, but instead returned a {}".format(type(joined)))
         PASS = False
     else:
         print("(NOTE: The invalid key message above was expected.)")
 
     # Test one invalid key in a list of valid keys
-    appended = en.append_mutations_to_omics(acet_name, invalid_list)
-    if appended is not None:
-        print("append_mutations_to_omics should have returned None when passed a list of valid keys containing one invalid key, but instead returned a {}".format(type(appended)))
+    joined = en.join_omics_to_mutations(acet_name, invalid_list)
+    if joined is not None:
+        print("join_omics_to_mutations should have returned None when passed a list of valid keys containing one invalid key, but instead returned a {}".format(type(joined)))
         PASS = False
     else:
         print("(NOTE: The invalid key message above was expected.)")
@@ -1689,9 +1689,9 @@ def test_append_mutations_invalid_key():
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_mutations_invalid_key_types():
-    """Test that append_mutations_to_omics gracefully handles invalid mutation gene key types."""
-    print("Running test_append_mutations_invalid_key_types...")
+def test_join_mutations_invalid_key_types():
+    """Test that join_omics_to_mutations gracefully handles invalid mutation gene key types."""
+    print("Running test_join_mutations_invalid_key_types...")
     PASS = True
 
     # Load our dataframe to test with, and set our keys to use
@@ -1700,17 +1700,17 @@ def test_append_mutations_invalid_key_types():
     dict_key = {0:"TP53", 1:"PIK3R1", 2:"AURKA"}
 
     # Test a key of type int
-    appended = en.append_mutations_to_omics(prot_name, int_key)
-    if appended is not None:
-        print("append_mutations_to_omics should have returned None when passed a key of invalid type int, but instead returned a {}".format(type(appended)))
+    joined = en.join_omics_to_mutations(prot_name, int_key)
+    if joined is not None:
+        print("join_omics_to_mutations should have returned None when passed a key of invalid type int, but instead returned a {}".format(type(joined)))
         PASS = False
     else:
         print("(NOTE: The invalid key message above was expected.)")
 
     # Test a key of type dict
-    appended = en.append_mutations_to_omics(prot_name, dict_key)
-    if appended is not None:
-        print("append_mutations_to_omics should have returned None when passed a key of invalid type dict, but instead returned a {}".format(type(appended)))
+    joined = en.join_omics_to_mutations(prot_name, dict_key)
+    if joined is not None:
+        print("join_omics_to_mutations should have returned None when passed a key of invalid type dict, but instead returned a {}".format(type(joined)))
         PASS = False
     else:
         print("(NOTE: The invalid key message above was expected.)")
@@ -1718,9 +1718,9 @@ def test_append_mutations_invalid_key_types():
     # Print whether the test passed
     print_test_result(PASS)
 
-def test_append_metadata_source_preservation():
-    """Test that append_metadata_to_omics does not alter the dataframes it pulls data from."""
-    print("Running test_append_metadata_source_preservation...")
+def test_join_metadata_source_preservation():
+    """Test that join_metadata_to_omics does not alter the dataframes it pulls data from."""
+    print("Running test_join_metadata_source_preservation...")
     PASS = True
 
     # Load the source dataframes, and set our variables
@@ -1748,61 +1748,61 @@ def test_append_metadata_source_preservation():
     exp_setup_copy = exp_setup.copy()
     phos_copy = phos.copy()
 
-    # Call append_metadata_to_omics a bunch of times
-    en.append_metadata_to_omics(clin_name, phos_name)
-    en.append_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_col)
-    en.append_metadata_to_omics(clin_name, phos_name, omics_genes=phos_col)
-    en.append_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_col, omics_genes=phos_col)
-    en.append_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_cols)
-    en.append_metadata_to_omics(clin_name, phos_name, omics_genes=phos_cols)
-    en.append_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_cols, omics_genes=phos_col)
-    en.append_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_col, omics_genes=phos_cols)
-    en.append_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_cols, omics_genes=phos_cols)
+    # Call join_metadata_to_omics a bunch of times
+    en.join_metadata_to_omics(clin_name, phos_name)
+    en.join_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_col)
+    en.join_metadata_to_omics(clin_name, phos_name, omics_genes=phos_col)
+    en.join_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_col, omics_genes=phos_col)
+    en.join_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_cols)
+    en.join_metadata_to_omics(clin_name, phos_name, omics_genes=phos_cols)
+    en.join_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_cols, omics_genes=phos_col)
+    en.join_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_col, omics_genes=phos_cols)
+    en.join_metadata_to_omics(clin_name, phos_name, metadata_cols=clin_cols, omics_genes=phos_cols)
 
-    en.append_metadata_to_omics(derived_mol_name, phos_name)
-    en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col)
-    en.append_metadata_to_omics(derived_mol_name, phos_name, omics_genes=phos_col)
-    en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col, omics_genes=phos_col)
-    en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols)
-    en.append_metadata_to_omics(derived_mol_name, phos_name, omics_genes=phos_cols)
-    en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols, omics_genes=phos_col)
-    en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col, omics_genes=phos_cols)
-    en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols, omics_genes=phos_cols)
+    en.join_metadata_to_omics(derived_mol_name, phos_name)
+    en.join_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col)
+    en.join_metadata_to_omics(derived_mol_name, phos_name, omics_genes=phos_col)
+    en.join_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col, omics_genes=phos_col)
+    en.join_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols)
+    en.join_metadata_to_omics(derived_mol_name, phos_name, omics_genes=phos_cols)
+    en.join_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols, omics_genes=phos_col)
+    en.join_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col, omics_genes=phos_cols)
+    en.join_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols, omics_genes=phos_cols)
 
-    en.append_metadata_to_omics(exp_setup_name, phos_name)
-    en.append_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_col)
-    en.append_metadata_to_omics(exp_setup_name, phos_name, omics_genes=phos_col)
-    en.append_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_col, omics_genes=phos_col)
-    en.append_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_cols)
-    en.append_metadata_to_omics(exp_setup_name, phos_name, omics_genes=phos_cols)
-    en.append_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_cols, omics_genes=phos_col)
-    en.append_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_col, omics_genes=phos_cols)
-    en.append_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_cols, omics_genes=phos_cols)
+    en.join_metadata_to_omics(exp_setup_name, phos_name)
+    en.join_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_col)
+    en.join_metadata_to_omics(exp_setup_name, phos_name, omics_genes=phos_col)
+    en.join_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_col, omics_genes=phos_col)
+    en.join_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_cols)
+    en.join_metadata_to_omics(exp_setup_name, phos_name, omics_genes=phos_cols)
+    en.join_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_cols, omics_genes=phos_col)
+    en.join_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_col, omics_genes=phos_cols)
+    en.join_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_cols, omics_genes=phos_cols)
 
     # Check that the source dataframes weren't changed
     if not clin.equals(clin_copy):
-        print("clinical dataframe was altered by append_metadata_to_omics.")
+        print("clinical dataframe was altered by join_metadata_to_omics.")
         PASS = False
 
     if not derived_mol.equals(derived_mol_copy):
-        print("derived_molecular dataframe was altered by append_metadata_to_omics.")
+        print("derived_molecular dataframe was altered by join_metadata_to_omics.")
         PASS = False
 
     if not exp_setup.equals(exp_setup_copy):
-        print("experimental_setup dataframe was altered by append_metadata_to_omics.")
+        print("experimental_setup dataframe was altered by join_metadata_to_omics.")
         PASS = False
 
     if not phos.equals(phos_copy):
-        print("phosphoproteomics dataframe was altered by append_metadata_to_omics.")
+        print("phosphoproteomics dataframe was altered by join_metadata_to_omics.")
         PASS = False
 
     # Indicate whether the test passed
     print_test_result(PASS)
 
 # One meta one omics
-def test_append_metadata_one_meta_one_omics():
-    """Test append_metadata_to_omics with one metadata column and one omics gene."""
-    print("Running test_append_metadata_one_meta_one_omics...")
+def test_join_metadata_one_meta_one_omics():
+    """Test join_metadata_to_omics with one metadata column and one omics gene."""
+    print("Running test_join_metadata_one_meta_one_omics...")
     PASS = True
 
     # Load the source dataframes
@@ -1816,15 +1816,15 @@ def test_append_metadata_one_meta_one_omics():
     # Run the function, make sure it returned properly
     derived_mol_col = "Purity_Stroma"
     phos_gene = "USP36"
-    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col, omics_genes=phos_gene)
-    if not check_returned_is_df(appended):
+    joined = en.join_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col, omics_genes=phos_gene)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = "{} from {}, with {} for {}".format(derived_mol_col, derived_mol.name, phos.name, phos_gene)
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Get the columns that should've been selected from phosphoproteomics
@@ -1836,23 +1836,23 @@ def test_append_metadata_one_meta_one_omics():
     exp_num_rows = len(derived_mol.index.intersection(phos.index))
     exp_num_cols = len(phos_cols.columns) + 1
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check column values
-    if not check_appended_columns(derived_mol, appended, derived_mol_col, derived_mol_col):
+    if not check_joined_columns(derived_mol, joined, derived_mol_col, derived_mol_col):
         PASS = False
 
-    if not check_appended_columns(phos, appended, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
 # One meta three omics
-def test_append_metadata_one_meta_three_omics():
-    """Test append_metadata_to_omics with one metadata column and three omics genes."""
-    print("Running test_append_metadata_one_meta_three_omics...")
+def test_join_metadata_one_meta_three_omics():
+    """Test join_metadata_to_omics with one metadata column and three omics genes."""
+    print("Running test_join_metadata_one_meta_three_omics...")
     PASS = True
 
     # Load the source dataframes
@@ -1866,15 +1866,15 @@ def test_append_metadata_one_meta_three_omics():
     # Run the function, make sure it returned properly
     derived_mol_col = "Purity_Stroma"
     phos_genes = ["USP36", "TMEM209", "STXBP5"]
-    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col, omics_genes=phos_genes)
-    if not check_returned_is_df(appended):
+    joined = en.join_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col, omics_genes=phos_genes)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = "{} from {}, with {} for {} genes".format(derived_mol_col, derived_mol.name, phos.name, len(phos_genes))
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Get the columns that should've been selected from phosphoproteomics
@@ -1886,23 +1886,23 @@ def test_append_metadata_one_meta_three_omics():
     exp_num_rows = len(derived_mol.index.intersection(phos.index))
     exp_num_cols = len(phos_cols.columns) + 1
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check column values
-    if not check_appended_columns(derived_mol, appended, derived_mol_col, derived_mol_col):
+    if not check_joined_columns(derived_mol, joined, derived_mol_col, derived_mol_col):
         PASS = False
 
-    if not check_appended_columns(phos, appended, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
 # One meta all omics
-def test_append_metadata_one_meta_all_omics():
-    """Test append_metadata_to_omics with one metadata column, and the default parameter of None for the omics gene, which should cause the entire omics dataframe to be selected."""
-    print("Running test_append_metadata_one_meta_all_omics...")
+def test_join_metadata_one_meta_all_omics():
+    """Test join_metadata_to_omics with one metadata column, and the default parameter of None for the omics gene, which should cause the entire omics dataframe to be selected."""
+    print("Running test_join_metadata_one_meta_all_omics...")
     PASS = True
 
     # Load the source dataframes
@@ -1915,38 +1915,38 @@ def test_append_metadata_one_meta_all_omics():
 
     # Run the function, make sure it returned properly
     derived_mol_col = "Purity_Stroma"
-    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col)
-    if not check_returned_is_df(appended):
+    joined = en.join_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = "{} from {}, with {}".format(derived_mol_col, derived_mol.name, phos.name)
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Check dataframe shape
     exp_num_rows = len(derived_mol.index.intersection(phos.index))
     exp_num_cols = len(phos.columns) + 1
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check column values
-    if not check_appended_columns(derived_mol, appended, derived_mol_col, derived_mol_col):
+    if not check_joined_columns(derived_mol, joined, derived_mol_col, derived_mol_col):
         PASS = False
 
-    if not check_appended_columns(phos, appended, phos.columns):
+    if not check_joined_columns(phos, joined, phos.columns):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
 # Three meta one omics
-def test_append_metadata_three_meta_one_omics():
-    """Test append_metadata_to_omics with three metadata columns and one omics gene."""
-    print("Running test_append_metadata_three_meta_one_omics...")
+def test_join_metadata_three_meta_one_omics():
+    """Test join_metadata_to_omics with three metadata columns and one omics gene."""
+    print("Running test_join_metadata_three_meta_one_omics...")
     PASS = True
 
     # Load the source dataframes
@@ -1960,15 +1960,15 @@ def test_append_metadata_three_meta_one_omics():
     # Run the function, make sure it returned properly
     derived_mol_cols = ["Purity_Stroma", "POLE_subtype", "CIBERSORT_T _cells _CD4 _memory _resting"]
     phos_gene = "USP36"
-    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols, omics_genes=phos_gene)
-    if not check_returned_is_df(appended):
+    joined = en.join_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols, omics_genes=phos_gene)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = "{} columns from {}, with {} for {}".format(len(derived_mol_cols), derived_mol.name, phos.name, phos_gene)
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Get the columns that should've been selected from phosphoproteomics
@@ -1980,23 +1980,23 @@ def test_append_metadata_three_meta_one_omics():
     exp_num_rows = len(derived_mol.index.intersection(phos.index))
     exp_num_cols = len(phos_cols.columns) + len(derived_mol_cols)
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check column values
-    if not check_appended_columns(derived_mol, appended, derived_mol_cols, derived_mol_cols):
+    if not check_joined_columns(derived_mol, joined, derived_mol_cols, derived_mol_cols):
         PASS = False
 
-    if not check_appended_columns(phos, appended, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
 # Three meta three omics
-def test_append_metadata_three_meta_three_omics():
-    """Test append_metadata_to_omics with three metadata columns and three omics genes."""
-    print("Running test_append_metadata_three_meta_three_omics...")
+def test_join_metadata_three_meta_three_omics():
+    """Test join_metadata_to_omics with three metadata columns and three omics genes."""
+    print("Running test_join_metadata_three_meta_three_omics...")
     PASS = True
 
     # Load the source dataframes
@@ -2010,15 +2010,15 @@ def test_append_metadata_three_meta_three_omics():
     # Run the function, make sure it returned properly
     derived_mol_cols = ["Purity_Stroma", "POLE_subtype", "CIBERSORT_T _cells _CD4 _memory _resting"]
     phos_genes = ["USP36", "TMEM209", "STXBP5"]
-    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols, omics_genes=phos_genes)
-    if not check_returned_is_df(appended):
+    joined = en.join_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols, omics_genes=phos_genes)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = "{} columns from {}, with {} for {} genes".format(len(derived_mol_cols), derived_mol.name, phos.name, len(phos_genes))
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Get the columns that should've been selected from phosphoproteomics
@@ -2030,23 +2030,23 @@ def test_append_metadata_three_meta_three_omics():
     exp_num_rows = len(derived_mol.index.intersection(phos.index))
     exp_num_cols = len(phos_cols.columns) + len(derived_mol_cols)
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check column values
-    if not check_appended_columns(derived_mol, appended, derived_mol_cols, derived_mol_cols):
+    if not check_joined_columns(derived_mol, joined, derived_mol_cols, derived_mol_cols):
         PASS = False
 
-    if not check_appended_columns(phos, appended, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
 # Three meta all omics
-def test_append_metadata_three_meta_all_omics():
-    """Test append_metadata_to_omics with three metadata columns, and the default parameter of None for the omics gene, which should cause the entire omics dataframe to be selected."""
-    print("Running test_append_metadata_three_meta_all_omics...")
+def test_join_metadata_three_meta_all_omics():
+    """Test join_metadata_to_omics with three metadata columns, and the default parameter of None for the omics gene, which should cause the entire omics dataframe to be selected."""
+    print("Running test_join_metadata_three_meta_all_omics...")
     PASS = True
 
     # Load the source dataframes
@@ -2059,38 +2059,38 @@ def test_append_metadata_three_meta_all_omics():
 
     # Run the function, make sure it returned properly
     derived_mol_cols = ["Purity_Stroma", "POLE_subtype", "CIBERSORT_T _cells _CD4 _memory _resting"]
-    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols)
-    if not check_returned_is_df(appended):
+    joined = en.join_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = "{} columns from {}, with {}".format(len(derived_mol_cols), derived_mol.name, phos.name)
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Check dataframe shape
     exp_num_rows = len(derived_mol.index.intersection(phos.index))
     exp_num_cols = len(phos.columns) + len(derived_mol_cols)
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check column values
-    if not check_appended_columns(derived_mol, appended, derived_mol_cols, derived_mol_cols):
+    if not check_joined_columns(derived_mol, joined, derived_mol_cols, derived_mol_cols):
         PASS = False
 
-    if not check_appended_columns(phos, appended, phos.columns):
+    if not check_joined_columns(phos, joined, phos.columns):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
 # All meta one omics
-def test_append_metadata_all_meta_one_omics():
-    """Test append_metadata_to_omics with the default of None for metadata_cols, which should select the entire dataframe, and one omics gene."""
-    print("Running test_append_metadata_all_meta_one_omics...")
+def test_join_metadata_all_meta_one_omics():
+    """Test join_metadata_to_omics with the default of None for metadata_cols, which should select the entire dataframe, and one omics gene."""
+    print("Running test_join_metadata_all_meta_one_omics...")
     PASS = True
 
     # Load the source dataframes
@@ -2103,15 +2103,15 @@ def test_append_metadata_all_meta_one_omics():
 
     # Run the function, make sure it returned properly
     phos_gene = "USP36"
-    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, omics_genes=phos_gene)
-    if not check_returned_is_df(appended):
+    joined = en.join_metadata_to_omics(derived_mol_name, phos_name, omics_genes=phos_gene)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = "{}, with {} for {}".format(derived_mol.name, phos.name, phos_gene)
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Get the columns that should've been selected from phosphoproteomics
@@ -2123,23 +2123,23 @@ def test_append_metadata_all_meta_one_omics():
     exp_num_rows = len(derived_mol.index.intersection(phos.index))
     exp_num_cols = len(phos_cols.columns) + len(derived_mol.columns)
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check column values
-    if not check_appended_columns(derived_mol, appended, derived_mol.columns, derived_mol.columns):
+    if not check_joined_columns(derived_mol, joined, derived_mol.columns, derived_mol.columns):
         PASS = False
 
-    if not check_appended_columns(phos, appended, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
 # All meta three omics
-def test_append_metadata_all_meta_three_omics():
-    """Test append_metadata_to_omics with the default of None for metadata_cols, which should select the entire dataframe, and three omics genes."""
-    print("Running test_append_metadata_all_meta_three_omics...")
+def test_join_metadata_all_meta_three_omics():
+    """Test join_metadata_to_omics with the default of None for metadata_cols, which should select the entire dataframe, and three omics genes."""
+    print("Running test_join_metadata_all_meta_three_omics...")
     PASS = True
 
     # Load the source dataframes
@@ -2152,15 +2152,15 @@ def test_append_metadata_all_meta_three_omics():
 
     # Run the function, make sure it returned properly
     phos_genes = ["USP36", "TMEM209", "STXBP5"]
-    appended = en.append_metadata_to_omics(derived_mol_name, phos_name, omics_genes=phos_genes)
-    if not check_returned_is_df(appended):
+    joined = en.join_metadata_to_omics(derived_mol_name, phos_name, omics_genes=phos_genes)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = "{}, with {} for {} genes".format(derived_mol.name, phos.name, len(phos_genes))
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Get the columns that should've been selected from phosphoproteomics
@@ -2172,23 +2172,23 @@ def test_append_metadata_all_meta_three_omics():
     exp_num_rows = len(derived_mol.index.intersection(phos.index))
     exp_num_cols = len(phos_cols.columns) + len(derived_mol.columns)
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check column values
-    if not check_appended_columns(derived_mol, appended, derived_mol.columns, derived_mol.columns):
+    if not check_joined_columns(derived_mol, joined, derived_mol.columns, derived_mol.columns):
         PASS = False
 
-    if not check_appended_columns(phos, appended, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns):
         PASS = False
 
     # Print whether the test passed
     print_test_result(PASS)
 
 # All meta all omics (default parameters)
-def test_append_metadata_default_parameters():
-    """Test append_metadata_to_omics with the default parameters of None for metadata_cols and omics_genes, which should cause it to select the entire metadata and omics dataframes."""
-    print("Running test_append_metadata_default_parameters...")
+def test_join_metadata_default_parameters():
+    """Test join_metadata_to_omics with the default parameters of None for metadata_cols and omics_genes, which should cause it to select the entire metadata and omics dataframes."""
+    print("Running test_join_metadata_default_parameters...")
     PASS = True
 
     # Load the source dataframes
@@ -2200,29 +2200,29 @@ def test_append_metadata_default_parameters():
     phos_name = "phosphoproteomics"
 
     # Run the function, make sure it returned properly
-    appended = en.append_metadata_to_omics(derived_mol_name, phos_name)
-    if not check_returned_is_df(appended):
+    joined = en.join_metadata_to_omics(derived_mol_name, phos_name)
+    if not check_returned_is_df(joined):
         PASS = False
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
     # Check dataframe name
     exp_name = "{}, with {}".format(derived_mol.name, phos.name)
-    if not check_df_name(appended, exp_name):
+    if not check_df_name(joined, exp_name):
         PASS = False
 
     # Check dataframe shape
     exp_num_rows = len(derived_mol.index.intersection(phos.index))
     exp_num_cols = len(phos.columns) + len(derived_mol.columns)
     exp_shape = (exp_num_rows, exp_num_cols)
-    if not check_df_shape(appended, exp_shape):
+    if not check_df_shape(joined, exp_shape):
         PASS = False
 
     # Check column values
-    if not check_appended_columns(derived_mol, appended, derived_mol.columns, derived_mol.columns):
+    if not check_joined_columns(derived_mol, joined, derived_mol.columns, derived_mol.columns):
         PASS = False
 
-    if not check_appended_columns(phos, appended, phos.columns):
+    if not check_joined_columns(phos, joined, phos.columns):
         PASS = False
 
     # Print whether the test passed
@@ -2230,8 +2230,8 @@ def test_append_metadata_default_parameters():
 
 
 # All valid dfs (omics or meta)
-def test_append_metadata_all_dfs():
-    """Test that append_metadata_to_omics works with all dataframes that are valid for the function."""
+def test_join_metadata_all_dfs():
+    """Test that join_metadata_to_omics works with all dataframes that are valid for the function."""
 
     # Load our dataframes to test, and set the keys we'll use.
     clin = en.get_clinical()
@@ -2245,7 +2245,7 @@ def test_append_metadata_all_dfs():
     prot = en.get_proteomics()
     tran = en.get_transcriptomics()
 
-    # Call append_metadata_to_omics on the dataframes
+    # Call join_metadata_to_omics on the dataframes
 
     # Check the return values
 
@@ -2279,43 +2279,43 @@ test_get_phosphosites()
 test_get_mutations()
 test_get_mutations_binary()
 
-print("\nTesting compare and append functions...")
-test_compare_omics_source_preservation()
-test_compare_omics_default_parameters()
-test_compare_omics_one_gene()
-test_compare_omics_multiple_genes()
-test_compare_omics_all_dfs()
-test_compare_omics_invalid_dfs()
-test_compare_omics_one_invalid_key()
-test_compare_omics_both_invalid_keys()
-test_compare_omics_one_list_with_invalid_key()
-test_compare_omics_both_list_with_invalid_key()
-test_compare_omics_invalid_key_types() 
+print("\nTesting compare and join functions...")
+test_join_omics_to_omics_source_preservation()
+test_join_omics_to_omics_default_parameters()
+test_join_omics_to_omics_one_gene()
+test_join_omics_to_omics_multiple_genes()
+test_join_omics_to_omics_all_dfs()
+test_join_omics_to_omics_invalid_dfs()
+test_join_omics_to_omics_one_invalid_key()
+test_join_omics_to_omics_both_invalid_keys()
+test_join_omics_to_omics_one_list_with_invalid_key()
+test_join_omics_to_omics_both_list_with_invalid_key()
+test_join_omics_to_omics_invalid_key_types() 
 
-test_append_metadata_source_preservation()
-test_append_metadata_one_meta_one_omics()
-test_append_metadata_one_meta_three_omics()
-test_append_metadata_one_meta_all_omics()
-test_append_metadata_three_meta_one_omics()
-test_append_metadata_three_meta_three_omics()
-test_append_metadata_three_meta_all_omics()
-test_append_metadata_all_meta_one_omics()
-test_append_metadata_all_meta_three_omics()
-test_append_metadata_default_parameters()
+test_join_metadata_source_preservation()
+test_join_metadata_one_meta_one_omics()
+test_join_metadata_one_meta_three_omics()
+test_join_metadata_one_meta_all_omics()
+test_join_metadata_three_meta_one_omics()
+test_join_metadata_three_meta_three_omics()
+test_join_metadata_three_meta_all_omics()
+test_join_metadata_all_meta_one_omics()
+test_join_metadata_all_meta_three_omics()
+test_join_metadata_default_parameters()
 
-test_append_mutations_source_preservation()
-test_append_mutations_one_mut_one_omics()
-test_append_mutations_one_mut_three_omics()
-test_append_mutations_one_mut_all_omics()
-test_append_mutations_three_mut_one_omics()
-test_append_mutations_three_mut_three_omics()
-test_append_mutations_three_mut_all_omics()
-test_append_mutations_one_mut_all_omics_no_location()
-test_append_mutations_one_mut_one_omics_no_location()
-test_append_mutations_one_mut_three_omics_no_location()
-test_append_mutations_three_mut_one_omics_no_location()
-test_append_mutations_three_mut_three_omics_no_location()
-test_append_mutations_three_mut_all_omics_no_location()
-test_append_mutations_invalid_key()
+test_join_mutations_source_preservation()
+test_join_mutations_one_mut_one_omics()
+test_join_mutations_one_mut_three_omics()
+test_join_mutations_one_mut_all_omics()
+test_join_mutations_three_mut_one_omics()
+test_join_mutations_three_mut_three_omics()
+test_join_mutations_three_mut_all_omics()
+test_join_mutations_one_mut_all_omics_no_location()
+test_join_mutations_one_mut_one_omics_no_location()
+test_join_mutations_one_mut_three_omics_no_location()
+test_join_mutations_three_mut_one_omics_no_location()
+test_join_mutations_three_mut_three_omics_no_location()
+test_join_mutations_three_mut_all_omics_no_location()
+test_join_mutations_invalid_key()
 
 print("Version:", cptac.version())
