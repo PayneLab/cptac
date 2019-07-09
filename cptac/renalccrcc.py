@@ -60,10 +60,12 @@ class RenalCcrcc(DataSet):
             if file_name == "6_CPTAC3_CCRCC_Phospho_abundance_phosphopeptide_protNorm=2_CB.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
                 df = df.set_index("Gene")
+                ref_intensities = df["ReferenceIntensity"] # Copy this out, so we can subtract the reference intensities later
                 df = df.drop(columns=[
                     "Index",
                     "Peptide",
                     "ReferenceIntensity"])
+                df = df.subtract(ref_intensities, axis="index") # Subtract the reference intensities from all the values, to get ratios
                 df = df.transpose()
                 self._data["phosphoproteomics_gene"] = df
 
@@ -79,10 +81,12 @@ class RenalCcrcc(DataSet):
                 df["Gene"] = genes_with_sites
 
                 df = df.set_index("Gene")
+                ref_intensities = df["ReferenceIntensity"] # Copy this out, so we can subtract the reference intensities later
                 df = df.drop(columns=[
                     "Index",
                     "Peptide",
                     "ReferenceIntensity"])
+                df = df.subtract(ref_intensities, axis="index") # Subtract the reference intensities from all the values, to get ratios
                 df = df.transpose()
                 self._data["phosphoproteomics"] = df
             
