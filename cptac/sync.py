@@ -53,23 +53,51 @@ def sync(dataset, version="latest"):
     if not os.path.isdir(version_path):
         os.mkdir(version_path)
 
-    # Check the files in that version of the dataset. Download if don't exist, and update if have been changed.
+    # Get a list of all files that need to be downloaded or updated
     version_index = index.get(version)
-    password = None
+    files_to_sync = []
     for data_file in version_index.keys():
+        # Get the server hash
         file_index = version_index.get(data_file)
-        file_path = os.path.join(version_path, data_file)
-        local_hash = hash_file(file_path) # Returns None if file doesn't exist, which will also fail the hash comparison later and lead to an update
         server_hash = file_index.get("hash")
 
+        # Get the local hash
+        file_path = os.path.join(version_path, data_file)
+        local_hash = hash_file(file_path) # Returns None if file doesn't exist, which will also fail the hash comparison later and lead to an update
+
         if local_hash != server_hash:
-            file_url = file_index.get("url")
-            if dataset == "gbm":
-                password = getpass.getpass()
-            downloaded_path = download_file(file_url, file_path, server_hash, password)
-            if downloaded_path is None:
-                print("Insufficient internet to sync. Check your internet connection.")
-                return False
+            files_to_sync.append(data_file)
+
+    # Download or update the files that need it
+    password = None
+    total_files = len(files_to_sync)
+    password_protected_datasets = [] # We don't have any right now, but we have the functionality.
+
+    for data_file in files_to_sync:
+
+        if (dataset in password_protected_datasets) and (password is None):
+            password = getpass.getpass()
+            print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
+            print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
+
+        file_index = version_index.get(data_file)
+        server_hash = file_index.get("hash")
+        file_url = file_index.get("url")
+
+        file_path = os.path.join(version_path, data_file)
+        file_number = files_to_sync.index(data_file) + 1
+
+        downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_message="data source files", file_number=file_number, total_files=total_files)
+
+        while downloaded_path == "wrong_password":
+            password = getpass.getpass(prompt="Wrong password. Try again: ")
+            print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
+            print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
+            downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_number=file_number, total_files=total_files)
+
+        if downloaded_path is None:
+            print("Insufficient internet to sync. Check your internet connection.")
+            return False
 
     print("Data sync successful.")
     return True
@@ -106,7 +134,7 @@ def update_index(dataset_path):
             return True
         else:
             index_url = urls_dict.get(index_file)
-            index_downloaded_path = download_file(index_url, index_path, server_index_hash)
+            index_downloaded_path = download_file(index_url, index_path, server_index_hash, file_message="index")
             if index_downloaded_path is None:
                 return False
             else:
@@ -130,7 +158,7 @@ def download_text(url):
     text = response.text.strip()
     return text
 
-def download_file(url, path, server_hash, password=None): 
+def download_file(url, path, server_hash, password=None, file_message=None, file_number=None, total_files=None): 
     """Download a file from a given url to the specified location.
 
     Parameters:
@@ -138,16 +166,26 @@ def download_file(url, path, server_hash, password=None):
     path (str): The path to the file (not just the directory) to save the file to on the local machine.
     server_hash (str): The hash for the file, to check it against. If check fails, try download one more time, then throw an exception.
     password (str, optional): If the file is password protected, the password for it. Unneeded otherwise.
+    file_message (str, optional): Identifing message about the file, to be printed while it's downloading. Default None will cause the full file name to be printed.
+    file_number (int, optional): Which file this is in a batch of files, if you want to print a "File 1/15", "File 2/15", etc. sort of message. Must also pass total_files parameter.
+    total_files (int, optional): The total number of files in the download batch, if you're printing that. Must also pass file_number parameter.
 
     Returns:
     str: The path the file was downloaded to.
     """
-    file_name = path.split(os.sep)[-1]
     if os.path.isfile(path):
         action = "Updating"
     else:
         action = "Downloading"
-    print(f"{action} {file_name}...", end='\r')
+
+    batch_status = ''
+    if (file_number is not None) and (total_files is not None):
+        batch_status = f" ({file_number}/{total_files})"
+
+    if file_message is None:
+        file_message = path.split(os.sep)[-1]
+
+    print(f"{action} {file_message}{batch_status}...", end='\r')
 
     for i in range(2):
         try:
@@ -171,7 +209,7 @@ def download_file(url, path, server_hash, password=None):
                         'request_token': token}
                     response = session.post(post_url, data=payload)
 
-            response.raise_for_status() # Raises a requests HTTPError if the response code was unsuccessful
+            response.raise_for_status() # Raises a requests.HTTPError if the response code was unsuccessful
         except requests.RequestException: # Parent class for all exceptions in the requests module
             return None
             
@@ -181,6 +219,9 @@ def download_file(url, path, server_hash, password=None):
                 dest.write(response.content)
             print("\033[K", end='\r') # Erase the downloading message
             return path
+        elif response.text.strip().startswith("<!DOCTYPE html>"): # The password was wrong, so we just got a webpage
+            print("\033[K", end='\r') # Erase the downloading message
+            return "wrong_password"
 
 def get_version_files_paths(dataset, version, data_files):
     """For dataset loading. Check that a version is valid and installed, then return the paths to the data files for that version.

@@ -90,6 +90,8 @@ class Endometrial(DataSet):
 
             print("\033[K", end='\r') # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
 
+        print("Formatting dataframes...", end='\r')
+
         # Separate out clinical, derived_molecular, and experimental_setup dataframes
         all_clinical = self._data["clinical"]
         clinical = all_clinical[[
@@ -193,6 +195,9 @@ class Endometrial(DataSet):
             df_rename_col_axis = self._data[name]
             df_rename_col_axis.columns.name = None
             self._data[name] = df_rename_col_axis
+
+        # Use ANSI escape sequence to clear previously printed line (cursor already reset to beginning of line with \r)
+        print("\033[K", end='\r') 
 
         # Print data embargo warning, if the date hasn't passed yet.
         today = datetime.date.today()

@@ -57,14 +57,14 @@ def validate_version(version, dataset, dataset_path, index, use_context):
         if (index_latest == latest_installed) or (latest_installed is None):
             return index_latest
         else: # If their latest installed version is different from the latest version recorded in the index, then we don't know which one they meant when they passed "latest".
-            print(f"You requested the latest version. Latest version is {index_latest}, which is not installed locally. To download it, run \"cptac.sync(dataset='{dataset}', version='{index_latest}')\".", end=' ') # Replace default newliine ending with a space, so the next message is continuous.
-            
             if use_context == "sync":
-                print(f"To instead sync the older version that is already installed, run \"cptac.sync(dataset='{dataset}', version='{latest_installed}')\".")
+                message = f"You requested to sync the {dataset} dataset. Latest version is {index_latest}, which is not installed locally. To download it, run \"cptac.sync(dataset='{dataset}', version='{index_latest}')\". To instead sync the older version that is already installed, run \"cptac.sync(dataset='{dataset}', version='{latest_installed}')\"."
             elif use_context == "load":
-                print(f"You will then be able to load the latest version by calling \"cptac.{dataset.title()}()\". Or, to instead load the older version that is already installed, call \"cptac.{dataset.title()}(version='{latest_installed}')\".")
+                message = f"You requested to load the {dataset} dataset. Latest version is {index_latest}, which is not installed locally. To download it, run \"cptac.sync(dataset='{dataset}', version='{index_latest}')\". You will then be able to load the latest version by calling \"cptac.{dataset.title()}()\". Or, to instead load the older version that is already installed, call \"cptac.{dataset.title()}(version='{latest_installed}')\"."
             else:
-                print() # Print a newline to finish off the base error message, since we ended it without a newline in case we were going to print a more detailed message.
+                message = f"You requested the latest version. Latest version is {index_latest}, which is not installed locally. To download it, run \"cptac.sync(dataset='{dataset}', version='{index_latest}')\"."
+
+            print(message)
             return None
     else:
         print(f"{version} is an invalid version for the {dataset} dataset. Valid versions: {', '.join(index.keys())}")
