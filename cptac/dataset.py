@@ -19,7 +19,6 @@ class DataSet:
     the same function calls exist for cptac.Endometrial, cptac.Colon, etc.
     """
 
-
     def __init__(self):
 
         # Initialize dataframe and definitions dicts as empty for this parent class
@@ -171,32 +170,32 @@ class DataSet:
         webbrowser.open(url)
 
     # Utilities methods
-    def join_omics_to_omics(self, omics_df1_name, omics_df2_name, genes1=None, genes2=None):
-        """Take specified column(s) from one omics dataframe, and append to specified columns(s) from another omics dataframe. Intersection (inner join) of indicies is used.
+    def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None):
+        """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indicies is used.
 
         Parameters:
-        omics_df1_name (str): Name of first omics dataframe to select columns from.
-        omics_df2_name (str): Name of second omics dataframe to select columns from.
-        genes1 (str, or list or array-like of str, optional): Gene(s) for column(s) to select from omics_df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
-        genes2 (str, or list or array-like of str, optional): Gene(s) for Column(s) to select from omics_df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
+        df1_name (str): Name of first omics dataframe to select columns from.
+        df2_name (str): Name of second omics dataframe to select columns from.
+        genes1 (str, or list or array-like of str, optional): Gene(s) for column(s) to select from df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
+        genes2 (str, or list or array-like of str, optional): Gene(s) for Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
 
         Returns:
-        pandas DataFrame: The selected columns from the two omics dataframes, merged into one dataframe.
+        pandas DataFrame: The selected columns from the two omics dataframes, joined into one dataframe.
         """
         # Make sure they gave us valid dataframe names
-        df1_valid = self._is_valid_df(omics_df1_name, "omics")
-        df2_valid = self._is_valid_df(omics_df2_name, "omics")
+        df1_valid = self._is_valid_df(df1_name, "omics")
+        df2_valid = self._is_valid_df(df2_name, "omics")
 
         if (not df1_valid) or (not df2_valid):
             return
 
         # Get the dataframes
-        omics_df1 = self._get_dataframe(omics_df1_name)
-        omics_df2 = self._get_dataframe(omics_df2_name)
+        df1 = self._get_dataframe(df1_name)
+        df2 = self._get_dataframe(df2_name)
 
         # Select the columns from each dataframe
-        selected1 = self._get_omics_cols(omics_df1, genes1)
-        selected2 = self._get_omics_cols(omics_df2, genes2)
+        selected1 = self._get_omics_cols(df1, genes1)
+        selected2 = self._get_omics_cols(df2, genes2)
 
         if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the gene(s) didn't match any columns, and it printed an informative error message already. We'll return None.
             df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
@@ -205,16 +204,16 @@ class DataSet:
             return df
 
     def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, show_location=True):
-        """Select all mutations for specified gene(s), and appends them to all or part of the given omics dataframe. Intersection (inner join) of indicies is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
+        """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indicies is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
-        omics_df (str): Name of omics dataframe to append the mutation data to.
+        omics_df (str): Name of omics dataframe to join the mutation data to.
         mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
         show_location (bool, optional): Whether to include the Locations column from the mutation dataframe. Defaults to True.
 
         Returns:
-        pandas DataFrame: The mutations for the specified gene, appended to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
+        pandas DataFrame: The mutations for the specified gene, joined to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
         """
         # Make sure omics_df is valid for this function
         if not (self._is_valid_df(omics_df_name, "omics")):
@@ -227,52 +226,53 @@ class DataSet:
         mutations = self._get_genes_mutations(somatic_mutation, mutations_genes)
 
         if (omics is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, and an error message was printed. We'll return None.
-            merge = omics.join(mutations, how = "left") # Left join omics data and mutation data (left being the omics data)
+            joined = self._join_other_to_mutations(omics, mutations, show_location)
+            return joined
 
-            # Add Sample_Status column by joining the sample_status_map to the merged mutation dataframe. Do a left join so we drop any indicies not in the mutations dataframe.
-            sample_status_map = self._get_sample_status_map()
-            merge = merge.join(sample_status_map, how="left")
+    def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None):
+        """Take specified column(s) from one metadata dataframe, and join to specified columns(s) from another metadata dataframe. Intersection (inner join) of indicies is used.
 
-            # Fill in Wildtype_Normal or Wildtype_Tumor for NaN values (i.e., no mutation data for that sample) in merged dataframe mutation columns
-            mutation_regex = r'^.*_Mutation$' # Construct regex to find all mutation columns
-            mutation_cols = [col for col in merge.columns.values if re.match(mutation_regex, col)] # Get a list of all mutation columns
-            for mutation_col in mutation_cols:
-                merge.loc[(merge['Sample_Status'] == "Normal") & (pd.isnull(merge[mutation_col])), mutation_col] = [[["Wildtype_Normal"]]] # Change all NaN mutation values for Normal samples to Wildtype_Normal. Triple nested list causes .loc to insert the value as ['Wildtype_Normal'], like we want it to, instead of unpacking the list.
-                merge.loc[(merge['Sample_Status'] == "Tumor") & (pd.isnull(merge[mutation_col])), mutation_col] = [[["Wildtype_Tumor"]]] # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
+        Parameters:
+        df1_name (str): Name of first metadata dataframe to select columns from.
+        df2_name (str): Name of second metadata dataframe to select columns from.
+        cols1 (str, or list or array-like of str, optional): Column(s) to select from df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
+        cols2 (str, or list or array-like of str, optional): Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
 
-            # Depending on show_location, either fill NaN values in the merged dataframe location columns with "No_mutation", or just drop the location columns altogether
-            location_regex = r'^.*_Location$' # Construct regex to find all location columns
-            location_cols = [col for col in merge.columns.values if re.match(location_regex, col)] # Get a list of all location columns
-            for location_col in location_cols:
-                if show_location:
-                    merge.loc[pd.isnull(merge[location_col]), location_col] = [[["No_mutation"]]] # If there's no location, there wasn't a mutation--make it easier for people to understand that.
-                else:
-                    merge = merge.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
+        Returns:
+        pandas DataFrame: The selected columns from the two metadata dataframes, joined into one dataframe.
+        """
+        # Make sure they gave us valid dataframe names
+        df1_valid = self._is_valid_df(df1_name, "metadata")
+        df2_valid = self._is_valid_df(df2_name, "metadata")
 
-            # Fill NaN values in Mutation_Status column with either Wildtype_Tumor or Wildtype_Normal
-            mutation_status_regex = r"^.*_Mutation_Status$" # Construct a regex to find all Mutation_Status columns
-            mutation_status_cols = [col for col in merge.columns.values if re.match(mutation_status_regex, col)] # Get a list of all Mutation_Status columns
-            for mutation_status_col in mutation_status_cols:
-                merge.loc[(merge['Sample_Status'] == "Normal") & (pd.isnull(merge[mutation_status_col])), mutation_status_col] = "Wildtype_Normal" # Change all NaN mutation status values for Normal samples to Wildtype_Normal
-                merge.loc[(merge['Sample_Status'] == "Tumor") & (pd.isnull(merge[mutation_status_col])), mutation_status_col] = "Wildtype_Tumor" # Change all NaN mutation status values for Tumor samples to Wildtype_Tumor
+        if (not df1_valid) or (not df2_valid):
+            return
 
-            merge.name = "{}, with {}".format(omics.name, mutations.name) # Give it a name identifying the data in it
-            return merge
+        # Get the dataframes
+        df1 = self._get_dataframe(df1_name)
+        df2 = self._get_dataframe(df2_name)
 
-    def join_metadata_to_metadata(self):
-        pass
+        # Select the columns from each dataframe
+        selected1 = self._get_metadata_cols(df1, cols1)
+        selected2 = self._get_metadata_cols(df2, cols2)
+
+        if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the gene(s) didn't match any columns, and it printed an informative error message already. We'll return None.
+            df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
+            df = df.sort_index() # Sort rows in ascending order
+            df.name = "{}, with {}".format(selected1.name, selected2.name) # Give it a nice name identifying the data in it.
+            return df
 
     def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None):
         """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_setup) to part or all of an omics dataframe. Intersection (inner join) of indicies is used.
 
         Parameters:
         metadata_df_name (str): Name of metadata dataframe to select columns from.
-        omics_df_name (str): Name of omics dataframe to append the metadata columns to.
+        omics_df_name (str): Name of omics dataframe to join the metadata columns to.
         metadata_cols (str, or list or array-like of str, optional): Column(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select the entire metadata dataframe.
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select data for from the omics dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select entire dataframe.
 
         Returns:
-        pandas DataFrame: The selected metadata columns, merged with all or part of the omics dataframe.
+        pandas DataFrame: The selected metadata columns, joined with all or part of the omics dataframe.
         """
         # Make sure metadata_df_name and omics_df_name are valid for this function
         metadata_df_valid = self._is_valid_df(metadata_df_name, "metadata")
@@ -290,13 +290,36 @@ class DataSet:
         omics_selected = self._get_omics_cols(omics_df, omics_genes)
 
         if (metadata_selected is not None) and (omics_selected is not None): # If either selector returned None, the key(s) didn't match any columns, and it printed an informative error message already. We'll return None.
-            df_joined = metadata_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
-            df_joined = df_joined.sort_index() # Sort rows in ascending order
-            df_joined.name = "{}, with {}".format(metadata_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
-            return df_joined
+            joined = metadata_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
+            joined = joined.sort_index() # Sort rows in ascending order
+            joined.name = "{}, with {}".format(metadata_selected.name, omics_selected.name) # Give it a nice name identifying the data in it.
+            return joined
 
-    def join_metadata_to_mutations(self):
-        pass
+    def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, show_location=True):
+        """Select all mutations for specified gene(s), and joins them to all or part of the given metadata dataframe. Intersection (inner join) of indicies is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
+
+        Parameters:
+        metadata_df (str): Name of metadata dataframe to join the mutation data to.
+        mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
+        metadata_cols (str, or list or array-like of str, optional): Gene(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
+        show_location (bool, optional): Whether to include the Locations column from the mutation dataframe. Defaults to True.
+
+        Returns:
+        pandas DataFrame: The mutations for the specified gene, joined to all or part of the metadata dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
+        """
+        # Make sure metadata_df is valid for this function
+        if not (self._is_valid_df(metadata_df_name, "metadata")):
+            return
+
+        # Select the data from each dataframe
+        somatic_mutation = self.get_mutations()
+        metadata_df = self._get_dataframe(metadata_df_name)
+        metadata = self._get_metadata_cols(metadata_df, metadata_cols)
+        mutations = self._get_genes_mutations(somatic_mutation, mutations_genes)
+
+        if (metadata is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, and an error message was printed. We'll return None.
+            joined = self._join_other_to_mutations(metadata, mutations, show_location)
+            return joined
 
     # "Private" methods
     def _get_dataframe(self, name):
@@ -371,7 +394,7 @@ class DataSet:
         elif isinstance(genes, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's already a list or array-like, we're all good
             pass
         elif genes is None: # If it's the default of None, rename columns and return the entire dataframe
-            return_df = omics_df.rename(columns=lambda x:'{}_{}'.format(x, omics_df.name)) # Append dataframe name to end of each column header, to preserve info when we merge dataframes
+            return_df = omics_df.rename(columns=lambda x:'{}_{}'.format(x, omics_df.name)) # Append dataframe name to end of each column header, to preserve info when we join dataframes
             return_df.name = omics_df.name # Name the return dataframe
             return return_df
         else: # If it's none of those, they done messed up. Tell 'em.
@@ -381,9 +404,9 @@ class DataSet:
         df = pd.DataFrame(index=omics_df.index.copy()) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
         for gene in genes:
             if omics_df.name == 'phosphoproteomics' or omics_df.name == 'acetylproteomics':
-                col_regex = "^{}{}.*$".format(gene, self._gene_separator) # Build a regex to get all columns that match the gene
+                col_regex = r"^{0}{1}[^{1}]*$".format(gene, self._gene_separator) # Build a regex to get all columns that match the gene. Ending with "[^{1}]*$", where {1} corresponds to  self._gene_separator, makes sure that we're matching all the way up to the last occurrence of the gene separator, so that if there's a gene name with the gene separator in it, it's not matched by another gene name that's the part of the name before the separator--e.g., if the gene separator is a dash, "ANKHD1-EIF4EBP3-S2539" is matched by ANKHD1-EIF4EBP3 but not by ANKHD1.
             else:
-                col_regex = '^{}$'.format(gene)
+                col_regex = r'^{}$'.format(gene)
 
             selected = omics_df.filter(regex=col_regex) # Find all columns that match the gene.
             if len(selected.columns) == 0: # If none of the columns matched the gene, generate a column of NaN and print a warning message
@@ -391,7 +414,7 @@ class DataSet:
                 selected = empty_omics_df.assign(**{gene:np.nan}) # Create a column with gene as the name, filled with NaN
                 print('{0} did not match any columns in {1} dataframe. {0}_{1} column inserted, but filled with NaN.'.format(gene, omics_df.name))
 
-            selected = selected.rename(columns=lambda x:'{}_{}'.format(x, omics_df.name)) # Append dataframe name to end of each column header, to preserve info when we merge dataframes
+            selected = selected.rename(columns=lambda x:'{}_{}'.format(x, omics_df.name)) # Append dataframe name to end of each column header, to preserve info when we join dataframes
             df = df.join(selected, how='left') # Append the columns to our dataframe we'll return.
 
         # Give the dataframe a name!
@@ -474,7 +497,7 @@ class DataSet:
             # Create another empty dataframe, which we'll fill with the mutation and location data for this gene, as lists
             prep_index = gene_mutations.index.copy().drop_duplicates()
             prep_columns = gene_mutations.columns.copy()
-            mutation_status_idx = pd.Index([mutation_status_col]) # Prep mutation_status_col to be appended
+            mutation_status_idx = pd.Index([mutation_status_col]) # Prep mutation_status_col to be joined
             prep_cols_with_mut_status = prep_columns.append(mutation_status_idx) # Add a mutation_status column, which will indicate if there are 1 or multiple mutations
             mutation_lists = pd.DataFrame(index=prep_index, columns=prep_cols_with_mut_status)
 
@@ -507,7 +530,7 @@ class DataSet:
                 mutation_lists.at[sample, location_col] = sample_locations_list
                 mutation_lists.at[sample, mutation_status_col] = sample_mutation_status
 
-            mutation_lists = mutation_lists.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Add the gene name to end beginning of each column header, to preserve info when we merge dataframes.
+            mutation_lists = mutation_lists.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Add the gene name to end beginning of each column header, to preserve info when we join dataframes.
             df = df.join(mutation_lists, how='left') # Append the columns to our dataframe we'll return.
 
         # Name the dataframe!
@@ -516,3 +539,56 @@ class DataSet:
         else:
             df.name = "somatic mutation data for {} genes".format(len(genes))
         return df
+
+    def _join_other_to_mutations(self, other, mutations, show_location):
+        """Join selected mutations data to selected other omics or metadata, add a Sample_Status column, fill in NaNs with Wildtype_Normal or Wildtype_Tumor, and name the dataframe.
+
+        Parameters:
+        other (pandas DataFrame): The selected data from the other type of dataframe (omics or metadata) to join with the selected mutations.
+        mutations (pandas DataFrame): The selected mutations data to join with.
+        show_location (bool): Whether to include the Location column from the mutation dataframe.
+
+        Returns:
+        pandas DataFrame: The joined dataframe, with a Sample_Status column added and NaNs filled.
+        """
+        joined = other.join(mutations, how = "left") # Left join other data and mutation data (left being the other data)
+
+        # Add Sample_Status column by joining the sample_status_map to the joined mutation dataframe. Do a left join so we drop any indicies not in the mutations dataframe.
+        sample_status_map = self._get_sample_status_map()
+        joined = joined.join(sample_status_map, how="left")
+
+        # Based on the dtypes in the dataframe, set our fill values so that .loc will insert the value as a single item in a list, instead of unpacking the list.
+        if (joined.dtypes == "object").all(): # If all columns in "joined" have a dtype of "object"
+            wildtype_normal_fill = [["Wildtype_Normal"]]
+            wildtype_tumor_fill = [["Wildtype_Tumor"]]
+            no_mutation_fill = [["No_mutation"]]
+        else:
+            wildtype_normal_fill = [[["Wildtype_Normal"]]]
+            wildtype_tumor_fill = [[["Wildtype_Tumor"]]]
+            no_mutation_fill = [[["No_mutation"]]]
+
+        # Fill in Wildtype_Normal or Wildtype_Tumor for NaN values (i.e., no mutation data for that sample) in joined dataframe mutation columns
+        mutation_regex = r'^.*_Mutation$' # Construct regex to find all mutation columns
+        mutation_cols = [col for col in joined.columns.values if re.match(mutation_regex, col)] # Get a list of all mutation columns
+        for mutation_col in mutation_cols:
+            joined.loc[(joined['Sample_Status'] == "Normal") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_normal_fill # Change all NaN mutation values for Normal samples to Wildtype_Normal. 
+            joined.loc[(joined['Sample_Status'] == "Tumor") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_tumor_fill # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
+
+        # Depending on show_location, either fill NaN values in the joined dataframe location columns with "No_mutation", or just drop the location columns altogether
+        location_regex = r'^.*_Location$' # Construct regex to find all location columns
+        location_cols = [col for col in joined.columns.values if re.match(location_regex, col)] # Get a list of all location columns
+        for location_col in location_cols:
+            if show_location:
+                joined.loc[pd.isnull(joined[location_col]), location_col] = no_mutation_fill # If there's no location, there wasn't a mutation--make it easier for people to understand that.
+            else:
+                joined = joined.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
+
+        # Fill NaN values in Mutation_Status column with either Wildtype_Tumor or Wildtype_Normal
+        mutation_status_regex = r"^.*_Mutation_Status$" # Construct a regex to find all Mutation_Status columns
+        mutation_status_cols = [col for col in joined.columns.values if re.match(mutation_status_regex, col)] # Get a list of all Mutation_Status columns
+        for mutation_status_col in mutation_status_cols:
+            joined.loc[(joined['Sample_Status'] == "Normal") & (pd.isnull(joined[mutation_status_col])), mutation_status_col] = "Wildtype_Normal" # Change all NaN mutation status values for Normal samples to Wildtype_Normal
+            joined.loc[(joined['Sample_Status'] == "Tumor") & (pd.isnull(joined[mutation_status_col])), mutation_status_col] = "Wildtype_Tumor" # Change all NaN mutation status values for Tumor samples to Wildtype_Tumor
+
+        joined.name = "{}, with {}".format(other.name, mutations.name) # Give it a name identifying the data in it
+        return joined
