@@ -12,7 +12,7 @@
 import pandas as pd
 import os
 from .dataset import DataSet
-from .download import get_version_files_paths
+from .file_download import get_version_files_paths
 from .dataframe_tools import *
 
 class RenalCcrcc(DataSet):
