@@ -10,7 +10,6 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
 import cptac
 
 def print_test_result(PASS):
@@ -42,27 +41,6 @@ def check_returned_is_df(returned):
         return False
     return True
 
-def check_df_name(df, expected_name):
-    """Checks that a dataframe has a "name" attribute, and that it has the proper value.
-
-    Parameters:
-    df (pandas.core.frame.DataFrame): The dataframe to test.
-    expected_name (str): The expected name of the dataframe.
-
-    Returns:
-    bool: Whether the dataframe had a name, and it was the correct name.
-    """
-    # Check that the dataframe has a name
-    if not hasattr(df, 'name'):
-        print('Dataframe did not have a "name" attribute.')
-        return False
-
-    # Check that the dataframe has the correct name
-    if df.name != expected_name:
-        print("Dataframe had incorrect name.\n\tExpected: {}\n\tActual: {}".format(expected_name, df.name))
-        return False
-    return True
-
 def check_df_shape(df, exp_shape):
     """Checks that a dataframe has the proper shape.
 
@@ -79,12 +57,11 @@ def check_df_shape(df, exp_shape):
         return False
     return True
 
-def check_getter(df, exp_name, exp_dim, exp_headers, coordinates, values): 
-    """Test a dataframe's name, dimensions and headers, and three test values, then print whether it passed the test.
+def check_getter(df, exp_dim, exp_headers, coordinates, values): 
+    """Test a dataframe's dimensions and headers, and three test values, then print whether it passed the test.
 
     Parameters
     df: the dataframe gotten by the getter we are testing
-    exp_name: string containing the expected name of the dataframe gotten by the getter we're testing
     exp_dim: a tuple containing the expected dimensions of the dataframe, in the format (rows, columns)
     exp_headers: if the dataframe has up to 20 columns, all of the headers for the dataframe, in order. If it has more than 20 columns, then a list containing the first ten and last ten headers, in order.
     coordinates: a tuple with three elements, each element being a tuple with two elements, the first element being the int index of the row of a test value, and the second element being the int index of the column of a test value
@@ -98,10 +75,6 @@ def check_getter(df, exp_name, exp_dim, exp_headers, coordinates, values):
     # Check that df is a dataframe, not None or something else.
     if not check_returned_is_df(df):
         return False # End test, because other tests will be useless.
-
-    # Check name
-    if not check_df_name(df, exp_name):
-        PASS = False
 
     # Check dimensions
     if not check_df_shape(df, exp_dim):
@@ -155,14 +128,15 @@ def build_omics_regex(genes, suffix=""):
     regex = regex[:-1] + ')' + suffix + '$'
     return regex
 
-def check_joined_columns(source_df, dest_df, source_headers, dest_headers=None):
+def check_joined_columns(source_df, dest_df, source_headers, source_df_name, dest_headers=None):
     """Checks whether a column or list of columns joined to a dataframe have the same values for each index in that dataframe as they had in the dataframe they were taken from.
 
     Parameters:
     source_df (pandas.core.frame.DataFrame): The dataframe the columns were taken from.
     dest_df (pandas.core.frame.DataFrame): The dataframe the columns were joined to (with them joined to it).
     source_headers (str, or list or array-like of str): The header(s) of the columns to test in source_df. str if one, list or array-like of str if multiple. 
-    dest_headers (str, or list or array-like of str, optional): The header(s) of the columns to test in dest_df. str if one, list or array-like of str if multiple. If provided, must be in the same order as their corresponding headers in source_headers. If not provided, header(s) in dest_df will be constructed by joining an underscore and source_df.name to each of the source_headers.
+    source_df_name (str): The name of source_df.
+    dest_headers (str, or list or array-like of str, optional): The header(s) of the columns to test in dest_df. str if one, list or array-like of str if multiple. If provided, must be in the same order as their corresponding headers in source_headers. If not provided, header(s) in dest_df will be constructed by joining an underscore and source_df_name to each of the source_headers.
     
     Returns:
     bool: Indicates whether the specified column(s) in dest_df had the same values for each index as they did in source_df.
@@ -173,7 +147,7 @@ def check_joined_columns(source_df, dest_df, source_headers, dest_headers=None):
 
     original_dest_headers = dest_headers # Copy for later, so we can continue running conditionals based on whether dest_headers was provided
     if dest_headers is None:
-        dest_headers = [header + '_' + source_df.name for header in source_headers] # Construct what the source_headers will be in the merged dataframe
+        dest_headers = [header + '_' + source_df_name for header in source_headers] # Construct what the source_headers will be in the merged dataframe
     elif isinstance(dest_headers, str):
         dest_headers = [dest_headers]
 
@@ -330,7 +304,7 @@ def check_mutation_columns(mutations, merged_df, genes, show_location=True):
                 dest_cols_to_test.append(merged_location_col)
 
             # Test the columns
-            if not check_joined_columns(sample_df, merged_sample_df, source_cols_to_test, dest_cols_to_test):
+            if not check_joined_columns(sample_df, merged_sample_df, source_cols_to_test, None, dest_cols_to_test):
                 PASS = False
 
     return PASS
@@ -348,7 +322,7 @@ def test_get_clinical():
     test_coord = ((79, 16), (15, 25), (88, 2))
     test_vals = (77.0, '3', 'Poland')
 
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
 def test_get_derived_molecular():
@@ -363,7 +337,7 @@ def test_get_derived_molecular():
     test_coord = ((3, 4), (30, 117), (80, 52))
     test_vals = ('Intact nuclear expression', 5.459431619, -0.34)
 
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
 def test_get_experimental_setup():
@@ -378,7 +352,7 @@ def test_get_experimental_setup():
     test_coord = ((2, 13), (143, 2), (67, 25))
     test_vals = ('a16b07d8-46c1-4fd9-8204-4f866aacfbec', '130N', 'PASS')
 
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
 def test_get_acetylproteomics():
@@ -393,7 +367,7 @@ def test_get_acetylproteomics():
     test_coord = ((1, 1), (12, 10861), (90, 5849))
     test_vals = (0.47700000000000004, 0.16, 0.4098)
 
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
 def test_get_proteomics():
@@ -408,7 +382,7 @@ def test_get_proteomics():
     test_coord = ((34, 6003), (99, 9544), (143, 32))
     test_vals = (0.0461, 1.68, 0.904)
 
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
 def test_get_transcriptomics():
@@ -423,7 +397,7 @@ def test_get_transcriptomics():
     test_coord = ((22, 25483), (108, 23), (101, 17748))
     test_vals = (0.82, 12.0, 6.19)
 
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
 def test_get_circular_RNA():
@@ -438,7 +412,7 @@ def test_get_circular_RNA():
     test_coord = ((108, 1), (30, 4935), (73, 2003))
     test_vals = (9.08, 6.56, 0.0)
 
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
 def test_get_miRNA():
@@ -453,22 +427,22 @@ def test_get_miRNA():
     test_coord = ((5, 0), (98, 1597), (54, 2231))
     test_vals = (1.79, 1.36, 0.26)
     
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
-def test_get_CNA():
-    """Test get_CNA."""
+def test_get_CNV():
+    """Test get_CNV."""
 
-    print('Running test_get_CNA...')
+    print('Running test_get_CNV...')
 
-    df = en.get_CNA()
-    name = "CNA"
+    df = en.get_CNV()
+    name = "CNV"
     dimensions = (95, 28057)
     headers = ['A1BG', 'A1BG-AS1', 'A1CF', 'A2M', 'A2M-AS1', 'A2ML1', 'A2MP1', 'A3GALT2', 'A4GALT', 'A4GNT', 'ZWILCH', 'ZWINT', 'ZXDA', 'ZXDB', 'ZXDC', 'ZYG11A', 'ZYG11B', 'ZYX', 'ZZEF1', 'ZZZ3']
     test_coord = ((12, 27865), (60, 8), (94, 15439))
     test_vals = (0.11, 0.01, -0.01)
 
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
 def test_get_phosphoproteomics():
@@ -483,7 +457,7 @@ def test_get_phosphoproteomics():
     test_coord = ((36, 46), (12, 72436), (96, 45361))
     test_vals = (0.579, 0.669, 0.156)
 
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
 def test_get_phosphoproteomics_gene():
@@ -498,7 +472,7 @@ def test_get_phosphoproteomics_gene():
     test_coord =  ((2, 7999), (143, 1045), (71, 6543))
     test_vals = (-0.0879, 0.929, 0.153)
 
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
 def test_get_phosphosites():
@@ -514,7 +488,7 @@ def test_get_phosphosites():
     test_coord = ((5, 33), (64, 14), (128, 0))
     test_vals = (0.547, -0.5379999999999999, 0.1395)
 
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
 def test_get_mutations():
@@ -529,7 +503,7 @@ def test_get_mutations():
     test_coord = ((52000, 2), (12, 0), (34567, 1))
     test_vals = ('p.V167L', 'ARID1A', 'Missense_Mutation')
 
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
 def test_get_mutations_binary():
@@ -544,7 +518,7 @@ def test_get_mutations_binary():
     test_coord = ((94, 51558), (0, 0), (45, 25436))
     test_vals = (0, 0, 0)
 
-    PASS = check_getter(df, name, dimensions, headers, test_coord, test_vals)
+    PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
 # Test merging and joining functions
@@ -603,11 +577,6 @@ def test_join_omics_to_omics_default_parameters():
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = prot.name + ', with ' + acet.name
-    if not check_df_name(compared, exp_name):
-        PASS = False
-
     # Check dataframe shape
     exp_num_rows = len(prot.index.intersection(acet.index))
     exp_num_cols = len(prot.columns) + len(acet.columns)
@@ -616,11 +585,11 @@ def test_join_omics_to_omics_default_parameters():
         PASS = False
 
     # Test that all columns from proteomics were joined, and that values were preserved
-    if not check_joined_columns(prot, compared, prot.columns):
+    if not check_joined_columns(prot, compared, prot.columns, prot_name):
         PASS = False
 
     # Test that all columns from acetylproteomics were joined, and that values were preserved
-    if not check_joined_columns(acet, compared, acet.columns):
+    if not check_joined_columns(acet, compared, acet.columns, acet_name):
         PASS = False
 
     # Print whether the test passed
@@ -648,11 +617,6 @@ def test_join_omics_to_omics_one_gene():
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = "{} for {}, with {} for {}".format(prot.name, prot_gene, acet.name, acet_gene)
-    if not check_df_name(compared, exp_name):
-        PASS = False
-
     # Figure out which columns from proteomics correspond to prot_gene (should be just one)
     prot_regex = build_omics_regex(prot_gene)
     prot_cols = prot.filter(regex=prot_regex)
@@ -673,10 +637,10 @@ def test_join_omics_to_omics_one_gene():
         PASS = False
 
     # Check column values
-    if not check_joined_columns(prot, compared, prot_cols.columns):
+    if not check_joined_columns(prot, compared, prot_cols.columns, prot_name):
         PASS = False
 
-    if not check_joined_columns(acet, compared, acet_cols.columns):
+    if not check_joined_columns(acet, compared, acet_cols.columns, prot_name):
         PASS = False
 
     # Print whether the test passed
@@ -704,11 +668,6 @@ def test_join_omics_to_omics_multiple_genes():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = "{} for {} genes, with {} for {} genes".format(prot.name, len(prot_genes), acet.name, len(acet_genes))
-    if not check_df_name(compared, exp_name):
-        PASS = False
-
     # Figure out which columns from proteomics correspond to prot_gene (should be the same number as number of genes in prot_genes)
     prot_regex = build_omics_regex(prot_genes)
     prot_cols = prot.filter(regex=prot_regex) # Use the regex to get all matching columns
@@ -729,10 +688,10 @@ def test_join_omics_to_omics_multiple_genes():
         PASS = False
 
     # Check column values
-    if not check_joined_columns(prot, compared, prot_cols.columns):
+    if not check_joined_columns(prot, compared, prot_cols.columns, prot_name):
         PASS = False
 
-    if not check_joined_columns(acet, compared, acet_cols.columns):
+    if not check_joined_columns(acet, compared, acet_cols.columns, acet_name):
         PASS = False
 
     # Print whether the test passed
@@ -745,7 +704,7 @@ def test_join_omics_to_omics_all_dfs():
 
     # Load our dataframes to test, and set our genes. We call individual parameters, to make sure the columns are formatted properly.
     acet = "acetylproteomics"
-    CNA = "CNA"
+    CNV = "CNV"
     phosg = "phosphoproteomics_gene"
     phoss = "phosphoproteomics"
     prot = "proteomics"
@@ -754,13 +713,13 @@ def test_join_omics_to_omics_all_dfs():
     gene2 = 'AAGAB'
 
     # Call join_omics_to_omics on the dataframes
-    acet_CNA = en.join_omics_to_omics(acet, CNA, gene1, gene2)
+    acet_CNV = en.join_omics_to_omics(acet, CNV, gene1, gene2)
     phosg_phoss = en.join_omics_to_omics(phosg, phoss, gene1, gene2)
     prot_tran = en.join_omics_to_omics(prot, tran, gene1, gene2)
 
     # Check the return values
-    if not check_returned_is_df(acet_CNA):
-        print("Dataframes compared: acetylproetomics and CNA.")
+    if not check_returned_is_df(acet_CNV):
+        print("Dataframes compared: acetylproetomics and CNV.")
         PASS = False
     if not check_returned_is_df(phosg_phoss):
         print("Dataframes compared: phosphoproteomics_gene and phosphoproteomics.")
@@ -790,7 +749,7 @@ def test_join_omics_to_omics_invalid_dfs():
     # Test with one valid dataframe and one invalid one
     comp = en.join_omics_to_omics(prot_name, tran_cir_name)
     if comp is not None:
-        print("join_omics_to_omics should have returned None when passed the {} dataframe, but instead returned a {}".format(tran_cir.name, type(comp)))
+        print("join_omics_to_omics should have returned None when passed the {} dataframe, but instead returned a {}".format(tran_cir_name, type(comp)))
         PASS = False
     else:
         print("(NOTE: The invalid dataframe message above was expected.)")
@@ -798,7 +757,7 @@ def test_join_omics_to_omics_invalid_dfs():
     # Test with two invalid dataframes
     comp = en.join_omics_to_omics(clin_name, tran_cir_name)
     if comp is not None:
-        print("join_omics_to_omics should have returned None when passed the {} and {} dataframes, but instead returned a {}".format(clin.name, tran_cir.name, type(comp)))
+        print("join_omics_to_omics should have returned None when passed the {} and {} dataframes, but instead returned a {}".format(clin_name, tran_cir_name, type(comp)))
         PASS = False
     else:
         print("(NOTE: The invalid dataframe message above was expected.)")
@@ -828,11 +787,6 @@ def test_join_omics_to_omics_one_invalid_key():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = "{} for {}, with {} for {}".format(prot.name, invalid, acet.name, acet_valid)
-    if not check_df_name(compared, exp_name):
-        PASS = False
-
     # Get our columns corresponding to the invalid key
     invalid_suffix = "_.*"
     invalid_regex = build_omics_regex(invalid, suffix=invalid_suffix)
@@ -856,7 +810,7 @@ def test_join_omics_to_omics_one_invalid_key():
         PASS = False
 
     # Check columns for acet_gene
-    if not check_joined_columns(acet, compared, acet_cols.columns):
+    if not check_joined_columns(acet, compared, acet_cols.columns, acet_name):
         PASS = False
 
     # Print whether the test passed
@@ -882,11 +836,6 @@ def test_join_omics_to_omics_both_invalid_keys():
         PASS = False
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
-
-    # Check dataframe name
-    exp_name = "{} for {}, with {} for {}".format(prot.name, invalid, acet.name, invalid)
-    if not check_df_name(compared, exp_name):
-        PASS = False
 
     # Get our columns corresponding to the invalid key
     invalid_suffix = "_.*"
@@ -935,11 +884,6 @@ def test_join_omics_to_omics_one_list_with_invalid_key():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = "{} for {} genes, with {} for {} genes".format(prot.name, len(prot_invalid_list), acet.name, len(acet_valid_list))
-    if not check_df_name(compared, exp_name):
-        PASS = False
-
     # Get our columns corresponding to the invalid key
     invalid_suffix = "_.*"
     invalid_regex = build_omics_regex(invalid, suffix=invalid_suffix)
@@ -970,11 +914,11 @@ def test_join_omics_to_omics_one_list_with_invalid_key():
         PASS = False
 
     # Check columns for valid genes in prot_invalid_list
-    if not check_joined_columns(prot, compared, prot_cols.columns):
+    if not check_joined_columns(prot, compared, prot_cols.columns, prot_name):
         PASS = False
 
     # Check columns for acet_valid_list
-    if not check_joined_columns(acet, compared, acet_cols.columns):
+    if not check_joined_columns(acet, compared, acet_cols.columns, acet_name):
         PASS = False
 
     # Print whether the test passed
@@ -1009,11 +953,6 @@ def test_join_omics_to_omics_both_list_with_invalid_key():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = "{} for {} genes, with {} for {} genes".format(prot.name, len(prot_invalid_list), acet.name, len(acet_invalid_list))
-    if not check_df_name(compared, exp_name):
-        PASS = False
-
     # Get our columns corresponding to the invalid key
     invalid_suffix = "_.*"
     invalid_regex = build_omics_regex(invalid, suffix=invalid_suffix)
@@ -1044,11 +983,11 @@ def test_join_omics_to_omics_both_list_with_invalid_key():
         PASS = False
 
     # Check columns for valid genes in prot_invalid_list
-    if not check_joined_columns(prot, compared, prot_cols.columns):
+    if not check_joined_columns(prot, compared, prot_cols.columns, prot_name):
         PASS = False
 
     # Check columns for valid genes in acet_invalid_list
-    if not check_joined_columns(acet, compared, acet_cols.columns):
+    if not check_joined_columns(acet, compared, acet_cols.columns, acet_name):
         PASS = False
 
     # Print whether the test passed
@@ -1149,11 +1088,6 @@ def test_join_mutations_one_mut_one_omics():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = '{} for {}, with somatic mutation data for {} gene'.format(phos.name, phos_gene, mut_gene)
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Figure out which phosphoproteomics columns should have been grabbed
     phos_suffix = '-.*'
     phos_regex = build_omics_regex(phos_gene, suffix=phos_suffix)
@@ -1167,7 +1101,7 @@ def test_join_mutations_one_mut_one_omics():
         PASS = False
 
     # Check values in columns
-    if not check_joined_columns(phos, joined, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
@@ -1195,11 +1129,6 @@ def test_join_mutations_one_mut_three_omics():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = '{} for {} genes, with somatic mutation data for {} gene'.format(phos.name, len(phos_genes), mut_gene)
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Figure out which phosphoproteomics columns should have been grabbed
     phos_suffix = '-.*'
     phos_regex = build_omics_regex(phos_genes, suffix=phos_suffix)
@@ -1213,7 +1142,7 @@ def test_join_mutations_one_mut_three_omics():
         PASS = False
 
     # Check values in columns
-    if not check_joined_columns(phos, joined, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
@@ -1240,11 +1169,6 @@ def test_join_mutations_one_mut_all_omics():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = '{}, with somatic mutation data for {} gene'.format(phos.name, mut_gene)
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Check dataframe shape
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos.columns) + 4
@@ -1253,7 +1177,7 @@ def test_join_mutations_one_mut_all_omics():
         PASS = False
 
     # Check values in columns
-    if not check_joined_columns(phos, joined, phos.columns):
+    if not check_joined_columns(phos, joined, phos.columns, phos_name):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
@@ -1281,11 +1205,6 @@ def test_join_mutations_three_mut_one_omics():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = '{} for {}, with somatic mutation data for {} genes'.format(phos.name, phos_gene, len(mut_genes))
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Figure out which phosphoproteomics columns should have been grabbed
     phos_suffix = '-.*'
     phos_regex = build_omics_regex(phos_gene, suffix=phos_suffix)
@@ -1299,7 +1218,7 @@ def test_join_mutations_three_mut_one_omics():
         PASS = False
 
     # Check values in columns
-    if not check_joined_columns(phos, joined, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
@@ -1327,11 +1246,6 @@ def test_join_mutations_three_mut_three_omics():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = '{} for {} genes, with somatic mutation data for {} genes'.format(phos.name, len(phos_genes), len(mut_genes))
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Figure out which phosphoproteomics columns should have been grabbed
     phos_suffix = '-.*'
     phos_regex = build_omics_regex(phos_genes, suffix=phos_suffix)
@@ -1345,7 +1259,7 @@ def test_join_mutations_three_mut_three_omics():
         PASS = False
 
     # Check values in columns
-    if not check_joined_columns(phos, joined, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
@@ -1372,11 +1286,6 @@ def test_join_mutations_three_mut_all_omics():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = '{}, with somatic mutation data for {} genes'.format(phos.name, len(mut_genes))
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Check dataframe shape
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos.columns) + 10
@@ -1385,7 +1294,7 @@ def test_join_mutations_three_mut_all_omics():
         PASS = False
 
     # Check values in columns
-    if not check_joined_columns(phos, joined, phos.columns):
+    if not check_joined_columns(phos, joined, phos.columns, phos_name):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
@@ -1413,11 +1322,6 @@ def test_join_mutations_one_mut_one_omics_no_location():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = '{} for {}, with somatic mutation data for {} gene'.format(phos.name, phos_gene, mut_gene)
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Figure out which phosphoproteomics columns should have been grabbed
     phos_suffix = '-.*'
     phos_regex = build_omics_regex(phos_gene, suffix=phos_suffix)
@@ -1431,7 +1335,7 @@ def test_join_mutations_one_mut_one_omics_no_location():
         PASS = False
 
     # Check values in columns
-    if not check_joined_columns(phos, joined, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
@@ -1459,11 +1363,6 @@ def test_join_mutations_one_mut_three_omics_no_location():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = '{} for {} genes, with somatic mutation data for {} gene'.format(phos.name, len(phos_genes), mut_gene)
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Figure out which phosphoproteomics columns should have been grabbed
     phos_suffix = '-.*'
     phos_regex = build_omics_regex(phos_genes, suffix=phos_suffix)
@@ -1477,7 +1376,7 @@ def test_join_mutations_one_mut_three_omics_no_location():
         PASS = False
 
     # Check values in columns
-    if not check_joined_columns(phos, joined, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
@@ -1504,11 +1403,6 @@ def test_join_mutations_one_mut_all_omics_no_location():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = '{}, with somatic mutation data for {} gene'.format(phos.name, mut_gene)
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Check dataframe shape
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos.columns) + 3
@@ -1517,7 +1411,7 @@ def test_join_mutations_one_mut_all_omics_no_location():
         PASS = False
 
     # Check values in columns
-    if not check_joined_columns(phos, joined, phos.columns):
+    if not check_joined_columns(phos, joined, phos.columns, phos_name):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
@@ -1545,11 +1439,6 @@ def test_join_mutations_three_mut_one_omics_no_location():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = '{} for {}, with somatic mutation data for {} genes'.format(phos.name, phos_gene, len(mut_genes))
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Figure out which phosphoproteomics columns should have been grabbed
     phos_suffix = '-.*'
     phos_regex = build_omics_regex(phos_gene, suffix=phos_suffix)
@@ -1563,7 +1452,7 @@ def test_join_mutations_three_mut_one_omics_no_location():
         PASS = False
 
     # Check values in columns
-    if not check_joined_columns(phos, joined, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
@@ -1591,11 +1480,6 @@ def test_join_mutations_three_mut_three_omics_no_location():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = '{} for {} genes, with somatic mutation data for {} genes'.format(phos.name, len(phos_genes), len(mut_genes))
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Figure out which phosphoproteomics columns should have been grabbed
     phos_suffix = '-.*'
     phos_regex = build_omics_regex(phos_genes, suffix=phos_suffix)
@@ -1609,7 +1493,7 @@ def test_join_mutations_three_mut_three_omics_no_location():
         PASS = False
 
     # Check values in columns
-    if not check_joined_columns(phos, joined, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
@@ -1636,11 +1520,6 @@ def test_join_mutations_three_mut_all_omics_no_location():
         print_test_result(PASS)
         return # Skip remaining steps, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = '{}, with somatic mutation data for {} genes'.format(phos.name, len(mut_genes))
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Check dataframe shape
     exp_num_rows = len(phos.index)
     exp_num_cols = len(phos.columns) + 7
@@ -1649,7 +1528,7 @@ def test_join_mutations_three_mut_all_omics_no_location():
         PASS = False
 
     # Check values in columns
-    if not check_joined_columns(phos, joined, phos.columns):
+    if not check_joined_columns(phos, joined, phos.columns, phos_name):
         PASS = False
 
     mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
@@ -1822,11 +1701,6 @@ def test_join_metadata_one_meta_one_omics():
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = "{} from {}, with {} for {}".format(derived_mol_col, derived_mol.name, phos.name, phos_gene)
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Get the columns that should've been selected from phosphoproteomics
     phos_suffix = "-.*"
     phos_regex = build_omics_regex(phos_gene, suffix=phos_suffix)
@@ -1840,10 +1714,10 @@ def test_join_metadata_one_meta_one_omics():
         PASS = False
 
     # Check column values
-    if not check_joined_columns(derived_mol, joined, derived_mol_col, derived_mol_col):
+    if not check_joined_columns(derived_mol, joined, derived_mol_col, None, derived_mol_col):
         PASS = False
 
-    if not check_joined_columns(phos, joined, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
     # Print whether the test passed
@@ -1872,11 +1746,6 @@ def test_join_metadata_one_meta_three_omics():
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = "{} from {}, with {} for {} genes".format(derived_mol_col, derived_mol.name, phos.name, len(phos_genes))
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Get the columns that should've been selected from phosphoproteomics
     phos_suffix = "-.*"
     phos_regex = build_omics_regex(phos_genes, suffix=phos_suffix)
@@ -1890,10 +1759,10 @@ def test_join_metadata_one_meta_three_omics():
         PASS = False
 
     # Check column values
-    if not check_joined_columns(derived_mol, joined, derived_mol_col, derived_mol_col):
+    if not check_joined_columns(derived_mol, joined, derived_mol_col, None, derived_mol_col):
         PASS = False
 
-    if not check_joined_columns(phos, joined, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
     # Print whether the test passed
@@ -1921,11 +1790,6 @@ def test_join_metadata_one_meta_all_omics():
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = "{} from {}, with {}".format(derived_mol_col, derived_mol.name, phos.name)
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Check dataframe shape
     exp_num_rows = len(derived_mol.index.intersection(phos.index))
     exp_num_cols = len(phos.columns) + 1
@@ -1934,10 +1798,10 @@ def test_join_metadata_one_meta_all_omics():
         PASS = False
 
     # Check column values
-    if not check_joined_columns(derived_mol, joined, derived_mol_col, derived_mol_col):
+    if not check_joined_columns(derived_mol, joined, derived_mol_col, None, derived_mol_col):
         PASS = False
 
-    if not check_joined_columns(phos, joined, phos.columns):
+    if not check_joined_columns(phos, joined, phos.columns, phos_name):
         PASS = False
 
     # Print whether the test passed
@@ -1966,11 +1830,6 @@ def test_join_metadata_three_meta_one_omics():
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = "{} columns from {}, with {} for {}".format(len(derived_mol_cols), derived_mol.name, phos.name, phos_gene)
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Get the columns that should've been selected from phosphoproteomics
     phos_suffix = "-.*"
     phos_regex = build_omics_regex(phos_gene, suffix=phos_suffix)
@@ -1984,10 +1843,10 @@ def test_join_metadata_three_meta_one_omics():
         PASS = False
 
     # Check column values
-    if not check_joined_columns(derived_mol, joined, derived_mol_cols, derived_mol_cols):
+    if not check_joined_columns(derived_mol, joined, derived_mol_cols, None, derived_mol_cols):
         PASS = False
 
-    if not check_joined_columns(phos, joined, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
     # Print whether the test passed
@@ -2016,11 +1875,6 @@ def test_join_metadata_three_meta_three_omics():
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = "{} columns from {}, with {} for {} genes".format(len(derived_mol_cols), derived_mol.name, phos.name, len(phos_genes))
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Get the columns that should've been selected from phosphoproteomics
     phos_suffix = "-.*"
     phos_regex = build_omics_regex(phos_genes, suffix=phos_suffix)
@@ -2034,10 +1888,10 @@ def test_join_metadata_three_meta_three_omics():
         PASS = False
 
     # Check column values
-    if not check_joined_columns(derived_mol, joined, derived_mol_cols, derived_mol_cols):
+    if not check_joined_columns(derived_mol, joined, derived_mol_cols, None, derived_mol_cols):
         PASS = False
 
-    if not check_joined_columns(phos, joined, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
     # Print whether the test passed
@@ -2065,11 +1919,6 @@ def test_join_metadata_three_meta_all_omics():
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = "{} columns from {}, with {}".format(len(derived_mol_cols), derived_mol.name, phos.name)
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Check dataframe shape
     exp_num_rows = len(derived_mol.index.intersection(phos.index))
     exp_num_cols = len(phos.columns) + len(derived_mol_cols)
@@ -2078,10 +1927,10 @@ def test_join_metadata_three_meta_all_omics():
         PASS = False
 
     # Check column values
-    if not check_joined_columns(derived_mol, joined, derived_mol_cols, derived_mol_cols):
+    if not check_joined_columns(derived_mol, joined, derived_mol_cols, None, derived_mol_cols):
         PASS = False
 
-    if not check_joined_columns(phos, joined, phos.columns):
+    if not check_joined_columns(phos, joined, phos.columns, phos_name):
         PASS = False
 
     # Print whether the test passed
@@ -2109,11 +1958,6 @@ def test_join_metadata_all_meta_one_omics():
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = "{}, with {} for {}".format(derived_mol.name, phos.name, phos_gene)
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Get the columns that should've been selected from phosphoproteomics
     phos_suffix = "-.*"
     phos_regex = build_omics_regex(phos_gene, suffix=phos_suffix)
@@ -2127,10 +1971,10 @@ def test_join_metadata_all_meta_one_omics():
         PASS = False
 
     # Check column values
-    if not check_joined_columns(derived_mol, joined, derived_mol.columns, derived_mol.columns):
+    if not check_joined_columns(derived_mol, joined, derived_mol.columns, None, derived_mol.columns):
         PASS = False
 
-    if not check_joined_columns(phos, joined, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
     # Print whether the test passed
@@ -2158,11 +2002,6 @@ def test_join_metadata_all_meta_three_omics():
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = "{}, with {} for {} genes".format(derived_mol.name, phos.name, len(phos_genes))
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Get the columns that should've been selected from phosphoproteomics
     phos_suffix = "-.*"
     phos_regex = build_omics_regex(phos_genes, suffix=phos_suffix)
@@ -2176,10 +2015,10 @@ def test_join_metadata_all_meta_three_omics():
         PASS = False
 
     # Check column values
-    if not check_joined_columns(derived_mol, joined, derived_mol.columns, derived_mol.columns):
+    if not check_joined_columns(derived_mol, joined, derived_mol.columns, None, derived_mol.columns):
         PASS = False
 
-    if not check_joined_columns(phos, joined, phos_cols.columns):
+    if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
     # Print whether the test passed
@@ -2206,11 +2045,6 @@ def test_join_metadata_default_parameters():
         print_test_result(PASS)
         return # Skip other tests, since they won't work if it's not a dataframe.
 
-    # Check dataframe name
-    exp_name = "{}, with {}".format(derived_mol.name, phos.name)
-    if not check_df_name(joined, exp_name):
-        PASS = False
-
     # Check dataframe shape
     exp_num_rows = len(derived_mol.index.intersection(phos.index))
     exp_num_cols = len(phos.columns) + len(derived_mol.columns)
@@ -2219,10 +2053,10 @@ def test_join_metadata_default_parameters():
         PASS = False
 
     # Check column values
-    if not check_joined_columns(derived_mol, joined, derived_mol.columns, derived_mol.columns):
+    if not check_joined_columns(derived_mol, joined, derived_mol.columns, None, derived_mol.columns):
         PASS = False
 
-    if not check_joined_columns(phos, joined, phos.columns):
+    if not check_joined_columns(phos, joined, phos.columns, phos_name):
         PASS = False
 
     # Print whether the test passed
@@ -2239,7 +2073,7 @@ def test_join_metadata_all_dfs():
     exp_setup = en.get_exp_setup()
 
     acet = en.get_acetylproteomics()
-    CNA = en.get_CNA()
+    CNV = en.get_CNV()
     phosg = en.get_phosphoproteomics_gene()
     phoss = en.get_phosphoproteomics()
     prot = en.get_proteomics()
@@ -2272,7 +2106,7 @@ test_get_proteomics()
 test_get_transcriptomics()
 test_get_circular_RNA()
 test_get_miRNA()
-test_get_CNA()
+test_get_CNV()
 test_get_phosphoproteomics()
 test_get_phosphoproteomics_gene()
 test_get_phosphosites()

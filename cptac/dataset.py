@@ -192,8 +192,8 @@ class DataSet:
             return
 
         # Select the columns from each dataframe
-        selected1 = self._get_omics_cols(omics_df1_name, genes1)
-        selected2 = self._get_omics_cols(omics_df2_name, genes2)
+        selected1 = self._get_omics_cols(df1_name, genes1)
+        selected2 = self._get_omics_cols(df2_name, genes2)
 
         if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the gene(s) didn't match any columns, and it printed an informative error message already. We'll return None.
             df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
