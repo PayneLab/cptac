@@ -394,7 +394,7 @@ class DataSet:
         """Based on a single gene, or a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
 
         Parameters:
-        omics_df_name (pandas DataFrame): Name of omics dataframe to select column(s) from.
+        omics_df_name (str): Name of omics dataframe to select column(s) from.
         genes (str, or list or array-like of str): Gene(s) to use to select columns from omics_df. str if one gene, list or array-like if multiple. Passing None will select the entire omics dataframe.
 
         Returns:
@@ -437,7 +437,7 @@ class DataSet:
         """Select a single column or several columns from a metadata dataframe.
 
         Parameters:
-        df_name (pandas DataFrame): The name of the metadata dataframe to select the column(s) from.
+        df_name (str): The name of the metadata dataframe to select the column(s) from.
         cols (str, or list or array-like of str): The column(s) to select from the dataframe. str if single, list or array-like of str if multiple. Passing None will select the entire dataframe.
 
         Returns:
