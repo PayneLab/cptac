@@ -1,6 +1,9 @@
 
 # Setup instructions
 
+## Python
+This data API is a Python package and is therefore only accessible via Python software. If you do not already have Python installed on your computer, we suggest either a download from Python (https://www.python.org/downloads/) or Anaconda (https://www.anaconda.com/distribution/). 
+
 ## Getting the API and data
 
 The package is accessible on the Python Package Index (PyPI) and therefore installs with pip. You can download it from there with
