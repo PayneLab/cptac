@@ -217,10 +217,8 @@ class DataSet:
             return
 
         # Select the data from each dataframe
-        somatic_mutation = self.get_mutations()
-        omics_df = self._get_dataframe(omics_df_name)
-        omics = self._get_omics_cols(omics_df, omics_genes)
-        mutations = self._get_genes_mutations(somatic_mutation, mutations_genes)
+        omics = self._get_omics_cols(omics_df_name, omics_genes)
+        mutations = self._get_genes_mutations(mutations_genes)
 
         if (omics is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, and an error message was printed. We'll return None.
             joined = self._join_other_to_mutations(omics, mutations, show_location)
@@ -245,13 +243,9 @@ class DataSet:
         if (not df1_valid) or (not df2_valid):
             return
 
-        # Get the dataframes
-        df1 = self._get_dataframe(df1_name)
-        df2 = self._get_dataframe(df2_name)
-
         # Select the columns from each dataframe
-        selected1 = self._get_metadata_cols(df1, cols1)
-        selected2 = self._get_metadata_cols(df2, cols2)
+        selected1 = self._get_metadata_cols(df1_name, cols1)
+        selected2 = self._get_metadata_cols(df2_name, cols2)
 
         if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the gene(s) didn't match any columns, and it printed an informative error message already. We'll return None.
             df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
@@ -303,10 +297,8 @@ class DataSet:
             return
 
         # Select the data from each dataframe
-        somatic_mutation = self.get_mutations()
-        metadata_df = self._get_dataframe(metadata_df_name)
-        metadata = self._get_metadata_cols(metadata_df, metadata_cols)
-        mutations = self._get_genes_mutations(somatic_mutation, mutations_genes)
+        metadata = self._get_metadata_cols(metadata_df_name, metadata_cols)
+        mutations = self._get_genes_mutations(mutations_genes)
 
         if (metadata is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, and an error message was printed. We'll return None.
             joined = self._join_other_to_mutations(metadata, mutations, show_location)
@@ -475,16 +467,17 @@ class DataSet:
 
         return return_df
 
-    def _get_genes_mutations(self, somatic_mutation, genes):
+    def _get_genes_mutations(self, genes):
         """Gets all the mutations for one or multiple genes, for all patients.
 
         Parameters:
-        somatic_mutation (pandas DataFrame): The somatic_mutation dataframe that we'll grab the mutation data from.
         genes (str, or list or array-like of str): The gene(s) to grab mutations for. str if one, list or array-like of str if multiple.
 
         Returns:
         pandas DataFrame: The mutations in each patient for the specified gene(s).
         """
+        somatic_mutation = self.get_mutations()
+
         # Process genes parameter
         if isinstance(genes, str): # If it's a single gene, make it a list so we can treat everything the same
             genes = [genes]
