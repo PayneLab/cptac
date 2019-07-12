@@ -105,7 +105,7 @@ def reindex_dataframe(df, reindex_map, new_index_name, keep_old): # This can rei
         if row in reindex_map.keys(): # This works for a dict or a pandas Series, because Series have a .keys() attribute that's an alias for the index
             new_index_list.append(reindex_map[row])
         else:
-            return None
+            return
 
     if keep_old:
         df = df.reset_index() # This gives the dataframe a numerical index and makes the old index a column, so it's not dropped when we set the new index.

@@ -12,7 +12,8 @@
 import pandas as pd
 import os
 from .dataset import DataSet
-from .file_download import get_version_files_paths
+from .file_download import update_index
+from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import *
 
 class Ovarian(DataSet):
@@ -21,10 +22,15 @@ class Ovarian(DataSet):
         """Load all the ovarian dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
 
         # Call the parent Dataset __init__() function, which initializes self._data and other variables we need
-        super().__init__()
+        super().__init__("ovarian")
 
-        # Set the cancer_type instance variable 
-        self._cancer_type = "ovarian"
+        # Update the index, if possible. If there's no internet, update_index will return False, but we don't care in this context.
+        update_index(self._cancer_type)
+
+        # Validate the index
+        self._version = validate_version(version, self._cancer_type, use_context="init")
+        if self._version is None: # Validation error. validate_version already printed an error message.
+            return
 
         # Get the paths to all the data files
         data_files = [
@@ -36,9 +42,9 @@ class Ovarian(DataSet):
             "somatic_38.maf.gz",
             "transcriptomics.tsv.gz",
             "treatment.csv.gz"]
-        data_files_paths = get_version_files_paths(self._cancer_type, version, data_files)
-        if data_files_paths is None: # Version validation error. get_version_files_paths already printed an error message.
-            return None
+        data_files_paths = get_version_files_paths(self._cancer_type, self._version, data_files)
+        if data_files_paths is None: # Data error. get_version_files_paths already printed an error message.
+            return 
 
         # Load the data files into dataframes in the self._data dict
         loading_msg = "Loading dataframes"

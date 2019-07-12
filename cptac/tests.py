@@ -488,7 +488,7 @@ def test_get_mutations():
     dimensions = (52560, 3)
     headers = ['Gene', 'Mutation', 'Location']
     test_coord = ((52000, 2), (12, 0), (34567, 1))
-    test_vals = ('p.V167L', 'ARID1A', 'Missense_Mutation')
+    test_vals = ('p.T162I', 'ADGRA3', 'Missense_Mutation')
 
     PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)

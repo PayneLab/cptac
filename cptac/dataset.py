@@ -19,14 +19,18 @@ class DataSet:
     the same function calls exist for cptac.Endometrial, cptac.Colon, etc.
     """
 
-    def __init__(self):
+    def __init__(self, cancer_type):
+        """Initialize variables for a DataSet object."""
 
         # Initialize dataframe and definitions dicts as empty for this parent class
         self._data = {}
         self._definitions = {}
 
         # Initialize the _cancer_type instance variable
-        self._cancer_type = None
+        self._cancer_type = cancer_type.lower()
+
+        # Initialize the _version instance variable
+        self._version = None
 
         # Assign the gene separator for searching columns of phosphoproteomics and acetylproteomics dataframes. Child class can overload if needed.
         self._gene_separator = "-"
@@ -45,8 +49,7 @@ class DataSet:
         self._valid_metadata_dfs = [
             'clinical',
             'derived_molecular',
-            'experimental_setup',
-            'treatment']
+            'experimental_setup'] # We don't allow the treatment df, as in Ovarian, because it has multiple rows for each sample.
 
     # Methods to get metadata dataframes
     def get_clinical(self):
@@ -139,6 +142,10 @@ class DataSet:
     def get_cancer_type(self):
         """Return the cancer type for this dataset, as a string."""
         return self._cancer_type
+
+    def get_version(self):
+        """Return the dataset version of this instance, as a string."""
+        return self._version
 
     def how_to_cite(self):
         """Print instructions for citing the data."""
@@ -379,7 +386,7 @@ class DataSet:
         elif df_type == "metadata":
             valid_dfs = self._valid_metadata_dfs
         else:
-            return None
+            return
 
         if (df_name not in valid_dfs):
             print(f"{df_name} is not a valid {df_type} dataframe for this function. Valid dataframe options in this dataset:")

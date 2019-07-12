@@ -42,8 +42,7 @@ def download(dataset, version="latest", redownload=False):
     index = get_index(dataset_path)
 
     # Validate the version number, including parsing if it's "latest"
-    use_context = "download"
-    version = validate_version(version, dataset, dataset_path, index, use_context)
+    version = validate_version(version, dataset, use_context="download")
     if version is None: # Invalid version
         return False
 
@@ -105,15 +104,18 @@ def download(dataset, version="latest", redownload=False):
     print(f"{formatted_name} data download successful.")
     return True
 
-def update_index(dataset_path):
+def update_index(dataset):
     """Check if the index of the given dataset is up to date with server version, and update it if needed.
 
     Parameters:
-    dataset_path (str): The path to the dataset to check the index of.
+    dataset (str): The name of the dataset to check the index of.
 
     Returns:
     bool: Indicates if we were able to check the index and update if needed (i.e. we had internet)
     """
+    # Get the path to our dataset
+    dataset_path = get_dataset_path(dataset)
+
     # Define our file names we'll need
     index_urls_file = "index_urls.tsv"
     index_hash_file = "index_hash.txt"
@@ -157,7 +159,7 @@ def download_text(url):
         response = requests.get(url, allow_redirects=True)
         response.raise_for_status() # Raises a requests HTTPError if the response code was unsuccessful
     except requests.RequestException: # Parent class for all exceptions in the requests module
-        return None
+        return
 
     text = response.text.strip()
     return text
@@ -212,7 +214,7 @@ def download_file(url, path, server_hash, password=None, file_message=None, file
 
             response.raise_for_status() # Raises a requests.HTTPError if the response code was unsuccessful
         except requests.RequestException: # Parent class for all exceptions in the requests module
-            return None
+            return
             
         local_hash = hash_bytes(response.content)
         if local_hash == server_hash: # Only replace the old file if the new one downloaded successfully.
@@ -223,46 +225,3 @@ def download_file(url, path, server_hash, password=None, file_message=None, file
         elif response.text.strip().startswith("<!DOCTYPE html>"): # The password was wrong, so we just got a webpage
             print(" " * len(download_msg), end='\r') # Erase the downloading message
             return "wrong_password"
-
-def get_version_files_paths(dataset, version, data_files):
-    """For dataset loading. Check that a version is valid and installed, then return the paths to the data files for that version.
-
-    Parameters:
-    dataset (str): The name of the dataset to get the paths for.
-    version (str): The version of the dataset to get the paths for.
-    data_files: (list of str): The file names to get paths for.
-
-    Returns:
-    list of str: The paths to the given data files for specified version of the dataset.
-    """
-    # Get the path to the dataset's main directory
-    dataset_path = get_dataset_path(dataset)
-
-    # Update the index, if possible
-    update_index(dataset_path) # If there's no internet, this will return False, but we don't care
-    index = get_index(dataset_path)
-
-    # Validate the version, which includes parsing if it's "latest"
-    use_context = "constructor"
-    version = validate_version(version, dataset, dataset_path, index, use_context)
-    if version is None: # Validation error
-        return None
-
-    # Check that they've installed the version they requested
-    version_path = os.path.join(dataset_path, f"{dataset}_v{version}")
-    if not os.path.isdir(version_path):
-        print(f"Data version {version} is not installed. To install, run \"cptac.download(dataset='{dataset}', version='{version}')\".")
-        return None
-
-    data_files_paths = []
-    for data_file in data_files:
-        file_path = os.path.join(version_path, data_file)
-        if not os.path.isfile(file_path): # Check that the file exists
-            if is_latest_version(version, index):
-                print(f"Missing data file '{data_file}'. Call \"cptac.download(dataset='{dataset}')\" to download it. Dataset loading aborted.")
-            else:
-                print(f"Missing data file '{data_file}'. Call \"cptac.download(dataset='{dataset}', version='{version}')\" to download it. Dataset loading aborted.")
-            return
-        data_files_paths.append(file_path)
-
-    return data_files_paths

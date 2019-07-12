@@ -12,7 +12,8 @@
 import pandas as pd
 import os
 from .dataset import DataSet
-from .file_download import get_version_files_paths
+from .file_download import update_index
+from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import *
 
 class RenalCcrcc(DataSet):
@@ -21,14 +22,15 @@ class RenalCcrcc(DataSet):
         """Load all of the renalccrcc dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
 
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
-        super().__init__()
+        super().__init__("renalccrcc")
 
-        # Set the _cancer_type instance variable
-        self._cancer_type = "renalccrcc"
+        # Update the index, if possible. If there's no internet, update_index will return False, but we don't care in this context.
+        update_index(self._cancer_type)
 
-        # FILL: The following overloading may or not be needed for your dataset.
-        # Overload the gene separator for column names in the phosphoproteomics dataframe. In the renalccrcc data, it's an underscore, not a dash like most datasets.
-        #self._gene_separator = "_"
+        # Validate the index
+        self._version = validate_version(version, self._cancer_type, use_context="init")
+        if self._version is None: # Validation error. validate_version already printed an error message.
+            return
 
         # FILL: If needed, overload the self._valid_omics_dfs and self._valid_metadata_dfs variables that were initialized in the parent DataSet init.
 
@@ -41,9 +43,9 @@ class RenalCcrcc(DataSet):
             "cptac-metadata.xls.gz",
             "kirc_wgs_cnv_gene.csv.gz",
             "RNA_Normal_Tumor_185_samples.tsv.gz"]
-        data_files_paths = get_version_files_paths(self._cancer_type, version, data_files)
-        if data_files_paths is None: # Version validation error. get_version_files_paths already printed an error message.
-            return None
+        data_files_paths = get_version_files_paths(self._cancer_type, self._version, data_files)
+        if data_files_paths is None: # Data error. get_version_files_paths already printed an error message.
+            return
 
         # Load the data into dataframes in the self._data dict
         loading_msg = "Loading dataframes"
