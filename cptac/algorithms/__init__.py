@@ -295,9 +295,9 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     the gene was mutated once per sample."""    
     
     # Get total tumors/patients
-    omics_and_mutations = cancer_object.append_mutations_to_omics(
-        mutation_genes = 'TP53', omics_df_name = 'proteomics', omics_genes = 'TP53') #drop Normal samples
-    tumors = omics_and_mutations.loc[omics_and_mutations['Sample_Status'] == 'Tumor'] 
+    omics_and_mutations = cancer_object.join_omics_to_mutations(
+        mutations_genes = 'TP53', omics_df_name = 'proteomics', omics_genes = 'TP53')
+    tumors = omics_and_mutations.loc[omics_and_mutations['Sample_Status'] == 'Tumor'] #drop Normal samples
     total_tumor_samples = len(tumors)
     
     # Get mutations data frame
