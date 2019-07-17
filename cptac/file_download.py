@@ -33,7 +33,7 @@ def download(dataset, version="latest", redownload=False):
         return False
 
     # Update the index
-    updated = update_index(dataset_path)
+    updated = update_index(dataset)
     if not updated:
         print("Insufficient internet. Check your internet connection.")
         return False

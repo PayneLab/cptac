@@ -11,18 +11,18 @@
 
 import pandas as pd
 
-def unionize_indicies(dataset):
-    """Return a union of all indicies in a dataset, without duplicates.
+def unionize_indices(dataset):
+    """Return a union of all indices in a dataset, without duplicates.
 
     Parameters:
     dataset (dict of str: pandas DataFrame): The data dictionary containing the dataset.
 
     Returns:
-    pandas Index: Union of all indicies in the dataset, without duplicates.
+    pandas Index: Union of all indices in the dataset, without duplicates.
     """
-    indicies = [df.index for df in dataset.values()]
+    indices = [df.index for df in dataset.values()]
     master_index = pd.Index([])
-    for index in indicies:
+    for index in indices:
         master_index = master_index.union(index)
         master_index = master_index.drop_duplicates()
     return master_index
@@ -48,18 +48,18 @@ def generate_sample_status_col(df, normal_test):
     return sample_status_col
 
 def get_reindex_map(series):
-    """Generate a reindexing map from a series where the index is the new indicies, and the values are the old indicies.
+    """Generate a reindexing map from a series where the index is the new indices, and the values are the old indices.
 
     Parameters:
     series (pandas Series): The series to generate the reindex map from.
 
     Returns:
-    pandas Series: The reindexing map, with the old inidicies as the index, and the new indicies as the values.
+    pandas Series: The reindexing map, with the old inidicies as the index, and the new indices as the values.
     """
     old_index_name = series.name
     new_index_name = series.index.name
     if new_index_name is None:
-        new_index_name = "index" # This is the default name pandas gives unnamed indicies when they're made columns
+        new_index_name = "index" # This is the default name pandas gives unnamed indices when they're made columns
 
     # Check that the mapping is one to one
     series = series.dropna()
@@ -77,7 +77,7 @@ def generate_sample_id_map(master_index):
     """Generate sample ids for all samples in a dataset, and map them to the existing index.
 
     Parameters:
-    master_index (pandas Index): Union of all the indicies in the dataset, without duplicates.
+    master_index (pandas Index): Union of all the indices in the dataset, without duplicates.
 
     Returns:
     dict: A dictionary with the old index values as the keys, and their corresponding sample ids as the values.

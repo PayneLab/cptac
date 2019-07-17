@@ -111,12 +111,12 @@ class Colon(DataSet):
         phos_normal = self._data.get("phosphoproteomics_normal") # Normal entries are not marked
 
         # Mark entries in phosphoproteomics_normal dataframe with an N at the end of the ID, to match proteomics_normal
-        phos_normal_indicies = phos_normal.index.values.tolist()
-        for i in range(len(phos_normal_indicies)):
-            index = phos_normal_indicies[i]
+        phos_normal_indices = phos_normal.index.values.tolist()
+        for i in range(len(phos_normal_indices)):
+            index = phos_normal_indices[i]
             index_marked = index + 'N'
-            phos_normal_indicies[i] = index_marked
-        new_phos_index = pd.Index(phos_normal_indicies)
+            phos_normal_indices[i] = index_marked
+        new_phos_index = pd.Index(phos_normal_indices)
         phos_normal = phos_normal.set_index(new_phos_index)
 
         # Combine the two phosphoproteomics dataframes into one dataframe
@@ -127,8 +127,8 @@ class Colon(DataSet):
         del self._data["phosphoproteomics_tumor"]
         del self._data["phosphoproteomics_normal"]
 
-        # Get a union of all dataframes' indicies, with duplicates removed
-        master_index = unionize_indicies(self._data)
+        # Get a union of all dataframes' indices, with duplicates removed
+        master_index = unionize_indices(self._data)
 
         # Sort this master_index so all the samples with an N suffix are last. Because the N is a suffix, not a prefix, this is kind of messy.
         status_df = pd.DataFrame(master_index, columns=['Patient_ID']) # Create a new dataframe with the master_index as a column called "Patient_ID"
@@ -155,7 +155,7 @@ class Colon(DataSet):
         # Generate a sample ID for each patient ID
         sample_id_dict = generate_sample_id_map(master_index)
 
-        # Give all the dataframes Sample_ID indicies
+        # Give all the dataframes Sample_ID indices
         dfs_to_delete = [] # If there's an issue reindexing a dataframe, we delete it. That shouldn't ever happen...
         for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
             df = self._data[name]

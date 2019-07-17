@@ -95,7 +95,7 @@ class Ovarian(DataSet):
                 c_index = df.index.values.tolist()
                 index_no_c = [id[1:] if id.startswith("C") else id for id in c_index]
                 index_no_c = pd.Index(index_no_c)
-                df = df.set_index(index_no_c) # Take C prefix off of indicies for those samples that have them (tumor samples have C, normal have N)
+                df = df.set_index(index_no_c) # Take C prefix off of indices for those samples that have them (tumor samples have C, normal have N)
                 full_index = df.index.values.tolist()
                 ids_to_drop = [id for id in full_index if id.startswith('OV_QC')]
                 df = df.drop(ids_to_drop) # Drop all OV_QC* samples--they're quality control samples not relevant for data analysis
@@ -125,8 +125,8 @@ class Ovarian(DataSet):
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
-        # Get a union of all dataframes' indicies, with duplicates removed
-        master_index = unionize_indicies(self._data)
+        # Get a union of all dataframes' indices, with duplicates removed
+        master_index = unionize_indices(self._data)
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN
         master_clinical = self._data['clinical'].reindex(master_index)

@@ -180,7 +180,7 @@ class DataSet:
 
     # Utilities methods
     def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None):
-        """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indicies is used.
+        """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
         df1_name (str): Name of first omics dataframe to select columns from.
@@ -202,13 +202,13 @@ class DataSet:
         selected1 = self._get_omics_cols(df1_name, genes1)
         selected2 = self._get_omics_cols(df2_name, genes2)
 
-        if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the gene(s) didn't match any columns, and it printed an informative error message already. We'll return None.
+        if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the gene(s) didn't match any columns, or a non-included dataframe, and it printed an informative error message already. We'll return None.
             df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
             df = df.sort_index() # Sort rows in ascending order
             return df
 
     def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, show_location=True):
-        """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indicies is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
+        """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
         omics_df (str): Name of omics dataframe to join the mutation data to.
@@ -227,12 +227,12 @@ class DataSet:
         omics = self._get_omics_cols(omics_df_name, omics_genes)
         mutations = self._get_genes_mutations(mutations_genes)
 
-        if (omics is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, and an error message was printed. We'll return None.
+        if (omics is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, or a non-included dataframe, and an error message was printed. We'll return None.
             joined = self._join_other_to_mutations(omics, mutations, show_location)
             return joined
 
     def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None):
-        """Take specified column(s) from one metadata dataframe, and join to specified columns(s) from another metadata dataframe. Intersection (inner join) of indicies is used.
+        """Take specified column(s) from one metadata dataframe, and join to specified columns(s) from another metadata dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
         df1_name (str): Name of first metadata dataframe to select columns from.
@@ -254,13 +254,13 @@ class DataSet:
         selected1 = self._get_metadata_cols(df1_name, cols1)
         selected2 = self._get_metadata_cols(df2_name, cols2)
 
-        if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the gene(s) didn't match any columns, and it printed an informative error message already. We'll return None.
+        if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the gene(s) didn't match any columns, or a non-included dataframe, and it printed an informative error message already. We'll return None.
             df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
             df = df.sort_index() # Sort rows in ascending order
             return df
 
     def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None):
-        """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_setup) to part or all of an omics dataframe. Intersection (inner join) of indicies is used.
+        """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_setup) to part or all of an omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
         metadata_df_name (str): Name of metadata dataframe to select columns from.
@@ -282,13 +282,13 @@ class DataSet:
         metadata_selected = self._get_metadata_cols(metadata_df_name, metadata_cols)
         omics_selected = self._get_omics_cols(omics_df_name, omics_genes)
 
-        if (metadata_selected is not None) and (omics_selected is not None): # If either selector returned None, the key(s) didn't match any columns, and it printed an informative error message already. We'll return None.
+        if (metadata_selected is not None) and (omics_selected is not None): # If either selector returned None, the key(s) didn't match any columns, or a non-included dataframe, and it printed an informative error message already. We'll return None.
             joined = metadata_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
             joined = joined.sort_index() # Sort rows in ascending order
             return joined
 
     def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, show_location=True):
-        """Select all mutations for specified gene(s), and joins them to all or part of the given metadata dataframe. Intersection (inner join) of indicies is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
+        """Select all mutations for specified gene(s), and joins them to all or part of the given metadata dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
         metadata_df_name (str): Name of metadata dataframe to join the mutation data to.
@@ -307,7 +307,7 @@ class DataSet:
         metadata = self._get_metadata_cols(metadata_df_name, metadata_cols)
         mutations = self._get_genes_mutations(mutations_genes)
 
-        if (metadata is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, and an error message was printed. We'll return None.
+        if (metadata is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, or a non-included dataframe, and an error message was printed. We'll return None.
             joined = self._join_other_to_mutations(metadata, mutations, show_location)
             return joined
 
@@ -388,8 +388,8 @@ class DataSet:
         else:
             return
 
-        if (df_name not in valid_dfs):
-            print(f"{df_name} is not a valid {df_type} dataframe for this function. Valid dataframe options in this dataset:")
+        if (df_name not in valid_dfs) or (df_name not in self._data.keys()):
+            print(f"{df_name} is not a valid {df_type} dataframe for this function in this dataset. Valid options:")
             for valid_name in valid_dfs:
                 if valid_name in self._data.keys(): # Only print it if it's included in this dataset
                     print('\t' + valid_name)
@@ -409,6 +409,8 @@ class DataSet:
         """
         # Get our omics df
         omics_df = self._get_dataframe(omics_df_name)
+        if omics_df is None: # Dataframe not included in this dataset. _get_dataframe already printed an error message.
+            return
 
         # Process genes parameter
         if isinstance(genes, str): # If it's a single gene, make it a list so we can treat everything the same
@@ -452,6 +454,8 @@ class DataSet:
         """
         # Get our dataframe
         df = self._get_dataframe(df_name)
+        if df is None: # Dataframe not included in this dataset. _get_dataframe already printed error message.
+            return
 
         # Process genes parameter
         if isinstance(cols, str): # If it's a single column, make it a list so we can treat everything the same
@@ -561,9 +565,9 @@ class DataSet:
         Returns:
         pandas DataFrame: The joined dataframe, with a Sample_Status column added and NaNs filled.
         """
-        joined = other.join(mutations, how = "left") # Left join other data and mutation data (left being the other data)
+        joined = other.join(mutations, how="left") # Left join other data and mutation data (left being the other data)
 
-        # Add Sample_Status column by joining the sample_status_map to the joined mutation dataframe. Do a left join so we drop any indicies not in the mutations dataframe.
+        # Add Sample_Status column by joining the sample_status_map to the joined mutation dataframe. Do a left join so we drop any indices not in the mutations dataframe.
         sample_status_map = self._get_sample_status_map()
         joined = joined.join(sample_status_map, how="left")
 
@@ -588,8 +592,8 @@ class DataSet:
         location_regex = r'^.*_Location$' # Construct regex to find all location columns
         location_cols = [col for col in joined.columns.values if re.match(location_regex, col)] # Get a list of all location columns
         for location_col in location_cols:
-            if show_location:
-                joined.loc[pd.isnull(joined[location_col]), location_col] = no_mutation_fill # If there's no location, there wasn't a mutation--make it easier for people to understand that.
+            if show_location: # If we're including the location column, fill NaN with "No_mutation", since that's what it means, so things are clearer to the user.
+                joined.loc[(pd.isnull(joined[location_col])) & (pd.notnull(joined['Sample_Status'])), location_col] = no_mutation_fill # Make sure Sample Status is not NaN, though--if it is, we have no mutation data at all for that sample, so we can't say "No_mutation". It must have been a sample that was in the other dataframe, but not the mutations.
             else:
                 joined = joined.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
 

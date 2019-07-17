@@ -172,7 +172,7 @@ class Endometrial(DataSet):
             self._data[new] = self._data[old]
             del self._data[old]
 
-        # Rename indicies to "Sample_ID", since that's what they all are.
+        # Rename indices to "Sample_ID", since that's what they all are.
         for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
             df_rename_index = self._data[name]
             df_rename_index.index.name = "Sample_ID"
