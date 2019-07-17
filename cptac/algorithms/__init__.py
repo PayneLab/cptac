@@ -269,17 +269,17 @@ def get_interacting_proteins(protein, number=25):
 def get_frequently_mutated(cancer_object, cutoff = 0.1):  
     """
     Takes a cancer object and finds the frequently 
-    mutated genes in the total tumors with mutation data.
+    mutated genes (in the tumor samples) compared to the cutoff.
 
     Parameters:
-    cancer_object (object): cancer class object from cptac module 
-    cutoff (float): used as comparison to determine the 
+    cancer_object (object): cancer type from cptac module 
+    cutoff (float): used as a comparison to determine the 
                     status of gene mutation frequency
 
     Returns:
     freq_mutated_df (pd.DataFrame): DataFrame of frequently 
         mutated genes passing the cutoff. Columns contain the 
-        fractions of total unique mutations,missence type 
+        fractions of: total unique mutations, missence type 
         mutations, and truncation type mutations per gene.
     
     The Missence_Mut column includes: 
@@ -294,38 +294,21 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     exceed the Unique_Samples_Mut column which only counts if 
     the gene was mutated once per sample."""    
     
-    # Get mutations data frame (whole exome sequencing)
-    somatic_mutations = cancer_object.get_mutations()
-             
     # Get total tumors/patients
     omics_and_mutations = cancer_object.append_mutations_to_omics(
-        mutation_genes = 'TP53', omics_df_name = 'proteomics', omics_genes = 'TP53')
-    tumors = omics_and_mutations.loc[omics_and_mutations['Sample_Status'] == 'Tumor']
-    total_tumor_patients = len(tumors)
+        mutation_genes = 'TP53', omics_df_name = 'proteomics', omics_genes = 'TP53') #drop Normal samples
+    tumors = omics_and_mutations.loc[omics_and_mutations['Sample_Status'] == 'Tumor'] 
+    total_tumor_samples = len(tumors)
     
-    # Find frequently mutated genes and their fraction of unique mutated samples.
-    #move 'Sample_ID' from index to its own column
-    origin_df = somatic_mutations.reset_index()
+    # Get mutations data frame
+    somatic_mutations = cancer_object.get_mutations() 
+    origin_df = somatic_mutations.reset_index() #prepare to count unique samples
     
     # Drop silent mutations for Ovarian dataset
     if cancer_object.get_cancer_type() == 'ovarian':
         origin_df = origin_df.loc[origin_df['Mutation'] != 'Silent']
         
-    #group by gene and count unique samples
-    count_mutations = origin_df.groupby(['Gene']).nunique()
-
-    #format
-    count_mutations = count_mutations.rename(columns={"Sample_ID": "Unique_Samples_Mut"})
-    count_mutations = count_mutations.drop(['Gene', 'Mutation','Location'], axis = 1)
-    
-    #filter using the cutoff and create fraction
-    fraction_mutated = count_mutations.apply(lambda x: x / total_tumor_patients)
-    fraction_greater_than_cutoff = fraction_mutated.where(lambda x: x > cutoff) #na used when false
-    filtered_gene_df = fraction_greater_than_cutoff.dropna()
-    
-    
-    #Create Missence and Trucation data frame
-    #create two categories in Mutation column
+    # Create two categories in Mutation column - 'M': Missence, 'T': Truncation
     if cancer_object.get_cancer_type() == 'colon':
         missence_truncation_groups = {'frameshift substitution': 'T', 
             'frameshift deletion': 'T', 'frameshift insertion': 'T', 
@@ -336,31 +319,35 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
         missence_truncation_groups = {'In_Frame_Del': 'M', 'In_Frame_Ins': 'M',
             'Missense_Mutation': 'M', 'Frame_Shift_Del': 'T','Nonsense_Mutation': 'T', 
             'Splice_Site': 'T', 'Frame_Shift_Ins': 'T','Nonstop_Mutation':'T'}
-       
     mutations_replaced_M_T = origin_df.replace(missence_truncation_groups)
     
-    # group mutation categories
+    # Find frequently mutated genes (total fraction > cutoff)
+    # Step 1 - group by gene and count unique samples
+    count_mutations = origin_df.groupby(['Gene']).nunique()
+    # Step 2 - format
+    count_mutations = count_mutations.rename(columns={"Sample_ID": "Unique_Samples_Mut"})
+    count_mutations = count_mutations.drop(['Gene', 'Mutation','Location'], axis = 1)
+    # Step 3 - filter using the cutoff and create fraction
+    fraction_mutated = count_mutations.apply(lambda x: x / total_tumor_samples)
+    fraction_greater_than_cutoff = fraction_mutated.where(lambda x: x > cutoff) #na used when false
+    filtered_gene_df = fraction_greater_than_cutoff.dropna()
+    
+    # Create and join Missence column (following similar steps as seen above)
     miss = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'M']
-    trunc = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'T']
-
-    # group by gene and count unique samples for both categories
     count_miss = miss.groupby(['Gene']).nunique()
-    count_trunc = trunc.groupby(['Gene']).nunique()
-
-    #format
     missence_df = count_miss.rename(columns={"Sample_ID": "Missence_Mut"})
     missence_df = missence_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
-
+    fraction_missence = missence_df.apply(lambda x: x / total_tumor_samples)
+    freq_mutated_df = filtered_gene_df.join(fraction_missence, how='left').fillna(0)
+    
+    
+    # Create and join Truncation column (following similar steps as seen above)
+    trunc = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'T']
+    count_trunc = trunc.groupby(['Gene']).nunique()
     truncation_df = count_trunc.rename(columns={"Sample_ID": "Truncation_Mut"})
     truncation_df = truncation_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
-
-    #join miss and trunc and change nan to 0, then divide by total tumors
-    join_mutations = missence_df.join(truncation_df).fillna(0)
-    missence_and_truncation_df = join_mutations.apply(lambda x: x / total_tumor_patients)
-
-
-    #Join data frames, keeping only the genes that passed the cutoff 
-    freq_mutated_df = filtered_gene_df.join(missence_and_truncation_df).reset_index()
+    fraction_truncation = truncation_df.apply(lambda x: x / total_tumor_samples)
+    freq_mutated_df = freq_mutated_df.join(fraction_truncation, how='left').fillna(0)
+   
     freq_mutated_df.name = 'frequently_mutated'
-    
     return freq_mutated_df
