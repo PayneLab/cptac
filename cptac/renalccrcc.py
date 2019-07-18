@@ -131,6 +131,7 @@ class RenalCcrcc(DataSet):
 
             elif file_name == "cptac-metadata.xls.gz":
                 df = pd.read_csv(file_path, index_col=0)
+                df = df.drop(index=["pooled sample"] + nci_labels + qc_labels) # Drop the pooled samples in addition to other samples to exclude
                 clinical_dfs["metadata_and_keys"] = df
             
             elif file_name == "kirc_wgs_cnv_gene.csv.gz":
@@ -172,36 +173,64 @@ class RenalCcrcc(DataSet):
         # Process and combine the multiple clinical dataframes
         clinical = clinical_dfs["metadata_and_keys"] # We'll start with this dataframe, and add the others to it.
         new_clinical_index = [] # We gonna reindex this here dataframe
-        rename_counter = 1 # We start at 1 to match the pooled sample numbers in the Specimen.Label column.
-        for index, row in clinical.iterrows(): # Number the pooled samples in the index to eliminate duplicate values, which would mess up merging
-            if index == "pooled sample":
-                index = f"pooled_sample_{rename_counter:0>2}"
-                rename_counter +=1
-            elif row["Type"] == "Normal": # Also prepend "N" to the index values of normal samples
+        for index, row in clinical.iterrows(): # Prepend "N" to the index values of normal samples
+            if row["Type"] == "Normal":
                 index = "N" + index
             new_clinical_index.append(index)
 
         clinical.index = new_clinical_index
         clinical.index.name = "Patient_ID" # Name the index Patient_ID, since the index values are in fact the patient IDs (also called case IDs)
         clinical = clinical.sort_index()
-        clinical = clinical.rename(columns={"Type": "Sample_Tumor_Normal"}) # Rename the Type column to match other datasets.
-        clinical = clinical.join(clinical_dfs["Patient_Clinical_Attributes"], how="outer") # Join in two of the other clinical dataframes
+        clinical = clinical.rename(columns={"Type": "Sample_Tumor_Normal"}) # This matches the other datasets.
+        clinical = clinical.join(clinical_dfs["Patient_Clinical_Attributes"], how="outer")
 
         specimen_attributes = clinical_dfs["Specimen_Attributes"] # Before we can join in this dataframe, we need to prepend "N" to the normal samples' index values
         new_specimen_attributes_index = []
-        for index, row in specimen_attributes.iterrows():
-            if row["tissue_type"] == "normal": # Also prepend "N" to the index values of normal samples
+        for index, row in specimen_attributes.iterrows(): # Prepend "N" to the index values of normal samples
+            if row["tissue_type"] == "normal":
                 index = "N" + index
             new_specimen_attributes_index.append(index)
         specimen_attributes.index = new_specimen_attributes_index
         specimen_attributes.index.name = "Patient_ID" # Name the index Patient_ID, since the index values are in fact the patient IDs (also called case IDs)
-
         clinical = clinical.join(specimen_attributes, how="outer") # Join in our nicely reindexed dataframe
-        clinical = clinical.join(clinical_dfs["Other_Medical_Information"], how="outer") # Join in this last dataframe. We intentionally do it last, so it's last in the table.
+
+        medical_info = clinical_dfs["Other_Medical_Information"] # We're going to join one column from this to the clinical dataframe, and later take some other columns to make a medical_history dataframe
+        medication_col = medical_info["medication_name"]
+        medication_col = medication_col.str.replace("|", ",")
+        clinical = clinical.assign(patient_medications=medication_col) # Add it in as a new "patient_medications" column
         clinical = clinical.drop(columns=["MS.Directory.Name", "Batch", "Data.Set", "TMT.Channel", "Mass.Spectrometer", "Mass.Spectrometer.Operator", "Set.A", "Set.B", "tissue_type"]) # tissue_type column is a duplicate of Sample_Tumor_Normal
-        clinical = clinical.drop(index = nci_labels + qc_labels ) # Drop the samples we're excluding
         self._data["clinical"] = clinical # Save this final amalgamation of all the clinical dataframes
 
+        # Create the medical_history dataframe
+        medical_info = clinical_dfs["Other_Medical_Information"]
+        medical_history_unparsed = medical_info[["medical_condition", "medical_condition_other", "condition_year_of_onset", "history_of_medical_treatment", "medical_history_source"]]
+        medical_history_unparsed = medical_history_unparsed.dropna(axis="index", how="all")
+
+        first_time = True # We'll use this to get special behavior on our first iteration
+        for col_name in medical_history_unparsed.columns:
+            med_hist_col = medical_history_unparsed[col_name].str.split("|", expand=True) # Cells have mutliple values separated by "|", so we'll splits those into individual columns
+            med_hist_col = med_hist_col.reset_index() # Make the sample ids a column so we can use them in melt
+            med_hist_col = med_hist_col.melt(id_vars="Patient_ID") # Use each row's patient id as its index, then combine everything else into one column
+            if first_time:
+                med_hist_col = med_hist_col.drop(columns="variable") # Had the old column headers
+            else:
+                med_hist_col = med_hist_col.drop(columns=["Patient_ID", "variable"]) # Also dropping patient ids so we're not trying to join dfs with duplicate columns at the end of the loop
+            med_hist_col = med_hist_col.rename(columns={"value": col_name})
+            med_hist_col = med_hist_col.dropna()
+            if first_time:
+                medical_history_parsed = med_hist_col 
+            else:
+                medical_history_parsed = medical_history_parsed.join(med_hist_col, how="outer")
+            first_time = False
+
+        med_cond = medical_history_parsed["medical_condition"] # Where medical_condition column is "Other, specify", we're going to fill in value from medical_condition_other column
+        med_cond = med_cond.where(med_cond != "Other, specify", medical_history_parsed["medical_condition_other"])
+        medical_history_parsed["medical_condition"] = med_cond
+        medical_history_parsed = medical_history_parsed.drop(columns="medical_condition_other") # Since we copied all of the useful information into the medical_condition column
+
+        medical_history_parsed = medical_history_parsed.set_index("Patient_ID")
+        medical_history_parsed = medical_history_parsed.sort_index()
+        self._data["medical_history"] = medical_history_parsed
 
         # Use the RNA.ID column from clinical dataframe to reindex transcriptomics dataframe with patient ids
         tran_map = get_reindex_map(clinical["RNA.ID"])
@@ -224,14 +253,17 @@ class RenalCcrcc(DataSet):
         self._data["phosphoproteomics"] = phos_reindexed
         self._data["phosphoproteomics_gene"] = phos_gene_reindexed
 
+        # Now that we've used the RNA.ID and Specimen.Label columns to reindex the dataframes that needed it, we can drop them from the clinical dataframe
+        clinical = clinical.drop(columns=["Specimen.Label", "RNA.ID"])
+
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data)
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        master_clinical = clinical.reindex(master_index)
+        clinical = clinical.reindex(master_index)
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
-        self._data['clinical'] = master_clinical
+        self._data['clinical'] = clinical
 
         # Generate a sample ID for each patient ID
         sample_id_dict = generate_sample_id_map(master_index)

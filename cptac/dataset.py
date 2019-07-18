@@ -64,6 +64,10 @@ class DataSet:
         """Get the experimental_setup dataframe."""
         return self._get_dataframe("experimental_setup")
 
+    def get_medical_history(self):
+        """Get the medical_history dataframe."""
+        return self._get_dataframe("medical_history")
+
     def get_treatment(self):
         """Get the treatment dataframe."""
         return self._get_dataframe("treatment")
@@ -207,14 +211,15 @@ class DataSet:
             df = df.sort_index() # Sort rows in ascending order
             return df
 
-    def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, show_location=True):
+    def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True):
         """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
         omics_df (str): Name of omics dataframe to join the mutation data to.
         mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
-        show_location (bool, optional): Whether to include the Locations column from the mutation dataframe. Defaults to True.
+        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in filter_prefer, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutations will be included, as a list.
+        show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
 
         Returns:
         pandas DataFrame: The mutations for the specified gene, joined to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
@@ -287,14 +292,15 @@ class DataSet:
             joined = joined.sort_index() # Sort rows in ascending order
             return joined
 
-    def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, show_location=True):
+    def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, mutations_filter=None, show_location=True):
         """Select all mutations for specified gene(s), and joins them to all or part of the given metadata dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
         metadata_df_name (str): Name of metadata dataframe to join the mutation data to.
         mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
         metadata_cols (str, or list or array-like of str, optional): Gene(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
-        show_location (bool, optional): Whether to include the Locations column from the mutation dataframe. Defaults to True.
+        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in filter_prefer, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutations will be included, as a list.
+        show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
 
         Returns:
         pandas DataFrame: The mutations for the specified gene, joined to all or part of the metadata dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
@@ -310,36 +316,6 @@ class DataSet:
         if (metadata is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, or a non-included dataframe, and an error message was printed. We'll return None.
             joined = self._join_other_to_mutations(metadata, mutations, show_location)
             return joined
-
-    def filter_merged_mutations(df, priority_map=None):
-        """Take a dataframe merged from an omics dataframe and a mutations dataframe, and convert the lists of one to more mutations to just one mutation per row.
-
-        Parameters:
-        df (pandas DataFrame): The dataframe with lists of one or more mutations.
-        priority_map (list, optional): A list of mutation types or hotspots to prioritize, in order of priority. Default of None will 
-
-        Returns:
-        pandas DataFrame: The merged dataframe, with the mutations filtered to one per row.
-        """
-        truncations = []
-        missenses = []
-
-        mutation_regex = r'^.*_Mutation$' # Construct regex to find all mutation columns
-        mutation_cols = [col for col in df.columns.values if re.match(mutation_regex, col)] # Get a list of all mutation columns
-
-        location_regex = r'^.*_Location$' # Construct regex to find all location columns
-        location_cols = [col for col in df.columns.values if re.match(location_regex, col)] # Get a list of all location columns
-        
-        mutation_status_regex = r"^.*_Mutation_Status$" # Construct a regex to find all Mutation_Status columns
-        mutation_status_cols = [col for col in df.columns.values if re.match(mutation_status_regex, col)] # Get a list of all Mutation_Status columns
-            
-        filtered_df = pd.DataFrame(index=df.index.copy(), columns=df.columns.copy())
-        filtered_df = filtered_df.drop(columns=mutation_status_cols) # We don't need them
-
-        for index, row in df.iterrows:
-            for i in len(mutation_cols):
-                #mutation_col = 
-                pass
 
     # "Private" methods
     def _get_dataframe(self, name):
