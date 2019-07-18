@@ -349,5 +349,4 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     fraction_truncation = truncation_df.apply(lambda x: x / total_tumor_samples)
     freq_mutated_df = freq_mutated_df.join(fraction_truncation, how='left').fillna(0)
    
-    freq_mutated_df.name = 'frequently_mutated'
     return freq_mutated_df
