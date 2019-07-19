@@ -42,6 +42,6 @@ setup(name='cptac',
 	zip_safe=False,
 	include_package_data=True,
 	project_urls={
-	   'Documentation': 'https://github.com/PayneLab/cptac/tree/master/doc'
+	   'Documentation': 'https://github.com/PayneLab/cptac/tree/master/docs'
 	},
 	)

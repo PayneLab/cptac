@@ -37,6 +37,7 @@ class RenalCcrcc(DataSet):
             "6_CPTAC3_CCRCC_Phospho_abundance_gene_protNorm=2_CB_imputed.tsv.gz",
             "6_CPTAC3_CCRCC_Phospho_abundance_phosphosite_protNorm=2_CB.tsv.gz",
             "6_CPTAC3_CCRCC_Whole_abundance_protein_pep=unique_protNorm=2_CB.tsv.gz",
+            "Clinical Table S1.xlsx",
             "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz",
             "ccrccMethylGeneLevelByMean.txt.gz",
             "cptac-metadata.xls.gz",
@@ -109,6 +110,11 @@ class RenalCcrcc(DataSet):
                 df = df.sort_index()
                 df = df.transpose()
                 self._data["proteomics"] = df
+            
+            elif file_name == "Clinical Table S1.xlsx":
+                df = pd.read_excel(file_path, sheet_name="ccrcc_clinical_characteristics", index_col=0) # This file has multiple sheets, but we only want the one
+                df.index.name = "Patient_ID" # The index is currently "case_id", but we call that "Patient_ID"
+                clinical_dfs["authoritative_clinical"] = df.copy()
             
             elif file_name == "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz":
                 df = pd.read_csv(file_path, sep='\t', dtype={"PUBMED":object}) # "PUBMED" column has mixed types, so we specify object as the dtype to prevent a warning from printing. We don't actually use the column, so that's all we need to do.
@@ -188,6 +194,9 @@ class RenalCcrcc(DataSet):
         clinical = clinical.sort_index()
         clinical = clinical.rename(columns={"Type": "Sample_Tumor_Normal"}) # This matches the other datasets.
         clinical = clinical.join(clinical_dfs["Patient_Clinical_Attributes"], how="outer")
+
+        auth_clin = clinical_dfs["authoritative_clinical"] # This table has more authoritative values for histologic type, so we'll replace that column
+        clinical["histologic_type"] = auth_clin["Histologic_Type"]
 
         specimen_attributes = clinical_dfs["Specimen_Attributes"] # Before we can join in this dataframe, we need to prepend "N" to the normal samples' index values
         new_specimen_attributes_index = []
