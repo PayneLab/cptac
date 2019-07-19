@@ -218,7 +218,7 @@ class DataSet:
         omics_df (str): Name of omics dataframe to join the mutation data to.
         mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
-        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in filter_prefer, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutations will be included, as a list.
+        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in filter_prefer, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
 
         Returns:
@@ -230,10 +230,11 @@ class DataSet:
 
         # Select the data from each dataframe
         omics = self._get_omics_cols(omics_df_name, omics_genes)
-        mutations = self._get_genes_mutations(mutations_genes)
+        mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
 
         if (omics is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, or a non-included dataframe, and an error message was printed. We'll return None.
-            joined = self._join_other_to_mutations(omics, mutations, show_location)
+            mutations_were_filtered = mutations_filter is not None
+            joined = self._join_other_to_mutations(omics, mutations, mutations_were_filtered, show_location)
             return joined
 
     def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None):
@@ -299,7 +300,7 @@ class DataSet:
         metadata_df_name (str): Name of metadata dataframe to join the mutation data to.
         mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
         metadata_cols (str, or list or array-like of str, optional): Gene(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
-        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in filter_prefer, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutations will be included, as a list.
+        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in filter_prefer, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
 
         Returns:
@@ -311,10 +312,11 @@ class DataSet:
 
         # Select the data from each dataframe
         metadata = self._get_metadata_cols(metadata_df_name, metadata_cols)
-        mutations = self._get_genes_mutations(mutations_genes)
+        mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
 
         if (metadata is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, or a non-included dataframe, and an error message was printed. We'll return None.
-            joined = self._join_other_to_mutations(metadata, mutations, show_location)
+            mutations_were_filtered = mutations_filter is not None
+            joined = self._join_other_to_mutations(metadata, mutations, mutations_were_filtered, show_location)
             return joined
 
     # "Private" methods
@@ -454,11 +456,12 @@ class DataSet:
 
         return return_df
 
-    def _get_genes_mutations(self, genes):
+    def _get_genes_mutations(self, genes, mutations_filter):
         """Gets all the mutations for one or multiple genes, for all patients.
 
         Parameters:
         genes (str, or list or array-like of str): The gene(s) to grab mutations for. str if one, list or array-like of str if multiple.
+        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in filter_prefer, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Passing None will cause no filtering to be done, and all mutation data will be included, in a list.
 
         Returns:
         pandas DataFrame: The mutations in each patient for the specified gene(s).
@@ -520,9 +523,15 @@ class DataSet:
                 else:
                     sample_mutation_status = "Single_mutation"
 
-                # Fill our template dataframe
-                mutation_lists.at[sample, mutation_col] = sample_mutations_list
-                mutation_lists.at[sample, location_col] = sample_locations_list
+                if mutations_filter is not None: # Filter multiple mutations down to just one
+                    chosen_mutation, chosen_location = self._filter_multiple_mutations(mutations_filter, sample_mutations_list, sample_locations_list)
+                    mutation_lists.at[sample, mutation_col] = chosen_mutation
+                    mutation_lists.at[sample, location_col] = chosen_location
+                else: # Include all the mutations!
+                    mutation_lists.at[sample, mutation_col] = sample_mutations_list
+                    mutation_lists.at[sample, location_col] = sample_locations_list
+
+                # Also add the mutations status column
                 mutation_lists.at[sample, mutation_status_col] = sample_mutation_status
 
             mutation_lists = mutation_lists.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Add the gene name to end beginning of each column header, to preserve info when we join dataframes.
@@ -530,12 +539,13 @@ class DataSet:
 
         return df
 
-    def _join_other_to_mutations(self, other, mutations, show_location):
+    def _join_other_to_mutations(self, other, mutations, mutations_were_filtered, show_location):
         """Join selected mutations data to selected other omics or metadata, add a Sample_Status column, fill in NaNs with Wildtype_Normal or Wildtype_Tumor, and name the dataframe.
 
         Parameters:
         other (pandas DataFrame): The selected data from the other type of dataframe (omics or metadata) to join with the selected mutations.
         mutations (pandas DataFrame): The selected mutations data to join with.
+        mutations_were_filtered (bool): Whether multiple mutations in the mutations data were filtered down to just one, or not. Determines whether fill values are in lists or not.
         show_location (bool): Whether to include the Location column from the mutation dataframe.
 
         Returns:
@@ -547,8 +557,12 @@ class DataSet:
         sample_status_map = self._get_sample_status_map()
         joined = joined.join(sample_status_map, how="left")
 
-        # Based on the dtypes in the dataframe, set our fill values so that .loc will insert the value as a single item in a list, instead of unpacking the list.
-        if (joined.dtypes == "object").all(): # If all columns in "joined" have a dtype of "object"
+        # If there's no mutations filter, then based on the dtypes in the dataframe, set our fill values so that .loc will insert the value as a single item in a list, instead of unpacking the list.
+        if mutations_were_filtered:
+            wildtype_normal_fill = "Wildtype_Normal"
+            wildtype_tumor_fill = "Wildtype_Tumor"
+            no_mutation_fill = "No_mutation"
+        elif (joined.dtypes == "object").all(): # If all columns in "joined" have a dtype of "object"
             wildtype_normal_fill = [["Wildtype_Normal"]]
             wildtype_tumor_fill = [["Wildtype_Tumor"]]
             no_mutation_fill = [["No_mutation"]]
@@ -581,3 +595,83 @@ class DataSet:
             joined.loc[(joined['Sample_Status'] == "Tumor") & (pd.isnull(joined[mutation_status_col])), mutation_status_col] = "Wildtype_Tumor" # Change all NaN mutation status values for Tumor samples to Wildtype_Tumor
 
         return joined
+
+    def _filter_multiple_mutations(self, mutations_filter, sample_mutations_list, sample_locations_list):
+        """Based on a mutations filter, choose one mutation and its location from two lists of mutations and locations.
+
+        Parameters:
+        mutations_filter (list of str): A list of mutations to prioritize, in order of priority. Passing an empty list will cause truncations to be chosen over missense, and mutations earlier in the sequence over later ones.
+        sample_mutations_list (list of str): The mutations to filter.
+        sample_locations_list (list of str): The locations to filter, in the same order as the mutations.
+
+        Returns:
+        str: The chosen mutation
+        str: The chosen location
+        """
+        # Based on the cancer type, define which mutation types are truncations, for sorting later
+        if self._cancer_type == 'colon':
+            truncations = ['frameshift deletion', 'frameshift insertion', 'frameshift substitution', 'stopgain', 'stoploss']
+        else:
+            truncations = ['Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', 'Splice_Site']
+
+        # Filter the mutations!!
+        chosen_indices = []
+        for filter_val in mutations_filter: # This will start at the beginning of the filter list, thus filters earlier in the list are prioritized, like we want
+            if filter_val in sample_mutations_list:
+                chosen_indices = [index for index, value in enumerate(sample_mutations_list) if value == filter_val]
+            elif filter_val in sample_locations_list: # The mutations filter can also filter by location
+                chosen_indices = [index for index, value in enumerate(sample_locations_list) if value == filter_val]
+            if len(chosen_indices) > 0: # We found at least one mutation from the filter to prioritize, so we don't need to worry about later values in the filter priority list
+                break
+
+        if len(chosen_indices) == 0: # None of the mutations for the sample were in the filter, so we're going to have to use our default hierarchy
+            for mutation in sample_mutations_list:
+                if mutation in truncations:
+                    chosen_indices = [index for index, value in enumerate(sample_mutations_list) if value == mutation]
+
+        if len(chosen_indices) == 0: # There were no truncations, so they're all missenses
+            chosen_indices = range(len(sample_mutations_list)) # So we'll sort them all by location
+
+        soonest_mutation = sample_mutations_list[chosen_indices[0]]
+        soonest_location = sample_locations_list[chosen_indices[0]]
+        for index in chosen_indices: # Of all the ones we chose, find the one that has the earliest position
+            mutation = sample_mutations_list[index]
+            location = sample_locations_list[index]                            
+
+            if mutation == "Silent": # We put these at lowest priority
+                continue
+            if pd.isnull(location): # Some of the mutations have no location. We'll de-prioritize those.
+                continue
+            if pd.isnull(soonest_location): # This would happen if our initial value for soonest_location was NaN. If we got here, then the one we're testing isn't null, and we'll automatically prefer it
+                soonest_location = location
+                soonest_mutation = mutation
+                continue
+
+            num_location = self._parse_mutation_location(location)
+            num_soonest_location = self._parse_mutation_location(soonest_location)
+            if num_location < num_soonest_location:
+                soonest_location = location
+                soonest_mutation = mutation
+        return soonest_mutation, soonest_location
+
+    def _parse_mutation_location(self, location):
+        """Parse the number out of the location for a mutation.
+
+        Parameters:
+        location (str): The location to parse.
+
+        Returns:
+        int: The numerical part of the location.
+        """
+        if pd.isnull(location):
+            return location
+        num = ""
+        found_digits = False
+        for char in location:
+            if char.isdigit():
+                num = num + char
+                found_digits = True
+            else:
+                if found_digits: # We only want the first block of numbers
+                    return int(num)
+        return int(num) # We get here if the location ended with a digit
