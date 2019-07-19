@@ -32,8 +32,6 @@ class RenalCcrcc(DataSet):
         if self._version is None: # Validation error. validate_version already printed an error message.
             return
 
-        # FILL: If needed, overload the self._valid_omics_dfs and self._valid_metadata_dfs variables that were initialized in the parent DataSet init.
-
         # Get the paths to all the data files
         data_files = [
             "6_CPTAC3_CCRCC_Phospho_abundance_gene_protNorm=2_CB_imputed.tsv.gz",
@@ -141,9 +139,16 @@ class RenalCcrcc(DataSet):
                 df = df.sort_index()
                 df = df.transpose()
 
+                # The dataframe contains 4 rows for each sample: lr.loc_***,  lr.seg_***, mzd.loc_***, or  mzd.seg_*** where *** is the 
+                # Patient_ID. "lr" stands for log ratio, and "mzd" stands for Mean Zygosity Deviation. “lr.loc” is based on average of lr 
+                # of probes belonging to each gene. “lr.seg” is based on segmented CNV result (i.e. first performed segmentation based on 
+                # probe level data, and then use the lr of the representative segment of each gene as the gene-level lr). They used the
+                # lr.seg values in the paper, so we'll use those.
+                df = df.drop(index=df[~df.index.str.startswith("lr.seg")].index)
+
                 # Parse a Patient_ID index out of the current index
                 barcode_col = df.index.to_series()
-                split_barcode = barcode_col.str.split("_", n=1, expand=True) # The first part of the barcode is the patient id, which we want to make the index
+                split_barcode = barcode_col.str.split("_", n=1, expand=True) # The second part of the barcode is the patient id, which we want to make the index
                 df.index = pd.Index(split_barcode[1])
                 df.index.name = "Patient_ID"
 
