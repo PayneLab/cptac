@@ -10,4 +10,5 @@ Tutorials for this package describe how to use the package functions for researc
   <li>Use Case 4: Investigating how genetic mutation affects protein abundance</li>
   <li>Use Case 5: Running gene set enrichment analysis</li>
   <li>Use Case 6: Using derived molecular features </li>
+  <li>Use Case 7: Overview of cptac join functions </li>
 </ul>

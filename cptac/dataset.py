@@ -638,8 +638,15 @@ class DataSet:
             mutation = sample_mutations_list[index]
             location = sample_locations_list[index]                            
 
-            if mutation == "Silent": # We put these at lowest priority
+            # If the current best isn't silent, and the one we're testing is, or vice-versa, automatically take the non-silent one, even if it's sooner
+            if mutation == "Silent" and soonest_mutation != "Silent":
                 continue
+            elif soonest_mutation == "Silent" and mutation != "Silent":
+                soonest_location = location
+                soonest_mutation = mutation
+                continue
+
+            # Check for null locations
             if pd.isnull(location): # Some of the mutations have no location. We'll de-prioritize those.
                 continue
             if pd.isnull(soonest_location): # This would happen if our initial value for soonest_location was NaN. If we got here, then the one we're testing isn't null, and we'll automatically prefer it
