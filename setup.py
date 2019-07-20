@@ -34,7 +34,7 @@ setup(name='cptac',
 		'urllib3',
 	],
 	classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta'
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
         'License :: OSI Approved :: Apache Software License',
