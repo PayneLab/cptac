@@ -7,6 +7,7 @@ build/
 .DS_Store
 
 # Exclude data files, since they're stored remotely
+cptac/data_brca/*
 cptac/data_colon/*
 cptac/data_endometrial/*
 cptac/data_luad/*
@@ -14,6 +15,7 @@ cptac/data_ovarian/*
 cptac/data_renalccrcc/*
 
 # Include index url files
+!cptac/data_brca/index_urls.tsv
 !cptac/data_colon/index_urls.tsv
 !cptac/data_endometrial/index_urls.tsv
 !cptac/data_luad/index_urls.tsv
