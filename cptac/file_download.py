@@ -74,7 +74,9 @@ def download(dataset, version="latest", redownload=False):
         files_to_download = list(version_index.keys())
 
     # Download the files
-    password_protected_datasets = [] # We don't have any right now, but we have the functionality to handle one.
+    password_protected_datasets = [
+        "brca",
+        ]
     password = None
 
     total_files = len(files_to_download)

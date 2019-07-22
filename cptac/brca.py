@@ -12,7 +12,8 @@
 import numpy as np
 import os
 from .dataset import DataSet
-from .sync import get_version_files_paths
+from .file_download import update_index
+from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import *
 
 class Brca(DataSet):
@@ -38,8 +39,14 @@ class Brca(DataSet):
             return
 
         # Get the paths to all the data files
-        data_files = [] # FILL: Insert the new dataset's data file names into this list. You only need file names--get_version_files_paths on the next line will automatically create the rest of the path
-        data_files_paths = get_version_files_paths(self._cancer_type, version, data_files)
+        data_files = [
+            "prosp-brca-v3.1-acetylome-ratio-norm-NArm.gct.gz",
+            "prosp-brca-v3.1-gene-level-cnv-gistic2-all_data_by_genes.gct.gz",
+            "prosp-brca-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz",
+            "prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz",
+            "prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz",
+            "prosp-brca-v3.1-sample-annotation.csv.gz"] 
+        data_files_paths = get_version_files_paths(self._cancer_type, self._version, data_files)
         if data_files_paths is None: # Version validation error. get_version_files_paths already printed an error message.
             return None
 
@@ -103,13 +110,4 @@ class Brca(DataSet):
         # - Make sure that in dataframes where each column header is the name of a gene, the columns are in alphabetical order.
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
-
-        # FILL: remove the below message printing, if the dataset isn't under publiction embargo
-        # Print data embargo warning, if the date hasn't passed yet.
-        today = datetime.date.today()
-        embargo_date = datetime.date() # FILL: Insert embargo date here.
-        if today < embargo_date:
-            warning = "WARNING: This data is under a publication embargo until # FILL: INSERT EMBARGO DATE HERE#. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details."
-            wrapped_list = textwrap.wrap(warning)
-            for line in wrapped_list:
-                print(line)
+        print("success!!")
