@@ -49,7 +49,7 @@ class Luad(DataSet):
             "luad-v2.0-rnaseq-circ-rna.csv.gz",
             "luad-v2.0-rnaseq-prot-uq-rpkm-log2-NArm-row-norm.gct.gz",
             "luad-v2.0-sample-annotation.csv.gz"]
-        data_files_paths = get_version_files_paths(self._cancer_type, version, data_files)
+        data_files_paths = get_version_files_paths(self._cancer_type, self._version, data_files)
         if data_files_paths is None: # Version validation error. get_version_files_paths already printed an error message.
             return None
 
