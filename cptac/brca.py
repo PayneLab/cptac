@@ -68,6 +68,25 @@ class Brca(DataSet):
             df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
             # FILL: Here, insert conditional statements to load all the data files as dataframes into the self._data dictionary. Consult existing datasets for examples.
+            if file_name == "prosp-brca-v3.1-acetylome-ratio-norm-NArm.gct.gz":
+                rows_to_skip = [i for i in range(60) if i != 2] # File has several metadata rows, which we don't want
+                df = pd.read_csv(file_name, sep='\t', skiprows=rows_to_skip)
+
+            elif file_name == "prosp-brca-v3.1-gene-level-cnv-gistic2-all_data_by_genes.gct.gz":
+                pass
+
+            elif file_name == "prosp-brca-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz":
+                pass
+
+            elif file_name == "prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz":
+                pass
+
+            elif file_name == "prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz":
+                pass
+
+            elif file_name == "prosp-brca-v3.1-sample-annotation.csv.gz":
+                pass
+
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
