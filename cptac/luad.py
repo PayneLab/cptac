@@ -12,7 +12,9 @@
 import numpy as np
 import os
 from .dataset import DataSet
-from .sync import get_version_files_paths
+from .dataframe_tools import *
+from .file_download import update_index
+from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import *
 
 # Comments beginning with "# FILL:" contain specific filling instructions.
@@ -40,7 +42,13 @@ class Luad(DataSet):
             return
 
         # Get the paths to all the data files
-        data_files = [] # FILL: Insert the new dataset's data file names into this list. You only need file names--get_version_files_paths on the next line will automatically create the rest of the path
+        data_files = [
+            "luad-v2.0-cnv-gene-LR.gct.gz",
+            "luad-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz",
+            "luad-v2.0-proteome-ratio-norm-NArm.gct.gz",
+            "luad-v2.0-rnaseq-circ-rna.csv.gz",
+            "luad-v2.0-rnaseq-prot-uq-rpkm-log2-NArm-row-norm.gct.gz",
+            "luad-v2.0-sample-annotation.csv.gz"]
         data_files_paths = get_version_files_paths(self._cancer_type, version, data_files)
         if data_files_paths is None: # Version validation error. get_version_files_paths already printed an error message.
             return None
@@ -106,12 +114,4 @@ class Luad(DataSet):
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 
-        # FILL: remove the below message printing, if the dataset isn't under publiction embargo
-        # Print data embargo warning, if the date hasn't passed yet.
-        today = datetime.date.today()
-        embargo_date = datetime.date() # FILL: Insert embargo date here.
-        if today < embargo_date:
-            warning = "WARNING: This data is under a publication embargo until # FILL: INSERT EMBARGO DATE HERE#. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details."
-            wrapped_list = textwrap.wrap(warning)
-            for line in wrapped_list:
-                print(line)
+        print("success")

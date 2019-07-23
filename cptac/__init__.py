@@ -14,6 +14,7 @@ import os.path as path
 from .file_download import download
 from .endometrial import Endometrial
 from .colon import Colon
+from .luad import Luad
 from .ovarian import Ovarian
 from .renalccrcc import RenalCcrcc
 
