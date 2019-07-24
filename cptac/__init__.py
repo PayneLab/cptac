@@ -9,6 +9,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import pandas as pd
 import webbrowser
 import os.path as path
 from .file_download import download
@@ -21,14 +22,20 @@ from .renalccrcc import RenalCcrcc
 
 def list_datasets():
     """List all available datasets."""
-    print("Available datasets:")
-    datasets = [
-        "Colon",
-        "Endometrial - endometrial uterine carcinoma",
-        "Ovarian",
-        "RenalCcrcc - renal clear cell carcinoma",]
-    for dataset in sorted(datasets):
-        print("\t" + dataset)
+    col_names = ["Description", "Data reuse status", "Publication link"]
+    col_index = pd.Index(data=col_names, name="Dataset name")
+    datasets = {
+        "Brca": ["breast cancer", "password access only", "unpublished"],
+        "Colon": ["colorectal cancer", "no restrictions", "https://www.ncbi.nlm.nih.gov/pubmed/31031003"],
+        "Endometrial": [ "endometrial carcinoma (uterine)", "no restrictions", "unpublished"],
+        "Luad": ["lung adenocarcinoma", "password access only", "unpublished"],
+        "Ovarian": ["high grade serous ovarian cancer", "no restrictions", "unpublished"],
+        "RenalCcrcc": ["clear cell renal cell carcinoma (kidney)", "no restrictions", "unpublished"],
+        }
+    dataset_df = pd.DataFrame(data=datasets, index=col_index)
+    dataset_df = dataset_df.transpose()
+    dataset_df.index.name = "" # Giving the index a name, even though it's an emtpy string, causes a space to be printed between the column names and the first row, which improves readability.
+    print(f"Available datasets:\n\n{dataset_df}")
 
 def embargo():
     """Open CPTAC embargo details in web browser."""

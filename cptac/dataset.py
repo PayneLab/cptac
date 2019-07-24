@@ -627,7 +627,7 @@ class DataSet:
         if len(chosen_indices) == 0: # None of the mutations for the sample were in the filter, so we're going to have to use our default hierarchy
             for mutation in sample_mutations_list:
                 if mutation in truncations:
-                    chosen_indices = [index for index, value in enumerate(sample_mutations_list) if value == mutation]
+                    chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
 
         if len(chosen_indices) == 0: # There were no truncations, so they're all missenses
             chosen_indices = range(len(sample_mutations_list)) # So we'll sort them all by location
