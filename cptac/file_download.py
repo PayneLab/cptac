@@ -75,8 +75,6 @@ def download(dataset, version="latest", redownload=False):
 
     # Download the files
     password_protected_datasets = [
-        "brca",
-        "luad",
         ]
     password = None
 

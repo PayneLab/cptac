@@ -13,10 +13,8 @@ import pandas as pd
 import webbrowser
 import os.path as path
 from .file_download import download
-from .brca import Brca
 from .endometrial import Endometrial
 from .colon import Colon
-from .luad import Luad
 from .ovarian import Ovarian
 from .renalccrcc import RenalCcrcc
 
@@ -25,10 +23,8 @@ def list_datasets():
     col_names = ["Description", "Data reuse status", "Publication link"]
     col_index = pd.Index(data=col_names, name="Dataset name")
     datasets = {
-        "Brca": ["breast cancer", "password access only", "unpublished"],
         "Colon": ["colorectal cancer", "no restrictions", "https://www.ncbi.nlm.nih.gov/pubmed/31031003"],
         "Endometrial": [ "endometrial carcinoma (uterine)", "no restrictions", "unpublished"],
-        "Luad": ["lung adenocarcinoma", "password access only", "unpublished"],
         "Ovarian": ["high grade serous ovarian cancer", "no restrictions", "unpublished"],
         "RenalCcrcc": ["clear cell renal cell carcinoma (kidney)", "no restrictions", "unpublished"],
         }
