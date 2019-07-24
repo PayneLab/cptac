@@ -627,7 +627,7 @@ class DataSet:
         if len(chosen_indices) == 0: # None of the mutations for the sample were in the filter, so we're going to have to use our default hierarchy
             for mutation in sample_mutations_list:
                 if mutation in truncations:
-                    chosen_indices = [index for index, value in enumerate(sample_mutations_list) if value == mutation]
+                    chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
 
         if len(chosen_indices) == 0: # There were no truncations, so they're all missenses
             chosen_indices = range(len(sample_mutations_list)) # So we'll sort them all by location
@@ -638,8 +638,15 @@ class DataSet:
             mutation = sample_mutations_list[index]
             location = sample_locations_list[index]                            
 
-            if mutation == "Silent": # We put these at lowest priority
+            # If the current best isn't silent, and the one we're testing is, or vice-versa, automatically take the non-silent one, even though it may be sooner
+            if mutation == "Silent" and soonest_mutation != "Silent":
                 continue
+            elif soonest_mutation == "Silent" and mutation != "Silent":
+                soonest_location = location
+                soonest_mutation = mutation
+                continue
+
+            # Check for null locations
             if pd.isnull(location): # Some of the mutations have no location. We'll de-prioritize those.
                 continue
             if pd.isnull(soonest_location): # This would happen if our initial value for soonest_location was NaN. If we got here, then the one we're testing isn't null, and we'll automatically prefer it

@@ -30,9 +30,11 @@ setup(name='cptac',
 		'pandas>=0.23.*',
 		'requests',
 		'beautifulsoup4',
+		'scipy',
+		'urllib3',
 	],
 	classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta'
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
         'License :: OSI Approved :: Apache Software License',
