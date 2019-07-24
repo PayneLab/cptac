@@ -19,14 +19,14 @@ from .luad import Luad
 from .ovarian import Ovarian
 from .renalccrcc import RenalCcrcc
 
-def list_data():
+def list_datasets():
     """List all available datasets."""
     print("Available datasets:")
     datasets = [
         "Colon",
-        "Endometrial",
+        "Endometrial - endometrial uterine carcinoma",
         "Ovarian",
-        "RenalCcrcc",]
+        "RenalCcrcc - renal clear cell carcinoma",]
     for dataset in sorted(datasets):
         print("\t" + dataset)
 
