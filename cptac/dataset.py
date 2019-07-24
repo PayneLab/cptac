@@ -638,7 +638,7 @@ class DataSet:
             mutation = sample_mutations_list[index]
             location = sample_locations_list[index]                            
 
-            # If the current best isn't silent, and the one we're testing is, or vice-versa, automatically take the non-silent one, even if it's sooner
+            # If the current best isn't silent, and the one we're testing is, or vice-versa, automatically take the non-silent one, even though it may be sooner
             if mutation == "Silent" and soonest_mutation != "Silent":
                 continue
             elif soonest_mutation == "Silent" and mutation != "Silent":
