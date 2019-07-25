@@ -9,7 +9,4 @@ Tutorials for this package describe how to use the package functions for researc
   <li>Use Case 1: Comparing transcriptomics and proteomics for a single gene</li>
   <li>Use Case 2: Looking for correlation between clinical attributes</li>
   <li>Use Case 3: Associating clinical variables with acetylation</li>
-  <li>Use Case 4: Investigating how genetic mutations affect protein abundance</li>
-  <li>Use Case 5: Running gene set enrichment analysis</li>
-  <li>Use Case 6: Comparing derived molecular features with protein abundance</li>
 </ul>
