@@ -483,6 +483,16 @@ class DataSet:
         location_col = "Location"
         mutation_status_col = "Mutation_Status"
 
+        # Check that they didn't make any typos in specifying filter values
+        invalid_filter = False
+        if mutations_filter is not None:
+            for filter_val in mutations_filter:
+                if (filter_val not in somatic_mutation[mutation_col].values) and (filter_val not in somatic_mutation[location_col].values):
+                    print(f"Error: Filter value {filter_val} does not exist in the mutations dataframe for this dataset. Check for typos and existence.")
+                    invalid_filter = True
+        if invalid_filter:
+            return
+
         # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
         df = pd.DataFrame(index=somatic_mutation.index.copy().drop_duplicates())
         for gene in genes:
@@ -491,6 +501,12 @@ class DataSet:
                 print("{} gene not found in somatic_mutation data.".format(gene))
                 return
             gene_mutations = gene_mutations.drop(columns=[gene_col]) # Gene column is same for every sample, so we don't need it anymore.
+
+            # Check whether all filter values exist for this particular gene. If not, that's fine, we just want to warn the user.
+            if mutations_filter is not None:
+                for filter_val in mutations_filter:
+                    if (filter_val not in gene_mutations[mutation_col].values) and (filter_val not in gene_mutations[location_col].values):
+                        print(f"Warning: Filter value {filter_val} does not exist in the mutations data for the {gene} gene, though it exists for other genes.")
 
             # Create another empty dataframe, which we'll fill with the mutation and location data for this gene, as lists
             prep_index = gene_mutations.index.copy().drop_duplicates()
@@ -611,8 +627,10 @@ class DataSet:
         # Based on the cancer type, define which mutation types are truncations, for sorting later
         if self._cancer_type == 'colon':
             truncations = ['frameshift deletion', 'frameshift insertion', 'frameshift substitution', 'stopgain', 'stoploss']
+            missenses = ['nonframeshift deletion', 'nonframeshift insertion', 'nonframeshift substitution', 'nonsynonymous SNV']
         else:
             truncations = ['Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', 'Splice_Site']
+            missenses = ['In_Frame_Del', 'In_Frame_Ins', 'Missense_Mutation']
 
         # Filter the mutations!!
         chosen_indices = []
@@ -629,24 +647,24 @@ class DataSet:
                 if mutation in truncations:
                     chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
 
-        if len(chosen_indices) == 0: # There were no truncations, so they're all missenses
-            chosen_indices = range(len(sample_mutations_list)) # So we'll sort them all by location
+        if len(chosen_indices) == 0: # None of them were in the filter, nor were truncations, so we'll grab all the missenses
+            for mutation in sample_mutations_list:
+                if mutation in missenses:
+                    chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
 
+        if len(chosen_indices) == 0: # There were no truncations or missenses, so they should all be Silent mutations
+            for mutation in sample_mutations_list:
+                if mutation != "Silent":
+                    print(f"Warning: Unknown mutation type {mutation}. Assigned lowest priority in filtering.")
+            chosen_indices = range(len(sample_mutations_list)) # We'll sort them all by location
+
+        # If there are multiple mutations in chosen_indices, the following code will pick the one soonest in the peptide sequence.
         soonest_mutation = sample_mutations_list[chosen_indices[0]]
         soonest_location = sample_locations_list[chosen_indices[0]]
-        for index in chosen_indices: # Of all the ones we chose, find the one that has the earliest position
+        for index in chosen_indices:
             mutation = sample_mutations_list[index]
             location = sample_locations_list[index]                            
 
-            # If the current best isn't silent, and the one we're testing is, or vice-versa, automatically take the non-silent one, even though it may be sooner
-            if mutation == "Silent" and soonest_mutation != "Silent":
-                continue
-            elif soonest_mutation == "Silent" and mutation != "Silent":
-                soonest_location = location
-                soonest_mutation = mutation
-                continue
-
-            # Check for null locations
             if pd.isnull(location): # Some of the mutations have no location. We'll de-prioritize those.
                 continue
             if pd.isnull(soonest_location): # This would happen if our initial value for soonest_location was NaN. If we got here, then the one we're testing isn't null, and we'll automatically prefer it
@@ -654,7 +672,7 @@ class DataSet:
                 soonest_mutation = mutation
                 continue
 
-            num_location = self._parse_mutation_location(location)
+            num_location = self._parse_mutation_location(location) # Here, we're parsing the numerical position out of the location strings, for comparisons
             num_soonest_location = self._parse_mutation_location(soonest_location)
             if num_location < num_soonest_location:
                 soonest_location = location
