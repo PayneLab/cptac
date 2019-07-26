@@ -85,6 +85,8 @@ def download(dataset, version="latest", redownload=False):
 
         if (dataset in password_protected_datasets) and (password is None):
             password = getpass.getpass()
+            print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
+            print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
 
         file_index = version_index.get(data_file)
         server_hash = file_index.get("hash")
@@ -97,7 +99,10 @@ def download(dataset, version="latest", redownload=False):
 
         while downloaded_path == "wrong_password":
             password = getpass.getpass(prompt="Wrong password. Try again: ")
-            downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_number=file_number, total_files=total_files)
+            print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
+            print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
+
+            downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_message="data files", file_number=file_number, total_files=total_files)
 
         if downloaded_path is None:
             print("Insufficient internet. Check your internet connection.")
