@@ -27,7 +27,7 @@ setup(name='cptac',
 	packages=['cptac','cptac.algorithms'],
 	install_requires=[
 		'numpy>=1.16.3',
-		'pandas==0.24.2',
+		'pandas==0.25.*',
 		'requests>=2.21.0',
 		'beautifulsoup4>=4.7.1',
 		'scipy>=1.2.1',
