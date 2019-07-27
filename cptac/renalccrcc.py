@@ -11,10 +11,12 @@
 
 import pandas as pd
 import os
+import warnings
 from .dataset import DataSet
 from .file_download import update_index
 from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import *
+from .exceptions import FailedReindexWarning, NoInternetError, ReindexMapError
 
 class RenalCcrcc(DataSet):
 
@@ -24,8 +26,11 @@ class RenalCcrcc(DataSet):
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
         super().__init__("renalccrcc")
 
-        # Update the index, if possible. If there's no internet, update_index will return False, but we don't care in this context.
-        update_index(self._cancer_type)
+        # Update the index, if possible. If there's no internet, that's fine.
+        try:
+            update_index(self._cancer_type)
+        except NoInternetError:
+            pass
 
         # Validate the index
         self._version = validate_version(version, self._cancer_type, use_context="init")
@@ -45,8 +50,6 @@ class RenalCcrcc(DataSet):
             "RNA_Normal_Tumor_185_samples.tsv.gz",
             "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx",]
         data_files_paths = get_version_files_paths(self._cancer_type, self._version, data_files)
-        if data_files_paths is None: # Data error. get_version_files_paths already printed an error message.
-            return
 
         # We're going to need to drop the samples below from a couple dataframes
         nci_labels = ["NCI7-1", "NCI7-2", "NCI7-3", "NCI7-4", "NCI7-5"]
@@ -249,23 +252,26 @@ class RenalCcrcc(DataSet):
         # Use the RNA.ID column from clinical dataframe to reindex transcriptomics dataframe with patient ids
         tran_map = get_reindex_map(clinical["RNA.ID"])
         tran = self._data["transcriptomics"]
-        tran_reindexed = reindex_dataframe(tran, tran_map, new_index_name="Patient_ID", keep_old=False)
-        self._data["transcriptomics"] = tran_reindexed
+        try:
+            tran_reindexed = reindex_dataframe(tran, tran_map, new_index_name="Patient_ID", keep_old=False)
+        except ReindexMapError as error:
+            del self._data["transcriptomics"]
+            warnings.warn("Error mapping sample ids in transcriptomics dataframe. RNA.ID {str(error)} did not have a corresponding Patient_ID mapped in the clinical dataframe. transcriptomics dataframe not loaded.", FailedReindexWarning)
+        else:
+            self._data["transcriptomics"] = tran_reindexed
 
         # Use the Specimen.Label columns from clinical dataframe to reindex the proteomics, phosphoproteomics, and phosphoproteomics_gene dataframes with patient ids
         specimen_label_map = get_reindex_map(clinical["Specimen.Label"])
-
-        prot = self._data["proteomics"]
-        phos = self._data["phosphoproteomics"]
-        phos_gene = self._data["phosphoproteomics_gene"]
-
-        prot_reindexed = reindex_dataframe(prot, specimen_label_map, new_index_name="Patient_ID", keep_old=False)
-        phos_reindexed = reindex_dataframe(phos, specimen_label_map, new_index_name="Patient_ID", keep_old=False)
-        phos_gene_reindexed = reindex_dataframe(phos_gene, specimen_label_map, new_index_name="Patient_ID", keep_old=False)
-
-        self._data["proteomics"] = prot_reindexed
-        self._data["phosphoproteomics"] = phos_reindexed
-        self._data["phosphoproteomics_gene"] = phos_gene_reindexed
+        specimen_indexed_dfs = ["proteomics", "phosphoproteomics", "phosphoproteomics_gene"]
+        for df_name in specimen_indexed_dfs:
+            df = self._data[df_name]
+            try:
+                df_reindexed = reindex_dataframe(df, specimen_label_map, new_index_name="Patient_ID", keep_old=False)
+            except ReindexMapError as error:
+                del self._data[df_name]
+                warnings.warn("Error mapping sample ids in {df_name} dataframe. RNA.ID {str(error)} did not have a corresponding Patient_ID mapped in the clinical dataframe. {df_name} dataframe not loaded.", FailedReindexWarning)
+            else:
+                self._data[df_name] = df_reindexed
 
         # Now that we've used the RNA.ID and Specimen.Label columns to reindex the dataframes that needed it, we can drop them from the clinical dataframe
         clinical = clinical.drop(columns=["Specimen.Label", "RNA.ID"])
@@ -289,9 +295,10 @@ class RenalCcrcc(DataSet):
             df.index.name = "Patient_ID"
             keep_old = name == "clinical" # Keep the old Patient_ID index as a column in the clinical dataframe, so we have a record of it.
 
-            df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
-            if df is None:
-                print(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.")
+            try:
+                df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
+            except ReindexMapError:
+                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning)
                 dfs_to_delete.append(name)
                 continue
 

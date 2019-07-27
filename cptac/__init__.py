@@ -12,7 +12,9 @@
 import pandas as pd
 import webbrowser
 import os.path as path
+import sys
 from .file_download import download
+from .exceptions import CptacError, CptacWarning
 from .brca import Brca
 from .endometrial import Endometrial
 from .colon import Colon
@@ -54,3 +56,12 @@ def version():
 def how_to_cite():
     """Give instructions for citing CPTAC datasets."""
     print("For instructions on how to cite a specific dataset, please call its how_to_cite method, e.g. cptac.Endometrial().how_to_cite()")
+
+def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook):
+    """We're going to catch cptac-generated exceptions and warnings, and make them prettier."""
+    if issubclass(type(exception), (CptacError, CptacWarning)):
+        print(str(exception))
+    else:
+        default_hook(exception_type, exception, traceback) # This way, exceptions and warnings from other packages will still be treated the same way
+
+sys.excepthook = _exception_handler # Set our custom exception hook

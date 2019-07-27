@@ -16,6 +16,7 @@ from .dataframe_tools import *
 from .file_download import update_index
 from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import *
+from .exceptions import NoInternetError
 
 # Comments beginning with "# FILL:" contain specific filling instructions.
 
@@ -33,8 +34,11 @@ class Luad(DataSet):
 
         # FILL: If needed, overload the self._valid_omics_dfs and self._valid_metadata_dfs variables that were initialized in the parent DataSet init.
 
-        # Update the index, if possible. If there's no internet, update_index will return False, but we don't care in this context.
-        update_index(self._cancer_type)
+        # Update the index, if possible. If there's no internet, that's fine.
+        try:
+            update_index(self._cancer_type)
+        except NoInternetError:
+            pass
 
         # Validate the version
         self._version = validate_version(version, self._cancer_type, use_context="init")
@@ -50,8 +54,6 @@ class Luad(DataSet):
             "luad-v2.0-rnaseq-prot-uq-rpkm-log2-NArm-row-norm.gct.gz",
             "luad-v2.0-sample-annotation.csv.gz"]
         data_files_paths = get_version_files_paths(self._cancer_type, self._version, data_files)
-        if data_files_paths is None: # Version validation error. get_version_files_paths already printed an error message.
-            return None
 
         # Load the data into dataframes in the self._data dict
         loading_msg = "Loading dataframes"
