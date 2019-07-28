@@ -39,8 +39,6 @@ class Brca(DataSet):
 
         # Validate the version
         self._version = validate_version(version, self._cancer_type, use_context="init")
-        if self._version is None: # Validation error. validate_version already printed an error message.
-            return
 
         # Get the paths to all the data files
         data_files = [
@@ -59,11 +57,6 @@ class Brca(DataSet):
             # Print a loading message. We add a dot every time, so the user knows it's not frozen.
             loading_msg = loading_msg + "."
             print(loading_msg, end='\r')
-
-            # Check that the file exists
-            if not os.path.isfile(file_path):
-                print(f"Missing data file '{file_path}'. Call \"cptac.download(dataset='endometrial', version='{version}')\" to download it. Dataset loading aborted.")
-                return
 
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file

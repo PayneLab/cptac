@@ -9,7 +9,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-# Exceptions
+# User-directed exceptions
 class CptacError(Exception):
     """Base class for all exceptions we'll raise."""
     pass
@@ -47,7 +47,15 @@ class DataError(CptacError):
     pass
 
 class ReindexMapError(DataError):
-    """Error in mapping keys when reindexing a dataframe."""
+    """Problem reindexing a dataframe."""
+    pass
+
+class NoDefinitionsError(DataError):
+    """They tried to access definitions for a dataset that doesn't provide any."""
+    pass
+
+class DataframeNotIncludedError(DataError):
+    """They requested a dataframe that's not included in the dataset."""
     pass
 
 # Warnings
@@ -59,11 +67,15 @@ class FailedReindexWarning(CptacWarning):
     """Error reindexing a dataframe."""
     pass
 
-class NotApplicableFilterWarning(CptacWarning):
+class ParameterWarning(CptacWarning):
+    """We should warn them about a parameter for some reason."""
+    pass
+
+#lass NotApplicableFilterWarning(CptacWarning):
     """Filter value for multiple mutations existed for the dataset, but not for that particular gene."""
     pass
 
-class NonexistentOmicsKeyWarning(CptacWarning):
+#lass NonexistentOmicsKeyWarning(CptacWarning):
     """Key for selecting from an omics dataframe didn't exist. Column created, but filled with NaN."""
     pass
 
@@ -77,4 +89,9 @@ class OldPackageVersionWarning(CptacWarning):
 
 class DownloadingNewLatestWarning(CptacWarning):
     """Downloading a new latest data version. If they want to use an old version, they'll have to manually specify it."""
+    pass
+
+# Developer-directed exceptions
+class CptacDevError(Exception):
+    """For exceptions that are probably the developer's fault."""
     pass

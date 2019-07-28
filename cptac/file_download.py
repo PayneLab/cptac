@@ -39,8 +39,6 @@ def download(dataset, version="latest", redownload=False):
 
     # Validate the version number, including parsing if it's "latest"
     version = validate_version(version, dataset, use_context="download")
-    if version is None: # Invalid version
-        return False
 
     # Construct the path to the directory for this version
     version_path = os.path.join(dataset_path, f"{dataset}_v{version}")
@@ -64,7 +62,6 @@ def download(dataset, version="latest", redownload=False):
                 files_to_download.append(data_file)
 
             if len(files_to_download) == 0:
-                print("All files already downloaded and correct.")
                 return True
     else:
         os.mkdir(version_path)
@@ -100,9 +97,6 @@ def download(dataset, version="latest", redownload=False):
             print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
 
             downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_message="data files", file_number=file_number, total_files=total_files)
-
-    formatted_name = "RenalCcrcc" if dataset == "renalccrcc" else dataset.title()
-    print(f"{formatted_name} data download successful.")
     return True
 
 def update_index(dataset):

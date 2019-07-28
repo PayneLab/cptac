@@ -34,8 +34,6 @@ class Colon(DataSet):
 
         # Validate the index
         self._version = validate_version(version, self._cancer_type, use_context="init")
-        if self._version is None: # Validation error. validate_version already printed an error message.
-            return
 
         # Overload the gene separator for column names in the phosphoproteomics dataframe. In the colon data, it's an underscore, not a dash like most datasets.
         self._gene_separator = "_"

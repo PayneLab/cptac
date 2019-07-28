@@ -34,8 +34,6 @@ class Endometrial(DataSet):
 
         # Validate the index
         self._version = validate_version(version, self._cancer_type, use_context="init")
-        if self._version is None: # Validation error. validate_version already printed an error message.
-            return
 
         # Get the paths to all the data files
         data_files = [
@@ -135,10 +133,9 @@ class Endometrial(DataSet):
         clinical = self._data["clinical"] # We need the Patient_ID column from clinical, to map sample ids to patient ids. The sample ids are the clinical index, and the patient ids are in the Patient_ID column.
         patient_id_col = clinical.loc[clinical["Proteomics_Tumor_Normal"] == "Tumor", "Patient_ID"] # We only want to generate a map for tumor samples, because all the normal samples are from the same patients as the tumor samples, so they have duplicate patient ids.
         patient_id_col.index.name = "Sample_ID" # Label the sample id column (it's currently the index)
-        patient_id_map = get_reindex_map(patient_id_col)
-
         mutations = self._data["somatic_mutation"]
         try:
+            patient_id_map = get_reindex_map(patient_id_col)
             mutations_reindexed = reindex_dataframe(mutations, patient_id_map, "Sample_ID", keep_old=False)
         except ReindexMapError:
             del self._data["somatic_mutation"]

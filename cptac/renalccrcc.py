@@ -34,8 +34,6 @@ class RenalCcrcc(DataSet):
 
         # Validate the index
         self._version = validate_version(version, self._cancer_type, use_context="init")
-        if self._version is None: # Validation error. validate_version already printed an error message.
-            return
 
         # Get the paths to all the data files
         data_files = [
@@ -250,28 +248,34 @@ class RenalCcrcc(DataSet):
         self._data["medical_history"] = medical_history_parsed
 
         # Use the RNA.ID column from clinical dataframe to reindex transcriptomics dataframe with patient ids
-        tran_map = get_reindex_map(clinical["RNA.ID"])
         tran = self._data["transcriptomics"]
         try:
+            tran_map = get_reindex_map(clinical["RNA.ID"])
             tran_reindexed = reindex_dataframe(tran, tran_map, new_index_name="Patient_ID", keep_old=False)
-        except ReindexMapError as error:
+        except ReindexMapError:
             del self._data["transcriptomics"]
-            warnings.warn("Error mapping sample ids in transcriptomics dataframe. RNA.ID {str(error)} did not have a corresponding Patient_ID mapped in the clinical dataframe. transcriptomics dataframe not loaded.", FailedReindexWarning)
+            warnings.warn("Error mapping sample ids in transcriptomics dataframe. At least one RNA.ID did not have a corresponding Patient_ID mapped in the clinical dataframe. transcriptomics dataframe not loaded.", FailedReindexWarning)
         else:
             self._data["transcriptomics"] = tran_reindexed
 
         # Use the Specimen.Label columns from clinical dataframe to reindex the proteomics, phosphoproteomics, and phosphoproteomics_gene dataframes with patient ids
-        specimen_label_map = get_reindex_map(clinical["Specimen.Label"])
         specimen_indexed_dfs = ["proteomics", "phosphoproteomics", "phosphoproteomics_gene"]
-        for df_name in specimen_indexed_dfs:
-            df = self._data[df_name]
-            try:
-                df_reindexed = reindex_dataframe(df, specimen_label_map, new_index_name="Patient_ID", keep_old=False)
-            except ReindexMapError as error:
+        try:
+            specimen_label_map = get_reindex_map(clinical["Specimen.Label"])
+        except ReindexMapError:
+            for df_name in specimen_indexed_dfs:
                 del self._data[df_name]
-                warnings.warn("Error mapping sample ids in {df_name} dataframe. RNA.ID {str(error)} did not have a corresponding Patient_ID mapped in the clinical dataframe. {df_name} dataframe not loaded.", FailedReindexWarning)
-            else:
-                self._data[df_name] = df_reindexed
+            warnings.warn(f"Error mapping sample ids in these dataframes: {' '.join(df for df in specimen_indexed_dfs)}. RNA.ID mapping in clinical dataframe was not one-to-one. Dataframes not loaded.", FailedReindexWarning)
+        else:
+            for df_name in specimen_indexed_dfs:
+                df = self._data[df_name]
+                try:
+                    df_reindexed = reindex_dataframe(df, specimen_label_map, new_index_name="Patient_ID", keep_old=False)
+                except ReindexMapError as error:
+                    del self._data[df_name]
+                    warnings.warn(f"Error mapping sample ids in {df_name} dataframe. RNA.ID {str(error)} did not have a corresponding Patient_ID mapped in the clinical dataframe. {df_name} dataframe not loaded.", FailedReindexWarning)
+                else:
+                    self._data[df_name] = df_reindexed
 
         # Now that we've used the RNA.ID and Specimen.Label columns to reindex the dataframes that needed it, we can drop them from the clinical dataframe
         clinical = clinical.drop(columns=["Specimen.Label", "RNA.ID"])
