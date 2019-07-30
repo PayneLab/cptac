@@ -14,6 +14,7 @@ import requests
 import getpass
 import bs4
 from .file_tools import *
+from .exceptions import NoInternetError
 
 def download(dataset, version="latest", redownload=False):
     """Download data files for the specified datasets. Defaults to downloading latest version on server.
@@ -29,22 +30,15 @@ def download(dataset, version="latest", redownload=False):
     # Get our dataset path
     dataset = dataset.lower()
     dataset_path = get_dataset_path(dataset)
-    if dataset_path is None: # Invalid dataset. get_dataset_path already printed an error message.
-        return False
 
     # Update the index
-    updated = update_index(dataset)
-    if not updated:
-        print("Insufficient internet. Check your internet connection.")
-        return False
+    update_index(dataset)
 
     # Load the index
-    index = get_index(dataset_path)
+    index = get_index(dataset)
 
     # Validate the version number, including parsing if it's "latest"
     version = validate_version(version, dataset, use_context="download")
-    if version is None: # Invalid version
-        return False
 
     # Construct the path to the directory for this version
     version_path = os.path.join(dataset_path, f"{dataset}_v{version}")
@@ -58,16 +52,16 @@ def download(dataset, version="latest", redownload=False):
             files_to_download = []
             for data_file in version_index.keys():
                 # Compare the server and local hashes, to make sure there was no data corruption
-                file_index = version_index.get(data_file)
-                server_hash = file_index.get("hash")
                 file_path = os.path.join(version_path, data_file)
-                local_hash = hash_file(file_path) 
-
-                if local_hash != server_hash:
-                    files_to_download.append(data_file)
+                if os.path.isfile(file_path):
+                    file_index = version_index.get(data_file)
+                    server_hash = file_index.get("hash")
+                    local_hash = hash_file(file_path) 
+                    if local_hash == server_hash:
+                        continue
+                files_to_download.append(data_file)
 
             if len(files_to_download) == 0:
-                print("All files already downloaded and correct.")
                 return True
     else:
         os.mkdir(version_path)
@@ -84,7 +78,7 @@ def download(dataset, version="latest", redownload=False):
     for data_file in files_to_download:
 
         if (dataset in password_protected_datasets) and (password is None):
-            password = getpass.getpass()
+            password = getpass.getpass(prompt='Password: ') # We manually specify the prompt parameter so it shows up in Jupyter Notebooks
             print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
             print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
 
@@ -103,13 +97,6 @@ def download(dataset, version="latest", redownload=False):
             print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
 
             downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_message="data files", file_number=file_number, total_files=total_files)
-
-        if downloaded_path is None:
-            print("Insufficient internet. Check your internet connection.")
-            return False
-
-    formatted_name = "RenalCcrcc" if dataset == "renalccrcc" else dataset.title()
-    print(f"{formatted_name} data download successful.")
     return True
 
 def update_index(dataset):
@@ -136,23 +123,27 @@ def update_index(dataset):
 
     checking_msg = "Checking that index is up-to-date..."
     print(checking_msg, end='\r')
-    server_index_hash = download_text(index_hash_url)
-    print(" " * len(checking_msg), end='\r') # Erase the checking message
+    try:
+        server_index_hash = download_text(index_hash_url)
+    finally:
+        print(" " * len(checking_msg), end='\r') # Erase the checking message, even if there was an internet error
 
-    if server_index_hash is None: # I.e., we have no internet
-        return False
-    else:
-        index_path = os.path.join(dataset_path, index_file)
+    index_path = os.path.join(dataset_path, index_file)
+
+    if os.path.isfile(index_path):
         local_index_hash = hash_file(index_path)
         if local_index_hash == server_index_hash:
             return True
-        else:
-            index_url = urls_dict.get(index_file)
-            index_downloaded_path = download_file(index_url, index_path, server_index_hash, file_message="index")
-            if index_downloaded_path is None:
-                return False
-            else:
-                return True
+
+    index_url = urls_dict.get(index_file)
+    download_file(index_url, index_path, server_index_hash, file_message="index")
+
+    if os.path.isfile(index_path):
+        local_index_hash = hash_file(index_path)
+        if local_index_hash == server_index_hash:
+            return True
+    # If we get here, something apparently went wrong with the download.
+    raise NoInternetError("Insufficient internet. Check your internet connection.")
 
 def download_text(url):
     """Download text from a direct download url for a text file.
@@ -167,7 +158,7 @@ def download_text(url):
         response = requests.get(url, allow_redirects=True)
         response.raise_for_status() # Raises a requests HTTPError if the response code was unsuccessful
     except requests.RequestException: # Parent class for all exceptions in the requests module
-        return
+        raise NoInternetError("Insufficient internet. Check your internet connection.") from None
 
     text = response.text.strip()
     return text
@@ -222,7 +213,7 @@ def download_file(url, path, server_hash, password=None, file_message=None, file
 
             response.raise_for_status() # Raises a requests.HTTPError if the response code was unsuccessful
         except requests.RequestException: # Parent class for all exceptions in the requests module
-            return
+            raise NoInternetError("Insufficient internet. Check your internet connection.") from None
             
         local_hash = hash_bytes(response.content)
         if local_hash == server_hash: # Only replace the old file if the new one downloaded successfully.

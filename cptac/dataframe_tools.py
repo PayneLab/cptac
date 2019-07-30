@@ -10,6 +10,7 @@
 #   limitations under the License.
 
 import pandas as pd
+from .exceptions import ReindexMapError
 
 def unionize_indices(dataset):
     """Return a union of all indices in a dataset, without duplicates.
@@ -64,8 +65,7 @@ def get_reindex_map(series):
     # Check that the mapping is one to one
     series = series.dropna()
     if len(series) != len(series.drop_duplicates()):
-        print("Error: Mapping is not one to one.")
-        return
+        raise ReindexMapError("Reindex map is not one to one.")
 
     # Make the index the values, and the values the index
     df = series.reset_index()
@@ -88,8 +88,8 @@ def generate_sample_id_map(master_index):
         sample_id_dict[patient_id] = "S{:0>3}".format(i + 1) # Use string formatter to give each sample id the format S*** filled with zeroes, e.g. S001, S023, or S112
     return sample_id_dict
 
-def reindex_dataframe(df, reindex_map, new_index_name, keep_old): # This can reindex from Patient_ID to Sample_ID, and also reindex the renalccrcc transcriptomics dataframe
-    """Reindex a dataframe based on a mapping of the old index values to new ones. Returns None if mapping fails.
+def reindex_dataframe(df, reindex_map, new_index_name, keep_old):
+    """Reindex a dataframe based on a mapping of the old index values to new ones.
 
     Parameters:
     df (pandas DataFrame): The dataframe to reindex.
@@ -98,14 +98,14 @@ def reindex_dataframe(df, reindex_map, new_index_name, keep_old): # This can rei
     keep_old (bool): Whether to retain the old index in the dataframe as a column.
 
     Returns:
-    pandas DataFrame: A copy of the given dataframe, with the new index. None if mapping failed.
+    pandas DataFrame: A copy of the given dataframe, with the new index.
     """
     new_index_list = []
     for row in df.index:
         if row in reindex_map.keys(): # This works for a dict or a pandas Series, because Series have a .keys() attribute that's an alias for the index
             new_index_list.append(reindex_map[row])
         else:
-            return
+            raise ReindexMapError(row)
 
     if keep_old:
         df = df.reset_index() # This gives the dataframe a numerical index and makes the old index a column, so it's not dropped when we set the new index.

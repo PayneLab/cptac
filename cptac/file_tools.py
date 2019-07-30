@@ -11,6 +11,9 @@
 
 import hashlib
 import os
+import glob
+import warnings
+from .exceptions import *
 
 def get_dataset_path(dataset):
     """Get the path to the main directory for a dataset.
@@ -27,30 +30,7 @@ def get_dataset_path(dataset):
     if os.path.isdir(dataset_path):
         return dataset_path
     else:
-        print(f"{dataset} is not a valid dataset.")
-        return
-
-def is_latest_version(version, index):
-    """Determine whether a specific version number is the latest version in the index.
-
-    Parameters:
-    version (str): The version number to check.
-    index (dict): The parsed index for the dataset.
-
-    Returns:
-    bool: Whether the given version number is the latest in the index. Returns None if it's an invalid version.
-    """
-    # Check the version
-    if version == "latest":
-        return True
-    elif version in index.keys():
-        index_latest = max(index.keys(), key=float)
-        if version == index_latest:
-            return True
-        else:
-            return False
-    else:
-        return
+        raise InvalidParameterError(f"{dataset} is not a valid dataset.")
 
 def validate_version(version, dataset, use_context):
     """Parse and validate a given version number. If version is "latest", check that index and installed latest match.
@@ -61,11 +41,11 @@ def validate_version(version, dataset, use_context):
     use_context (str): Either "download" or "init", depending on whether the function is being called as part of a data download or a dataset loading. Allows for more detailed error messages. Pass None if you don't want more detailed error messages.
 
     Returns:
-    str: The version number, if valid input. Else return None.
+    str: The version number.
     """
     # Get our dataset path, then our dataset index
     dataset_path = get_dataset_path(dataset)
-    index = get_index(dataset_path)
+    index = get_index(dataset)
 
     # See what the highest version in the index is
     index_latest = max(index.keys(), key=float)
@@ -73,7 +53,7 @@ def validate_version(version, dataset, use_context):
     # Parse and validate the version they passed
     if version in index.keys():
         if float(version) < float(index_latest): # Print a warning if they're using an old version
-            print(f"WARNING: Old data version. Latest is {index_latest}. This is {version}.")
+            warnings.warn(f"Old data version. Latest is {index_latest}. This is {version}.", OldDataVersionWarning)
         return version
 
     elif version.lower() == "latest":
@@ -82,14 +62,12 @@ def validate_version(version, dataset, use_context):
             return index_latest
         else: # If their latest installed version is different from the latest version recorded in the index, then we don't know which one they meant when they passed "latest".
             if use_context == "download":
-                print(f"NOTE: Downloading new version of {dataset} dataset: {index_latest}. This will now be the default version when the dataset is loaded. If you wish to load an older version of the data, you must specify it with the 'version' parameter when you load the dataset.")
+                warnings.warn(f"Downloading new version of {dataset} dataset: {index_latest}. This will now be the default version when the dataset is loaded. If you wish to load an older version of the data, you must specify it with the 'version' parameter when you load the dataset.", DownloadingNewLatestWarning)
                 return index_latest
             elif use_context == "init":
-                print(f"You requested to load the {dataset} dataset. Latest version is {index_latest}, which is not installed locally. To download it, run \"cptac.download(dataset='{dataset}')\". You will then be able to load the latest version of the dataset. To skip this and instead load the older version that is already installed, call \"cptac.{dataset.title()}(version='{latest_installed}')\".")
-                return
+                raise AmbiguousLatestError(f"You requested to load the {dataset} dataset. Latest version is {index_latest}, which is not installed locally. To download it, run \"cptac.download(dataset='{dataset}')\". You will then be able to load the latest version of the dataset. To skip this and instead load the older version that is already installed, call \"cptac.{dataset.title()}(version='{latest_installed}')\".")
     else:
-        print(f"{version} is an invalid version for the {dataset} dataset. Valid versions: {', '.join(index.keys())}")
-        return
+        raise InvalidParameterError(f"{version} is an invalid version for the {dataset} dataset. Valid versions: {', '.join(index.keys())}")
 
 def get_version_files_paths(dataset, version, data_files):
     """For dataset loading. Check that a version is installed, then return the paths to the data files for that version.
@@ -104,23 +82,18 @@ def get_version_files_paths(dataset, version, data_files):
     """
     # Get our dataset path and index
     dataset_path = get_dataset_path(dataset)
-    index = get_index(dataset_path)
+    index = get_index(dataset)
 
     # Check that they've installed the version they requested
     version_path = os.path.join(dataset_path, f"{dataset}_v{version}")
     if not os.path.isdir(version_path):
-        print(f"Data version {version} is not installed. To install, run \"cptac.download(dataset='{dataset}', version='{version}')\".")
-        return
+        raise DataVersionNotInstalledError(f"Data version {version} is not installed. To install, run \"cptac.download(dataset='{dataset}', version='{version}')\".")
 
     data_files_paths = []
     for data_file in data_files:
         file_path = os.path.join(version_path, data_file)
         if not os.path.isfile(file_path): # Check that the file exists
-            if is_latest_version(version, index):
-                print(f"Missing data file '{data_file}'. Call \"cptac.download(dataset='{dataset}')\" to download it. Dataset loading aborted.")
-            else:
-                print(f"Missing data file '{data_file}'. Call \"cptac.download(dataset='{dataset}', version='{version}')\" to download it. Dataset loading aborted.")
-            return
+            raise MissingFileError(f"Missing data file '{data_file}'. Call \"cptac.download(dataset='{dataset}', version='{version}')\" to download it. Dataset loading aborted.")
         data_files_paths.append(file_path)
 
     return data_files_paths
@@ -132,7 +105,7 @@ def get_latest_installed(dataset_path):
     dataset_path (str): The path to the dataset of interest.
 
     Returns:
-    str: The latest version installed locally.
+    str: The latest version installed locally. Returns None if no versions are installed.
     """
     dirs = [dir.strip() for dir in os.listdir(dataset_path)
                 if os.path.isdir(os.path.join(dataset_path, dir))]
@@ -147,17 +120,29 @@ def get_latest_installed(dataset_path):
     latest_installed = max(versions, key=float)
     return latest_installed
 
-def get_index(dataset_path):
+def get_index(dataset):
     """Get the index for a dataset, as a nested dictionary
 
     Parameters:
-    dataset_path (str): The path to the dataset you want the index of.
+    dataset(str): The name of dataset you want the index of.
 
     Returns:
     dict: The index, as a nested dictionary.
     """
+    dataset_path = get_dataset_path(dataset)
     index_file = "index.txt"
     index_path = os.path.join(dataset_path, index_file)
+
+    # Check that the index is installed
+    if not os.path.isfile(index_path):
+        dataset_version_pattern = f"{dataset}_v*" # If not, check whether we've installed any version directories, to know what type of error to raise
+        dataset_version_search = os.path.join(dataset_path, dataset_version_pattern)
+        version_dirs = glob.glob(dataset_version_search)
+        if len(version_dirs) > 0:  
+            raise MissingFileError(f"Missing file '{index_file}'. Run \"cptac.download(dataset='{dataset}')\" to download it.")
+        else:
+            raise DatasetNotInstalledError(f"{dataset} dataset is not installed. To install, run \"cptac.download(dataset='{dataset}')\".")
+
     with open(index_path, 'r') as index_file:
         index_lines = index_file.readlines()
 
@@ -187,6 +172,9 @@ def parse_tsv_dict(path):
     Returns:
     dict: The tsv file read into a dictionary.
     """
+    if not os.path.isfile(path): 
+        raise MissingFileError(f"Missing file {path}. Please update the cptac package to restore.")
+
     with open(path, 'r') as data_file:
         lines = data_file.readlines()
 
@@ -200,7 +188,7 @@ def parse_tsv_dict(path):
     return data_dict
 
 def hash_file(path):
-    """Return the md5 hash for the file at the given path. Return None if file doesn't exist.
+    """Return the md5 hash for the file at the given path.
 
     Parameters:
     path (str): The absolute path to the file to hash.
@@ -208,18 +196,15 @@ def hash_file(path):
     Returns:
     str: The hash for the file.
     """
-    if os.path.isfile(path):
-        with open(path, 'rb') as file_obj:
-            hash = hash_bytes(file_obj.read())
-        return hash
-    else:
-        return
+    with open(path, 'rb') as file_obj:
+        hash = hash_bytes(file_obj.read())
+    return hash
 
 def hash_bytes(bytes):
     """Hash the given bytes.
 
     Parameters:
-    bytes (bytes): The bytes to has.
+    bytes (bytes): The bytes to hash.
 
     Returns:
     str: The hash for the bytes.

@@ -11,10 +11,12 @@
 
 import pandas as pd
 import os
+import warnings
 from .dataset import DataSet
 from .file_download import update_index
 from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import *
+from .exceptions import FailedReindexWarning, NoInternetError, ReindexMapError
 
 class Ovarian(DataSet):
 
@@ -24,13 +26,14 @@ class Ovarian(DataSet):
         # Call the parent Dataset __init__() function, which initializes self._data and other variables we need
         super().__init__("ovarian")
 
-        # Update the index, if possible. If there's no internet, update_index will return False, but we don't care in this context.
-        update_index(self._cancer_type)
+        # Update the index, if possible. If there's no internet, that's fine.
+        try:
+            update_index(self._cancer_type)
+        except NoInternetError:
+            pass
 
         # Validate the index
         self._version = validate_version(version, self._cancer_type, use_context="init")
-        if self._version is None: # Validation error. validate_version already printed an error message.
-            return
 
         # Get the paths to all the data files
         data_files = [
@@ -43,8 +46,6 @@ class Ovarian(DataSet):
             "transcriptomics.tsv.gz",
             "treatment.csv.gz"]
         data_files_paths = get_version_files_paths(self._cancer_type, self._version, data_files)
-        if data_files_paths is None: # Data error. get_version_files_paths already printed an error message.
-            return 
 
         # Load the data files into dataframes in the self._data dict
         loading_msg = "Loading dataframes"
@@ -148,9 +149,10 @@ class Ovarian(DataSet):
             df.index.name = "Patient_ID"
             keep_old = name in ("clinical", "treatment") # Keep the old Patient_ID index as a column in clinical and treatment, so we have a record of it.
 
-            df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
-            if df is None:
-                print(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have a corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.")
+            try:
+                df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
+            except ReindexMapError:
+                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have a corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning)
                 dfs_to_delete.append(name)
                 continue
             self._data[name] = df

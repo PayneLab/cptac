@@ -12,6 +12,8 @@ import pandas as pd
 import numpy as np
 import webbrowser
 import re
+import warnings
+from .exceptions import *
 
 class DataSet:
     """
@@ -138,10 +140,12 @@ class DataSet:
 
         Returns: None
         """
-        if term in self._definitions.keys():
+        if len(self._definitions.keys()) == 0:
+            raise NoDefinitionsError("No definitions provided for this dataset.")
+        elif term in self._definitions.keys():
             print(self._definitions[term])
         else:
-            print("{} not found in definitions. Check capitalization. Alternatively, the dataset's search(term) method can be used to perform a web search of the term provided.".format(term))
+            raise InvalidParameterError("{} not found in definitions. Check capitalization. Alternatively, the dataset's 'search(<your term>)' method can be used to perform a web search of the term provided.".format(term))
 
     def get_cancer_type(self):
         """Return the cancer type for this dataset, as a string."""
@@ -168,7 +172,7 @@ class DataSet:
             for term in sorted(self._definitions.keys(), key=str.lower):
                 print(term)
         else:
-            print("No definitions provided for this dataset.")
+            raise NoDefinitionsError("No definitions provided for this dataset.")
 
     def search(self, term):
         """Search for a term in a web browser.
@@ -179,8 +183,10 @@ class DataSet:
         Returns: None
         """
         url = "https://www.google.com/search?q=" + term
-        print("Searching for {} in web browser...".format(term))
+        message = f"Searching for {term} in web browser..."
+        print(message, end='\r')
         webbrowser.open(url)
+        print(" " * len(message), end='\r') # Erase the message
 
     # Utilities methods
     def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None):
@@ -195,21 +201,13 @@ class DataSet:
         Returns:
         pandas DataFrame: The selected columns from the two omics dataframes, joined into one dataframe.
         """
-        # Make sure they gave us valid dataframe names
-        df1_valid = self._is_valid_df(df1_name, "omics")
-        df2_valid = self._is_valid_df(df2_name, "omics")
-
-        if (not df1_valid) or (not df2_valid):
-            return
-
         # Select the columns from each dataframe
         selected1 = self._get_omics_cols(df1_name, genes1)
         selected2 = self._get_omics_cols(df2_name, genes2)
 
-        if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the gene(s) didn't match any columns, or a non-included dataframe, and it printed an informative error message already. We'll return None.
-            df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
-            df = df.sort_index() # Sort rows in ascending order
-            return df
+        df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
+        df = df.sort_index() # Sort rows in ascending order
+        return df
 
     def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True):
         """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
@@ -224,18 +222,13 @@ class DataSet:
         Returns:
         pandas DataFrame: The mutations for the specified gene, joined to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
         """
-        # Make sure omics_df is valid for this function
-        if not (self._is_valid_df(omics_df_name, "omics")):
-            return
-
         # Select the data from each dataframe
         omics = self._get_omics_cols(omics_df_name, omics_genes)
         mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
 
-        if (omics is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, or a non-included dataframe, and an error message was printed. We'll return None.
-            mutations_were_filtered = mutations_filter is not None
-            joined = self._join_other_to_mutations(omics, mutations, mutations_were_filtered, show_location)
-            return joined
+        mutations_were_filtered = mutations_filter is not None
+        joined = self._join_other_to_mutations(omics, mutations, mutations_were_filtered, show_location)
+        return joined
 
     def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None):
         """Take specified column(s) from one metadata dataframe, and join to specified columns(s) from another metadata dataframe. Intersection (inner join) of indices is used.
@@ -249,21 +242,13 @@ class DataSet:
         Returns:
         pandas DataFrame: The selected columns from the two metadata dataframes, joined into one dataframe.
         """
-        # Make sure they gave us valid dataframe names
-        df1_valid = self._is_valid_df(df1_name, "metadata")
-        df2_valid = self._is_valid_df(df2_name, "metadata")
-
-        if (not df1_valid) or (not df2_valid):
-            return
-
         # Select the columns from each dataframe
         selected1 = self._get_metadata_cols(df1_name, cols1)
         selected2 = self._get_metadata_cols(df2_name, cols2)
 
-        if (selected1 is not None) and (selected2 is not None): # If either selector returned None, the gene(s) didn't match any columns, or a non-included dataframe, and it printed an informative error message already. We'll return None.
-            df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
-            df = df.sort_index() # Sort rows in ascending order
-            return df
+        df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
+        df = df.sort_index() # Sort rows in ascending order
+        return df
 
     def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None):
         """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_setup) to part or all of an omics dataframe. Intersection (inner join) of indices is used.
@@ -277,21 +262,13 @@ class DataSet:
         Returns:
         pandas DataFrame: The selected metadata columns, joined with all or part of the omics dataframe.
         """
-        # Make sure metadata_df_name and omics_df_name are valid for this function
-        metadata_df_valid = self._is_valid_df(metadata_df_name, "metadata")
-        omics_df_valid = self._is_valid_df(omics_df_name, "omics")
-
-        if (not metadata_df_valid) or (not omics_df_valid):
-            return
-
         # Select the columns from each dataframe
         metadata_selected = self._get_metadata_cols(metadata_df_name, metadata_cols)
         omics_selected = self._get_omics_cols(omics_df_name, omics_genes)
 
-        if (metadata_selected is not None) and (omics_selected is not None): # If either selector returned None, the key(s) didn't match any columns, or a non-included dataframe, and it printed an informative error message already. We'll return None.
-            joined = metadata_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
-            joined = joined.sort_index() # Sort rows in ascending order
-            return joined
+        joined = metadata_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
+        joined = joined.sort_index() # Sort rows in ascending order
+        return joined
 
     def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, mutations_filter=None, show_location=True):
         """Select all mutations for specified gene(s), and joins them to all or part of the given metadata dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
@@ -306,18 +283,13 @@ class DataSet:
         Returns:
         pandas DataFrame: The mutations for the specified gene, joined to all or part of the metadata dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
         """
-        # Make sure metadata_df is valid for this function
-        if not (self._is_valid_df(metadata_df_name, "metadata")):
-            return
-
         # Select the data from each dataframe
         metadata = self._get_metadata_cols(metadata_df_name, metadata_cols)
         mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
 
-        if (metadata is not None) and (mutations is not None): # If either selector returned None, then there were gene(s) that didn't match anything, or a non-included dataframe, and an error message was printed. We'll return None.
-            mutations_were_filtered = mutations_filter is not None
-            joined = self._join_other_to_mutations(metadata, mutations, mutations_were_filtered, show_location)
-            return joined
+        mutations_were_filtered = mutations_filter is not None
+        joined = self._join_other_to_mutations(metadata, mutations, mutations_were_filtered, show_location)
+        return joined
 
     # "Private" methods
     def _get_dataframe(self, name):
@@ -331,12 +303,10 @@ class DataSet:
         """
         if name in self._data.keys():
             df = self._data[name]
-            return_df = df.copy() # We copy it, with default deep=True, so edits on their copy don't affect the master
+            return_df = df.copy(deep=True) # We copy it, with deep=True, so edits on their copy don't affect the master for this instance
             return return_df
-            
         else:
-            print("{} dataframe not included in this dataset.".format(name))
-            return
+            raise DataframeNotIncludedError("{} dataframe not included in this dataset.".format(name))
 
     def _get_sample_status_map(self):
         """Get a pandas Series from the clinical dataframe, with sample ids as the index, and each sample's status (tumor or normal) as the values."""
@@ -345,35 +315,33 @@ class DataSet:
         status_map.name = "Sample_Status"
         return status_map
 
-    def _is_valid_df(self, df_name, df_type):
-        """Tells you whether a dataframe with this name is valid for use as an omics or metadata dataframe in one of the utilties functions. Also prints message informing user.
+    def _check_df_valid(self, df_name, df_type):
+        """Checks whether a dataframe with this name is valid for use as an omics or metadata dataframe in one of the utilties functions. Throws an InvalidParameterError if it isn't.
 
         Parameters:
         df_name (str): The dataframe name to check.
         df_type (str): Which type of dataframe we're validating--either "omics" or "metadata"
 
-        Returns:
-        bool: Indicates whether the dataframe of that name would be valid for use as an omics or metadata dataframe in a utilities function.
+        Returns: None
         """
         if not isinstance(df_name, str): # Check that they passed a str, since utilities functions used to directly accept dataframes
-            print(f"Please pass a str for {df_type} dataframe name parameter. You passed a {type(df_name)}")
-            return False
+            raise InvalidParameterError(f"Please pass a str for dataframe name parameter. You passed {df_name}, which is a {type(df_name)}")
 
         if df_type == "omics":
             valid_dfs = self._valid_omics_dfs
         elif df_type == "metadata":
             valid_dfs = self._valid_metadata_dfs
         else:
-            return
+            raise CptacDevError(f"Invalid df_type of {df_type} passed to cptac.DataSet._check_df_valid.")
 
-        if (df_name not in valid_dfs) or (df_name not in self._data.keys()):
-            print(f"{df_name} is not a valid {df_type} dataframe for this function in this dataset. Valid options:")
+        if df_name not in self._data.keys():
+            raise DataframeNotIncludedError(f"{df_name} dataframe not included in this dataset.")
+        elif df_name not in valid_dfs:
+            error_msg = f"{df_name} is not a valid {df_type} dataframe for this function in this dataset. Valid options:"
             for valid_name in valid_dfs:
                 if valid_name in self._data.keys(): # Only print it if it's included in this dataset
-                    print('\t' + valid_name)
-            return False
-        else:
-            return True
+                    error_msg = error_msg + '\n\t' + valid_name
+            raise InvalidParameterError(error_msg)
 
     def _get_omics_cols(self, omics_df_name, genes):
         """Based on a single gene, or a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
@@ -385,10 +353,11 @@ class DataSet:
         Returns:
         pandas DataFrame: The selected columns from the dataframe.
         """
+        # Check that they passed a valid omics df
+        self._check_df_valid(omics_df_name, "omics")
+        
         # Get our omics df
         omics_df = self._get_dataframe(omics_df_name)
-        if omics_df is None: # Dataframe not included in this dataset. _get_dataframe already printed an error message.
-            return
 
         # Process genes parameter
         if isinstance(genes, str): # If it's a single gene, make it a list so we can treat everything the same
@@ -399,8 +368,7 @@ class DataSet:
             return_df = omics_df.rename(columns=lambda x:'{}_{}'.format(x, omics_df_name)) # Append dataframe name to end of each column header, to preserve info when we merge dataframes
             return return_df
         else: # If it's none of those, they done messed up. Tell 'em.
-            print("Genes parameter \n{}\nis of invalid type {}. Valid types: str, list or array-like of str, or NoneType.".format(genes, type(genes)))
-            return
+            raise InvalidParameterError("Genes parameter \n{}\nis of invalid type {}. Valid types: str, list or array-like of str, or NoneType.".format(genes, type(genes)))
 
         df = pd.DataFrame(index=omics_df.index.copy()) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
         for gene in genes:
@@ -410,10 +378,10 @@ class DataSet:
                 col_regex = r'^{}$'.format(gene)
 
             selected = omics_df.filter(regex=col_regex) # Find all columns that match the gene.
-            if len(selected.columns) == 0: # If none of the columns matched the gene, generate a column of NaN and print a warning message
+            if len(selected.columns) == 0: # If none of the columns matched the gene, generate a column of NaN and warn the user
                 empty_omics_df = pd.DataFrame(index=omics_df.index.copy())
                 selected = empty_omics_df.assign(**{gene:np.nan}) # Create a column with gene as the name, filled with NaN
-                print('{0} did not match any columns in {1} dataframe. {0}_{1} column inserted, but filled with NaN.'.format(gene, omics_df_name))
+                warnings.warn('{0} did not match any columns in {1} dataframe. {0}_{1} column inserted, but filled with NaN.'.format(gene, omics_df_name), ParameterWarning)
 
             selected = selected.rename(columns=lambda x:'{}_{}'.format(x, omics_df_name)) # Append dataframe name to end of each column header, to preserve info when we join dataframes
             df = df.join(selected, how='left') # Append the columns to our dataframe we'll return.
@@ -430,10 +398,11 @@ class DataSet:
         Returns:
         pandas DataFrame: The specified columns from the given dataframe.
         """
+        # Check that they passed a valid metadata df
+        self._check_df_valid(df_name, "metadata")
+
         # Get our dataframe
         df = self._get_dataframe(df_name)
-        if df is None: # Dataframe not included in this dataset. _get_dataframe already printed error message.
-            return
 
         # Process genes parameter
         if isinstance(cols, str): # If it's a single column, make it a list so we can treat everything the same
@@ -443,14 +412,12 @@ class DataSet:
         elif cols is None: # If it's the default of None, return the entire dataframe
             return df
         else: # If it's none of those, they done messed up. Tell 'em.
-            print("Columns parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(cols, type(cols)))
-            return
+            raise InvalidParameterError("Columns parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(cols, type(cols)))
 
         return_df = pd.DataFrame(index=df.index.copy()) # Create an empty dataframe, which we'll fill with the columns we select, and then return.
         for col in cols:
-            if col not in df.columns.values: # If they didn't give us one of the actual columns, tell them and return None.
-                print('{} column not found in the {} dataframe. Please double check that it is included in the dataframe.'.format(col, df_name))
-                return
+            if col not in df.columns.values: # If they didn't give us one of the actual columns, tell them.
+                raise InvalidParameterError('{} column not found in the {} dataframe. Please double check that it is included in the dataframe.'.format(col, df_name))
             selected = df.loc[:, [col]] # Select the column from the dataframe, keeping it as a dataframe
             return_df = return_df.join(selected, how='left') # Append the columns to our dataframe we'll return.
 
@@ -474,8 +441,7 @@ class DataSet:
         elif isinstance(genes, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's already a list or array-like, we're all good
             pass
         else: # If it's neither of those, they done messed up. Tell 'em.
-            print("Genes parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(genes, type(genes)))
-            return
+            raise InvalidParameterError("Genes parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(genes, type(genes)))
 
         # Set some column names for use later
         gene_col = "Gene"
@@ -488,7 +454,7 @@ class DataSet:
         if mutations_filter is not None:
             for filter_val in mutations_filter:
                 if (filter_val not in somatic_mutation[mutation_col].values) and (filter_val not in somatic_mutation[location_col].values):
-                    print(f"Error: Filter value {filter_val} does not exist in the mutations dataframe for this dataset. Check for typos and existence.")
+                    raise InvalidParameterError(f"Filter value {filter_val} does not exist in the mutations dataframe for this dataset. Check for typos and existence. Merge aborted.")
                     invalid_filter = True
         if invalid_filter:
             return
@@ -497,16 +463,15 @@ class DataSet:
         df = pd.DataFrame(index=somatic_mutation.index.copy().drop_duplicates())
         for gene in genes:
             gene_mutations = somatic_mutation[somatic_mutation[gene_col] == gene] # Get all the mutations for that gene
-            if len(gene_mutations) == 0: # If the gene doesn't match any genes in the dataframe, tell them, and return None.
-                print("{} gene not found in somatic_mutation data.".format(gene))
-                return
+            if len(gene_mutations) == 0: # If the gene doesn't match any genes in the dataframe, tell them
+                raise InvalidParameterError("{} gene not found in somatic_mutation data.".format(gene))
             gene_mutations = gene_mutations.drop(columns=[gene_col]) # Gene column is same for every sample, so we don't need it anymore.
 
             # Check whether all filter values exist for this particular gene. If not, that's fine, we just want to warn the user.
             if mutations_filter is not None:
                 for filter_val in mutations_filter:
                     if (filter_val not in gene_mutations[mutation_col].values) and (filter_val not in gene_mutations[location_col].values):
-                        print(f"Warning: Filter value {filter_val} does not exist in the mutations data for the {gene} gene, though it exists for other genes.")
+                        warnings.warn(f"Filter value {filter_val} does not exist in the mutations data for the {gene} gene, though it exists for other genes.", ParameterWarning)
 
             # Create another empty dataframe, which we'll fill with the mutation and location data for this gene, as lists
             prep_index = gene_mutations.index.copy().drop_duplicates()
@@ -655,7 +620,7 @@ class DataSet:
         if len(chosen_indices) == 0: # There were no truncations or missenses, so they should all be Silent mutations
             for mutation in sample_mutations_list:
                 if mutation != "Silent":
-                    print(f"Warning: Unknown mutation type {mutation}. Assigned lowest priority in filtering.")
+                    warnings.warn(f"Unknown mutation type {mutation}. Assigned lowest priority in filtering.", ParameterWarning)
             chosen_indices = range(len(sample_mutations_list)) # We'll sort them all by location
 
         # If there are multiple mutations in chosen_indices, the following code will pick the one soonest in the peptide sequence.

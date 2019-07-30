@@ -11,10 +11,12 @@
 
 import pandas as pd
 import os
+import warnings
 from .dataset import DataSet
 from .file_download import update_index
 from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import *
+from .exceptions import FailedReindexWarning, NoInternetError, ReindexMapError
 
 class Endometrial(DataSet):
 
@@ -24,13 +26,14 @@ class Endometrial(DataSet):
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
         super().__init__("endometrial")
 
-        # Update the index, if possible. If there's no internet, update_index will return False, but we don't care in this context.
-        update_index(self._cancer_type)
+        # Update the index, if possible. If there's no internet, that's fine.
+        try:
+            update_index(self._cancer_type)
+        except NoInternetError:
+            pass
 
         # Validate the index
         self._version = validate_version(version, self._cancer_type, use_context="init")
-        if self._version is None: # Validation error. validate_version already printed an error message.
-            return
 
         # Get the paths to all the data files
         data_files = [
@@ -48,8 +51,6 @@ class Endometrial(DataSet):
             "transcriptomics_linear.cct.gz"]
 
         data_files_paths = get_version_files_paths(self._cancer_type, self._version, data_files)
-        if data_files_paths is None: # Data error. get_version_files_paths already printed an error message.
-            return 
 
         # Load the data files into dataframes in the self._data dict
         loading_msg = "Loading dataframes"
@@ -132,13 +133,13 @@ class Endometrial(DataSet):
         clinical = self._data["clinical"] # We need the Patient_ID column from clinical, to map sample ids to patient ids. The sample ids are the clinical index, and the patient ids are in the Patient_ID column.
         patient_id_col = clinical.loc[clinical["Proteomics_Tumor_Normal"] == "Tumor", "Patient_ID"] # We only want to generate a map for tumor samples, because all the normal samples are from the same patients as the tumor samples, so they have duplicate patient ids.
         patient_id_col.index.name = "Sample_ID" # Label the sample id column (it's currently the index)
-        patient_id_map = get_reindex_map(patient_id_col)
-
         mutations = self._data["somatic_mutation"]
-        mutations_reindexed = reindex_dataframe(mutations, patient_id_map, "Sample_ID", keep_old=False)
-        if mutations_reindexed is None:
+        try:
+            patient_id_map = get_reindex_map(patient_id_col)
+            mutations_reindexed = reindex_dataframe(mutations, patient_id_map, "Sample_ID", keep_old=False)
+        except ReindexMapError:
             del self._data["somatic_mutation"]
-            print("Error mapping sample ids in somatic_mutation dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. somatic_mutation dataframe not loaded.")
+            warnings.warn("Error mapping sample ids in somatic_mutation dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. somatic_mutation dataframe not loaded.", FailedReindexWarning)
         else:
             self._data["somatic_mutation"] = mutations_reindexed
 
