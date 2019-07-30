@@ -254,7 +254,7 @@ class RenalCcrcc(DataSet):
             tran_reindexed = reindex_dataframe(tran, tran_map, new_index_name="Patient_ID", keep_old=False)
         except ReindexMapError:
             del self._data["transcriptomics"]
-            warnings.warn("Error mapping sample ids in transcriptomics dataframe. At least one RNA.ID did not have a corresponding Patient_ID mapped in the clinical dataframe. transcriptomics dataframe not loaded.", FailedReindexWarning)
+            warnings.warn("Error mapping sample ids in transcriptomics dataframe. At least one RNA.ID did not have a corresponding Patient_ID mapped in the clinical dataframe. transcriptomics dataframe not loaded.", FailedReindexWarning, stacklevel=2)
         else:
             self._data["transcriptomics"] = tran_reindexed
 
@@ -265,7 +265,7 @@ class RenalCcrcc(DataSet):
         except ReindexMapError:
             for df_name in specimen_indexed_dfs:
                 del self._data[df_name]
-            warnings.warn(f"Error mapping sample ids in these dataframes: {' '.join(df for df in specimen_indexed_dfs)}. Specimen.Label mapping in clinical dataframe was not one-to-one. Dataframes not loaded.", FailedReindexWarning)
+            warnings.warn(f"Error mapping sample ids in these dataframes: {' '.join(df for df in specimen_indexed_dfs)}. Specimen.Label mapping in clinical dataframe was not one-to-one. Dataframes not loaded.", FailedReindexWarning, stacklevel=2)
         else:
             for df_name in specimen_indexed_dfs:
                 df = self._data[df_name]
@@ -273,7 +273,7 @@ class RenalCcrcc(DataSet):
                     df_reindexed = reindex_dataframe(df, specimen_label_map, new_index_name="Patient_ID", keep_old=False)
                 except ReindexMapError as error:
                     del self._data[df_name]
-                    warnings.warn(f"Error mapping sample ids in {df_name} dataframe. RNA.ID {str(error)} did not have a corresponding Patient_ID mapped in the clinical dataframe. {df_name} dataframe not loaded.", FailedReindexWarning)
+                    warnings.warn(f"Error mapping sample ids in {df_name} dataframe. RNA.ID {str(error)} did not have a corresponding Patient_ID mapped in the clinical dataframe. {df_name} dataframe not loaded.", FailedReindexWarning, stacklevel=2)
                 else:
                     self._data[df_name] = df_reindexed
 
@@ -302,7 +302,7 @@ class RenalCcrcc(DataSet):
             try:
                 df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
             except ReindexMapError:
-                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning)
+                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning, stacklevel=2)
                 dfs_to_delete.append(name)
                 continue
 

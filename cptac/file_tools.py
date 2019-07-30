@@ -53,7 +53,7 @@ def validate_version(version, dataset, use_context):
     # Parse and validate the version they passed
     if version in index.keys():
         if float(version) < float(index_latest): # Print a warning if they're using an old version
-            warnings.warn(f"Old data version. Latest is {index_latest}. This is {version}.", OldDataVersionWarning)
+            warnings.warn(f"Old data version. Latest is {index_latest}. This is {version}.", OldDataVersionWarning, stacklevel=3)
         return version
 
     elif version.lower() == "latest":
@@ -62,7 +62,7 @@ def validate_version(version, dataset, use_context):
             return index_latest
         else: # If their latest installed version is different from the latest version recorded in the index, then we don't know which one they meant when they passed "latest".
             if use_context == "download":
-                warnings.warn(f"Downloading new version of {dataset} dataset: {index_latest}. This will now be the default version when the dataset is loaded. If you wish to load an older version of the data, you must specify it with the 'version' parameter when you load the dataset.", DownloadingNewLatestWarning)
+                warnings.warn(f"Downloading new version of {dataset} dataset: {index_latest}. This will now be the default version when the dataset is loaded. If you wish to load an older version of the data, you must specify it with the 'version' parameter when you load the dataset.", DownloadingNewLatestWarning, stacklevel=3)
                 return index_latest
             elif use_context == "init":
                 raise AmbiguousLatestError(f"You requested to load the {dataset} dataset. Latest version is {index_latest}, which is not installed locally. To download it, run \"cptac.download(dataset='{dataset}')\". You will then be able to load the latest version of the dataset. To skip this and instead load the older version that is already installed, call \"cptac.{dataset.title()}(version='{latest_installed}')\".")

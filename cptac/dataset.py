@@ -381,7 +381,7 @@ class DataSet:
             if len(selected.columns) == 0: # If none of the columns matched the gene, generate a column of NaN and warn the user
                 empty_omics_df = pd.DataFrame(index=omics_df.index.copy())
                 selected = empty_omics_df.assign(**{gene:np.nan}) # Create a column with gene as the name, filled with NaN
-                warnings.warn('{0} did not match any columns in {1} dataframe. {0}_{1} column inserted, but filled with NaN.'.format(gene, omics_df_name), ParameterWarning)
+                warnings.warn('{0} did not match any columns in {1} dataframe. {0}_{1} column inserted, but filled with NaN.'.format(gene, omics_df_name), ParameterWarning, stacklevel=3)
 
             selected = selected.rename(columns=lambda x:'{}_{}'.format(x, omics_df_name)) # Append dataframe name to end of each column header, to preserve info when we join dataframes
             df = df.join(selected, how='left') # Append the columns to our dataframe we'll return.
@@ -471,7 +471,7 @@ class DataSet:
             if mutations_filter is not None:
                 for filter_val in mutations_filter:
                     if (filter_val not in gene_mutations[mutation_col].values) and (filter_val not in gene_mutations[location_col].values):
-                        warnings.warn(f"Filter value {filter_val} does not exist in the mutations data for the {gene} gene, though it exists for other genes.", ParameterWarning)
+                        warnings.warn(f"Filter value {filter_val} does not exist in the mutations data for the {gene} gene, though it exists for other genes.", ParameterWarning, stacklevel=3)
 
             # Create another empty dataframe, which we'll fill with the mutation and location data for this gene, as lists
             prep_index = gene_mutations.index.copy().drop_duplicates()
@@ -620,7 +620,7 @@ class DataSet:
         if len(chosen_indices) == 0: # There were no truncations or missenses, so they should all be Silent mutations
             for mutation in sample_mutations_list:
                 if mutation != "Silent":
-                    warnings.warn(f"Unknown mutation type {mutation}. Assigned lowest priority in filtering.", ParameterWarning)
+                    warnings.warn(f"Unknown mutation type {mutation}. Assigned lowest priority in filtering.", ParameterWarning, stacklevel=4)
             chosen_indices = range(len(sample_mutations_list)) # We'll sort them all by location
 
         # If there are multiple mutations in chosen_indices, the following code will pick the one soonest in the peptide sequence.

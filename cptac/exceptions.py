@@ -71,14 +71,6 @@ class ParameterWarning(CptacWarning):
     """We should warn them about a parameter for some reason."""
     pass
 
-#lass NotApplicableFilterWarning(CptacWarning):
-    """Filter value for multiple mutations existed for the dataset, but not for that particular gene."""
-    pass
-
-#lass NonexistentOmicsKeyWarning(CptacWarning):
-    """Key for selecting from an omics dataframe didn't exist. Column created, but filled with NaN."""
-    pass
-
 class OldDataVersionWarning(CptacWarning):
     """They're using an old data version."""
     pass

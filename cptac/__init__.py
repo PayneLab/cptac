@@ -60,6 +60,16 @@ def how_to_cite():
     """Give instructions for citing CPTAC datasets."""
     print("For instructions on how to cite a specific dataset, please call its how_to_cite method, e.g. cptac.Endometrial().how_to_cite()")
 
+def set_warnings(option):
+    """Sets option to show, hide, or verbosely show all cptac-generated warnings."""
+    if option == "show":
+        warnings.showwarning = _warning_displayer
+    elif option == "hide":
+        warnings.showwarning = _warning_hider
+    elif option == "verbose":
+        warnings.showwarning = _verbose_warning_displayer
+
+# Helper functions for handling exceptions and warnings
 def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): # Because Python binds default arguments when the function is defined, default_hook's default will always refer to the original sys.excepthook
     """We're going to catch cptac-generated exceptions, and make them prettier."""
     if issubclass(type(exception), CptacError):
@@ -71,6 +81,17 @@ def _warning_displayer(message, category, filename, lineno, file=None, line=None
     """We're also going to catch cptac-generated warnings and make them prettier."""
     if issubclass(category, CptacWarning):
         print("Warning: " + str(message))
+    else:
+        default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
+
+def _verbose_warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning): # Because Python binds default arguments when the function is defined, default_displayer's default will always refer to the original warnings.showwarning
+    """Display all warnings verbosely."""
+    default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
+
+def _warning_hider(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning): # Because Python binds default arguments when the function is defined, default_displayer's default will always refer to the original warnings.showwarning
+    """Supports option to catch cptac-generated warnings, and hide them."""
+    if issubclass(category, CptacWarning):
+        pass
     else:
         default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
 

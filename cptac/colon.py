@@ -166,7 +166,7 @@ class Colon(DataSet):
             try:
                 df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
             except ReindexMapError:
-                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning)
+                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning, stacklevel=2)
                 dfs_to_delete.append(name)
                 continue
 
