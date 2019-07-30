@@ -172,6 +172,9 @@ def parse_tsv_dict(path):
     Returns:
     dict: The tsv file read into a dictionary.
     """
+    if not os.path.isfile(path): 
+        raise MissingFileError(f"Missing file {path}. Please update the cptac package to restore.")
+
     with open(path, 'r') as data_file:
         lines = data_file.readlines()
 

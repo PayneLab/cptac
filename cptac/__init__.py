@@ -63,7 +63,7 @@ def how_to_cite():
 def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): # Because Python binds default arguments when the function is defined, default_hook's default will always refer to the original sys.excepthook
     """We're going to catch cptac-generated exceptions, and make them prettier."""
     if issubclass(type(exception), CptacError):
-        print(str(exception))
+        print("Error: " + str(exception))
     else:
         default_hook(exception_type, exception, traceback) # This way, exceptions from other packages will still be treated the same way
 

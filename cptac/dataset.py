@@ -140,10 +140,12 @@ class DataSet:
 
         Returns: None
         """
-        if term in self._definitions.keys():
+        if len(self._definitions.keys()) == 0:
+            raise NoDefinitionsError("No definitions provided for this dataset.")
+        elif term in self._definitions.keys():
             print(self._definitions[term])
         else:
-            raise InvalidParameterError("{} not found in definitions. Check capitalization. Alternatively, the dataset's search(<your term>) method can be used to perform a web search of the term provided.".format(term))
+            raise InvalidParameterError("{} not found in definitions. Check capitalization. Alternatively, the dataset's 'search(<your term>)' method can be used to perform a web search of the term provided.".format(term))
 
     def get_cancer_type(self):
         """Return the cancer type for this dataset, as a string."""
@@ -304,7 +306,7 @@ class DataSet:
             return_df = df.copy(deep=True) # We copy it, with deep=True, so edits on their copy don't affect the master for this instance
             return return_df
         else:
-            raise DataFrameNotIncludedError("{} dataframe not included in this dataset.".format(name))
+            raise DataframeNotIncludedError("{} dataframe not included in this dataset.".format(name))
 
     def _get_sample_status_map(self):
         """Get a pandas Series from the clinical dataframe, with sample ids as the index, and each sample's status (tumor or normal) as the values."""
@@ -332,11 +334,13 @@ class DataSet:
         else:
             raise CptacDevError(f"Invalid df_type of {df_type} passed to cptac.DataSet._check_df_valid.")
 
-        if (df_name not in valid_dfs) or (df_name not in self._data.keys()):
+        if df_name not in self._data.keys():
+            raise DataframeNotIncludedError(f"{df_name} dataframe not included in this dataset.")
+        elif df_name not in valid_dfs:
             error_msg = f"{df_name} is not a valid {df_type} dataframe for this function in this dataset. Valid options:"
             for valid_name in valid_dfs:
-                if valid_name in self._data.keys(): # Only include it if it's included in this dataset
-                    error_msg = error_msg + '\t' + valid_name
+                if valid_name in self._data.keys(): # Only print it if it's included in this dataset
+                    error_msg = error_msg + '\n\t' + valid_name
             raise InvalidParameterError(error_msg)
 
     def _get_omics_cols(self, omics_df_name, genes):

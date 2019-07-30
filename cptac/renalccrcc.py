@@ -265,7 +265,7 @@ class RenalCcrcc(DataSet):
         except ReindexMapError:
             for df_name in specimen_indexed_dfs:
                 del self._data[df_name]
-            warnings.warn(f"Error mapping sample ids in these dataframes: {' '.join(df for df in specimen_indexed_dfs)}. RNA.ID mapping in clinical dataframe was not one-to-one. Dataframes not loaded.", FailedReindexWarning)
+            warnings.warn(f"Error mapping sample ids in these dataframes: {' '.join(df for df in specimen_indexed_dfs)}. Specimen.Label mapping in clinical dataframe was not one-to-one. Dataframes not loaded.", FailedReindexWarning)
         else:
             for df_name in specimen_indexed_dfs:
                 df = self._data[df_name]
