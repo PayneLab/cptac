@@ -14,10 +14,9 @@ import webbrowser
 import os.path as path
 import sys
 import warnings
-import subprocess
-import re
 from .file_download import download
-from .exceptions import CptacError, CptacWarning, OldPackageVersionWarning
+from .file_download import download_text as _download_text
+from .exceptions import CptacError, CptacWarning, NoInternetError, OldPackageVersionWarning
 from .brca import Brca
 from .endometrial import Endometrial
 from .colon import Colon
@@ -70,42 +69,56 @@ def set_warnings(option):
         warnings.showwarning = _warning_hider
     elif option == "verbose":
         warnings.showwarning = _verbose_warning_displayer
+    else:
+        print(f"Invalid warning option '{option}'. Valid options: 'show', 'hide', 'verbose'.")
 
 # Helper functions for handling exceptions and warnings
 def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): # Because Python binds default arguments when the function is defined, default_hook's default will always refer to the original sys.excepthook
     """Catch cptac-generated exceptions, and make them prettier."""
     if issubclass(type(exception), CptacError):
-        print(f"Error: {str(exception)}\n(occurred in file {traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno})")
+        print(f"Error: {str(exception)} ({traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno})")
     else:
         default_hook(exception_type, exception, traceback) # This way, exceptions from other packages will still be treated the same way
 
 def _warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning): # Python binds default arguments when the function is defined, so default_displayer's default will always refer to the original warnings.showwarning
     """Catch cptac-generated warnings and make them prettier."""
     if issubclass(category, CptacWarning):
-        print(f"Warning: {str(message)}\n(occurred in file {filename}, line {lineno})")
+        print(f"Warning: {str(message)} ({filename}, line {lineno})")
     else:
         default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
 
-def _warning_hider(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning): # Python binds default arguments when the function is defined, so default_displayer's default will always refer to the original warnings.showwarning
+def _warning_hider(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning):
     """Hide all cptac-generated warnings."""
     if issubclass(category, CptacWarning):
         pass
     else:
-        default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
+        default_displayer(message, category, filename, lineno, file, line)
 
-def _verbose_warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning): # Because Python binds default arguments when the function is defined, default_displayer's default will always refer to the original warnings.showwarning
+def _verbose_warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning):
     """Display all warnings verbosely."""
-    default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
+    default_displayer(message, category, filename, lineno, file, line)
 
 sys.excepthook = _exception_handler # Set our custom exception hook
 warnings.showwarning = _warning_displayer # And our custom warning displayer
 
 # Check whether the package is up-to-date
-process_result = subprocess.run(["pip", "list", "--outdated"], stdout=subprocess.PIPE)
-outdated = process_result.stdout.decode("utf-8")
-pattern = r"^cptac\s*(\d+\.\d+\.\d+)\s*(\d+\.\d+\.\d+)\s*wheel$"
-search = re.search(pattern, outdated, re.MULTILINE)
-if search is not None:
-    installed = search.group(1)
-    latest = search.group(2)
-    warnings.warn(f"Your version of cptac ({installed}) is out-of-date. Latest is {latest}. Please run 'pip install cptac --upgrade' to update it.", OldPackageVersionWarning, stacklevel=2)
+version_url = "https://byu.box.com/shared/static/kbwivmqnrdnn5im2gu6khoybk5a3rfl0.txt"
+try:
+    remote_version = _download_text(version_url)
+except NoInternetError:
+    pass
+else:
+    local_version = version()
+    if remote_version != local_version:
+        warnings.warn(f"Your version of cptac ({local_version}) is out-of-date. Latest is {remote_version}. Please run 'pip install cptac --upgrade' to update it.", OldPackageVersionWarning, stacklevel=2)
+
+#import subprocess
+#import re
+#process_result = subprocess.run(["pip", "list", "--outdated"], stdout=subprocess.PIPE)
+#outdated = process_result.stdout.decode("utf-8")
+#pattern = r"^cptac\s*(\d+\.\d+\.\d+)\s*(\d+\.\d+\.\d+)\s*wheel$"
+#search = re.search(pattern, outdated, re.MULTILINE)
+#if search is not None:
+#    installed = search.group(1)
+#    latest = search.group(2)
+#    warnings.warn(f"Your version of cptac ({installed}) is out-of-date. Latest is {latest}. Please run 'pip install cptac --upgrade' to update it.", OldPackageVersionWarning, stacklevel=2)
