@@ -61,7 +61,7 @@ def how_to_cite():
     print("For instructions on how to cite a specific dataset, please call its how_to_cite method, e.g. cptac.Endometrial().how_to_cite()")
 
 def set_warnings(option):
-    """Sets option to show, hide, or verbosely show all cptac-generated warnings."""
+    """Set option to show, hide, or verbosely show all cptac-generated warnings."""
     if option == "show":
         warnings.showwarning = _warning_displayer
     elif option == "hide":
@@ -71,16 +71,23 @@ def set_warnings(option):
 
 # Helper functions for handling exceptions and warnings
 def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): # Because Python binds default arguments when the function is defined, default_hook's default will always refer to the original sys.excepthook
-    """We're going to catch cptac-generated exceptions, and make them prettier."""
+    """Catch cptac-generated exceptions, and make them prettier."""
     if issubclass(type(exception), CptacError):
-        print("Error: " + str(exception))
+        print(f"Error in file {traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno}: {str(exception)}")
     else:
         default_hook(exception_type, exception, traceback) # This way, exceptions from other packages will still be treated the same way
 
-def _warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning): # Because Python binds default arguments when the function is defined, default_displayer's default will always refer to the original warnings.showwarning
-    """We're also going to catch cptac-generated warnings and make them prettier."""
+def _warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning): # Python binds default arguments when the function is defined, so default_displayer's default will always refer to the original warnings.showwarning
+    """Catch cptac-generated warnings and make them prettier."""
     if issubclass(category, CptacWarning):
-        print("Warning: " + str(message))
+        print(f"Warning in file {filename}, line {lineno}: {str(message)}")
+    else:
+        default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
+
+def _warning_hider(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning): # Python binds default arguments when the function is defined, so default_displayer's default will always refer to the original warnings.showwarning
+    """Hide all cptac-generated warnings."""
+    if issubclass(category, CptacWarning):
+        pass
     else:
         default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
 
@@ -88,12 +95,9 @@ def _verbose_warning_displayer(message, category, filename, lineno, file=None, l
     """Display all warnings verbosely."""
     default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
 
-def _warning_hider(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning): # Because Python binds default arguments when the function is defined, default_displayer's default will always refer to the original warnings.showwarning
-    """Supports option to catch cptac-generated warnings, and hide them."""
-    if issubclass(category, CptacWarning):
-        pass
-    else:
-        default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
+
+
+
 
 sys.excepthook = _exception_handler # Set our custom exception hook
 warnings.showwarning = _warning_displayer # And our custom warning displayer
