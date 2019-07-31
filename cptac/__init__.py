@@ -14,8 +14,10 @@ import webbrowser
 import os.path as path
 import sys
 import warnings
+import subprocess
+import re
 from .file_download import download
-from .exceptions import CptacError, CptacWarning
+from .exceptions import CptacError, CptacWarning, OldPackageVersionWarning
 from .brca import Brca
 from .endometrial import Endometrial
 from .colon import Colon
@@ -73,14 +75,14 @@ def set_warnings(option):
 def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): # Because Python binds default arguments when the function is defined, default_hook's default will always refer to the original sys.excepthook
     """Catch cptac-generated exceptions, and make them prettier."""
     if issubclass(type(exception), CptacError):
-        print(f"Error in file {traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno}: {str(exception)}")
+        print(f"Error: {str(exception)}\n(occurred in file {traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno})")
     else:
         default_hook(exception_type, exception, traceback) # This way, exceptions from other packages will still be treated the same way
 
 def _warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning): # Python binds default arguments when the function is defined, so default_displayer's default will always refer to the original warnings.showwarning
     """Catch cptac-generated warnings and make them prettier."""
     if issubclass(category, CptacWarning):
-        print(f"Warning in file {filename}, line {lineno}: {str(message)}")
+        print(f"Warning: {str(message)}\n(occurred in file {filename}, line {lineno})")
     else:
         default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
 
@@ -95,9 +97,15 @@ def _verbose_warning_displayer(message, category, filename, lineno, file=None, l
     """Display all warnings verbosely."""
     default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
 
-
-
-
-
 sys.excepthook = _exception_handler # Set our custom exception hook
 warnings.showwarning = _warning_displayer # And our custom warning displayer
+
+# Check whether the package is up-to-date
+process_result = subprocess.run(["pip", "list", "--outdated"], stdout=subprocess.PIPE)
+outdated = process_result.stdout.decode("utf-8")
+pattern = r"^cptac\s*(\d+\.\d+\.\d+)\s*(\d+\.\d+\.\d+)\s*wheel$"
+search = re.search(pattern, outdated, re.MULTILINE)
+if search is not None:
+    installed = search.group(1)
+    latest = search.group(2)
+    warnings.warn(f"Your version of cptac ({installed}) is out-of-date. Latest is {latest}. Please run 'pip install cptac --upgrade' to update it.", OldPackageVersionWarning, stacklevel=2)
