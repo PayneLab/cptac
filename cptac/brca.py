@@ -61,7 +61,6 @@ class Brca(DataSet):
 
                 # Parse out the acetylation sites and add them to gene names
                 sites = df["variableSites"]
-                import pdb; pdb.set_trace()
                 sites = sites.str.replace(r"[A-JL-Z]\d+[a-jl-z]", "") # Get rid of all sites other than K sites
                 sites = sites.str.replace(r"\s+", "") # Get rid of all whitespace
                 sites = sites.str.replace(r"k", "") # Get rid of all lowercase k delimeters

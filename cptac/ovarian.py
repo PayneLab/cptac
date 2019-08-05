@@ -87,7 +87,17 @@ class Ovarian(DataSet):
                     df = df[df["hgnc_symbol"].notnull()] # Drops all nan values in hgnc_symbol column
                     df = df.set_index("hgnc_symbol")
                 elif file_name == "phosphoproteomics.txt.gz":
-                    df = df[df["site"].notnull()] # Drops all nan values in site column
+                    df = df[df["site"].notnull()] # Drops all rows with nan values in site column
+
+                    # Get rid of all lowercase delimeters in sites
+                    genes_sites = df["site"]
+                    import pdb; pdb.set_trace()
+                    genes_sites = genes_sites.str.rsplit("-", n=1, expand=True)
+                    just_sites = genes_sites[1] # Get just the sites column
+                    just_sites = just_sites.str.replace(r"[sty]", r"") # Get rid of all lowercase s, t, and y delimeters
+                    new_genes_sites = genes_sites[0].str.cat(just_sites, "-")
+                    df["site"] = new_genes_sites
+
                     df = df.drop(["refseq_peptide","Peptide"],axis=1)
                     df = df.set_index("site")
 
