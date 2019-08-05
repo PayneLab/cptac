@@ -90,12 +90,11 @@ class Ovarian(DataSet):
                     df = df[df["site"].notnull()] # Drops all rows with nan values in site column
 
                     # Get rid of all lowercase delimeters in sites
-                    genes_sites = df["site"]
-                    import pdb; pdb.set_trace()
-                    genes_sites = genes_sites.str.rsplit("-", n=1, expand=True)
+                    genes_sites = df["site"] # Select the genes and sites column
+                    genes_sites = genes_sites.str.rsplit("-", n=1, expand=True) # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
                     just_sites = genes_sites[1] # Get just the sites column
                     just_sites = just_sites.str.replace(r"[sty]", r"") # Get rid of all lowercase s, t, and y delimeters
-                    new_genes_sites = genes_sites[0].str.cat(just_sites, "-")
+                    new_genes_sites = genes_sites[0].str.cat(just_sites, "-") # Join the genes columns to our new and improved sites column!
                     df["site"] = new_genes_sites
 
                     df = df.drop(["refseq_peptide","Peptide"],axis=1)
