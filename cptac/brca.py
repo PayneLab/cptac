@@ -94,11 +94,10 @@ class Brca(DataSet):
                 df = df[df["GeneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for GeneSymbol, so we'll use that to filter them out.
                 # Parse out the phophorylation sites and add them to gene names
                 sites = df["variableSites"]
-                import pdb; pdb.set_trace()
-                sites = sites.str.replace(r"[A-RU-XZ]\d+[a-ru-xz]", "") # Get rid of all sites other than S, T, or Y sites
+                sites = sites.str.replace(r"(?![STYsty])[A-Z]\d*[a-z]", "") # Get rid of all sites other than S, T, or Y sites
                 sites = sites.str.replace(r"\s+", "") # Get rid of all whitespace
                 sites = sites.str.replace(r"[sty]", "") # Get rid of all lowercase s, t, or y delimeters
-                df["GeneSymbol"] = df["GeneSymbol"].str.cat(sites, sep="-") # Concatenate the sites to our gene names
+                df["GeneSymbol"] = df["GeneSymbol"].str.cat(sites, sep="-") # Concatenate the sites to our gene names, with a hyphen separator
 
                 df = df.drop(columns=df.columns[0:21]) # We don't need these. The dropped columns include a "geneSymbol" column that is a duplicate of GeneSymbol.
                 df = df.set_index("GeneSymbol")

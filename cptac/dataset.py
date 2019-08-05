@@ -373,7 +373,7 @@ class DataSet:
         df = pd.DataFrame(index=omics_df.index.copy()) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
         for gene in genes:
             if omics_df_name == 'phosphoproteomics' or omics_df_name == 'acetylproteomics':
-                col_regex = r"^{0}{1}[^{1}]*$".format(gene, self._gene_separator) # Build a regex to get all columns that match the gene. Ending with "[^{1}]*$", where {1} corresponds to  self._gene_separator, makes sure that we're matching all the way up to the last occurrence of the gene separator, so that if there's a gene name with the gene separator in it, it's not matched by another gene name that's the part of the name before the separator--e.g., if the gene separator is a dash, "ANKHD1-EIF4EBP3-S2539" is matched by ANKHD1-EIF4EBP3 but not by ANKHD1.
+                col_regex = rf"^{gene}-[^-]*$" # Build a regex to get all columns that match the gene. Ending with "[^-]*$" makes sure that we're matching all the way up to the last occurrence of the hyphen, which separates the gene name from the site, so that if there's a gene name with a hyphen in it, it's not matched by another gene name that's the part of the name before the hyphen--e.g., "ANKHD1-EIF4EBP3-S2539" is matched by ANKHD1-EIF4EBP3 but not by ANKHD1.
             else:
                 col_regex = r'^{}$'.format(gene)
 

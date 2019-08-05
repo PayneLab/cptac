@@ -35,9 +35,6 @@ class Colon(DataSet):
         # Validate the index
         self._version = validate_version(version, self._cancer_type, use_context="init")
 
-        # Overload the gene separator for column names in the phosphoproteomics dataframe. In the colon data, it's an underscore, not a dash like most datasets.
-        self._gene_separator = "_"
-
         # Get the paths to all the data files
         data_files = [
             "clinical.tsi.gz",
@@ -122,7 +119,10 @@ class Colon(DataSet):
 
         # Combine the two phosphoproteomics dataframes into one dataframe
         phos_combined = phos_tumor.append(phos_normal)
-        phos_combined = phos_combined.rename(columns=lambda x: x.split(":")[0]) # Drop everything after ":" in column names--unneeded additional identifiers
+
+        # Parse the gene sites
+        phos_combined = phos_combined.rename(columns=lambda x: x.split("__")[0]) # Drop everything after "__" in column names--unneeded additional identifiers
+        phos_combined = phos_combined.rename(columns=lambda x: x.replace("_", "-")) # Replace underscore between gene and site with a hyphen to match other datasets
         phos_combined = phos_combined.sort_index(axis=1) # Put all the columns in alphabetical order
         self._data['phosphoproteomics'] = phos_combined
         del self._data["phosphoproteomics_tumor"]
