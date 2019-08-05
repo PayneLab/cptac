@@ -138,6 +138,7 @@ class Brca(DataSet):
             elif file_name == "prosp-brca-v3.1-sample-annotation.csv.gz":
                 df = pd.read_csv(file_path, index_col=0)
                 df = df.drop(columns="Participant") # This column is just a duplicate of the index
+                df = df.rename(columns={"Sample.IDs": "Replicate_Measurement_IDs", "Type": "Sample_Tumor_Normal"})
                 df.index.name = "Patient_ID"
                 self._data["metadata"] = df
 
@@ -149,7 +150,7 @@ class Brca(DataSet):
         metadata = self._data["metadata"]
         del self._data["metadata"] # We'll replace it, split into clinical and derived_molecular
         clinical = metadata[[
-             "Sample.IDs", "Type", "Age.in.Month", "Gender", "Race", "Human.Readable.Label", "Experiment", "Channel", "Stage", 
+             "Replicate_Measurement_IDs", "Sample_Tumor_Normal", "Age.in.Month", "Gender", "Race", "Human.Readable.Label", "Experiment", "Channel", "Stage", 
              "PAM50", "NMF.v2.1", "ER", "PR", "ER.IHC.Score", "PR.IHC.Score", "Coring.or.Excision", "Ischemia.Time.in.Minutes", 
              "Ischemia.Decade", "Necrosis", "Tumor.Cellularity", "Total.Cellularity", "In.CR", "QC.status"]]
         self._data["clinical"] = clinical
