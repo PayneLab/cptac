@@ -10,13 +10,14 @@
 #   limitations under the License.
 
 import numpy as np
+import pandas as pd
 import os
 from .dataset import DataSet
 from .dataframe_tools import *
 from .file_download import update_index
 from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import *
-from .exceptions import NoInternetError
+from .exceptions import NoInternetError, FailedReindexWarning
 
 # Comments beginning with "# FILL:" contain specific filling instructions.
 
@@ -66,6 +67,48 @@ class Luad(DataSet):
             df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
             # FILL: Here, insert conditional statements to load all the data files as dataframes into the self._data dictionary. Consult existing datasets for examples.
+            if file_name == "luad-v2.0-cnv-gene-LR.gct.gz":
+                df = pd.read_csv(file_path, sep="\t", skiprows=2)
+                df = df.iloc[49:,]
+                df = df.drop(columns="GeneID")
+                df = df.drop(columns="Description")
+                df = df.transpose()
+                df.columns = df.iloc[0]
+                df = df.iloc[1:,]
+                df.index.name="Patient_ID"
+                df.columns.name=None
+                df=df.sort_index()
+                self._data["CNV"] = df
+            
+
+            if file_name == "luad-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz":
+                df = pd.read_csv(file_path, sep="\t", skiprows=2)
+                gene_filter = df['geneSymbol'] != 'na'
+                df2 = df[gene_filter]
+                df2['variableSites2'] = df2['variableSites'].str.replace(" ","")
+                df2['variableSites2'] = df2['variableSites2'].str.replace("(?![STYsty])[A-Z]\d*[a-z]", "", regex=True)
+                df2['variableSites2'] = df2['variableSites2'].str.replace('[a-z]',"")
+                df2['combined']= df2['geneSymbol'].str.cat(df2['variableSites2'], sep="-\n")
+                df3 = df2.set_index('combined')
+                cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsVMsiteObserved', 'bestScore', 'bestDeltaForwardReverseScore', 'Best_scoreVML', 'Best_numActualVMSites_sty', 'Best_numLocalizedVMsites_sty', 'variableSites', 'sequence', 'sequenceVML', 'accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA', 'protein_mw', 'species', 'speciesMulti', 'orfCategory', 'accession_number', 'accession_numbers', 'protein_group_num', 'entry_name', 'GeneSymbol', 'variableSites2', 'geneSymbol']
+                df4 = df3.drop(columns=cols_to_drop)
+                df5 = df4.transpose()
+                df5.index.name="Patient_ID"
+                df5.columns.name =None
+
+
+            
+            if file_name == "luad-v2.0-proteome-ratio-norm-NArm.gct.gz":
+                df = pd.read_csv(file_path, skiprows=2, sep='\t')
+                filter = df['geneSymbol'] != 'na'
+                df2 = df[filter]
+                df2 = df2.set_index('geneSymbol')
+                cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsProteinObserved', 'numSpectraProteinObserved', 'protein_mw', 'percentCoverage', 'numPepsUnique', 'scoreUnique', 'species', 'orfCategory', 'accession_number', 'accession_numbers', 'subgroupNum', 'entry_name', 'GeneSymbol']
+                df3 = df2.drop(columns=cols_to_drop)
+                df4 = df3.transpose()
+                df4.index.name="patient_ID"
+                df4.columns.name=None
+
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
