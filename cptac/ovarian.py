@@ -87,7 +87,16 @@ class Ovarian(DataSet):
                     df = df[df["hgnc_symbol"].notnull()] # Drops all nan values in hgnc_symbol column
                     df = df.set_index("hgnc_symbol")
                 elif file_name == "phosphoproteomics.txt.gz":
-                    df = df[df["site"].notnull()] # Drops all nan values in site column
+                    df = df[df["site"].notnull()] # Drops all rows with nan values in site column
+
+                    # Get rid of all lowercase delimeters in sites
+                    genes_sites = df["site"] # Select the genes and sites column
+                    genes_sites = genes_sites.str.rsplit("-", n=1, expand=True) # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
+                    just_sites = genes_sites[1] # Get just the sites column
+                    just_sites = just_sites.str.replace(r"[sty]", r"") # Get rid of all lowercase s, t, and y delimeters
+                    new_genes_sites = genes_sites[0].str.cat(just_sites, "-") # Join the genes columns to our new and improved sites column!
+                    df["site"] = new_genes_sites
+
                     df = df.drop(["refseq_peptide","Peptide"],axis=1)
                     df = df.set_index("site")
 
@@ -152,7 +161,7 @@ class Ovarian(DataSet):
             try:
                 df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
             except ReindexMapError:
-                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have a corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning)
+                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have a corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning, stacklevel=2)
                 dfs_to_delete.append(name)
                 continue
             self._data[name] = df

@@ -139,7 +139,7 @@ class Endometrial(DataSet):
             mutations_reindexed = reindex_dataframe(mutations, patient_id_map, "Sample_ID", keep_old=False)
         except ReindexMapError:
             del self._data["somatic_mutation"]
-            warnings.warn("Error mapping sample ids in somatic_mutation dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. somatic_mutation dataframe not loaded.", FailedReindexWarning)
+            warnings.warn("Error mapping sample ids in somatic_mutation dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. somatic_mutation dataframe not loaded.", FailedReindexWarning, stacklevel=2)
         else:
             self._data["somatic_mutation"] = mutations_reindexed
 
