@@ -66,7 +66,12 @@ class Brca(DataSet):
                 sites = sites.str.replace(r"k", "") # Get rid of all lowercase k delimeters
                 df["GeneSymbol"] = df["GeneSymbol"].str.cat(sites, sep="-") # Concatenate the sites to our gene names
 
-                df = df.drop(columns=df.columns[0:19]) # We don't need these. The dropped columns include a "geneSymbol" column that is a duplicate of the original GeneSymbol.
+                df = df.drop(columns=["id", "id.description", "geneSymbol", "numColumnsVMsiteObserved", "bestScore", 
+                "bestDeltaForwardReverseScore", "Best_scoreVML", "variableSites", "sequence", "sequenceVML",
+                "accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA",
+                "protein_mw", "species", "speciesMulti", "orfCategory", "accession_number", "accession_numbers", 
+                "protein_group_num", "entry_name"]) # We don't need these. The dropped columns include a "geneSymbol" column that is a duplicate of the original GeneSymbol.
+
                 df = df.set_index("GeneSymbol")
                 df = df.apply(pd.to_numeric) # Now that we've dropped all the extra metadata columns, convert everything to floats.
                 df = df.sort_index()
@@ -99,7 +104,12 @@ class Brca(DataSet):
                 sites = sites.str.replace(r"[sty]", "") # Get rid of all lowercase s, t, or y delimeters
                 df["GeneSymbol"] = df["GeneSymbol"].str.cat(sites, sep="-") # Concatenate the sites to our gene names, with a hyphen separator
 
-                df = df.drop(columns=df.columns[0:21]) # We don't need these. The dropped columns include a "geneSymbol" column that is a duplicate of GeneSymbol.
+                df = df.drop(columns=["id", "id.description", "geneSymbol", "numColumnsVMsiteObserved", "bestScore",
+                "bestDeltaForwardReverseScore", "Best_scoreVML", "Best_numActualVMSites_sty", "Best_numLocalizedVMsites_sty", "variableSites",
+                "sequence", "sequenceVML", "accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA",
+                "protein_mw", "species", "speciesMulti", "orfCategory", "accession_number", "accession_numbers",
+                "protein_group_num", "entry_name"]) # We don't need these. The dropped columns include a "geneSymbol" column that is a duplicate of GeneSymbol.
+
                 df = df.set_index("GeneSymbol")
                 df = df.apply(pd.to_numeric) # Now that we've dropped all the extra metadata columns, convert everything to floats.
                 df = df.sort_index()
@@ -112,7 +122,11 @@ class Brca(DataSet):
             elif file_name == "prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz":
                 df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
                 df = df[df["GeneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for GeneSymbol, so we'll use that to filter them out.
-                df = df.drop(columns=df.columns[0:15]) # We don't need these. The dropped columns include a "geneSymbol" column that is a duplicate of GeneSymbol.
+
+                df = df.drop(columns=["id", "id.description", "geneSymbol", "numColumnsProteinObserved", "numSpectraProteinObserved", "protein_mw",
+                "percentCoverage", "numPepsUnique", "scoreUnique", "species", "orfCategory", "accession_number", "accession_numbers",
+                "subgroupNum", "entry_name"]) # We don't need these. The dropped columns include a "geneSymbol" column that is a duplicate of GeneSymbol.
+
                 df = df.set_index("GeneSymbol")
                 df = df.apply(pd.to_numeric) # Now that we've dropped all the extra metadata columns, convert everything to floats.
                 df = df.sort_index()
