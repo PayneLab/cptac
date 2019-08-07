@@ -35,9 +35,6 @@ class Colon(DataSet):
         # Validate the index
         self._version = validate_version(version, self._cancer_type, use_context="init")
 
-        # Overload the gene separator for column names in the phosphoproteomics dataframe. In the colon data, it's an underscore, not a dash like most datasets.
-        self._gene_separator = "_"
-
         # Get the paths to all the data files
         data_files = [
             "clinical.tsi.gz",
@@ -122,7 +119,10 @@ class Colon(DataSet):
 
         # Combine the two phosphoproteomics dataframes into one dataframe
         phos_combined = phos_tumor.append(phos_normal)
-        phos_combined = phos_combined.rename(columns=lambda x: x.split(":")[0]) # Drop everything after ":" in column names--unneeded additional identifiers
+
+        # Parse the gene sites
+        phos_combined = phos_combined.rename(columns=lambda x: x.split("__")[0]) # Drop everything after "__" in column names--unneeded additional identifiers
+        phos_combined = phos_combined.rename(columns=lambda x: x.replace("_", "-")) # Replace underscore between gene and site with a hyphen to match other datasets
         phos_combined = phos_combined.sort_index(axis=1) # Put all the columns in alphabetical order
         self._data['phosphoproteomics'] = phos_combined
         del self._data["phosphoproteomics_tumor"]
@@ -166,7 +166,7 @@ class Colon(DataSet):
             try:
                 df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
             except ReindexMapError:
-                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning)
+                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning, stacklevel=2)
                 dfs_to_delete.append(name)
                 continue
 
