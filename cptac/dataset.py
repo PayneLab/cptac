@@ -375,7 +375,7 @@ class DataSet:
             if omics_df_name == 'phosphoproteomics' or omics_df_name == 'acetylproteomics':
                 col_regex = rf"^{gene}-[^-]*$" # Build a regex to get all columns that match the gene. Ending with "[^-]*$" makes sure that we're matching all the way up to the last occurrence of the hyphen, which separates the gene name from the site, so that if there's a gene name with a hyphen in it, it's not matched by another gene name that's the part of the name before the hyphen--e.g., "ANKHD1-EIF4EBP3-S2539" is matched by ANKHD1-EIF4EBP3 but not by ANKHD1.
             elif omics_df_name == "CNV" and self._cancer_type == "brca":
-                col_regex = r"^" + gene + r"(\|ENSG\d{11}\.\d)?$" # The BRCA CNV dataframe has several genes where there are multiple columns for one gene, but each column corresponds to a different protein associated with that gene, labelled by Ensemble ID. This regex makes sure that we grab all such columns for the given gene, if this is one of those genes.
+                col_regex = r"^" + gene + r"(\|ENSG\d{11}\.\d)?$" # The BRCA CNV dataframe has several genes where there's multiple columns for one gene, but each column corresponds to a different protein associated with that gene, labelled by Ensemble ID. This regex makes sure that we grab all such columns for the given gene, if this is one of those genes.
             else:
                 col_regex = r'^{}$'.format(gene)
 
