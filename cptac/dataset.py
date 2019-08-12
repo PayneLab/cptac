@@ -483,6 +483,7 @@ class DataSet:
             mutation_lists = pd.DataFrame(index=prep_index, columns=prep_cols_with_mut_status)
 
             # Get the mutation(s), mutation status, and location information for this gene and sample
+            # Yes, I know I'm doing that horrible thing, using nested for loops to work with dataframes. However, I tried refactoring it to use DataFrame.groupby and DataFrame.apply, and both actually made it slower. Go figure.
             for sample in mutation_lists.index:
                 sample_data = gene_mutations.loc[sample] # Get slice of dataframe for the sample
                 sample_mutations = sample_data[mutation_col] # Get mutation(s)
