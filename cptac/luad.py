@@ -116,6 +116,21 @@ class Luad(DataSet):
                 self._data["proteomics"] = df
 
 
+            if file_name == "luad-v2.0-rnaseq-prot-uq-rpkm-log2-NArm-row-norm.gct.gz":
+                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
+                 gene_filter = df['geneSymbol'] != 'na'
+                 df = df[gene_filter]
+                 df = df.set_index('geneSymbol')
+                 cols_to_drop = ['id', 'gene_id', 'gene_type', 'length']
+                 df = df.drop(columns = cols_to_drop)
+                 df = df.apply(pd.to_numeric)
+                 df = df.transpose()
+                 df.index.name = "patient_ID"
+                 df.columns.name = None
+                 df = df.sort_index()
+                 self._data["transcriptomics"] = df
+
+
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
