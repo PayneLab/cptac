@@ -80,7 +80,7 @@ class Luad(DataSet):
                 df.columns.name=None
                 df=df.sort_index()
                 self._data["CNV"] = df
-            
+
 
             if file_name == "luad-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz":
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
@@ -101,7 +101,7 @@ class Luad(DataSet):
                 self._data["phosphoproteomics"] = df
 
 
-            
+
             if file_name == "luad-v2.0-proteome-ratio-norm-NArm.gct.gz":
                 df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
                 gene_filter = df['geneSymbol'] != 'na'
@@ -131,6 +131,31 @@ class Luad(DataSet):
                  self._data["transcriptomics"] = df
 
 
+            if file_name == "luad-v2.0-sample-annotation.csv.gz":
+                df = pd.read_csv(file_path, sep=",", dtype=object)
+                filter = df['QC.status'] == "QC.pass" #There are some samples that are internal references. IRs are used for scaling purposes, and don't belong to a single patient, so we want to drop them.
+                df = df[filter]
+                df = df.drop(clumns="Sample.ID") #Get rid of the Sample.ID column becuase the same information is stored in "Participant" which is formatted the way we want.
+                df = df.set_index("Participant")
+                df.index.name="Patient_ID"
+                df = df.rename(columns={"Type":"Sample_Tumor_Normal"})
+                self._data["metadata"] = df
+
+
+            
+
+
+            if file_name == "luad-v2.0-rnaseq-circ-rna.csv.gz":
+                df = pd.read_csv(file_path, sep=",", dtype=object)
+                #Sample.ID is the sample id
+                #The unique identifier from the gene is going to look something like this: circ_chr10_100260218_100262063_CWF19L1
+                #The nucleotide coordinates can be found in junction.5 and junction.3
+                #Junction.5 and Junciton.3 are the coordinates you are looking for it is the first base of the donor and last base of the acceptor, respectively.
+                #THe gene name can be found in gene.3 and gene.5. When they are different you can concatenate them.
+
+                #Where are the quantitative values?
+
+
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
@@ -144,7 +169,7 @@ class Luad(DataSet):
         #     - Note that most datasets are originally indexed with a patient id, which we rename as the case id, and has a format like C3N-00352.
         #         - If one patient provided both a normal and a tumor sample, those samples will have the same patient/case id. Therefore, before any joining or reindexing, prepend an 'N' to all normal sample case ids, based on the column in the clinical dataframe indicating which samples are tumor or normal. See existing datasets for examples of how to do this.
         #
-        # - Each dataframe's name must match the format for that type of dataframe in all the other datasets. 
+        # - Each dataframe's name must match the format for that type of dataframe in all the other datasets.
         #     - E.g., if your binary mutations dataframe is named mutations_binary, you'd need to rename it to somatic_mutation_binary to match the other datasets' binary mutation dataframes.
         #
         # - If the new dataset has a dataframe not included in any other datasets, you must write a getter for it in the parent DataSet class, found in cptac/dataset.py, using the private method DataSet._get_dataframe
