@@ -41,11 +41,14 @@ class DataSet:
         # These are the omics dataframes that are valid for use in the utilities functions
         self._valid_omics_dfs = [
             'acetylproteomics',
-            'proteomics',
-            'transcriptomics', # But not circular_RNA or miRNA--they have incompatible column names.
+            'circular_RNA',
             'CNV',
+            'miRNA',
             'phosphoproteomics',
-            'phosphoproteomics_gene']
+            'phosphoproteomics_gene',
+            'proteomics',
+            'transcriptomics',
+            ]
 
         # These are the metadata dataframes that are valid for use in the utilities functions
         self._valid_metadata_dfs = [
@@ -188,7 +191,7 @@ class DataSet:
         webbrowser.open(url)
         print(" " * len(message), end='\r') # Erase the message
 
-    # Utilities methods
+    # Join functions
     def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None):
         """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
 
@@ -205,7 +208,11 @@ class DataSet:
         selected1 = self._get_omics_cols(df1_name, genes1)
         selected2 = self._get_omics_cols(df2_name, genes2)
 
-        df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
+        df = selected1.join(selected2, how='outer')
+
+        # Warn them about any NaNs that were inserted in the outer join
+        self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
+
         df = df.sort_index() # Sort rows in ascending order
         return df
 
@@ -228,6 +235,10 @@ class DataSet:
 
         mutations_were_filtered = mutations_filter is not None
         joined = self._join_other_to_mutations(omics, mutations, mutations_were_filtered, show_location)
+
+        # Warn them about any NaNs that were inserted in the outer join
+        self._warn_inserted_nans(omics_df_name, "somatic_mutation", omics.index, mutations.index)
+        
         return joined
 
     def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None):
@@ -246,7 +257,11 @@ class DataSet:
         selected1 = self._get_metadata_cols(df1_name, cols1)
         selected2 = self._get_metadata_cols(df2_name, cols2)
 
-        df = selected1.join(selected2, how='inner') # Join the rows common to both dataframes
+        df = selected1.join(selected2, how='outer')
+
+        # Warn them about any NaNs that were inserted in the outer join
+        self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
+
         df = df.sort_index() # Sort rows in ascending order
         return df
 
@@ -266,7 +281,11 @@ class DataSet:
         metadata_selected = self._get_metadata_cols(metadata_df_name, metadata_cols)
         omics_selected = self._get_omics_cols(omics_df_name, omics_genes)
 
-        joined = metadata_selected.join(omics_selected, how='inner') # Join the rows common to both dataframes
+        joined = metadata_selected.join(omics_selected, how='outer')
+
+        # Warn them about any NaNs that were inserted in the outer join
+        self._warn_inserted_nans(metadata_df_name, omics_df_name, metadata_selected.index, omics_selected.index)
+
         joined = joined.sort_index() # Sort rows in ascending order
         return joined
 
@@ -289,6 +308,10 @@ class DataSet:
 
         mutations_were_filtered = mutations_filter is not None
         joined = self._join_other_to_mutations(metadata, mutations, mutations_were_filtered, show_location)
+
+        # Warn them about any NaNs that were inserted in the outer join
+        self._warn_inserted_nans(metadata_df_name, "somatic_mutation", metadata.index, mutations.index)
+
         return joined
 
     # "Private" methods
@@ -343,6 +366,40 @@ class DataSet:
                     error_msg = error_msg + '\n\t' + valid_name
             raise InvalidParameterError(error_msg)
 
+    def _warn_inserted_nans(self, name1, name2, index1, index2):
+        """Compare two indices from two dataframes, and warn the user that any rows with index values not in both indices were filled with NaNs in a join function.
+
+        Parameters:
+        name1 (str): Name of the dataframe the first index came from
+        name2 (str): Name of the dataframe the second index came from
+        index1 (str): First index to compare
+        index2 (str): Second index to compare
+
+        Returns: None
+        """
+        unique1 = index1.difference(index2)
+        unique2 = index2.difference(index1)
+
+        self._issue_inserted_nans_warning(unique1, name2)
+        self._issue_inserted_nans_warning(unique2, name1)
+
+    def _issue_inserted_nans_warning(self, unique, other_name):
+        """Issue a warning that the samples in unique were not found in the other_name dataframe, and those column(s) were filled with NaN.
+
+        Parameters:
+        unique (list or array-like of str): The samples that weren't in the other_name dataframe.
+        other_name (str): The name of the dataframe the samples weren't found in.
+
+        Returns: None
+        """
+        if other_name == "somatic_mutation":
+            return # This will have separate fill warnings printed, because we use different fill values.
+        if len(unique) == 1:
+            warnings.warn(f"{other_name} data not found for sample {''.join(unique)}. {other_name} data columns filled with NaN for this sample.", InsertedNanWarning, stacklevel=4)
+        elif len(unique) > 0:
+            warnings.warn(f"{other_name} data not found for samples {', '.join(unique)}. {other_name} data columns filled with NaN for these samples.", InsertedNanWarning, stacklevel=4)
+
+
     def _get_omics_cols(self, omics_df_name, genes):
         """Based on a single gene, or a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
 
@@ -386,7 +443,7 @@ class DataSet:
                 warnings.warn('{0} did not match any columns in {1} dataframe. {0}_{1} column inserted, but filled with NaN.'.format(gene, omics_df_name), ParameterWarning, stacklevel=3)
 
             selected = selected.rename(columns=lambda x:'{}_{}'.format(x, omics_df_name)) # Append dataframe name to end of each column header, to preserve info when we join dataframes
-            df = df.join(selected, how='left') # Append the columns to our dataframe we'll return.
+            df = df.join(selected, how='outer') # Append the columns to our dataframe we'll return.
 
         return df
 
@@ -421,7 +478,7 @@ class DataSet:
             if col not in df.columns.values: # If they didn't give us one of the actual columns, tell them.
                 raise InvalidParameterError('{} column not found in the {} dataframe. Please double check that it is included in the dataframe.'.format(col, df_name))
             selected = df.loc[:, [col]] # Select the column from the dataframe, keeping it as a dataframe
-            return_df = return_df.join(selected, how='left') # Append the columns to our dataframe we'll return.
+            return_df = return_df.join(selected, how='outer') # Append the columns to our dataframe we'll return.
 
         return return_df
 
@@ -483,6 +540,7 @@ class DataSet:
             mutation_lists = pd.DataFrame(index=prep_index, columns=prep_cols_with_mut_status)
 
             # Get the mutation(s), mutation status, and location information for this gene and sample
+            # Yes, I know I'm doing that horrible thing, using nested for loops to work with dataframes. However, I tried refactoring it to use DataFrame.groupby and DataFrame.apply, and both actually made it slower. Go figure.
             for sample in mutation_lists.index:
                 sample_data = gene_mutations.loc[sample] # Get slice of dataframe for the sample
                 sample_mutations = sample_data[mutation_col] # Get mutation(s)
@@ -518,7 +576,7 @@ class DataSet:
                 mutation_lists.at[sample, mutation_status_col] = sample_mutation_status
 
             mutation_lists = mutation_lists.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Add the gene name to end beginning of each column header, to preserve info when we join dataframes.
-            df = df.join(mutation_lists, how='left') # Append the columns to our dataframe we'll return.
+            df = df.join(mutation_lists, how='outer') # Append the columns to our dataframe we'll return.
 
         return df
 
@@ -534,7 +592,7 @@ class DataSet:
         Returns:
         pandas DataFrame: The joined dataframe, with a Sample_Status column added and NaNs filled.
         """
-        joined = other.join(mutations, how="left") # Left join other data and mutation data (left being the other data)
+        joined = other.join(mutations, how="outer")
 
         # Add Sample_Status column by joining the sample_status_map to the joined mutation dataframe. Do a left join so we drop any indices not in the mutations dataframe.
         sample_status_map = self._get_sample_status_map()
@@ -557,9 +615,22 @@ class DataSet:
         # Fill in Wildtype_Normal or Wildtype_Tumor for NaN values (i.e., no mutation data for that sample) in joined dataframe mutation columns
         mutation_regex = r'^.*_Mutation$' # Construct regex to find all mutation columns
         mutation_cols = [col for col in joined.columns.values if re.match(mutation_regex, col)] # Get a list of all mutation columns
+
+        fill_log = [] # We're going to keep track of value filling, and let the user know we did it.
         for mutation_col in mutation_cols:
+        
+            # Log how many values we're going to fill for this gene
+            num_filled = (((joined['Sample_Status'] == "Normal") | (joined['Sample_Status'] == "Tumor")) & (pd.isnull(joined[mutation_col]))).tolist().count(True) # See how many values we'll fill
+            if num_filled > 0:
+                gene = mutation_col.rsplit("_", maxsplit=1)[0]
+                fill_log.append(f"{num_filled} samples for the {gene} gene")
+
+            # Impute values
             joined.loc[(joined['Sample_Status'] == "Normal") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_normal_fill # Change all NaN mutation values for Normal samples to Wildtype_Normal. 
             joined.loc[(joined['Sample_Status'] == "Tumor") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_tumor_fill # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
+
+        if len(fill_log) > 0:
+            warnings.warn(f"No somatic_mutation data was found for {', '.join(fill_log)}. Values were filled with Wildtype_Tumor, Wildtype_Normal, or No_mutation as appropriate.", FilledMutationDataWarning, stacklevel=3)
 
         # Depending on show_location, either fill NaN values in the joined dataframe location columns with "No_mutation", or just drop the location columns altogether
         location_regex = r'^.*_Location$' # Construct regex to find all location columns

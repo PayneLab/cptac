@@ -66,12 +66,11 @@ class Luad(DataSet):
             file_name = path_elements[-1] # The last element will be the name of the file
             df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
-            # FILL: Here, insert conditional statements to load all the data files as dataframes into the self._data dictionary. Consult existing datasets for examples.
             if file_name == "luad-v2.0-cnv-gene-LR.gct.gz":
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
-                gene_filter = df['Description'] != 'na'
+                gene_filter = df['Description'] != 'na' #Filter out metadata rows
                 df = df[gene_filter]
-                cols_to_drop = ["GeneID","Description"]
+                cols_to_drop = ["GeneID","Description"] #We don't need these columns (We only need to keep columns that contain quantitative values)
                 df = df.drop(columns=cols_to_drop)
                 df = df.set_index("id")
                 df = df.apply(pd.to_numeric)
@@ -80,19 +79,20 @@ class Luad(DataSet):
                 df.columns.name=None
                 df=df.sort_index()
                 self._data["CNV"] = df
-            
+
 
             if file_name == "luad-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz":
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
-                gene_filter = df['geneSymbol'] != 'na'
+                gene_filter = df['geneSymbol'] != 'na' #Drop rows of metadata
                 df = df[gene_filter]
                 sites = df['variableSites']
-                sites = sites.str.replace(" ","")
-                sites = sites.str.replace("(?![STYsty])[A-Z]\d*[a-z]", "", regex=True)
-                sites = sites.str.replace('[a-z]',"")
+                sites = sites.str.replace(r"[a-z\s]", "")
                 df['geneSymbol']= df['geneSymbol'].str.cat(sites, sep="-")
                 df = df.set_index('geneSymbol')
-                cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsVMsiteObserved', 'bestScore', 'bestDeltaForwardReverseScore', 'Best_scoreVML', 'Best_numActualVMSites_sty', 'Best_numLocalizedVMsites_sty', 'variableSites', 'sequence', 'sequenceVML', 'accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA', 'protein_mw', 'species', 'speciesMulti', 'orfCategory', 'accession_number', 'accession_numbers', 'protein_group_num', 'entry_name', 'GeneSymbol']
+                cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsVMsiteObserved', 'bestScore', 'bestDeltaForwardReverseScore',
+                'Best_scoreVML', 'Best_numActualVMSites_sty', 'Best_numLocalizedVMsites_sty', 'variableSites', 'sequence', 'sequenceVML',
+                'accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA', 'protein_mw', 'species',
+                'speciesMulti', 'orfCategory', 'accession_number', 'accession_numbers', 'protein_group_num', 'entry_name', 'GeneSymbol']
                 df = df.drop(columns=cols_to_drop)
                 df = df.apply(pd.to_numeric)
                 df = df.transpose()
@@ -101,19 +101,68 @@ class Luad(DataSet):
                 self._data["phosphoproteomics"] = df
 
 
-            
+
             if file_name == "luad-v2.0-proteome-ratio-norm-NArm.gct.gz":
                 df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
-                gene_filter = df['geneSymbol'] != 'na'
+                gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
                 df = df.set_index('geneSymbol')
-                cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsProteinObserved', 'numSpectraProteinObserved', 'protein_mw', 'percentCoverage', 'numPepsUnique', 'scoreUnique', 'species', 'orfCategory', 'accession_number', 'accession_numbers', 'subgroupNum', 'entry_name', 'GeneSymbol']
+                cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsProteinObserved',
+                'numSpectraProteinObserved', 'protein_mw', 'percentCoverage', 'numPepsUnique',
+                'scoreUnique', 'species', 'orfCategory', 'accession_number', 'accession_numbers',
+                'subgroupNum', 'entry_name', 'GeneSymbol']
                 df = df.drop(columns=cols_to_drop)
                 df = df.apply(pd.to_numeric)
                 df = df.transpose()
                 df.index.name="patient_ID"
                 df.columns.name=None
                 self._data["proteomics"] = df
+
+
+            if file_name == "luad-v2.0-rnaseq-prot-uq-rpkm-log2-NArm-row-norm.gct.gz":
+                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
+                 gene_filter = df['geneSymbol'] != 'na'
+                 df = df[gene_filter]
+                 df = df.set_index('geneSymbol')
+                 cols_to_drop = ['id', 'gene_id', 'gene_type', 'length']
+                 df = df.drop(columns = cols_to_drop)
+                 df = df.apply(pd.to_numeric)
+                 df = df.transpose()
+                 df.index.name = "patient_ID"
+                 df.columns.name = None
+                 df = df.sort_index()
+                 self._data["transcriptomics"] = df
+
+
+            if file_name == "luad-v2.0-sample-annotation.csv.gz":
+                df = pd.read_csv(file_path, sep=",", dtype=object)
+                filter = df['QC.status'] == "QC.pass" #There are some samples that are internal references. IRs are used for scaling purposes, and don't belong to a single patient, so we want to drop them.
+                df = df[filter]
+                df = df.drop(columns="Sample.ID") #Get rid of the Sample.ID column becuase the same information is stored in "Participant" which is formatted the way we want.
+                df = df.set_index("Participant")
+                df.index.name="Patient_ID"
+                df = df.rename(columns={"Type":"Sample_Tumor_Normal"})
+                #Split the metadata into multiple dataframes
+                #Make experiemntal_set up dataframe
+                experimental_setup_cols = ['Experiment', 'Channel', 'QC.status'] #These are the columns for the experimental_setup dataframe
+                experimental_setup_df = df[experimental_setup_cols]
+                df = df.drop(columns=experimental_setup_cols)
+                #Make a derived_molecular dataframe
+                derived_molecular_cols = ['TP53.mutation', 'KRAS.mutation', 'STK11.mutation', 'EGFR.mutation', 'KEAP1.mutation', 'RB1.mutation',
+                'IL21R.mutation', 'EGFL6.mutation', 'LMO2.mutation', 'C10orf62.mutation', 'DKK3.mutation', 'BIRC6.mutation', 'TP53.mutation.status',
+                'KRAS.mutation.status', 'STK11.mutation.status', 'EGFR.mutation.status', 'KEAP1.mutation.status', 'RB1.mutation.status', 'IL21R.mutation.status',
+                'EGFL6.mutation.status', 'LMO2.mutation.status', 'C10orf62.mutation.status', 'DKK3.mutation.status', 'BIRC6.mutation.status',
+                'Mutation.Signature.Activity.W1.COSMIC5', 'Mutation.Signature.Activity.W2.COSMIC4', 'Mutation.Signature.Activity.W3.COSMIC2', 'fusion.EML4-ALK']
+                derived_molecular_df = df[derived_molecular_cols]
+                df = df.drop(columns = derived_molecular_cols)
+                self._data["clinical"]= df
+                self._data['experimental_setup'] = experimental_setup_df
+                self._data['derived_molecular'] = derived_molecular_df
+
+
+
+
+            
 
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
@@ -129,7 +178,7 @@ class Luad(DataSet):
         #     - Note that most datasets are originally indexed with a patient id, which we rename as the case id, and has a format like C3N-00352.
         #         - If one patient provided both a normal and a tumor sample, those samples will have the same patient/case id. Therefore, before any joining or reindexing, prepend an 'N' to all normal sample case ids, based on the column in the clinical dataframe indicating which samples are tumor or normal. See existing datasets for examples of how to do this.
         #
-        # - Each dataframe's name must match the format for that type of dataframe in all the other datasets. 
+        # - Each dataframe's name must match the format for that type of dataframe in all the other datasets.
         #     - E.g., if your binary mutations dataframe is named mutations_binary, you'd need to rename it to somatic_mutation_binary to match the other datasets' binary mutation dataframes.
         #
         # - If the new dataset has a dataframe not included in any other datasets, you must write a getter for it in the parent DataSet class, found in cptac/dataset.py, using the private method DataSet._get_dataframe

@@ -78,6 +78,7 @@ def _warning_displayer(message, category, filename, lineno, file=None, line=None
 
 sys.excepthook = _exception_handler # Set our custom exception hook
 warnings.showwarning = _warning_displayer # And our custom warning displayer
+warnings.simplefilter("always", category=CptacWarning) # Edit the warnings filter to show multiple occurences of cptac-generated warnings
 
 # Check whether the package is up-to-date
 version_url = "https://byu.box.com/shared/static/kbwivmqnrdnn5im2gu6khoybk5a3rfl0.txt"
@@ -90,13 +91,3 @@ else:
     if remote_version != local_version:
         warnings.warn(f"Your version of cptac ({local_version}) is out-of-date. Latest is {remote_version}. Please run 'pip install cptac --upgrade' to update it.", OldPackageVersionWarning, stacklevel=2)
 
-#import subprocess
-#import re
-#process_result = subprocess.run(["pip", "list", "--outdated"], stdout=subprocess.PIPE)
-#outdated = process_result.stdout.decode("utf-8")
-#pattern = r"^cptac\s*(\d+\.\d+\.\d+)\s*(\d+\.\d+\.\d+)\s*wheel$"
-#search = re.search(pattern, outdated, re.MULTILINE)
-#if search is not None:
-#    installed = search.group(1)
-#    latest = search.group(2)
-#    warnings.warn(f"Your version of cptac ({installed}) is out-of-date. Latest is {latest}. Please run 'pip install cptac --upgrade' to update it.", OldPackageVersionWarning, stacklevel=2)

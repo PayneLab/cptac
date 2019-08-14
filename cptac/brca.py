@@ -61,9 +61,7 @@ class Brca(DataSet):
 
                 # Parse out the acetylation sites and add them to gene names
                 sites = df["variableSites"]
-                sites = sites.str.replace(r"[A-JL-Z]\d+[a-jl-z]", "") # Get rid of all sites other than K sites
-                sites = sites.str.replace(r"\s+", "") # Get rid of all whitespace
-                sites = sites.str.replace(r"k", "") # Get rid of all lowercase k delimeters
+                sites = sites.str.replace(r"[a-z\s]", "") # Get rid of all lowercase delimeters and whitespace
                 df["GeneSymbol"] = df["GeneSymbol"].str.cat(sites, sep="-") # Concatenate the sites to our gene names
 
                 df = df.drop(columns=["id", "id.description", "geneSymbol", "numColumnsVMsiteObserved", "bestScore", 
@@ -97,11 +95,10 @@ class Brca(DataSet):
             elif file_name == "prosp-brca-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz":
                 df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
                 df = df[df["GeneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for GeneSymbol, so we'll use that to filter them out.
-                # Parse out the phophorylation sites and add them to gene names
+
+                # Parse out the phosphorylation sites and add them to gene names
                 sites = df["variableSites"]
-                sites = sites.str.replace(r"(?![STYsty])[A-Z]\d*[a-z]", "") # Get rid of all sites other than S, T, or Y sites
-                sites = sites.str.replace(r"\s+", "") # Get rid of all whitespace
-                sites = sites.str.replace(r"[sty]", "") # Get rid of all lowercase s, t, or y delimeters
+                sites = sites.str.replace(r"[a-z\s]", "") # Get rid of all lowercase delimeters and whitespace
                 df["GeneSymbol"] = df["GeneSymbol"].str.cat(sites, sep="-") # Concatenate the sites to our gene names, with a hyphen separator
 
                 df = df.drop(columns=["id", "id.description", "geneSymbol", "numColumnsVMsiteObserved", "bestScore",
