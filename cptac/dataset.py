@@ -610,16 +610,24 @@ class DataSet:
             no_mutation_fill = [[["No_mutation"]]]
 
         # Fill in Wildtype_Normal or Wildtype_Tumor for NaN values (i.e., no mutation data for that sample) in joined dataframe mutation columns
-        vals_imputed = False
         mutation_regex = r'^.*_Mutation$' # Construct regex to find all mutation columns
         mutation_cols = [col for col in joined.columns.values if re.match(mutation_regex, col)] # Get a list of all mutation columns
+
+        imputation_log = [] # We're going to keep track of value imputation, and let the user know we did it.
         for mutation_col in mutation_cols:
-            if (((joined['Sample_Status'] == "Normal") | (joined['Sample_Status'] == "Tumor")) & (pd.isnull(joined[mutation_col]))).any(): # Keep track so we can warn the user that we imputed values
-                vals_imputed = True
+        
+            # Log how many values we're going to impute for this gene
+            num_imputed = (((joined['Sample_Status'] == "Normal") | (joined['Sample_Status'] == "Tumor")) & (pd.isnull(joined[mutation_col]))).tolist().count(True) # See how many values we'll impute
+            if num_imputed > 0:
+                gene = mutation_col.rsplit("_", maxsplit=1)[0]
+                imputation_log.append(f"{num_imputed} samples for the {gene} gene")
+
+            # Impute values
             joined.loc[(joined['Sample_Status'] == "Normal") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_normal_fill # Change all NaN mutation values for Normal samples to Wildtype_Normal. 
             joined.loc[(joined['Sample_Status'] == "Tumor") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_tumor_fill # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
-        if vals_imputed:
-            warnings.warn("somatic_mutation data was not found for some samples for some genes. Any values of Wildtype_Tumor, Wildtype_Normal, or No_mutation were imputed.", ImputedMutationDataWarning, stacklevel=3)
+
+        if len(imputation_log) > 0:
+            warnings.warn(f"somatic_mutation data was not found for {', '.join(imputation_log)}. Any values of Wildtype_Tumor, Wildtype_Normal, or No_mutation were imputed.", ImputedMutationDataWarning, stacklevel=3)
 
         # Depending on show_location, either fill NaN values in the joined dataframe location columns with "No_mutation", or just drop the location columns altogether
         location_regex = r'^.*_Location$' # Construct regex to find all location columns
