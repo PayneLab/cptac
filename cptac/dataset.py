@@ -630,7 +630,7 @@ class DataSet:
             joined.loc[(joined['Sample_Status'] == "Tumor") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_tumor_fill # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
 
         if len(fill_log) > 0:
-            warnings.warn(f"No somatic_mutation data was found for {', '.join(fill_log)}. Values were filled with Wildtype_Tumor, Wildtype_Normal, or No_mutation as appropriate.", FilledMutationDataWarning, stacklevel=3)
+            warnings.warn(f"In joining somatic_mutation table, no mutations were found for {', '.join(fill_log)}. Values were filled with Wildtype_Tumor or Wildtype_Normal.", FilledMutationDataWarning, stacklevel=3)
 
         # Depending on show_location, either fill NaN values in the joined dataframe location columns with "No_mutation", or just drop the location columns altogether
         location_regex = r'^.*_Location$' # Construct regex to find all location columns
