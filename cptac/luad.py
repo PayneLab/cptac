@@ -66,12 +66,11 @@ class Luad(DataSet):
             file_name = path_elements[-1] # The last element will be the name of the file
             df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
-            # FILL: Here, insert conditional statements to load all the data files as dataframes into the self._data dictionary. Consult existing datasets for examples.
             if file_name == "luad-v2.0-cnv-gene-LR.gct.gz":
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
-                gene_filter = df['Description'] != 'na'
+                gene_filter = df['Description'] != 'na' #Filter out metadata rows
                 df = df[gene_filter]
-                cols_to_drop = ["GeneID","Description"]
+                cols_to_drop = ["GeneID","Description"] #We don't need these columns (We only need to keep columns that contain quantitative values)
                 df = df.drop(columns=cols_to_drop)
                 df = df.set_index("id")
                 df = df.apply(pd.to_numeric)
@@ -84,15 +83,16 @@ class Luad(DataSet):
 
             if file_name == "luad-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz":
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
-                gene_filter = df['geneSymbol'] != 'na'
+                gene_filter = df['geneSymbol'] != 'na' #Drop rows of metadata
                 df = df[gene_filter]
                 sites = df['variableSites']
-                sites = sites.str.replace(" ","")
-                sites = sites.str.replace("(?![STYsty])[A-Z]\d*[a-z]", "", regex=True)
-                sites = sites.str.replace('[a-z]',"")
+                sites = sites.str.replace(r"[a-z\s]", "")
                 df['geneSymbol']= df['geneSymbol'].str.cat(sites, sep="-")
                 df = df.set_index('geneSymbol')
-                cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsVMsiteObserved', 'bestScore', 'bestDeltaForwardReverseScore', 'Best_scoreVML', 'Best_numActualVMSites_sty', 'Best_numLocalizedVMsites_sty', 'variableSites', 'sequence', 'sequenceVML', 'accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA', 'protein_mw', 'species', 'speciesMulti', 'orfCategory', 'accession_number', 'accession_numbers', 'protein_group_num', 'entry_name', 'GeneSymbol']
+                cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsVMsiteObserved', 'bestScore', 'bestDeltaForwardReverseScore',
+                'Best_scoreVML', 'Best_numActualVMSites_sty', 'Best_numLocalizedVMsites_sty', 'variableSites', 'sequence', 'sequenceVML',
+                'accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA', 'protein_mw', 'species',
+                'speciesMulti', 'orfCategory', 'accession_number', 'accession_numbers', 'protein_group_num', 'entry_name', 'GeneSymbol']
                 df = df.drop(columns=cols_to_drop)
                 df = df.apply(pd.to_numeric)
                 df = df.transpose()
@@ -104,10 +104,13 @@ class Luad(DataSet):
 
             if file_name == "luad-v2.0-proteome-ratio-norm-NArm.gct.gz":
                 df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
-                gene_filter = df['geneSymbol'] != 'na'
+                gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
                 df = df.set_index('geneSymbol')
-                cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsProteinObserved', 'numSpectraProteinObserved', 'protein_mw', 'percentCoverage', 'numPepsUnique', 'scoreUnique', 'species', 'orfCategory', 'accession_number', 'accession_numbers', 'subgroupNum', 'entry_name', 'GeneSymbol']
+                cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsProteinObserved',
+                'numSpectraProteinObserved', 'protein_mw', 'percentCoverage', 'numPepsUnique',
+                'scoreUnique', 'species', 'orfCategory', 'accession_number', 'accession_numbers',
+                'subgroupNum', 'entry_name', 'GeneSymbol']
                 df = df.drop(columns=cols_to_drop)
                 df = df.apply(pd.to_numeric)
                 df = df.transpose()
@@ -135,25 +138,31 @@ class Luad(DataSet):
                 df = pd.read_csv(file_path, sep=",", dtype=object)
                 filter = df['QC.status'] == "QC.pass" #There are some samples that are internal references. IRs are used for scaling purposes, and don't belong to a single patient, so we want to drop them.
                 df = df[filter]
-                df = df.drop(clumns="Sample.ID") #Get rid of the Sample.ID column becuase the same information is stored in "Participant" which is formatted the way we want.
+                df = df.drop(columns="Sample.ID") #Get rid of the Sample.ID column becuase the same information is stored in "Participant" which is formatted the way we want.
                 df = df.set_index("Participant")
                 df.index.name="Patient_ID"
                 df = df.rename(columns={"Type":"Sample_Tumor_Normal"})
-                self._data["metadata"] = df
+                #Split the metadata into multiple dataframes
+                #Make experiemntal_set up dataframe
+                experimental_setup_cols = ['Experiment', 'Channel', 'QC.status'] #These are the columns for the experimental_setup dataframe
+                experimental_setup_df = df[experimental_setup_cols]
+                df = df.drop(columns=experimental_setup_cols)
+                #Make a derived_molecular dataframe
+                derived_molecular_cols = ['TP53.mutation', 'KRAS.mutation', 'STK11.mutation', 'EGFR.mutation', 'KEAP1.mutation', 'RB1.mutation',
+                'IL21R.mutation', 'EGFL6.mutation', 'LMO2.mutation', 'C10orf62.mutation', 'DKK3.mutation', 'BIRC6.mutation', 'TP53.mutation.status',
+                'KRAS.mutation.status', 'STK11.mutation.status', 'EGFR.mutation.status', 'KEAP1.mutation.status', 'RB1.mutation.status', 'IL21R.mutation.status',
+                'EGFL6.mutation.status', 'LMO2.mutation.status', 'C10orf62.mutation.status', 'DKK3.mutation.status', 'BIRC6.mutation.status',
+                'Mutation.Signature.Activity.W1.COSMIC5', 'Mutation.Signature.Activity.W2.COSMIC4', 'Mutation.Signature.Activity.W3.COSMIC2', 'fusion.EML4-ALK']
+                derived_molecular_df = df[derived_molecular_cols]
+                df = df.drop(columns = derived_molecular_cols)
+                self._data["clinical"]= df
+                self._data['experimental_setup'] = experimental_setup_df
+                self._data['derived_molecular'] = derived_molecular_df
+
+
 
 
             
-
-
-            if file_name == "luad-v2.0-rnaseq-circ-rna.csv.gz":
-                df = pd.read_csv(file_path, sep=",", dtype=object)
-                #Sample.ID is the sample id
-                #The unique identifier from the gene is going to look something like this: circ_chr10_100260218_100262063_CWF19L1
-                #The nucleotide coordinates can be found in junction.5 and junction.3
-                #Junction.5 and Junciton.3 are the coordinates you are looking for it is the first base of the donor and last base of the acceptor, respectively.
-                #THe gene name can be found in gene.3 and gene.5. When they are different you can concatenate them.
-
-                #Where are the quantitative values?
 
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
