@@ -41,11 +41,14 @@ class DataSet:
         # These are the omics dataframes that are valid for use in the utilities functions
         self._valid_omics_dfs = [
             'acetylproteomics',
-            'proteomics',
-            'transcriptomics', # But not circular_RNA or miRNA--they have incompatible column names.
+            'circular_RNA',
             'CNV',
+            'miRNA',
             'phosphoproteomics',
-            'phosphoproteomics_gene']
+            'phosphoproteomics_gene',
+            'proteomics',
+            'transcriptomics',
+            ]
 
         # These are the metadata dataframes that are valid for use in the utilities functions
         self._valid_metadata_dfs = [
@@ -207,8 +210,8 @@ class DataSet:
 
         df = selected1.join(selected2, how='outer')
 
-        # Warn them about any NaNs that were imputed in the outer join
-        self._warn_imputed_nans(df1_name, df2_name, selected1.index, selected2.index)
+        # Warn them about any NaNs that were inserted in the outer join
+        self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
 
         df = df.sort_index() # Sort rows in ascending order
         return df
@@ -233,8 +236,8 @@ class DataSet:
         mutations_were_filtered = mutations_filter is not None
         joined = self._join_other_to_mutations(omics, mutations, mutations_were_filtered, show_location)
 
-        # Warn them about any NaNs that were imputed in the outer join
-        self._warn_imputed_nans(omics_df_name, "somatic_mutation", omics.index, mutations.index)
+        # Warn them about any NaNs that were inserted in the outer join
+        self._warn_inserted_nans(omics_df_name, "somatic_mutation", omics.index, mutations.index)
         
         return joined
 
@@ -256,8 +259,8 @@ class DataSet:
 
         df = selected1.join(selected2, how='outer')
 
-        # Warn them about any NaNs that were imputed in the outer join
-        self._warn_imputed_nans(df1_name, df2_name, selected1.index, selected2.index)
+        # Warn them about any NaNs that were inserted in the outer join
+        self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
 
         df = df.sort_index() # Sort rows in ascending order
         return df
@@ -280,8 +283,8 @@ class DataSet:
 
         joined = metadata_selected.join(omics_selected, how='outer')
 
-        # Warn them about any NaNs that were imputed in the outer join
-        self._warn_imputed_nans(metadata_df_name, omics_df_name, metadata_selected.index, omics_selected.index)
+        # Warn them about any NaNs that were inserted in the outer join
+        self._warn_inserted_nans(metadata_df_name, omics_df_name, metadata_selected.index, omics_selected.index)
 
         joined = joined.sort_index() # Sort rows in ascending order
         return joined
@@ -306,8 +309,8 @@ class DataSet:
         mutations_were_filtered = mutations_filter is not None
         joined = self._join_other_to_mutations(metadata, mutations, mutations_were_filtered, show_location)
 
-        # Warn them about any NaNs that were imputed in the outer join
-        self._warn_imputed_nans(metadata_df_name, "somatic_mutation", metadata.index, mutations.index)
+        # Warn them about any NaNs that were inserted in the outer join
+        self._warn_inserted_nans(metadata_df_name, "somatic_mutation", metadata.index, mutations.index)
 
         return joined
 
@@ -363,7 +366,7 @@ class DataSet:
                     error_msg = error_msg + '\n\t' + valid_name
             raise InvalidParameterError(error_msg)
 
-    def _warn_imputed_nans(self, name1, name2, index1, index2):
+    def _warn_inserted_nans(self, name1, name2, index1, index2):
         """Compare two indices from two dataframes, and warn the user that any rows with index values not in both indices were filled with NaNs in a join function.
 
         Parameters:
@@ -377,10 +380,10 @@ class DataSet:
         unique1 = index1.difference(index2)
         unique2 = index2.difference(index1)
 
-        self._issue_imputed_nans_warning(unique1, name2)
-        self._issue_imputed_nans_warning(unique2, name1)
+        self._issue_inserted_nans_warning(unique1, name2)
+        self._issue_inserted_nans_warning(unique2, name1)
 
-    def _issue_imputed_nans_warning(self, unique, other_name):
+    def _issue_inserted_nans_warning(self, unique, other_name):
         """Issue a warning that the samples in unique were not found in the other_name dataframe, and those column(s) were filled with NaN.
 
         Parameters:
@@ -390,11 +393,11 @@ class DataSet:
         Returns: None
         """
         if other_name == "somatic_mutation":
-            return # This will have separate imputation messages printed, because we use different fill values.
+            return # This will have separate fill warnings printed, because we use different fill values.
         if len(unique) == 1:
-            warnings.warn(f"{other_name} data not found for sample {''.join(unique)}. {other_name} data columns filled with NaN for this sample.", ImputedNanWarning, stacklevel=4)
+            warnings.warn(f"{other_name} data not found for sample {''.join(unique)}. {other_name} data columns filled with NaN for this sample.", InsertedNanWarning, stacklevel=4)
         elif len(unique) > 0:
-            warnings.warn(f"{other_name} data not found for samples {', '.join(unique)}. {other_name} data columns filled with NaN for these samples.", ImputedNanWarning, stacklevel=4)
+            warnings.warn(f"{other_name} data not found for samples {', '.join(unique)}. {other_name} data columns filled with NaN for these samples.", InsertedNanWarning, stacklevel=4)
 
 
     def _get_omics_cols(self, omics_df_name, genes):
@@ -613,21 +616,21 @@ class DataSet:
         mutation_regex = r'^.*_Mutation$' # Construct regex to find all mutation columns
         mutation_cols = [col for col in joined.columns.values if re.match(mutation_regex, col)] # Get a list of all mutation columns
 
-        imputation_log = [] # We're going to keep track of value imputation, and let the user know we did it.
+        fill_log = [] # We're going to keep track of value filling, and let the user know we did it.
         for mutation_col in mutation_cols:
         
-            # Log how many values we're going to impute for this gene
-            num_imputed = (((joined['Sample_Status'] == "Normal") | (joined['Sample_Status'] == "Tumor")) & (pd.isnull(joined[mutation_col]))).tolist().count(True) # See how many values we'll impute
-            if num_imputed > 0:
+            # Log how many values we're going to fill for this gene
+            num_filled = (((joined['Sample_Status'] == "Normal") | (joined['Sample_Status'] == "Tumor")) & (pd.isnull(joined[mutation_col]))).tolist().count(True) # See how many values we'll fill
+            if num_filled > 0:
                 gene = mutation_col.rsplit("_", maxsplit=1)[0]
-                imputation_log.append(f"{num_imputed} samples for the {gene} gene")
+                fill_log.append(f"{num_filled} samples for the {gene} gene")
 
             # Impute values
             joined.loc[(joined['Sample_Status'] == "Normal") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_normal_fill # Change all NaN mutation values for Normal samples to Wildtype_Normal. 
             joined.loc[(joined['Sample_Status'] == "Tumor") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_tumor_fill # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
 
-        if len(imputation_log) > 0:
-            warnings.warn(f"somatic_mutation data was not found for {', '.join(imputation_log)}. Any values of Wildtype_Tumor, Wildtype_Normal, or No_mutation were imputed.", ImputedMutationDataWarning, stacklevel=3)
+        if len(fill_log) > 0:
+            warnings.warn(f"No somatic_mutation data was found for {', '.join(fill_log)}. Values were filled with Wildtype_Tumor, Wildtype_Normal, or No_mutation as appropriate.", FilledMutationDataWarning, stacklevel=3)
 
         # Depending on show_location, either fill NaN values in the joined dataframe location columns with "No_mutation", or just drop the location columns altogether
         location_regex = r'^.*_Location$' # Construct regex to find all location columns
