@@ -67,6 +67,14 @@ class FailedReindexWarning(CptacWarning):
     """Error reindexing a dataframe."""
     pass
 
+class InsertedNanWarning(CptacWarning):
+    """NaNs were inserted during a dataframe join."""
+    pass
+
+class FilledMutationDataWarning(CptacWarning):
+    """Mutation data was automatically filled during a dataframe join."""
+    pass
+
 class ParameterWarning(CptacWarning):
     """We should warn them about a parameter for some reason."""
     pass
