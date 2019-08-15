@@ -394,11 +394,8 @@ class DataSet:
         """
         if other_name == "somatic_mutation":
             return # This will have separate fill warnings printed, because we use different fill values.
-        if len(unique) == 1:
-            warnings.warn(f"{other_name} data not found for sample {''.join(unique)}. {other_name} data columns filled with NaN for this sample.", InsertedNanWarning, stacklevel=4)
         elif len(unique) > 0:
-            warnings.warn(f"{other_name} data not found for samples {', '.join(unique)}. {other_name} data columns filled with NaN for these samples.", InsertedNanWarning, stacklevel=4)
-
+            warnings.warn(f"{other_name} data was not found for the following samples, so {other_name} data columns were filled with NaN for these samples: {', '.join(unique)}", InsertedNanWarning, stacklevel=4)
 
     def _get_omics_cols(self, omics_df_name, genes):
         """Based on a single gene, or a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
@@ -457,7 +454,7 @@ class DataSet:
 
         # Warn the user about columns filled with NaN
         if len(not_contained) > 0:
-            warnings.warn(f"{', '.join(not_contained)} columns not found in {omics_df_name} dataframe. Columns inserted in joined table, but filled with NaN.", ParameterWarning, stacklevel=3)
+            warnings.warn(f"The following columns were not found in the {omics_df_name} dataframe, so the columns were inserted into joined table, but filled with NaN: {', '.join(not_contained)}", ParameterWarning, stacklevel=3)
 
         selected = selected.rename(columns=lambda x:'{}_{}'.format(x, omics_df_name)) # Append dataframe name to end of each column header, to preserve info when we join dataframes
         return selected
@@ -644,7 +641,7 @@ class DataSet:
             joined.loc[(joined['Sample_Status'] == "Tumor") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_tumor_fill # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
 
         if len(fill_log) > 0:
-            warnings.warn(f"In joining somatic_mutation table, no mutations were found for {', '.join(fill_log)}. Values were filled with Wildtype_Tumor or Wildtype_Normal.", FilledMutationDataWarning, stacklevel=3)
+            warnings.warn(f"In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: {', '.join(fill_log)}", FilledMutationDataWarning, stacklevel=3)
 
         # Depending on show_location, either fill NaN values in the joined dataframe location columns with "No_mutation", or just drop the location columns altogether
         location_regex = r'^.*_Location$' # Construct regex to find all location columns
