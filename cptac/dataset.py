@@ -488,14 +488,13 @@ class DataSet:
         else: # If it's none of those, they done messed up. Tell 'em.
             raise InvalidParameterError("Columns parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(cols, type(cols)))
 
-        return_df = pd.DataFrame(index=df.index.copy()) # Create an empty dataframe, which we'll fill with the columns we select, and then return.
-        for col in cols:
-            if col not in df.columns.values: # If they didn't give us one of the actual columns, tell them.
-                raise InvalidParameterError('{} column not found in the {} dataframe. Please double check that it is included in the dataframe.'.format(col, df_name))
-            selected = df.loc[:, [col]] # Select the column from the dataframe, keeping it as a dataframe
-            return_df = return_df.join(selected, how='outer') # Append the columns to our dataframe we'll return.
+        # Check that they didn't pass any invalid columns
+        not_contained = pd.Index(cols).difference(df.columns)
+        if len(not_contained) > 0:
+            raise InvalidParameterError(f'The following columns were not found in the {df_name} dataframe: {", ".join(not_contained)}')
 
-        return return_df
+        selected = df[cols]
+        return selected
 
     def _get_genes_mutations(self, genes, mutations_filter):
         """Gets all the mutations for one or multiple genes, for all patients.
