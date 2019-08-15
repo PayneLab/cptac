@@ -427,25 +427,40 @@ class DataSet:
         else: # If it's none of those, they done messed up. Tell 'em.
             raise InvalidParameterError("Genes parameter \n{}\nis of invalid type {}. Valid types: str, list or array-like of str, or NoneType.".format(genes, type(genes)))
 
-        df = pd.DataFrame(index=omics_df.index.copy()) # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
-        for gene in genes:
+        if omics_df_name == 'phosphoproteomics' or omics_df_name == 'acetylproteomics' or (omics_df_name == "CNV" and self._cancer_type == "brca"):
             if omics_df_name == 'phosphoproteomics' or omics_df_name == 'acetylproteomics':
-                col_regex = rf"^{gene}-[^-]*$" # Build a regex to get all columns that match the gene. Ending with "[^-]*$" makes sure that we're matching all the way up to the last occurrence of the hyphen, which separates the gene name from the site, so that if there's a gene name with a hyphen in it, it's not matched by another gene name that's the part of the name before the hyphen--e.g., "ANKHD1-EIF4EBP3-S2539" is matched by ANKHD1-EIF4EBP3 but not by ANKHD1.
+                splitter = "-"
+                col_regex = rf"^({'|'.join(genes)})-[^-]*$" # Build a regex to get all columns that match the gene. Ending with "[^-]*$" makes sure that we're matching all the way up to the last occurrence of the hyphen, which separates the gene name from the site, so that if there's a gene name with a hyphen in it, it's not matched by another gene name that's the part of the name before the hyphen--e.g., "ANKHD1-EIF4EBP3-S2539" is matched by ANKHD1-EIF4EBP3 but not by ANKHD1.
+                
             elif omics_df_name == "CNV" and self._cancer_type == "brca":
-                col_regex = r"^" + gene + r"(\|ENSG\d{11}\.\d)?$" # The BRCA CNV dataframe has several genes where there's multiple columns for one gene, but each column corresponds to a different protein associated with that gene, labelled by Ensemble ID. This regex makes sure that we grab all such columns for the given gene, if this is one of those genes.
-            else:
-                col_regex = r'^{}$'.format(gene)
+                splitter = "|"
+                col_regex = rf"^({'|'.join(genes)})" + r"(\|ENSG\d{11}\.\d)?$" # The BRCA CNV dataframe has several genes where there's multiple columns for one gene, but each column corresponds to a different protein associated with that gene, labelled by Ensemble ID. This regex makes sure that we grab all such columns for the given gene, if this is one of those genes. We have to concatenate it from two strings so the {11} for repetitions isn't interpreted as a string formatter.
 
-            selected = omics_df.filter(regex=col_regex) # Find all columns that match the gene.
-            if len(selected.columns) == 0: # If none of the columns matched the gene, generate a column of NaN and warn the user
-                empty_omics_df = pd.DataFrame(index=omics_df.index.copy())
-                selected = empty_omics_df.assign(**{gene:np.nan}) # Create a column with gene as the name, filled with NaN
-                warnings.warn('{0} did not match any columns in {1} dataframe. {0}_{1} column inserted, but filled with NaN.'.format(gene, omics_df_name), ParameterWarning, stacklevel=3)
+            # Get the columns that match the genes they passed
+            matching_cols = omics_df.columns[omics_df.columns.str.match(col_regex)]
+            selected = omics_df[matching_cols]
 
-            selected = selected.rename(columns=lambda x:'{}_{}'.format(x, omics_df_name)) # Append dataframe name to end of each column header, to preserve info when we join dataframes
-            df = df.join(selected, how='outer') # Append the columns to our dataframe we'll return.
+            # Find any genes that didn't match any columns in the index, and fill with NaN
+            genes = pd.Index(genes)
+            no_suffix = omics_df.columns.to_series().str.rsplit(splitter, n=1, expand=True)[0].drop_duplicates()
+            not_contained = genes[~genes.isin(no_suffix)]
+            all_cols = matching_cols.union(not_contained)
+            selected = selected.reindex(columns=all_cols) # This will add the columns not included in the dataframe, and fill them with NaN.
 
-        return df
+        else:
+            genes = pd.Index(genes)
+            contained = genes.intersection(omics_df.columns) # Get the genes that actually exist in the dataframe's columns
+            selected = omics_df[contained]
+            selected = selected.reindex(columns=genes) # This will add the columns not included in the dataframe, and fill them with NaN.
+
+            not_contained = genes.difference(omics_df.columns) # So we can warn the user later
+
+        # Warn the user about columns filled with NaN
+        if len(not_contained) > 0:
+            warnings.warn(f"{', '.join(not_contained)} columns not found in {omics_df_name} dataframe. Columns inserted in joined table, but filled with NaN.", ParameterWarning, stacklevel=3)
+
+        selected = selected.rename(columns=lambda x:'{}_{}'.format(x, omics_df_name)) # Append dataframe name to end of each column header, to preserve info when we join dataframes
+        return selected
 
     def _get_metadata_cols(self, df_name, cols):
         """Select a single column or several columns from a metadata dataframe.
