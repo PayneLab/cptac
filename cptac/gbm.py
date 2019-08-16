@@ -60,37 +60,56 @@ class Gbm(DataSet):
             file_name = path_elements[-1] # The last element will be the name of the file
             df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
-            if file_name = "clinical_data_core.v1.0.20190802.tsv.gz":
+            if file_name == "clinical_data_core.v1.0.20190802.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
                 self._data[""] = df
 
-            if file_name = "mirnaseq_mirna_mature_tpm.v1.0.20190802.tsv.gz":
+            if file_name == "mirnaseq_mirna_mature_tpm.v1.0.20190802.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
                 self._data[""] = df
 
-            if file_name = "phosphoproteome_pnnl_d6.v1.0.20190802.tsv.gz":
+            if file_name == "phosphoproteome_pnnl_d6.v1.0.20190802.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
                 self._data[""] = df
 
-            if file_name = "proteome_pnnl_per_gene_d4.v1.0.20190802.tsv.gz":
+            if file_name == "proteome_pnnl_per_gene_d4.v1.0.20190802.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
                 self._data[""] = df
 
-            if file_name = "proteome_tmt_design.v1.0.20190802.tsv.gz":
+            if file_name == "proteome_tmt_design.v1.0.20190802.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
                 self._data[""] = df
 
-            if file_name = "rnaseq_gdc_fpkm_uq.v1.0.20190802.tsv.gz":
+            if file_name == "rnaseq_gdc_fpkm_uq.v1.0.20190802.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
-                self._data[""] = df
+                duplicates = df["gene_name"].duplicated(keep=False) # Find which gene names have duplicates
+                needed_ids = df["gene_id"].where(duplicates, other="") # Get the unique Ensembl IDs for duplcated genes
+                needed_ids = needed_ids.where(~duplicates, other=('|' + needed_ids)) # Prepend a "|" to the rows we're going to append Ensembl IDs to, to separate the gene name and the ID
+                df["gene_name"] = df["gene_name"].str.cat(needed_ids) # Append the Ensembl IDs. Ta da!! No duplicates!!
+                df = df.drop(columns=["gene_id", "gene_type", "gene_status", "havana_gene", "full_length", "exon_length", "exon_num"])
+                df = df.set_index("gene_name")
+                df = df.sort_index()
+                df = df.transpose()
+                df = df.sort_index()
+                self._data["transcriptomics"] = df
 
-            if file_name = "tindaisy_all_cases_filtered.v1.0.20190802.maf.gz":
+            if file_name == "tindaisy_all_cases_filtered.v1.0.20190802.maf.gz":
                 df = pd.read_csv(file_path, sep='\t')
-                self._data[""] = df
+                split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n = 1, expand = True) # The first part of the barcode is the patient id, which we need want to make the index
+                df["Tumor_Sample_Barcode"] = split_barcode[0]
+                df = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]]
+                df = df.rename({"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
+                df = df.sort_values(by=["Patient_ID", "Gene"])
+                df = df.set_index("Patient_ID")
+                self._data["somatic_mutation"] = df
 
-            if file_name = "wgs_somatic_cnv_per_gene.v1.0.20190802.tsv.gz":
-                df = pd.read_csv(file_path, sep='\t')
-                self._data[""] = df
+            if file_name == "wgs_somatic_cnv_per_gene.v1.0.20190802.tsv.gz":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.drop(columns=["gene_id", "gene_id_version", "original_symbol"])
+                df = df.sort_index()
+                df = df.transpose()
+                df = df.sort_index()
+                self._data["CNV"] = df
 
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
@@ -149,36 +168,36 @@ class Gbm(DataSet):
 #*****************************#FILL: EXAMPLE CODE--MAKE SURE TO FIX SO IT ACTUALLY WORKS FOR YOUR DATASET!!!!******************************
 
         # Get a union of all dataframes' indices, with duplicates removed
-        master_index = unionize_indices(self._data)
-
-        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        clinical = self._data["clinical"]
-        clinical = clinical.reindex(master_index)
-
-        # Replace the clinical dataframe in the data dictionary with our new and improved version!
-        self._data['clinical'] = clinical
-
-        # Generate a sample ID for each patient ID
-        sample_id_dict = generate_sample_id_map(master_index)
-
-        # Give all the dataframes Sample_ID indices
-        dfs_to_delete = []
-        for name in self._data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
-            df = self._data[name]
-            df.index.name = "Patient_ID"
-            keep_old = (name == "clinical") # Keep the old Patient_ID index as a column in the clinical dataframe, so we have a record of it.
-            try:
-                df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
-            except ReindexMapError:
-                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning, stacklevel=2) # stacklevel=2 ensures that the warning is registered as originating from the file that called this __init__ function, instead of from here directly, because the former is more useful information.
-                dfs_to_delete.append(name)
-                continue
-
-            self._data[name] = df
-
-        for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
-            del self._data[name]
-
+#        master_index = unionize_indices(self._data)
+#
+#        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
+#        clinical = self._data["clinical"]
+#        clinical = clinical.reindex(master_index)
+#
+#        # Replace the clinical dataframe in the data dictionary with our new and improved version!
+#        self._data['clinical'] = clinical
+#
+#        # Generate a sample ID for each patient ID
+#        sample_id_dict = generate_sample_id_map(master_index)
+#
+#        # Give all the dataframes Sample_ID indices
+#        dfs_to_delete = []
+#        for name in self._data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
+#            df = self._data[name]
+#            df.index.name = "Patient_ID"
+#            keep_old = (name == "clinical") # Keep the old Patient_ID index as a column in the clinical dataframe, so we have a record of it.
+#            try:
+#                df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
+#            except ReindexMapError:
+#                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning, stacklevel=2) # stacklevel=2 ensures that the warning is registered as originating from the file that called this __init__ function, instead of from here directly, because the former is more useful information.
+#                dfs_to_delete.append(name)
+#                continue
+#
+#            self._data[name] = df
+#
+#        for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
+#            del self._data[name]
+#
         # Drop name of column axis for all dataframes
         for name in self._data.keys():
             df = self._data[name]
@@ -193,10 +212,10 @@ class Gbm(DataSet):
 
         # FILL: remove the below message printing, if the dataset isn't under publiction embargo
         # Print data embargo warning, if the date hasn't passed yet.
-        today = datetime.date.today()
-        embargo_date = datetime.date() # FILL: Insert embargo date here.
-        if today < embargo_date:
-            warning = "WARNING: This data is under a publication embargo until # FILL: INSERT EMBARGO DATE HERE#. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details."
-            wrapped_list = textwrap.wrap(warning)
-            for line in wrapped_list:
-                print(line)
+#        today = datetime.date.today()
+#        embargo_date = datetime.date() # FILL: Insert embargo date here.
+#        if today < embargo_date:
+#            warning = "WARNING: This data is under a publication embargo until # FILL: INSERT EMBARGO DATE HERE#. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until July 1, 2019. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details."
+#            wrapped_list = textwrap.wrap(warning)
+#            for line in wrapped_list:
+#                print(line)
