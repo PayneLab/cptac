@@ -257,7 +257,7 @@ class DataSet:
         selected1 = self._get_metadata_cols(df1_name, cols1)
         selected2 = self._get_metadata_cols(df2_name, cols2)
 
-        df = selected1.join(selected2, how='outer')
+        df = selected1.join(selected2, how='outer', rsuffix='_from_' + df2_name) # Use suffix in case both dataframes have a particular column, such as Patient_ID
 
         # Warn them about any NaNs that were inserted in the outer join
         self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)

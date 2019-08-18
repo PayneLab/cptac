@@ -169,7 +169,7 @@ class Gbm(DataSet):
         for name in self._data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
             df = self._data[name]
             df.index.name = "Patient_ID"
-            keep_old = (name in "clinical") # Keep the old Patient_ID index as a column in the clinical dataframe, so we have a record of it.
+            keep_old = name in ["clinical", "experimental_setup"] # Keep the old Patient_ID index as a column in the clinical and experimental_setup dataframes, so we have a record of it.
             try:
                 df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
             except ReindexMapError:
