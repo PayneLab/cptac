@@ -101,7 +101,7 @@ class Endometrial(DataSet):
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
-        # Separate out clinical, derived_molecular, and experimental_setup dataframes
+        # Separate out clinical, derived_molecular, and experimental_design dataframes
         all_clinical = self._data["clinical"]
         clinical = all_clinical[[
             'Proteomics_Participant_ID', 'Case_excluded',  'Proteomics_Tumor_Normal',  'Country',
@@ -123,11 +123,11 @@ class Endometrial(DataSet):
             'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'], axis=1)
         self._data["derived_molecular"] = derived_molecular
 
-        experimental_setup = all_clinical[['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs',
+        experimental_design = all_clinical[['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs',
             'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'WXS_tumor_filename',
             'WXS_tumor_UUID', 'WGS_normal_sample_type', 'WGS_normal_UUID', 'WGS_tumor_sample_type', 'WGS_tumor_UUID', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID',
             'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']]
-        self._data["experimental_setup"] = experimental_setup
+        self._data["experimental_design"] = experimental_design
 
         # Add Sample_ID column to somatic_mutations dataframe and make it the index
         clinical = self._data["clinical"] # We need the Patient_ID column from clinical, to map sample ids to patient ids. The sample ids are the clinical index, and the patient ids are in the Patient_ID column.

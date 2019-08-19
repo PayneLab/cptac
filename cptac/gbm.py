@@ -105,7 +105,7 @@ class Gbm(DataSet):
             if file_name == "proteome_tmt_design.v1.0.20190802.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df.index.name = "Patient_ID"
-                self._data["experimental_setup"] = df
+                self._data["experimental_design"] = df
 
             if file_name == "rnaseq_gdc_fpkm_uq.v1.0.20190802.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
@@ -153,8 +153,8 @@ class Gbm(DataSet):
         clinical = self._data["clinical"]
         clinical = clinical.reindex(master_index)
 
-        # Copy the sample status column from the experimental_setup dataframe to the clinical dataframe
-        sample_status_col = self._data["experimental_setup"]["tumor_normal"].copy()
+        # Copy the sample status column from the experimental_design dataframe to the clinical dataframe
+        sample_status_col = self._data["experimental_design"]["tumor_normal"].copy()
         sample_status_col = sample_status_col.str.title()
         clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
 
@@ -169,7 +169,7 @@ class Gbm(DataSet):
         for name in self._data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
             df = self._data[name]
             df.index.name = "Patient_ID"
-            keep_old = name in ["clinical", "experimental_setup"] # Keep the old Patient_ID index as a column in the clinical and experimental_setup dataframes, so we have a record of it.
+            keep_old = name in ["clinical", "experimental_design"] # Keep the old Patient_ID index as a column in the clinical and experimental_design dataframes, so we have a record of it.
             try:
                 df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
             except ReindexMapError:

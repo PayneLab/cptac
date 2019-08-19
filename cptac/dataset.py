@@ -54,7 +54,7 @@ class DataSet:
         self._valid_metadata_dfs = [
             'clinical',
             'derived_molecular',
-            'experimental_setup'] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in RenalCcrcc, because they both have multiple rows for each sample.
+            'experimental_design'] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in RenalCcrcc, because they both have multiple rows for each sample.
 
     # Methods to get metadata dataframes
     def get_clinical(self):
@@ -65,9 +65,9 @@ class DataSet:
         """Get the derived_molecular dataframe."""
         return self._get_dataframe("derived_molecular")
 
-    def get_experimental_setup(self):
-        """Get the experimental_setup dataframe."""
-        return self._get_dataframe("experimental_setup")
+    def get_experimental_design(self):
+        """Get the experimental_design dataframe."""
+        return self._get_dataframe("experimental_design")
 
     def get_medical_history(self):
         """Get the medical_history dataframe."""
@@ -266,7 +266,7 @@ class DataSet:
         return df
 
     def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None):
-        """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_setup) to part or all of an omics dataframe. Intersection (inner join) of indices is used.
+        """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_design) to part or all of an omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
         metadata_df_name (str): Name of metadata dataframe to select columns from.
