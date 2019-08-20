@@ -338,12 +338,12 @@ def test_get_derived_molecular():
     PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
-def test_get_experimental_setup():
-    """Test get_experimental_setup."""
+def test_get_experimental_design():
+    """Test get_experimental_design."""
 
-    print('Running test_get_experimental_setup...')
+    print('Running test_get_experimental_design...')
 
-    df = en.get_experimental_setup()
+    df = en.get_experimental_design()
     dimensions = (144, 26) 
     headers = ['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs', 'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID', 'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']
     test_coord = ((2, 13), (143, 2), (67, 25))
@@ -1591,26 +1591,26 @@ def test_join_metadata_source_preservation():
     # Load the source dataframes, and set our variables
     clin = en.get_clinical()
     derived_mol = en.get_derived_molecular()
-    exp_setup = en.get_experimental_setup()
+    exp_design = en.get_experimental_design()
     phos = en.get_phosphoproteomics()
     clin_name = "clinical"
     derived_mol_name = "derived_molecular"
-    exp_setup_name = "experimental_setup"
+    exp_design_name = "experimental_design"
     phos_name = "phosphoproteomics"
 
     clin_col = "Country"
     clin_cols = ["Country", "tumor_Stage-Pathological", "LVSI"]
     derived_mol_col = "CIBERSORT_Eosinophils" 
     derived_mol_cols = ["CIBERSORT_Eosinophils", "Pathway_activity_JAK.STAT", "Progesterone_Receptor_%"]
-    exp_setup_col = "RNAseq_R1_UUID"
-    exp_setup_cols = ["RNAseq_R1_UUID", "Methylation_available", "WXS_tumor_UUID"]
+    exp_design_col = "RNAseq_R1_UUID"
+    exp_design_cols = ["RNAseq_R1_UUID", "Methylation_available", "WXS_tumor_UUID"]
     phos_col = "ZZZ3"
     phos_cols = ["AAAS", "AAED1"]
 
     # Copy the source dataframes, to compare at the end
     clin_copy = clin.copy()
     derived_mol_copy = derived_mol.copy()
-    exp_setup_copy = exp_setup.copy()
+    exp_design_copy = exp_design.copy()
     phos_copy = phos.copy()
 
     # Call join_metadata_to_omics a bunch of times
@@ -1634,15 +1634,15 @@ def test_join_metadata_source_preservation():
     en.join_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_col, omics_genes=phos_cols)
     en.join_metadata_to_omics(derived_mol_name, phos_name, metadata_cols=derived_mol_cols, omics_genes=phos_cols)
 
-    en.join_metadata_to_omics(exp_setup_name, phos_name)
-    en.join_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_col)
-    en.join_metadata_to_omics(exp_setup_name, phos_name, omics_genes=phos_col)
-    en.join_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_col, omics_genes=phos_col)
-    en.join_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_cols)
-    en.join_metadata_to_omics(exp_setup_name, phos_name, omics_genes=phos_cols)
-    en.join_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_cols, omics_genes=phos_col)
-    en.join_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_col, omics_genes=phos_cols)
-    en.join_metadata_to_omics(exp_setup_name, phos_name, metadata_cols=exp_setup_cols, omics_genes=phos_cols)
+    en.join_metadata_to_omics(exp_design_name, phos_name)
+    en.join_metadata_to_omics(exp_design_name, phos_name, metadata_cols=exp_design_col)
+    en.join_metadata_to_omics(exp_design_name, phos_name, omics_genes=phos_col)
+    en.join_metadata_to_omics(exp_design_name, phos_name, metadata_cols=exp_design_col, omics_genes=phos_col)
+    en.join_metadata_to_omics(exp_design_name, phos_name, metadata_cols=exp_design_cols)
+    en.join_metadata_to_omics(exp_design_name, phos_name, omics_genes=phos_cols)
+    en.join_metadata_to_omics(exp_design_name, phos_name, metadata_cols=exp_design_cols, omics_genes=phos_col)
+    en.join_metadata_to_omics(exp_design_name, phos_name, metadata_cols=exp_design_col, omics_genes=phos_cols)
+    en.join_metadata_to_omics(exp_design_name, phos_name, metadata_cols=exp_design_cols, omics_genes=phos_cols)
 
     # Check that the source dataframes weren't changed
     if not clin.equals(clin_copy):
@@ -1653,8 +1653,8 @@ def test_join_metadata_source_preservation():
         print("derived_molecular dataframe was altered by join_metadata_to_omics.")
         PASS = False
 
-    if not exp_setup.equals(exp_setup_copy):
-        print("experimental_setup dataframe was altered by join_metadata_to_omics.")
+    if not exp_design.equals(exp_design_copy):
+        print("experimental_design dataframe was altered by join_metadata_to_omics.")
         PASS = False
 
     if not phos.equals(phos_copy):
@@ -2056,7 +2056,7 @@ def test_join_metadata_all_dfs():
     # Load our dataframes to test, and set the keys we'll use.
     clin = en.get_clinical()
     derived_mol = en.get_derived_molecular()
-    exp_setup = en.get_exp_setup()
+    exp_design = en.get_exp_design()
 
     acet = en.get_acetylproteomics()
     CNV = en.get_CNV()
@@ -2086,7 +2086,7 @@ print("\nRunning tests:\n")
 print("Testing getters...")
 test_get_clinical()
 test_get_derived_molecular()
-test_get_experimental_setup()
+test_get_experimental_design()
 test_get_acetylproteomics()
 test_get_proteomics()
 test_get_transcriptomics()

@@ -14,12 +14,17 @@ import webbrowser
 import os.path as path
 import sys
 import warnings
+
+# Function imports
 from .file_download import download
 from .file_download import download_text as _download_text
 from .exceptions import CptacError, CptacWarning, InvalidParameterError, NoInternetError, OldPackageVersionWarning
+
+# Dataset imports
 from .brca import Brca
-from .endometrial import Endometrial
 from .colon import Colon
+from .endometrial import Endometrial
+from .gbm import Gbm
 from .luad import Luad
 from .ovarian import Ovarian
 from .renalccrcc import RenalCcrcc
@@ -31,7 +36,8 @@ def list_datasets():
     datasets = {
         "Brca": ["breast cancer", "password access only", "unpublished"],
         "Colon": ["colorectal cancer", "no restrictions", "https://www.ncbi.nlm.nih.gov/pubmed/31031003"],
-        "Endometrial": [ "endometrial carcinoma (uterine)", "no restrictions", "unpublished"],
+        "Endometrial": ["endometrial carcinoma (uterine)", "no restrictions", "unpublished"],
+        "Gbm": ["glioblastoma", "password access only", "unpublished"],
         "Luad": ["lung adenocarcinoma", "password access only", "unpublished"],
         "Ovarian": ["high grade serous ovarian cancer", "no restrictions", "unpublished"],
         "RenalCcrcc": ["clear cell renal cell carcinoma (kidney)", "no restrictions", "unpublished"],
