@@ -264,8 +264,34 @@ def get_interacting_proteins(protein, number=25):
                 interacting_proteins.append(prot)
 
         return interacting_proteins
+ 
 
-
+'''
+@Param protein:
+    The name of the protein that you want to generate a list of interacting proteins for.
+    
+@Return:
+    A list of proteins which are interacting partners with the specified protein, according to the bioplex data table.
+    Returns None if specified protein isn't found, or no interacting partners are found.
+    
+This method takes as a parameter the name of a protein. It then accesses the bioplex data table and returns a list of any protein found to be an interacting partner to the given protein.
+'''
+def get_interacting_proteins_bioplex(protein):
+    bioplex_interactions = pd.read_csv('BioPlex_interactionList_v4a.tsv', sep='\t')
+    
+    A_df = bioplex_interactions.loc[bioplex_interactions['SymbolA'] == protein]
+    B_df = bioplex_interactions.loc[bioplex_interactions['SymbolB'] == protein]
+    
+    A_interactions = list(A_df['SymbolB'])
+    B_interactions = list(B_df['SymbolA'])
+    
+    all_interactions = list(set(A_interactions + B_interactions))
+    
+    if len(all_interactions) > 0:
+        return all_interactions
+    else:
+        return None
+    
 def get_frequently_mutated(cancer_object, cutoff = 0.1):  
     """
     Takes a cancer object and find the frequently 
