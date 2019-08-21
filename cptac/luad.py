@@ -74,14 +74,15 @@ class Luad(DataSet):
                 df = df.drop(columns=cols_to_drop)
                 df = df.set_index("id")
                 df = df.apply(pd.to_numeric)
+                df = df.sort_index()
                 df = df.transpose()
+                df = df.sort_index()
                 df.index.name="Patient_ID"
                 df.columns.name=None
-                df=df.sort_index()
                 self._data["CNV"] = df
 
 
-            if file_name == "luad-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz":
+            elif file_name == "luad-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz":
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Drop rows of metadata
                 df = df[gene_filter]
@@ -95,14 +96,16 @@ class Luad(DataSet):
                 'speciesMulti', 'orfCategory', 'accession_number', 'accession_numbers', 'protein_group_num', 'entry_name', 'GeneSymbol']
                 df = df.drop(columns=cols_to_drop)
                 df = df.apply(pd.to_numeric)
+                df = df.sort_index()
                 df = df.transpose()
+                df = df.sort_index()
                 df.index.name="Patient_ID"
-                df.columns.name =None
+                df.columns.name = None
                 self._data["phosphoproteomics"] = df
 
 
 
-            if file_name == "luad-v2.0-proteome-ratio-norm-NArm.gct.gz":
+            elif file_name == "luad-v2.0-proteome-ratio-norm-NArm.gct.gz":
                 df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
@@ -113,13 +116,15 @@ class Luad(DataSet):
                 'subgroupNum', 'entry_name', 'GeneSymbol']
                 df = df.drop(columns=cols_to_drop)
                 df = df.apply(pd.to_numeric)
+                df = df.sort_index()
                 df = df.transpose()
-                df.index.name="patient_ID"
+                df = df.sort_index()
+                df.index.name="Patient_ID"
                 df.columns.name=None
                 self._data["proteomics"] = df
 
 
-            if file_name == "luad-v2.0-rnaseq-prot-uq-rpkm-log2-NArm-row-norm.gct.gz":
+            elif file_name == "luad-v2.0-rnaseq-prot-uq-rpkm-log2-NArm-row-norm.gct.gz":
                  df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
                  gene_filter = df['geneSymbol'] != 'na'
                  df = df[gene_filter]
@@ -127,26 +132,28 @@ class Luad(DataSet):
                  cols_to_drop = ['id', 'gene_id', 'gene_type', 'length']
                  df = df.drop(columns = cols_to_drop)
                  df = df.apply(pd.to_numeric)
+                 df = df.sort_index()
                  df = df.transpose()
-                 df.index.name = "patient_ID"
+                 df = df.sort_index()
+                 df.index.name = "Patient_ID"
                  df.columns.name = None
                  df = df.sort_index()
                  self._data["transcriptomics"] = df
 
 
-            if file_name == "luad-v2.0-sample-annotation.csv.gz":
+            elif file_name == "luad-v2.0-sample-annotation.csv.gz":
                 df = pd.read_csv(file_path, sep=",", dtype=object)
                 filter = df['QC.status'] == "QC.pass" #There are some samples that are internal references. IRs are used for scaling purposes, and don't belong to a single patient, so we want to drop them.
                 df = df[filter]
-                df = df.drop(columns="Sample.ID") #Get rid of the Sample.ID column becuase the same information is stored in "Participant" which is formatted the way we want.
-                df = df.set_index("Participant")
+                df = df.drop(columns="Participant") #Get rid of the "Participant" column becuase the same information is stored in Sample.ID  which is formatted the way we want.
+                df = df.set_index("Sample.ID")
                 df.index.name="Patient_ID"
                 df = df.rename(columns={"Type":"Sample_Tumor_Normal"})
                 #Split the metadata into multiple dataframes
                 #Make experiemntal_set up dataframe
-                experimental_setup_cols = ['Experiment', 'Channel', 'QC.status'] #These are the columns for the experimental_setup dataframe
-                experimental_setup_df = df[experimental_setup_cols]
-                df = df.drop(columns=experimental_setup_cols)
+                experimental_design_cols = ['Experiment', 'Channel', 'QC.status'] #These are the columns for the experimental_design dataframe
+                experimental_design_df = df[experimental_design_cols]
+                df = df.drop(columns=experimental_design_cols)
                 #Make a derived_molecular dataframe
                 derived_molecular_cols = ['TP53.mutation', 'KRAS.mutation', 'STK11.mutation', 'EGFR.mutation', 'KEAP1.mutation', 'RB1.mutation',
                 'IL21R.mutation', 'EGFL6.mutation', 'LMO2.mutation', 'C10orf62.mutation', 'DKK3.mutation', 'BIRC6.mutation', 'TP53.mutation.status',
@@ -156,54 +163,88 @@ class Luad(DataSet):
                 derived_molecular_df = df[derived_molecular_cols]
                 df = df.drop(columns = derived_molecular_cols)
                 self._data["clinical"]= df
-                self._data['experimental_setup'] = experimental_setup_df
+                self._data['experimental_design'] = experimental_design_df
                 self._data['derived_molecular'] = derived_molecular_df
 
 
 
+            elif file_name == "luad-v2.0-rnaseq-circ-rna.csv.gz":
+                df = pd.read_csv(file_path, sep=",")
 
-            
+                chrm = df['junction.3'].str.extract(r'(^[^:]+)', expand=False) #Get the chromosome
+                five_prime = df['junction.5'].str.extract(r'(?<=\:)(.*?)(?=\:)', expand=False) #Get the nucleotide coordinates of the first base of the donor
+                three_prime = df['junction.3'].str.extract(r'(?<=\:)(.*?)(?=\:)', expand=False) #get the nucleotide coordinate of the last base of the acceptor
+                #Now we need the gene name
+                diff = df['gene.5'] != df['gene.3'] #create a boolean filter where genes are different
+                temp = df['gene.5'].where(diff, other="") #replace the ones tha are the same with an empty string
+                gene_name = temp.str.cat(df['gene.3']) #concatentate the temp column(which only has the genes from gene.5 that are different) to gene.3
+
+                #put all those pieces of information together
+                df['geneID'] = chrm.str.cat(five_prime, sep="_")
+                df['geneID'] = df['geneID'].str.cat(three_prime, sep="_")
+                df['geneID'] = df['geneID'].str.cat(gene_name, sep="_")
+
+                #Get rid of all unnecessary columns
+                keep = ['geneID', 'spanning.reads', 'Sample.ID']
+                df = df.drop(df.columns.difference(keep), 1)
+
+                #There are about 3,000 duplicates in the file. Duplicate meaning that they have identical Sample IDs and identical geneID, but different spanning reads.
+                # Marcin Cieslik said to drop the one with the lowest spanning read.
+                df = df.sort_values('spanning.reads', ascending=False).drop_duplicates(['Sample.ID','geneID']).sort_index()
+
+                df = df.pivot(index="Sample.ID", columns="geneID")['spanning.reads']
+
+                df.index.name = "Patient_ID"
+                df.columns.name=None
+                df = df.sort_index()
+
+                self._data['circular_RNA'] = df
+
+
 
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
-        # FILL: Here, write code to format your dataframes properly. Requirements:
-        # - All dataframes must be indexed by Sample_ID, not Patient_ID.
-        #     - This means that two samples from the same patient will have the same Patient_ID, but different Sample_ID numbers.
-        #     - Sample_ID numbers must be of the format S***, e.g. S001, S028, S144
-        #     - clinical dataframe must contain a Patient_ID column that contains the Patient_ID for each sample
-        #     - If the data did not come indexed with Sample_ID numbers, look at the Ovarian dataset for an example of generating Sample_ID numbers and mapping them to Patient_ID numbers.
-        #     - Note that most datasets are originally indexed with a patient id, which we rename as the case id, and has a format like C3N-00352.
-        #         - If one patient provided both a normal and a tumor sample, those samples will have the same patient/case id. Therefore, before any joining or reindexing, prepend an 'N' to all normal sample case ids, based on the column in the clinical dataframe indicating which samples are tumor or normal. See existing datasets for examples of how to do this.
-        #
-        # - Each dataframe's name must match the format for that type of dataframe in all the other datasets.
-        #     - E.g., if your binary mutations dataframe is named mutations_binary, you'd need to rename it to somatic_mutation_binary to match the other datasets' binary mutation dataframes.
-        #
-        # - If the new dataset has a dataframe not included in any other datasets, you must write a getter for it in the parent DataSet class, found in cptac/dataset.py, using the private method DataSet._get_dataframe
-        #
-        # - You'd also need to add the new dataframe's name to self._valid_omics_dfs if it's a valid omics df for the DataSet merge functions, or self._valid_metadata_dfs if it's a valid metadata df for DataSet.append_metadata_to_omics
-        #     - Note that a dataframe with multiple rows for each sample, like the treatment dataframe in the Ovarian dataset, should not be a valid dataset for joining
-        #
-        # - If any dataframes are split between two files--such as one file for the tumor sample proteomics, and one file for the normal sample proteomics--they'll have been read into separate dataframes, and you need to merge those into one dataframe.
-        #     - Make sure that samples coming from a normal file have an 'N' added to their Patient_ID numbers, to keep a record of which ones are normal samples.
-        #
-        # - If multiple dataframes are contained in one file--e.g. clinical and derived_molecular data are both in clinical.txt, as in Endometrial--separate them out here.
-        #
-        # - Make sure that column names are consistent--e.g., all Patient_ID columns should be labeled as such, not as Clinical_Patient_Key or Case_ID or something else. Rename columns as necessary to match this.
-        #
-        # - The clinical dataframe must contain a Sample_Tumor_Normal column, which contains either "Tumor" or "Normal" for each sample, according to its status.
-        #
-        # - Only the clinical dataframe should contain a Patient_ID column. The other dataframes should contain just a Sample_ID index, and the data.
-        #
-        # - The column axis of each dataframe should have None as the value of its .name attribute
-        #
-        # - The index of each dataframe should have "Sample_ID" as the value of its .name attribute, since that's what the index is.
-        #
-        # - Make sure to drop any excluded cases, as in Endometrial.
-        #
-        # - Make sure that in dataframes where each column header is the name of a gene, the columns are in alphabetical order.
+        # import pdb; pdb.set_trace()
+        # Get a union of all dataframes' indices, with duplicates removed
+        master_index = unionize_indices(self._data)
+
+        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
+        clinical = self._data["clinical"]
+        clinical = clinical.reindex(master_index)
+
+        # Replace the clinical dataframe in the data dictionary with our new and improved version!
+        self._data['clinical'] = clinical
+
+        # Generate a sample ID for each patient ID
+        sample_id_dict = generate_sample_id_map(master_index)
+
+        # Give all the dataframes Sample_ID indices
+        dfs_to_delete = [] #
+        for name in self._data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
+            df = self._data[name]
+            df.index.name = "Patient_ID"
+            keep_old = (name == "clinical") # Keep the old Patient_ID index as a column in the clinical dataframe, so we have a record of it.
+            try:
+                df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
+            except ReindexMapError:
+                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning, stacklevel=2) # stacklevel=2 ensures that the warning is registered as originating from the file that called this __init__ function, instead of from here directly, because the former is more useful information.
+                dfs_to_delete.append(name)
+                continue
+
+            self._data[name] = df
+
+        for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
+            del self._data[name]
+
+        # Drop name of column axis for all dataframes
+        for name in self._data.keys():
+            df = self._data[name]
+            df.columns.name = None
+            self._data[name] = df
+
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 
