@@ -211,6 +211,18 @@ class Luad(DataSet):
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data)
 
+        # Sort this master_index so all the samples with an N suffix are last. Because the N is a suffix, not a prefix, this is kind of messy.
+        status_df = pd.DataFrame(master_index, columns=['Patient_ID']) # Create a new dataframe with the master_index as a column called "Patient_ID"
+        status_col = []
+        for index in master_index:
+            if index[-1] == 'N':
+                status_col.append("Normal")
+            else:
+                status_col.append("Tumor")
+        status_df = status_df.assign(Status=status_col)
+        status_df = status_df.sort_values(by=['Status', 'Patient_ID'], ascending=[False, True]) # Sorts first by status, and in descending order, so "Tumor" samples are first
+        master_index = status_df["Patient_ID"].tolist()
+
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
         clinical = self._data["clinical"]
         clinical = clinical.reindex(master_index)

@@ -11,6 +11,7 @@ cptac/data_brca/*
 cptac/data_colon/*
 cptac/data_endometrial/*
 cptac/data_gbm/*
+cptac/data_hnscc/*
 cptac/data_luad/*
 cptac/data_ovarian/*
 cptac/data_renalccrcc/*
@@ -20,6 +21,7 @@ cptac/data_renalccrcc/*
 !cptac/data_colon/index_urls.tsv
 !cptac/data_endometrial/index_urls.tsv
 !cptac/data_gbm/index_urls.tsv
+!cptac/data_hnscc/index_urls.tsv
 !cptac/data_luad/index_urls.tsv
 !cptac/data_ovarian/index_urls.tsv
 !cptac/data_renalccrcc/index_urls.tsv
