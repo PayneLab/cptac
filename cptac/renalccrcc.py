@@ -81,24 +81,33 @@ class RenalCcrcc(DataSet):
             elif file_name == "6_CPTAC3_CCRCC_Phospho_abundance_phosphosite_protNorm=2_CB.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
 
-                # Parse out the sites and append to gene names
-                old_index = df["Index"]
-                split_index = old_index.str.rsplit("_", n=1, expand=True)
-                sites = split_index[1]
-                genes = df["Gene"]
-                genes_with_sites = genes.str.cat(sites, sep='-')
-                df["Gene"] = genes_with_sites
-
-                # Sites where the site location is 0 are unlocalized, and we're going to drop them.
-                unlocalized_sites = (sites == '0') 
+                # Drop unlocalized sites
+                unlocalized_sites = (df["Index"].str.rsplit("_", n=1, expand=True)[1] == '0') 
                 df = df[~unlocalized_sites]
 
-                df = df.set_index("Gene")
-                ref_intensities = df["ReferenceIntensity"] # Copy this out, so we can subtract the reference intensities later
-                df = df.drop(columns=["Index", "Peptide", "ReferenceIntensity"] + nci_labels + qc_labels)
-                df = df.subtract(ref_intensities, axis="index") # Subtract the reference intensities from all the values, to get ratios
-                df = df.sort_index()
-                df = df.transpose()
+                # Drop unwanted samples
+                df = df.drop(columns=nci_labels + qc_labels)
+
+                # Subtract reference intensities from data columns, to get ratios
+                metadata_cols = ["Index", "Gene", "Peptide", "ReferenceIntensity"]
+                metadata = df[metadata_cols] # Extract these for later
+                df = df.drop(columns=metadata_cols) # Get the df to contain just the data columns
+                ref_intensities = metadata["ReferenceIntensity"]
+                df = df.subtract(ref_intensities, axis="index") # Subtract reference intensities
+                df = metadata.join(df, how="outer") # Put the metadata columns back in
+                df = df.drop(columns="ReferenceIntensity") # Don't need this anymore
+
+                # Give it a multiindex
+                split_ids = df["Index"].str.split('_', expand=True)
+                sites = split_ids.iloc[:, -1]
+                database_ids = split_ids[0].str.cat(split_ids[1], sep='_')
+
+#                df = df.drop(columns="Index")
+                df.insert(1, "Site", sites)
+                df.insert(3, "Database_ID", database_ids)
+                self.phospho = df
+
+
                 self._data["phosphoproteomics"] = df
             
             elif file_name == "6_CPTAC3_CCRCC_Whole_abundance_protein_pep=unique_protNorm=2_CB.tsv.gz":

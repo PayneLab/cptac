@@ -120,9 +120,11 @@ class Colon(DataSet):
         # Combine the two phosphoproteomics dataframes into one dataframe
         phos_combined = phos_tumor.append(phos_normal)
 
-        # Parse the gene sites
-        phos_combined = phos_combined.rename(columns=lambda x: x.split("__")[0]) # Drop everything after "__" in column names--unneeded additional identifiers
-        phos_combined = phos_combined.rename(columns=lambda x: x.replace("_", "-")) # Replace underscore between gene and site with a hyphen to match other datasets
+        # Create our multiindex
+        multiindex = phos_combined.columns.str.split('[_:]', expand=True) # Split the column names into their constituent parts
+        multiindex = multiindex.droplevel([2, 4]) # The third level is just empty strings, and the fifth is a duplicate of the second
+        multiindex = multiindex.set_names(["Gene", "Site", "Database_ID"])
+        phos_combined.columns = multiindex
         phos_combined = phos_combined.sort_index(axis=1) # Put all the columns in alphabetical order
         self._data['phosphoproteomics'] = phos_combined
         del self._data["phosphoproteomics_tumor"]

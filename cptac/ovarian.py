@@ -89,16 +89,16 @@ class Ovarian(DataSet):
                 elif file_name == "phosphoproteomics.txt.gz":
                     df = df[df["site"].notnull()] # Drops all rows with nan values in site column
 
-                    # Get rid of all lowercase delimeters in sites
-                    genes_sites = df["site"] # Select the genes and sites column
-                    genes_sites = genes_sites.str.rsplit("-", n=1, expand=True) # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
-                    just_sites = genes_sites[1] # Get just the sites column
-                    just_sites = just_sites.str.replace(r"[sty]", r"") # Get rid of all lowercase s, t, and y delimeters
-                    new_genes_sites = genes_sites[0].str.cat(just_sites, "-") # Join the genes columns to our new and improved sites column!
-                    df["site"] = new_genes_sites
-
-                    df = df.drop(["refseq_peptide","Peptide"],axis=1)
-                    df = df.set_index("site")
+                    # Create our multiindex
+                    index_df = df["site"] # Select the genes and sites column
+                    index_df = index_df.str.rsplit("-", n=1, expand=True) # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
+                    index_df = index_df.rename(columns={0: "Gene", 1: "Site"}) # Name the columns properly
+                    index_df = index_df.assign(Site=index_df["Site"].str.replace(r"[sty]", r"")) # Get rid of all lowercase s, t, and y delimeters in the sites
+                    index_df = index_df.assign(Database_ID=df["refseq_peptide"]) # Add the database IDs
+                    index_df = index_df.assign(Peptide=df["Peptide"]) # Add the peptides
+                    multiindex = pd.MultiIndex.from_frame(index_df) # Make it a multiindex
+                    df = df.drop(["refseq_peptide", "site", "Peptide"],axis=1) # Don't need these anymore
+                    df.index = multiindex # Hurrah!
 
                 df = df.sort_index()
                 df = df.transpose()
@@ -109,7 +109,7 @@ class Ovarian(DataSet):
                 full_index = df.index.values.tolist()
                 ids_to_drop = [id for id in full_index if id.startswith('OV_QC')]
                 df = df.drop(ids_to_drop) # Drop all OV_QC* samples--they're quality control samples not relevant for data analysis
-                self._data[df_name] = df #maps dataframe name to dataframe
+                self._data[df_name] = df
 
             elif file_name == "somatic_38.maf.gz":
                 df = pd.read_csv(file_path, sep = "\t", index_col=0)

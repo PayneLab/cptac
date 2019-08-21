@@ -58,11 +58,14 @@ class Brca(DataSet):
             if file_name == "prosp-brca-v3.1-acetylome-ratio-norm-NArm.gct.gz":
                 df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
                 df = df[df["GeneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for GeneSymbol, so we'll use that to filter them out.
+                import pdb; pdb.set_trace()
 
-                # Parse out the acetylation sites and add them to gene names
+                # Give it a multiindex
+                genes = df["GeneSymbol"]
                 sites = df["variableSites"]
                 sites = sites.str.replace(r"[a-z\s]", "") # Get rid of all lowercase delimeters and whitespace
-                df["GeneSymbol"] = df["GeneSymbol"].str.cat(sites, sep="-") # Concatenate the sites to our gene names
+                peptides = df["sequence"] # We take this instead of sequenceVML to match other datasets
+                database_ids = df["accession_numbers"] # We take all accession numbers they have
 
                 df = df.drop(columns=["id", "id.description", "geneSymbol", "numColumnsVMsiteObserved", "bestScore", 
                 "bestDeltaForwardReverseScore", "Best_scoreVML", "variableSites", "sequence", "sequenceVML",

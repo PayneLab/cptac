@@ -10,6 +10,7 @@
 #   limitations under the License.
 
 import pandas as pd
+import numpy as np
 import os
 import warnings
 from .dataset import DataSet
@@ -90,6 +91,15 @@ class Endometrial(DataSet):
                 df = df.sort_values(by=["Patient_ID", "Gene"])
                 df = df.set_index("Patient_ID")
                 self._data["somatic_mutation"] = df # Maps dataframe name to dataframe
+
+            elif file_name == "acetylproteomics.cct.gz" or file_name == "phosphoproteomics_site.cct.gz":
+                df = pd.read_csv(file_path, sep = "\t", index_col=0)
+                multiindex = df.index.str.rsplit('-', n=1, expand=True) # Separate the index into a multiindex where the 1st level is the gene, and 2nd is the site
+                multiindex = multiindex.set_names(["Gene", "Site"]) # Properly name the levels
+                df.index = multiindex
+                df = df.sort_index()
+                df = df.transpose()
+                self._data[df_name] = df # Maps dataframe name to dataframe
 
             else:
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
