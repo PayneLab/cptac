@@ -88,26 +88,31 @@ class RenalCcrcc(DataSet):
                 # Drop unwanted samples
                 df = df.drop(columns=nci_labels + qc_labels)
 
-                # Subtract reference intensities from data columns, to get ratios
+                # Subtract reference intensities from numerical data columns, to get ratios
                 metadata_cols = ["Index", "Gene", "Peptide", "ReferenceIntensity"]
                 metadata = df[metadata_cols] # Extract these for later
-                df = df.drop(columns=metadata_cols) # Get the df to contain just the data columns
+                df = df.drop(columns=metadata_cols) # Get the df to contain just the numerical data columns
                 ref_intensities = metadata["ReferenceIntensity"]
                 df = df.subtract(ref_intensities, axis="index") # Subtract reference intensities
                 df = metadata.join(df, how="outer") # Put the metadata columns back in
                 df = df.drop(columns="ReferenceIntensity") # Don't need this anymore
 
-                # Give it a multiindex
+                # Parse a few columns out of the "Index" column that we'll need for our multiindex
                 split_ids = df["Index"].str.split('_', expand=True)
+                df = df.drop(columns="Index")
                 sites = split_ids.iloc[:, -1]
                 database_ids = split_ids[0].str.cat(split_ids[1], sep='_')
+                df = df.assign(**{"Site": sites, "Database_ID": database_ids})
 
-#                df = df.drop(columns="Index")
-                df.insert(1, "Site", sites)
-                df.insert(3, "Database_ID", database_ids)
-                self.phospho = df
+                # Some rows have at least one localized phosphorylation site, but also have other phosphorylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
+                unlocalized_to_drop = df.index[~split_ids[4].eq(split_ids[5]) & df.duplicated(["Gene", "Site", "Peptide", "Database_ID"], keep=False)] # Column 4 of the split "Index" column is number of phosphorylations detected, and column 5 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
+                df = df.drop(index=unlocalized_to_drop)
 
-
+                # Give it a multiindex
+                df = df.set_index(["Gene", "Site", "Peptide", "Database_ID"]) # This will create a multiindex from these columns, in this order.
+                df = df.sort_index()
+                df = df.transpose()
+                df = df.sort_index()
                 self._data["phosphoproteomics"] = df
             
             elif file_name == "6_CPTAC3_CCRCC_Whole_abundance_protein_pep=unique_protNorm=2_CB.tsv.gz":

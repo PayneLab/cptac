@@ -94,9 +94,8 @@ class Endometrial(DataSet):
 
             elif file_name == "acetylproteomics.cct.gz" or file_name == "phosphoproteomics_site.cct.gz":
                 df = pd.read_csv(file_path, sep = "\t", index_col=0)
-                multiindex = df.index.str.rsplit('-', n=1, expand=True) # Separate the index into a multiindex where the 1st level is the gene, and 2nd is the site
-                multiindex = multiindex.set_names(["Gene", "Site"]) # Properly name the levels
-                df.index = multiindex
+                df.index = df.index.str.rsplit('-', n=1, expand=True) # Separate the index into a multiindex where the 1st level is the gene, and 2nd is the site
+                df.index = df.index.set_names(["Gene", "Site"]) # Properly name the levels
                 df = df.sort_index()
                 df = df.transpose()
                 self._data[df_name] = df # Maps dataframe name to dataframe

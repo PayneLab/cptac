@@ -207,7 +207,6 @@ class Luad(DataSet):
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
-        # import pdb; pdb.set_trace()
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data)
 
