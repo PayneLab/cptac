@@ -86,14 +86,27 @@ class Luad(DataSet):
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Drop rows of metadata
                 df = df[gene_filter]
-                sites = df['variableSites']
-                sites = sites.str.replace(r"[a-z\s]", "")
-                df['geneSymbol']= df['geneSymbol'].str.cat(sites, sep="-")
-                df = df.set_index('geneSymbol')
+
+                # Prepare some columns we'll need later for the multiindex
+                df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "") # Get rid of all lowercase delimeters and whitespace in the sites
+                df = df.rename(columns={
+                    "geneSymbol": "Gene",
+                    "variableSites": "Site",
+                    "sequence": "Peptide", # We take this instead of sequenceVML, to match the other datasets' format
+                    "accession_numbers": "Database_ID" # We take all accession numbers they have, instead of the singular accession_number column
+                    })
+
+                # Some rows have at least one localized phosphorylation site, but also have other phosphorylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
+                unlocalized_to_drop = df.index[~df['Best_numActualVMSites_sty'].eq(df['Best_numLocalizedVMsites_sty']) & df.duplicated(["Gene", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split "id" column is number of phosphorylations detected, and column 4 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
+                df = df.drop(index=unlocalized_to_drop)
+
+                # Give it a multiindex
+                df = df.set_index(["Gene", "Site", "Peptide", "Database_ID"])                
+
                 cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsVMsiteObserved', 'bestScore', 'bestDeltaForwardReverseScore',
-                'Best_scoreVML', 'Best_numActualVMSites_sty', 'Best_numLocalizedVMsites_sty', 'variableSites', 'sequence', 'sequenceVML',
+                'Best_scoreVML', 'Best_numActualVMSites_sty', 'Best_numLocalizedVMsites_sty', 'sequenceVML',
                 'accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA', 'protein_mw', 'species',
-                'speciesMulti', 'orfCategory', 'accession_number', 'accession_numbers', 'protein_group_num', 'entry_name', 'GeneSymbol']
+                'speciesMulti', 'orfCategory', 'accession_number', 'protein_group_num', 'entry_name', 'GeneSymbol']
                 df = df.drop(columns=cols_to_drop)
                 df = df.apply(pd.to_numeric)
                 df = df.sort_index()
@@ -207,7 +220,6 @@ class Luad(DataSet):
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
-        # import pdb; pdb.set_trace()
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data)
 
@@ -257,7 +269,4 @@ class Luad(DataSet):
             df.columns.name = None
             self._data[name] = df
 
-
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
-
-        print("success")

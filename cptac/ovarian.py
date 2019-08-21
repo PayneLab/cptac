@@ -90,15 +90,12 @@ class Ovarian(DataSet):
                     df = df[df["site"].notnull()] # Drops all rows with nan values in site column
 
                     # Create our multiindex
-                    index_df = df["site"] # Select the genes and sites column
-                    index_df = index_df.str.rsplit("-", n=1, expand=True) # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
-                    index_df = index_df.rename(columns={0: "Gene", 1: "Site"}) # Name the columns properly
-                    index_df = index_df.assign(Site=index_df["Site"].str.replace(r"[sty]", r"")) # Get rid of all lowercase s, t, and y delimeters in the sites
-                    index_df = index_df.assign(Database_ID=df["refseq_peptide"]) # Add the database IDs
-                    index_df = index_df.assign(Peptide=df["Peptide"]) # Add the peptides
-                    multiindex = pd.MultiIndex.from_frame(index_df) # Make it a multiindex
-                    df = df.drop(["refseq_peptide", "site", "Peptide"],axis=1) # Don't need these anymore
-                    df.index = multiindex # Hurrah!
+                    split_genes = df["site"].str.rsplit("-", n=1, expand=True) # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
+                    df = df.drop(columns="site")
+                    df = df.assign(Gene=split_genes[0], Site=split_genes[1])
+                    df = df.assign(Site=df["Site"].str.replace(r"[sty]", r"")) # Get rid of all lowercase s, t, and y delimeters in the sites
+                    df = df.rename(columns={"refseq_peptide": "Database_ID"})
+                    df = df.set_index(["Gene", "Site", "Peptide", "Database_ID"]) # Turn these columns into a multiindex
 
                 df = df.sort_index()
                 df = df.transpose()
