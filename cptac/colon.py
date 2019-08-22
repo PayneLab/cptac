@@ -10,6 +10,7 @@
 #   limitations under the License.
 
 import pandas as pd
+import numpy as np
 import os
 import warnings
 from .dataset import DataSet
@@ -98,7 +99,7 @@ class Colon(DataSet):
 
         # Combine the two proteomics dataframes
         prot_tumor = self._data.get("proteomics_tumor")
-        prot_normal = self._data.get("proteomics_normal") # Normal entries are marked with 'N' on the end of the ID
+        prot_normal = self._data.get("proteomics_normal") # Normal entries are already marked with 'N' on the end of the ID
         prot_combined = prot_tumor.append(prot_normal)
         self._data["proteomics"] = prot_combined
         del self._data["proteomics_tumor"]
@@ -108,19 +109,13 @@ class Colon(DataSet):
         phos_tumor = self._data.get("phosphoproteomics_tumor")
         phos_normal = self._data.get("phosphoproteomics_normal") # Normal entries are not marked
 
-        # Mark entries in phosphoproteomics_normal dataframe with an N at the end of the ID, to match proteomics_normal
-        phos_normal_indices = phos_normal.index.values.tolist()
-        for i in range(len(phos_normal_indices)):
-            index = phos_normal_indices[i]
-            index_marked = index + 'N'
-            phos_normal_indices[i] = index_marked
-        new_phos_index = pd.Index(phos_normal_indices)
-        phos_normal = phos_normal.set_index(new_phos_index)
+        # Mark entries in phosphoproteomics_normal dataframe with an N at the end of the ID
+        phos_normal = phos_normal.set_index(phos_normal.index + 'N')
 
         # Combine the two phosphoproteomics dataframes into one dataframe
         phos_combined = phos_tumor.append(phos_normal)
 
-        # Create our multiindex
+        # Create our phosphoproteomics columns multiindex
         multiindex = phos_combined.columns.str.split('[_:]', expand=True) # Split the column names into their constituent parts
         multiindex = multiindex.droplevel([2, 4]) # The third level is just empty strings, and the fifth is a duplicate of the second
         multiindex = multiindex.set_names(["Gene", "Site", "Database_ID"])
@@ -134,16 +129,10 @@ class Colon(DataSet):
         master_index = unionize_indices(self._data)
 
         # Sort this master_index so all the samples with an N suffix are last. Because the N is a suffix, not a prefix, this is kind of messy.
-        status_df = pd.DataFrame(master_index, columns=['Patient_ID']) # Create a new dataframe with the master_index as a column called "Patient_ID"
-        status_col = []
-        for index in master_index:
-            if index[-1] == 'N':
-                status_col.append("Normal")
-            else:
-                status_col.append("Tumor")
-        status_df = status_df.assign(Status=status_col)
-        status_df = status_df.sort_values(by=['Status', 'Patient_ID'], ascending=[False, True]) # Sorts first by status, and in descending order, so "Tumor" samples are first
-        master_index = status_df["Patient_ID"].tolist()
+        status_col = np.where(master_index.str.endswith("N"), "Normal", "Tumor")
+        status_df = pd.DataFrame(data={"Patient_ID": master_index, "Status": status_col}) # Create a new dataframe with the master_index as a column called "Patient_ID"
+        status_df = status_df.sort_values(by=["Status", "Patient_ID"], ascending=[False, True]) # Sorts first by status, and in descending order, so "Tumor" samples are first
+        master_index = pd.Index(status_df["Patient_ID"])
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
         master_clinical = self._data['clinical'].reindex(master_index)

@@ -82,30 +82,30 @@ class Ovarian(DataSet):
                         self._definitions[term] = definition
 
             elif file_name == "phosphoproteomics.txt.gz" or file_name == "proteomics.txt.gz":
-                df = pd.read_csv(file_path, sep="\t", index_col = 0)
+                df = pd.read_csv(file_path, sep='\t')
+                   
                 if file_name == "proteomics.txt.gz":
                     df = df[df["hgnc_symbol"].notnull()] # Drops all nan values in hgnc_symbol column
-                    df = df.set_index("hgnc_symbol")
+
+                    # Create our column multiindex
+                    df = df.rename(columns={"hgnc_symbol": "Gene", "refseq_peptide": "Database_ID"})
+                    df = df.set_index(["Gene", "Database_ID"])
+
                 elif file_name == "phosphoproteomics.txt.gz":
                     df = df[df["site"].notnull()] # Drops all rows with nan values in site column
 
-                    # Create our multiindex
+                    # Create our column multiindex
                     split_genes = df["site"].str.rsplit("-", n=1, expand=True) # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
-                    df = df.drop(columns="site")
+                    df = df.drop(columns=["hgnc_symbol", "site"]) # hgnc_symbol is a duplicate of split_genes[0], and site is now in split_genes and will be re-inserted differently
                     df = df.assign(Gene=split_genes[0], Site=split_genes[1])
-                    df = df.assign(Site=df["Site"].str.replace(r"[sty]", r"")) # Get rid of all lowercase s, t, and y delimeters in the sites
+                    df["Site"] = df["Site"].str.replace(r"[sty]", r"") # Get rid of all lowercase s, t, and y delimeters in the sites
                     df = df.rename(columns={"refseq_peptide": "Database_ID"})
                     df = df.set_index(["Gene", "Site", "Peptide", "Database_ID"]) # Turn these columns into a multiindex
 
                 df = df.sort_index()
                 df = df.transpose()
-                c_index = df.index.values.tolist()
-                index_no_c = [id[1:] if id.startswith("C") else id for id in c_index]
-                index_no_c = pd.Index(index_no_c)
-                df = df.set_index(index_no_c) # Take C prefix off of indices for those samples that have them (tumor samples have C, normal have N)
-                full_index = df.index.values.tolist()
-                ids_to_drop = [id for id in full_index if id.startswith('OV_QC')]
-                df = df.drop(ids_to_drop) # Drop all OV_QC* samples--they're quality control samples not relevant for data analysis
+                df.index = df.index.where(~df.index.str.startswith('C'), df.index.str[1:]) # Take C prefix off of indices for those samples that have them (tumor samples have C, normal have N)
+                df = df.drop(index=df.index[df.index.str.startswith("OV_QC")]) # Drop all OV_QC samples--they're quality control samples not relevant for data analysis
                 self._data[df_name] = df
 
             elif file_name == "somatic_38.maf.gz":

@@ -39,7 +39,7 @@ def list_datasets():
         "Colon": ["colorectal cancer", "no restrictions", "https://www.ncbi.nlm.nih.gov/pubmed/31031003"],
         "Endometrial": ["endometrial carcinoma (uterine)", "no restrictions", "unpublished"],
         "Gbm": ["glioblastoma", "password access only", "unpublished"],
-	"Hnscc": ["head and neck", "password access only", "unpiblished"],
+        "Hnscc": ["head and neck", "password access only", "unpublished"],
         "Luad": ["lung adenocarcinoma", "password access only", "unpublished"],
         "Ovarian": ["high grade serous ovarian cancer", "no restrictions", "unpublished"],
         "RenalCcrcc": ["clear cell renal cell carcinoma (kidney)", "no restrictions", "unpublished"],

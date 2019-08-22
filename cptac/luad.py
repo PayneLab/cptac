@@ -122,11 +122,13 @@ class Luad(DataSet):
                 df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
-                df = df.set_index('geneSymbol')
-                cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsProteinObserved',
+
+                df = df.rename(columns={"GeneSymbol": "Gene", 'accession_numbers': "Database_ID"})
+                df = df.set_index(["Gene", "Database_ID"])
+                cols_to_drop = ['id', 'id.1', 'id.description', 'geneSymbol', 'numColumnsProteinObserved',
                 'numSpectraProteinObserved', 'protein_mw', 'percentCoverage', 'numPepsUnique',
-                'scoreUnique', 'species', 'orfCategory', 'accession_number', 'accession_numbers',
-                'subgroupNum', 'entry_name', 'GeneSymbol']
+                'scoreUnique', 'species', 'orfCategory', 'accession_number', 
+                'subgroupNum', 'entry_name']
                 df = df.drop(columns=cols_to_drop)
                 df = df.apply(pd.to_numeric)
                 df = df.sort_index()
@@ -189,7 +191,7 @@ class Luad(DataSet):
                 three_prime = df['junction.3'].str.extract(r'(?<=\:)(.*?)(?=\:)', expand=False) #get the nucleotide coordinate of the last base of the acceptor
                 #Now we need the gene name
                 diff = df['gene.5'] != df['gene.3'] #create a boolean filter where genes are different
-                temp = df['gene.5'].where(diff, other="") #replace the ones tha are the same with an empty string
+                temp = df['gene.5'].where(diff, other="") #replace the ones that are the same with an empty string
                 gene_name = temp.str.cat(df['gene.3']) #concatentate the temp column(which only has the genes from gene.5 that are different) to gene.3
 
                 #put all those pieces of information together
@@ -224,16 +226,10 @@ class Luad(DataSet):
         master_index = unionize_indices(self._data)
 
         # Sort this master_index so all the samples with an N suffix are last. Because the N is a suffix, not a prefix, this is kind of messy.
-        status_df = pd.DataFrame(master_index, columns=['Patient_ID']) # Create a new dataframe with the master_index as a column called "Patient_ID"
-        status_col = []
-        for index in master_index:
-            if index[-1] == 'N':
-                status_col.append("Normal")
-            else:
-                status_col.append("Tumor")
-        status_df = status_df.assign(Status=status_col)
-        status_df = status_df.sort_values(by=['Status', 'Patient_ID'], ascending=[False, True]) # Sorts first by status, and in descending order, so "Tumor" samples are first
-        master_index = status_df["Patient_ID"].tolist()
+        status_col = np.where(master_index.str.endswith("N"), "Normal", "Tumor")
+        status_df = pd.DataFrame(data={"Patient_ID": master_index, "Status": status_col}) # Create a new dataframe with the master_index as a column called "Patient_ID"
+        status_df = status_df.sort_values(by=["Status", "Patient_ID"], ascending=[False, True]) # Sorts first by status, and in descending order, so "Tumor" samples are first
+        master_index = pd.Index(status_df["Patient_ID"])
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
         clinical = self._data["clinical"]

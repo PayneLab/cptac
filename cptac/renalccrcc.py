@@ -10,6 +10,7 @@
 #   limitations under the License.
 
 import pandas as pd
+import numpy as np
 import os
 import warnings
 from .dataset import DataSet
@@ -117,13 +118,14 @@ class RenalCcrcc(DataSet):
             
             elif file_name == "6_CPTAC3_CCRCC_Whole_abundance_protein_pep=unique_protNorm=2_CB.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
-                df = df.set_index("Proteins")
-                df.index.name = None # It's going to become our column headers, and we don't want the column axes to have names
+                df = df.rename(columns={"Proteins": "Gene", "Index": "Database_ID"})
+                df = df.set_index(["Gene", "Database_ID"])
                 ref_intensities = df["ReferenceIntensity"] # Copy this out, so we can subtract the reference intensities later
-                df = df.drop(columns=["NumberPSM", "Index", "ReferenceIntensity"] + nci_labels + qc_labels)
+                df = df.drop(columns=["NumberPSM", "ReferenceIntensity"] + nci_labels + qc_labels)
                 df = df.subtract(ref_intensities, axis="index") # Subtract reference intensities from all the values, to get ratios
                 df = df.sort_index()
                 df = df.transpose()
+                df = df.sort_index()
                 self._data["proteomics"] = df
             
             elif file_name == "Clinical Table S1.xlsx":
@@ -155,8 +157,8 @@ class RenalCcrcc(DataSet):
             
             elif file_name == "kirc_wgs_cnv_gene.csv.gz":
                 df = pd.read_csv(file_path)
-                df = df.drop(columns="gene_id")
-                df = df.set_index("gene_name")
+                df = df.rename(columns={"gene_name": "Gene", "gene_id": "Database_ID"})
+                df = df.set_index(["Gene", "Database_ID"])
                 df = df.sort_index()
                 df = df.transpose()
 
@@ -214,12 +216,7 @@ class RenalCcrcc(DataSet):
         clinical["histologic_type"] = auth_clin["Histologic_Type"]
 
         specimen_attributes = clinical_dfs["Specimen_Attributes"] # Before we can join in this dataframe, we need to prepend "N" to the normal samples' index values
-        new_specimen_attributes_index = []
-        for index, row in specimen_attributes.iterrows(): # Prepend "N" to the index values of normal samples
-            if row["tissue_type"] == "normal":
-                index = "N" + index
-            new_specimen_attributes_index.append(index)
-        specimen_attributes.index = new_specimen_attributes_index
+        specimen_attributes.index = np.where(specimen_attributes["tissue_type"] == "normal", 'N' + specimen_attributes.index, specimen_attributes.index)
         specimen_attributes.index.name = "Patient_ID" # Name the index Patient_ID, since the index values are in fact the patient IDs (also called case IDs)
         clinical = clinical.join(specimen_attributes, how="outer") # Join in our nicely reindexed dataframe
 
