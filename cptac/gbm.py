@@ -66,32 +66,24 @@ class Gbm(DataSet):
 
             if file_name == "mirnaseq_mirna_mature_tpm.v1.0.20190802.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
-
-                # Append unique IDs to genes duplicated within the column that will become our column headers
-                duplicates = df["name"].duplicated(keep=False) # Find which names have duplicates
-                needed_ids = df["unique_id"].where(duplicates, other="") # Get the unique IDs for duplcated names
-                needed_ids = needed_ids.where(~duplicates, other=('|' + needed_ids)) # Prepend a "|" to the rows we're going to append IDs to, to separate the name and the ID
-                df["name"] = df["name"].str.cat(needed_ids) # Append the IDs. Ta da!! No duplicates!!
-                
-                df = df.drop(columns=["unique_id", "chromosome", "start", "end", "strand", "mirna_type", "mirbase_id", "precursor_id"])
-                df = df.set_index("name")
+                df = df.rename(columns={"name": "Gene", "unique_id": "Database_ID"})
+                df = df.set_index(["Gene", "Database_ID"]) # We use a multiindex with database IDs, not just names, to avoid duplicate column headers
+                df = df.drop(columns=["chromosome", "start", "end", "strand", "mirna_type", "mirbase_id", "precursor_id"])
                 df = df.sort_index()
                 df = df.transpose()
                 self._data["miRNA"] = df
 
             if file_name == "phosphoproteome_pnnl_d6.v1.0.20190802.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
-                df = df.drop(columns=["gene", "peptide"])
 
-                # Get rid of all lowercase delimeters in sites
-                genes_sites = df["site"] # Select the genes and sites column
-                genes_sites = genes_sites.str.rsplit("-", n=1, expand=True) # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
-                just_sites = genes_sites[1] # Get just the sites column
-                just_sites = just_sites.str.replace(r"[sty]", r"") # Get rid of all lowercase s, t, and y delimeters
-                new_genes_sites = genes_sites[0].str.cat(just_sites, "-") # Join the genes columns to our new and improved sites column!
-                df["site"] = new_genes_sites
+                # Create our multiindex
+                split_genes = df["site"].str.rsplit("-", n=1, expand=True) # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
+                df = df.drop(columns="site")
+                df = df.assign(Site=split_genes[1])
+                df["Site"] = df["Site"].str.replace(r"[sty]", r"") # Get rid of all lowercase s, t, and y delimeters in the sites
+                df = df.rename(columns={"gene": "Gene", "peptide": "Peptide"})
+                df = df.set_index(["Gene", "Site", "Peptide"]) # Turn these columns into a multiindex
 
-                df = df.set_index("site")
                 df = df.sort_index()
                 df = df.transpose()
                 self._data["phosphoproteomics"] = df
@@ -109,15 +101,9 @@ class Gbm(DataSet):
 
             if file_name == "rnaseq_gdc_fpkm_uq.v1.0.20190802.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
-
-                # Append Ensembl IDs to genes duplicated within the column that will become our column headers
-                duplicates = df["gene_name"].duplicated(keep=False) # Find which gene names have duplicates
-                needed_ids = df["gene_id"].where(duplicates, other="") # Get the unique Ensembl IDs for duplcated genes
-                needed_ids = needed_ids.where(~duplicates, other=('|' + needed_ids)) # Prepend a "|" to the rows we're going to append Ensembl IDs to, to separate the gene name and the ID
-                df["gene_name"] = df["gene_name"].str.cat(needed_ids) # Append the Ensembl IDs. Ta da!! No duplicates!!
-
-                df = df.drop(columns=["gene_id", "gene_type", "gene_status", "havana_gene", "full_length", "exon_length", "exon_num"])
-                df = df.set_index("gene_name")
+                df = df.rename(columns={"gene_name": "Gene", "gene_id": "Database_ID"})
+                df = df.set_index(["Gene", "Database_ID"]) # We use a multiindex with Ensembl IDs, not just gene names, to avoid duplicate column headers
+                df = df.drop(columns=["gene_type", "gene_status", "havana_gene", "full_length", "exon_length", "exon_num"])
                 df = df.sort_index()
                 df = df.transpose()
                 df = df.sort_index()

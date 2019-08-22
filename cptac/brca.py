@@ -137,16 +137,15 @@ class Brca(DataSet):
                 df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
                 df = df[df["GeneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for GeneSymbol, so we'll use that to filter them out.
 
-                df = df.drop(columns=["id", "id.description", "geneSymbol", "numColumnsProteinObserved", "numSpectraProteinObserved", "protein_mw",
-                "percentCoverage", "numPepsUnique", "scoreUnique", "species", "orfCategory", "accession_number", "accession_numbers",
+                df = df.rename(columns={"GeneSymbol": "Gene", "accession_numbers": "Database_ID"})
+                df = df.set_index(["Gene", "Database_ID"])
+                df = df.drop(columns=["id", "id.description", "geneSymbol", "numColumnsProteinObserved", "numSpectraProteinObserved",
+                "protein_mw", "percentCoverage", "numPepsUnique", "scoreUnique", "species", "orfCategory", "accession_number", 
                 "subgroupNum", "entry_name"]) # We don't need these. The dropped columns include a "geneSymbol" column that is a duplicate of GeneSymbol.
-
-                df = df.set_index("GeneSymbol")
                 df = df.apply(pd.to_numeric) # Now that we've dropped all the extra metadata columns, convert everything to floats.
                 df = df.sort_index()
                 df = df.transpose()
                 df = df.sort_index()
-                df.columns.name = None
                 df.index.name = "Patient_ID"
                 self._data["proteomics"] = df
 
