@@ -75,30 +75,47 @@ class Hnscc(DataSet):
                 df = df.sort_index()
                 df = df.transpose()
                 df = df.sort_index()
+                df.index.name = "Patient_ID"
                 self._data["CNV"] = df
 
-            if file_name == "RNAseq_RSEM_UQ_log2.cct.gz":
+            elif file_name == "RNAseq_RSEM_UQ_log2.cct.gz":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.sort_index()
                 df = df.transpose()
                 df = df.sort_index()
+                df.index.name = "Patient_ID"
                 self._data["transcriptomics"] = df
 
-            if file_name == "RNAseq_circ_RSEM_UQ_log2.cct.gz":
+            elif file_name == "RNAseq_circ_RSEM_UQ_log2.cct.gz":
                 df = pd.read_csv(file_path, sep='\t')
                 df = df.sort_index()
                 df = df.transpose()
                 df = df.sort_index()
+                df.index.name = "Patient_ID"
                 self._data["circular_RNA"] = df
 
-            if file_name == "HNSCC.strelka.sorted.filtered.annovar.hg19_multianno_filtered.maf.txt.gz":
+            elif file_name == "HNSCC.strelka.sorted.filtered.annovar.hg19_multianno_filtered.maf.txt.gz":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.rename(columns={"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol_Annovar":"Gene","Variant_Classification_Annovar":"Mutation"})
                 df['Location'] = df['Annovar_Info_protein'].str.extract(r'([^:]+$)')
-                keep = ['Gene', 'Mutation', 'Location']
+                keep = ['Gene', 'Mutation', 'Location', 'Patient_ID']
                 df = df.drop(df.columns.difference(keep), 1)
+                df = df.set_index("Patient_ID")
                 df = df.sort_index()
                 self._data["somatic_mutation"] = df
+
+            elif file_name == "clinic.tsi.gz":
+                df = pd.read_csv(file_path, sep="\t")
+                df = df.set_index('CASE_ID')
+                df.index.name="Patient_ID"
+                derived_molecular_cols = ['P53GENE_ANALYSIS', 'EGFR_AMP_STATUS']
+                derived_molecular_df = df[derived_molecular_cols]
+                df.drop(columns=derived_molecular_cols)
+                self._data["clinical"] = df
+                self._data["derived_molecular"] = derived_molecular_df
+
+
+
 
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
@@ -196,5 +213,3 @@ class Hnscc(DataSet):
 
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
-
-        
