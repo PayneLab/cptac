@@ -527,6 +527,9 @@ def parse_hotspot(path, cancer_type):
     #This loop adds the patient count for each hotspot to the small visualize hotspot dataframe
     for hs in hs_count.keys():
         vis_hs_df.loc[vis_hs_df['hotspot_id'] == hs, 'patients_within'] = hs_count[hs]
+        
+    bin_hs_df = bin_hs_df.set_index('sample_id')
+    det_hs_df = det_hs_df.set_index('sample_id')
     
     #Return of the three dataframes and mutation dictionary
-    return (vis_hs_df, bin_hs_df, det_hs_df, mut_dict)
+    return(vis_hs_df, bin_hs_df, det_hs_df, mut_dict)
