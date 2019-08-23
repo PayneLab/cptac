@@ -62,7 +62,7 @@ class Brca(DataSet):
                 # Prepare some columns we'll need later for the multiindex
                 df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "") # Get rid of all lowercase delimeters and whitespace in the sites
                 df = df.rename(columns={
-                    "GeneSymbol": "Gene",
+                    "GeneSymbol": "Name",
                     "variableSites": "Site",
                     "sequence": "Peptide", # We take this instead of sequenceVML, to match the other datasets' format
                     "accession_numbers": "Database_ID" # We take all accession numbers they have, instead of the singular accession_number column
@@ -70,11 +70,11 @@ class Brca(DataSet):
 
                 # Some rows have at least one localized acetylation site, but also have other acetylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
                 split_ids = df["id"].str.split('_', expand=True)
-                unlocalized_to_drop = df.index[~split_ids[3].eq(split_ids[4]) & df.duplicated(["Gene", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split "id" column is number of phosphorylations detected, and column 4 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
+                unlocalized_to_drop = df.index[~split_ids[3].eq(split_ids[4]) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split "id" column is number of phosphorylations detected, and column 4 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
                 df = df.drop(index=unlocalized_to_drop)
 
                 # Give it a multiindex
-                df = df.set_index(["Gene", "Site", "Peptide", "Database_ID"])                
+                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])                
 
                 df = df.drop(columns=["id", "id.description", "geneSymbol", "numColumnsVMsiteObserved", "bestScore", "bestDeltaForwardReverseScore", 
                 "Best_scoreVML", "sequenceVML", "accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA",
@@ -83,20 +83,20 @@ class Brca(DataSet):
                 df = df.sort_index()
                 df = df.transpose()
                 df = df.sort_index()
-                df.columns.name = None
                 df.index.name = "Patient_ID"
                 self._data["acetylproteomics"] = df
 
             elif file_name == "prosp-brca-v3.1-gene-level-cnv-gistic2-all_data_by_genes.gct.gz":
                 df = pd.read_csv(file_path, sep='\t', skiprows=2, index_col=0, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
                 df = df[df["geneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for geneSymbol, so we'll use that to filter them out.
-                df = df.set_index("geneSymbol")
-                df = df.drop(columns=["Gene.ID", "Cytoband"])
+                df = df.drop(columns="Cytoband")
+                df["geneSymbol"] = df["geneSymbol"].str.rsplit('|', n=1, expand=True)[0] # Some of the geneSymbols have the gene IDs appended to them, to get rid of duplicates. We're going to create a multiindex with all the gene names and gene IDs, so we can drop the appended IDs.
+                df = df.rename(columns={"geneSymbol": "Name", "Gene.ID": "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"])
                 df = df.apply(pd.to_numeric) # Now that we've dropped all the extra metadata columns, convert everything to floats.
                 df = df.sort_index()
                 df = df.transpose()
                 df = df.sort_index()
-                df.columns.name = None
                 df.index.name = "Patient_ID"
                 self._data["CNV"] = df
 
@@ -107,7 +107,7 @@ class Brca(DataSet):
                 # Prepare some columns we'll need later for the multiindex
                 df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "") # Get rid of all lowercase delimeters and whitespace in the sites
                 df = df.rename(columns={
-                    "GeneSymbol": "Gene",
+                    "GeneSymbol": "Name",
                     "variableSites": "Site",
                     "sequence": "Peptide", # We take this instead of sequenceVML, to match the other datasets' format
                     "accession_numbers": "Database_ID" # We take all accession numbers they have, instead of the singular accession_number column
@@ -115,11 +115,11 @@ class Brca(DataSet):
 
                 # Some rows have at least one localized phosphorylation site, but also have other phosphorylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
                 split_ids = df["id"].str.split('_', expand=True)
-                unlocalized_to_drop = df.index[~split_ids[3].eq(split_ids[4]) & df.duplicated(["Gene", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split "id" column is number of phosphorylations detected, and column 4 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
+                unlocalized_to_drop = df.index[~split_ids[3].eq(split_ids[4]) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split "id" column is number of phosphorylations detected, and column 4 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
                 df = df.drop(index=unlocalized_to_drop)
 
                 # Give it a multiindex
-                df = df.set_index(["Gene", "Site", "Peptide", "Database_ID"])                
+                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])                
 
                 df = df.drop(columns=["id", "id.description", "geneSymbol", "numColumnsVMsiteObserved", "bestScore", "bestDeltaForwardReverseScore",
                 "Best_scoreVML", "Best_numActualVMSites_sty", "Best_numLocalizedVMsites_sty", "sequenceVML",
@@ -129,7 +129,6 @@ class Brca(DataSet):
                 df = df.sort_index()
                 df = df.transpose()
                 df = df.sort_index()
-                df.columns.name = None
                 df.index.name = "Patient_ID"
                 self._data["phosphoproteomics"] = df
 
@@ -137,8 +136,8 @@ class Brca(DataSet):
                 df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
                 df = df[df["GeneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for GeneSymbol, so we'll use that to filter them out.
 
-                df = df.rename(columns={"GeneSymbol": "Gene", "accession_numbers": "Database_ID"})
-                df = df.set_index(["Gene", "Database_ID"])
+                df = df.rename(columns={"GeneSymbol": "Name", "accession_numbers": "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"])
                 df = df.drop(columns=["id", "id.description", "geneSymbol", "numColumnsProteinObserved", "numSpectraProteinObserved",
                 "protein_mw", "percentCoverage", "numPepsUnique", "scoreUnique", "species", "orfCategory", "accession_number", 
                 "subgroupNum", "entry_name"]) # We don't need these. The dropped columns include a "geneSymbol" column that is a duplicate of GeneSymbol.
@@ -158,7 +157,6 @@ class Brca(DataSet):
                 df = df.sort_index()
                 df = df.transpose()
                 df = df.sort_index()
-                df.columns.name = None
                 df.index.name = "Patient_ID"
                 self._data["transcriptomics"] = df
 
@@ -221,5 +219,11 @@ class Brca(DataSet):
 
         for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
             del self._data[name]
+
+        # Set name of column axis to "Name" for all dataframes
+        for name in self._data.keys():
+            df = self._data[name]
+            df.columns.name = "Name"
+            self._data[name] = df
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

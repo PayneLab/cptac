@@ -95,7 +95,7 @@ class Endometrial(DataSet):
             elif file_name == "acetylproteomics.cct.gz" or file_name == "phosphoproteomics_site.cct.gz":
                 df = pd.read_csv(file_path, sep = "\t", index_col=0)
                 df.index = df.index.str.rsplit('-', n=1, expand=True) # Separate the index into a multiindex where the 1st level is the gene, and 2nd is the site
-                df.index = df.index.set_names(["Gene", "Site"]) # Properly name the levels
+                df.index = df.index.set_names(["Name", "Site"]) # Properly name the levels
                 df = df.sort_index()
                 df = df.transpose()
                 self._data[df_name] = df # Maps dataframe name to dataframe
@@ -188,10 +188,10 @@ class Endometrial(DataSet):
             df_rename_index.index.name = "Sample_ID"
             self._data[name] = df_rename_index
 
-        # Drop name of column axis for all dataframes
+        # Set name of column axis to "Name" for all dataframes
         for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
             df = self._data[name]
-            df.columns.name = None
+            df.columns.name = "Name"
             self._data[name] = df
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

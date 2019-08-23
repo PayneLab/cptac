@@ -208,6 +208,11 @@ class DataSet:
         selected1 = self._get_omics_cols(df1_name, genes1)
         selected2 = self._get_omics_cols(df2_name, genes2)
 
+        # Make the multiindices the same
+        if selected1.columns.names != selected2.columns.names:
+            selected1.columns = self._add_levels(to=selected1.columns, source=selected2.columns)
+            selected2.columns = self._add_levels(to=selected2.columns, source=selected1.columns)
+
         df = selected1.join(selected2, how='outer')
 
         # Warn them about any NaNs that were inserted in the outer join
@@ -280,6 +285,10 @@ class DataSet:
         # Select the columns from each dataframe
         metadata_selected = self._get_metadata_cols(metadata_df_name, metadata_cols)
         omics_selected = self._get_omics_cols(omics_df_name, omics_genes)
+
+        # Make the indices the same
+        if metadata_selected.columns.names != omics_selected.columns.names:
+            metadata_selected.columns = self._add_levels(to=metadata_selected.columns, source=omics_selected.columns)
 
         joined = metadata_selected.join(omics_selected, how='outer')
 
@@ -372,8 +381,8 @@ class DataSet:
         Parameters:
         name1 (str): Name of the dataframe the first index came from
         name2 (str): Name of the dataframe the second index came from
-        index1 (str): First index to compare
-        index2 (str): Second index to compare
+        index1 (pandas Index): First index to compare
+        index2 (pandas Index): Second index to compare
 
         Returns: None
         """
@@ -397,6 +406,33 @@ class DataSet:
         elif len(unique) > 0:
             warnings.warn(f"{other_name} data was not found for the following samples, so {other_name} data columns were filled with NaN for these samples: {', '.join(unique)}", InsertedNanWarning, stacklevel=4)
 
+    def _add_levels(self, to, source):
+        """Add levels to the "to" index so it has all levels in the "source" index. The possible levels are, in this order: "Name", "Site", "Peptide", "Database_ID"
+
+        Parameters:
+        to (pandas Index or MultiIndex): The index to add levels to.
+        source (pandas Index or MultiIndex): The index to match the levels of.
+
+        Returns:
+        pandas MultiIndex: The levels of "to", with any levels from "source" that "to" didn't have originally.
+        """
+        to_set = set(to.names)
+        source_set = set(source.names)
+        if source_set <= to_set:
+            return to # Because otherwise we'd just end up constructing a duplicate of "to", and who would want to do that?
+
+        all_names = ["Name", "Site", "Peptide", "Database_ID"]       
+        levels = {}
+
+        for name in all_names:
+            if name in to.names:
+                levels[name] = to.get_level_values(name)
+            elif name in source.names:
+                levels[name] = [np.nan for i in range(to.size)]
+
+        new_columns = pd.MultiIndex.from_arrays(list(levels.values()), names=list(levels.keys()))
+        return new_columns
+
     def _get_omics_cols(self, omics_df_name, genes):
         """Based on a single gene, or a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
 
@@ -419,44 +455,42 @@ class DataSet:
         elif isinstance(genes, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's already a list or array-like, we're all good
             pass
         elif genes is None: # If it's the default of None, rename columns and return the entire dataframe
-            return_df = omics_df.rename(columns=lambda x:'{}_{}'.format(x, omics_df_name)) # Append dataframe name to end of each column header, to preserve info when we merge dataframes
-            return return_df
+            # Add the gene name to end beginning of each column header, to preserve info when we join dataframes.
+            if isinstance(omics_df.columns, pd.core.index.MultiIndex):
+                omics_df.columns = omics_df.columns.set_levels(omics_df.columns.levels[0] + '_' + omics_df_name, level=0)            
+            else:
+                omics_df = omics_df.add_suffix('_' + omics_df_name)
+            return omics_df
         else: # If it's none of those, they done messed up. Tell 'em.
             raise InvalidParameterError("Genes parameter \n{}\nis of invalid type {}. Valid types: str, list or array-like of str, or NoneType.".format(genes, type(genes)))
 
-        if omics_df_name == 'phosphoproteomics' or omics_df_name == 'acetylproteomics' or (omics_df_name == "CNV" and self._cancer_type == "brca"):
-            if omics_df_name == 'phosphoproteomics' or omics_df_name == 'acetylproteomics':
-                splitter = "-"
-                col_regex = rf"^({'|'.join(genes)})-[^-]*$" # Build a regex to get all columns that match the gene. Ending with "[^-]*$" makes sure that we're matching all the way up to the last occurrence of the hyphen, which separates the gene name from the site, so that if there's a gene name with a hyphen in it, it's not matched by another gene name that's the part of the name before the hyphen--e.g., "ANKHD1-EIF4EBP3-S2539" is matched by ANKHD1-EIF4EBP3 but not by ANKHD1.
-                
-            elif omics_df_name == "CNV" and self._cancer_type == "brca":
-                splitter = "|"
-                col_regex = rf"^({'|'.join(genes)})" + r"(\|ENSG\d{11}\.\d)?$" # The BRCA CNV dataframe has several genes where there's multiple columns for one gene, but each column corresponds to a different protein associated with that gene, labelled by Ensemble ID. This regex makes sure that we grab all such columns for the given gene, if this is one of those genes. We have to concatenate it from two strings so the {11} for repetitions isn't interpreted as a string formatter.
+        genes = pd.Index(genes, name="Name")
 
-            # Get the columns that match the genes they passed
-            matching_cols = omics_df.columns[omics_df.columns.str.match(col_regex)]
-            selected = omics_df[matching_cols]
+        if isinstance(omics_df.columns, pd.core.index.MultiIndex):
+            contained = genes.intersection(omics_df.columns.get_level_values("Name")).drop_duplicates() # Get the genes that actually exist in the dataframe's columns
+            mi_contained = omics_df.columns[omics_df.columns.get_level_values("Name").isin(genes)]
 
-            # Find any genes that didn't match any columns in the index, and fill with NaN
-            genes = pd.Index(genes)
-            no_suffix = omics_df.columns.to_series().str.rsplit(splitter, n=1, expand=True)[0].drop_duplicates()
-            not_contained = genes[~genes.isin(no_suffix)]
-            all_cols = matching_cols.union(not_contained)
-            selected = selected.reindex(columns=all_cols) # This will add the columns not included in the dataframe, and fill them with NaN.
+            not_contained = genes.difference(contained).drop_duplicates() # So we can warn the user later
+            arrays = [not_contained] + [[np.nan] for i in range(omics_df.columns.nlevels - 1)]
+            mi_not_contained = pd.MultiIndex.from_product(arrays, names=omics_df.columns.names)
 
+            genes = mi_contained.union(mi_not_contained) # To use for reindexing the dataframe
         else:
-            genes = pd.Index(genes)
-            contained = genes.intersection(omics_df.columns) # Get the genes that actually exist in the dataframe's columns
-            selected = omics_df[contained]
-            selected = selected.reindex(columns=genes) # This will add the columns not included in the dataframe, and fill them with NaN.
+            contained = genes.intersection(omics_df.columns).drop_duplicates() # Get the genes that actually exist in the dataframe's columns
+            not_contained = genes.difference(contained).drop_duplicates() # So we can warn the user later
 
-            not_contained = genes.difference(omics_df.columns) # So we can warn the user later
+        selected = omics_df[contained]
+        selected = selected.reindex(columns=genes) # This will add the columns not included in the dataframe, and fill them with NaN.
 
         # Warn the user about columns filled with NaN
         if len(not_contained) > 0:
-            warnings.warn(f"The following columns were not found in the {omics_df_name} dataframe, so the columns were inserted into joined table, but filled with NaN: {', '.join(not_contained)}", ParameterWarning, stacklevel=3)
+            warnings.warn(f"The following columns were not found in the {omics_df_name} dataframe, so they were inserted into joined table, but filled with NaN: {', '.join(not_contained)}", ParameterWarning, stacklevel=3)
 
-        selected = selected.rename(columns=lambda x:'{}_{}'.format(x, omics_df_name)) # Append dataframe name to end of each column header, to preserve info when we join dataframes
+        # Append dataframe name to end of each column header, to preserve info when we merge dataframes
+        if isinstance(omics_df.columns, pd.core.index.MultiIndex):
+            selected.columns = selected.columns.set_levels(selected.columns.levels[0] + '_' + omics_df_name, level=0)            
+        else:
+            selected = selected.add_suffix('_' + omics_df_name)
         return selected
 
     def _get_metadata_cols(self, df_name, cols):
@@ -485,8 +519,10 @@ class DataSet:
         else: # If it's none of those, they done messed up. Tell 'em.
             raise InvalidParameterError("Columns parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(cols, type(cols)))
 
+        cols = pd.Index(cols).drop_duplicates()
+
         # Check that they didn't pass any invalid columns
-        not_contained = pd.Index(cols).difference(df.columns)
+        not_contained = cols.difference(df.columns)
         if len(not_contained) > 0:
             raise InvalidParameterError(f'The following columns were not found in the {df_name} dataframe: {", ".join(not_contained)}')
 
@@ -525,12 +561,10 @@ class DataSet:
             for filter_val in mutations_filter:
                 if (filter_val not in somatic_mutation[mutation_col].values) and (filter_val not in somatic_mutation[location_col].values):
                     raise InvalidParameterError(f"Filter value {filter_val} does not exist in the mutations dataframe for this dataset. Check for typos and existence. Merge aborted.")
-                    invalid_filter = True
-        if invalid_filter:
-            return
 
         # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
         df = pd.DataFrame(index=somatic_mutation.index.copy().drop_duplicates())
+        genes = pd.Series(genes).drop_duplicates()
         for gene in genes:
             gene_mutations = somatic_mutation[somatic_mutation[gene_col] == gene] # Get all the mutations for that gene
             if len(gene_mutations) == 0: # If the gene doesn't match any genes in the dataframe, tell them
@@ -586,8 +620,9 @@ class DataSet:
                 # Also add the mutations status column
                 mutation_lists.at[sample, mutation_status_col] = sample_mutation_status
 
-            mutation_lists = mutation_lists.rename(columns=lambda x:'{}_{}'.format(gene, x)) # Add the gene name to end beginning of each column header, to preserve info when we join dataframes.
+            mutation_lists = mutation_lists.add_prefix(gene + '_') # Add the gene name to end beginning of each column header, to preserve info when we join dataframes.
             df = df.join(mutation_lists, how='outer') # Append the columns to our dataframe we'll return.
+            df.columns.name = "Name"
 
         return df
 
@@ -603,11 +638,22 @@ class DataSet:
         Returns:
         pandas DataFrame: The joined dataframe, with a Sample_Status column added and NaNs filled.
         """
+        # Make the indices the same
+        if mutations.columns.names != other.columns.names:
+            mutations.columns = self._add_levels(to=mutations.columns, source=other.columns)
         joined = other.join(mutations, how="outer")
 
         # Add Sample_Status column by joining the sample_status_map to the joined mutation dataframe. Do a left join so we drop any indices not in the mutations dataframe.
         sample_status_map = self._get_sample_status_map()
+
+        if joined.columns.nlevels > 1:
+            new_header = [sample_status_map.name]
+            for i in range(joined.columns.nlevels - 1):
+                new_header.append(np.nan)
+            sample_status_map.name = tuple(new_header)
+
         joined = joined.join(sample_status_map, how="left")
+        joined.columns.name = "Name" # This attribute gets lost in the join above
 
         # If there's no mutations filter, then based on the dtypes in the dataframe, set our fill values so that .loc will insert the value as a single item in a list, instead of unpacking the list.
         if mutations_were_filtered:
@@ -625,39 +671,42 @@ class DataSet:
 
         # Fill in Wildtype_Normal or Wildtype_Tumor for NaN values (i.e., no mutation data for that sample) in joined dataframe mutation columns
         mutation_regex = r'^.*_Mutation$' # Construct regex to find all mutation columns
-        mutation_cols = [col for col in joined.columns.values if re.match(mutation_regex, col)] # Get a list of all mutation columns
+        mutation_cols = joined.columns[joined.columns.get_level_values("Name").str.match(mutation_regex)] # Get a list of all mutation columns
 
         fill_log = [] # We're going to keep track of value filling, and let the user know we did it.
         for mutation_col in mutation_cols:
         
             # Log how many values we're going to fill for this gene
-            num_filled = (((joined['Sample_Status'] == "Normal") | (joined['Sample_Status'] == "Tumor")) & (pd.isnull(joined[mutation_col]))).tolist().count(True) # See how many values we'll fill
+            num_filled = (((sample_status_map == "Normal") | (sample_status_map == "Tumor")) & (pd.isnull(joined[mutation_col]))).tolist().count(True) # See how many values we'll fill
             if num_filled > 0:
-                gene = mutation_col.rsplit("_", maxsplit=1)[0]
+                if isinstance(mutation_col, tuple):
+                    gene = mutation_col[0].rsplit("_", maxsplit=1)[0]
+                else:
+                    gene = mutation_col.rsplit("_", maxsplit=1)[0]
                 fill_log.append(f"{num_filled} samples for the {gene} gene")
 
             # Impute values
-            joined.loc[(joined['Sample_Status'] == "Normal") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_normal_fill # Change all NaN mutation values for Normal samples to Wildtype_Normal. 
-            joined.loc[(joined['Sample_Status'] == "Tumor") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_tumor_fill # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
+            joined.loc[(sample_status_map == "Normal") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_normal_fill # Change all NaN mutation values for Normal samples to Wildtype_Normal. 
+            joined.loc[(sample_status_map == "Tumor") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_tumor_fill # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
 
         if len(fill_log) > 0:
             warnings.warn(f"In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: {', '.join(fill_log)}", FilledMutationDataWarning, stacklevel=3)
 
         # Depending on show_location, either fill NaN values in the joined dataframe location columns with "No_mutation", or just drop the location columns altogether
         location_regex = r'^.*_Location$' # Construct regex to find all location columns
-        location_cols = [col for col in joined.columns.values if re.match(location_regex, col)] # Get a list of all location columns
+        location_cols = joined.columns[joined.columns.get_level_values("Name").str.match(location_regex)] # Get a list of all location columns
         for location_col in location_cols:
             if show_location: # If we're including the location column, fill NaN with "No_mutation", since that's what it means, so things are clearer to the user.
-                joined.loc[(pd.isnull(joined[location_col])) & (pd.notnull(joined['Sample_Status'])), location_col] = no_mutation_fill # Make sure Sample Status is not NaN, though--if it is, we have no mutation data at all for that sample, so we can't say "No_mutation". It must have been a sample that was in the other dataframe, but not the mutations.
+                joined.loc[(pd.isnull(joined[location_col])) & (pd.notnull(sample_status_map)), location_col] = no_mutation_fill # Make sure Sample Status is not NaN, though--if it is, we have no mutation data at all for that sample, so we can't say "No_mutation". It must have been a sample that was in the other dataframe, but not the mutations.
             else:
                 joined = joined.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
 
         # Fill NaN values in Mutation_Status column with either Wildtype_Tumor or Wildtype_Normal
         mutation_status_regex = r"^.*_Mutation_Status$" # Construct a regex to find all Mutation_Status columns
-        mutation_status_cols = [col for col in joined.columns.values if re.match(mutation_status_regex, col)] # Get a list of all Mutation_Status columns
+        mutation_status_cols = joined.columns[joined.columns.get_level_values("Name").str.match(mutation_status_regex)] # Get a list of all Mutation_Status columns
         for mutation_status_col in mutation_status_cols:
-            joined.loc[(joined['Sample_Status'] == "Normal") & (pd.isnull(joined[mutation_status_col])), mutation_status_col] = "Wildtype_Normal" # Change all NaN mutation status values for Normal samples to Wildtype_Normal
-            joined.loc[(joined['Sample_Status'] == "Tumor") & (pd.isnull(joined[mutation_status_col])), mutation_status_col] = "Wildtype_Tumor" # Change all NaN mutation status values for Tumor samples to Wildtype_Tumor
+            joined.loc[(sample_status_map == "Normal") & (pd.isnull(joined[mutation_status_col])), mutation_status_col] = "Wildtype_Normal" # Change all NaN mutation status values for Normal samples to Wildtype_Normal
+            joined.loc[(sample_status_map == "Tumor") & (pd.isnull(joined[mutation_status_col])), mutation_status_col] = "Wildtype_Tumor" # Change all NaN mutation status values for Tumor samples to Wildtype_Tumor
 
         return joined
 

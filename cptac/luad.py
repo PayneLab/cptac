@@ -90,18 +90,18 @@ class Luad(DataSet):
                 # Prepare some columns we'll need later for the multiindex
                 df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "") # Get rid of all lowercase delimeters and whitespace in the sites
                 df = df.rename(columns={
-                    "geneSymbol": "Gene",
+                    "geneSymbol": "Name",
                     "variableSites": "Site",
                     "sequence": "Peptide", # We take this instead of sequenceVML, to match the other datasets' format
                     "accession_numbers": "Database_ID" # We take all accession numbers they have, instead of the singular accession_number column
                     })
 
                 # Some rows have at least one localized phosphorylation site, but also have other phosphorylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
-                unlocalized_to_drop = df.index[~df['Best_numActualVMSites_sty'].eq(df['Best_numLocalizedVMsites_sty']) & df.duplicated(["Gene", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split "id" column is number of phosphorylations detected, and column 4 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
+                unlocalized_to_drop = df.index[~df['Best_numActualVMSites_sty'].eq(df['Best_numLocalizedVMsites_sty']) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split "id" column is number of phosphorylations detected, and column 4 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
                 df = df.drop(index=unlocalized_to_drop)
 
                 # Give it a multiindex
-                df = df.set_index(["Gene", "Site", "Peptide", "Database_ID"])                
+                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])                
 
                 cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsVMsiteObserved', 'bestScore', 'bestDeltaForwardReverseScore',
                 'Best_scoreVML', 'Best_numActualVMSites_sty', 'Best_numLocalizedVMsites_sty', 'sequenceVML',
@@ -113,7 +113,6 @@ class Luad(DataSet):
                 df = df.transpose()
                 df = df.sort_index()
                 df.index.name="Patient_ID"
-                df.columns.name = None
                 self._data["phosphoproteomics"] = df
 
 
@@ -123,8 +122,8 @@ class Luad(DataSet):
                 gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
 
-                df = df.rename(columns={"GeneSymbol": "Gene", 'accession_numbers': "Database_ID"})
-                df = df.set_index(["Gene", "Database_ID"])
+                df = df.rename(columns={"GeneSymbol": "Name", 'accession_numbers': "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"])
                 cols_to_drop = ['id', 'id.1', 'id.description', 'geneSymbol', 'numColumnsProteinObserved',
                 'numSpectraProteinObserved', 'protein_mw', 'percentCoverage', 'numPepsUnique',
                 'scoreUnique', 'species', 'orfCategory', 'accession_number', 
@@ -151,7 +150,6 @@ class Luad(DataSet):
                  df = df.transpose()
                  df = df.sort_index()
                  df.index.name = "Patient_ID"
-                 df.columns.name = None
                  df = df.sort_index()
                  self._data["transcriptomics"] = df
 
@@ -259,10 +257,10 @@ class Luad(DataSet):
         for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
             del self._data[name]
 
-        # Drop name of column axis for all dataframes
+        # Set name of column axis to "Name" for all dataframes
         for name in self._data.keys():
             df = self._data[name]
-            df.columns.name = None
+            df.columns.name = "Name"
             self._data[name] = df
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

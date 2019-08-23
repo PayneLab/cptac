@@ -66,8 +66,8 @@ class Gbm(DataSet):
 
             if file_name == "mirnaseq_mirna_mature_tpm.v1.0.20190802.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
-                df = df.rename(columns={"name": "Gene", "unique_id": "Database_ID"})
-                df = df.set_index(["Gene", "Database_ID"]) # We use a multiindex with database IDs, not just names, to avoid duplicate column headers
+                df = df.rename(columns={"name": "Name", "unique_id": "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"]) # We use a multiindex with database IDs, not just names, to avoid duplicate column headers
                 df = df.drop(columns=["chromosome", "start", "end", "strand", "mirna_type", "mirbase_id", "precursor_id"])
                 df = df.sort_index()
                 df = df.transpose()
@@ -81,8 +81,8 @@ class Gbm(DataSet):
                 df = df.drop(columns="site")
                 df = df.assign(Site=split_genes[1])
                 df["Site"] = df["Site"].str.replace(r"[sty]", r"") # Get rid of all lowercase s, t, and y delimeters in the sites
-                df = df.rename(columns={"gene": "Gene", "peptide": "Peptide"})
-                df = df.set_index(["Gene", "Site", "Peptide"]) # Turn these columns into a multiindex
+                df = df.rename(columns={"gene": "Name", "peptide": "Peptide"})
+                df = df.set_index(["Name", "Site", "Peptide"]) # Turn these columns into a multiindex
 
                 df = df.sort_index()
                 df = df.transpose()
@@ -101,8 +101,8 @@ class Gbm(DataSet):
 
             if file_name == "rnaseq_gdc_fpkm_uq.v1.0.20190802.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
-                df = df.rename(columns={"gene_name": "Gene", "gene_id": "Database_ID"})
-                df = df.set_index(["Gene", "Database_ID"]) # We use a multiindex with Ensembl IDs, not just gene names, to avoid duplicate column headers
+                df = df.rename(columns={"gene_name": "Name", "gene_id": "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"]) # We use a multiindex with Ensembl IDs, not just gene names, to avoid duplicate column headers
                 df = df.drop(columns=["gene_type", "gene_status", "havana_gene", "full_length", "exon_length", "exon_num"])
                 df = df.sort_index()
                 df = df.transpose()
@@ -168,10 +168,10 @@ class Gbm(DataSet):
         for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
             del self._data[name]
 
-        # Drop name of column axis for all dataframes
+        # Set name of column axis to "Name" for all dataframes
         for name in self._data.keys():
             df = self._data[name]
-            df.columns.name = None
+            df.columns.name = "Name"
             self._data[name] = df
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

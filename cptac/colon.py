@@ -118,7 +118,7 @@ class Colon(DataSet):
         # Create our phosphoproteomics columns multiindex
         multiindex = phos_combined.columns.str.split('[_:]', expand=True) # Split the column names into their constituent parts
         multiindex = multiindex.droplevel([2, 4]) # The third level is just empty strings, and the fifth is a duplicate of the second
-        multiindex = multiindex.set_names(["Gene", "Site", "Database_ID"])
+        multiindex = multiindex.set_names(["Name", "Site", "Database_ID"])
         phos_combined.columns = multiindex
         phos_combined = phos_combined.sort_index(axis=1) # Put all the columns in alphabetical order
         self._data['phosphoproteomics'] = phos_combined
@@ -169,7 +169,7 @@ class Colon(DataSet):
         # Drop name of column axis for all dataframes
         for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
             df = self._data[name]
-            df.columns.name = None
+            df.columns.name = "Name"
             self._data[name] = df
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

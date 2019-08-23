@@ -88,8 +88,8 @@ class Ovarian(DataSet):
                     df = df[df["hgnc_symbol"].notnull()] # Drops all nan values in hgnc_symbol column
 
                     # Create our column multiindex
-                    df = df.rename(columns={"hgnc_symbol": "Gene", "refseq_peptide": "Database_ID"})
-                    df = df.set_index(["Gene", "Database_ID"])
+                    df = df.rename(columns={"hgnc_symbol": "Name", "refseq_peptide": "Database_ID"})
+                    df = df.set_index(["Name", "Database_ID"])
 
                 elif file_name == "phosphoproteomics.txt.gz":
                     df = df[df["site"].notnull()] # Drops all rows with nan values in site column
@@ -97,10 +97,10 @@ class Ovarian(DataSet):
                     # Create our column multiindex
                     split_genes = df["site"].str.rsplit("-", n=1, expand=True) # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
                     df = df.drop(columns=["hgnc_symbol", "site"]) # hgnc_symbol is a duplicate of split_genes[0], and site is now in split_genes and will be re-inserted differently
-                    df = df.assign(Gene=split_genes[0], Site=split_genes[1])
+                    df = df.assign(Name=split_genes[0], Site=split_genes[1])
                     df["Site"] = df["Site"].str.replace(r"[sty]", r"") # Get rid of all lowercase s, t, and y delimeters in the sites
                     df = df.rename(columns={"refseq_peptide": "Database_ID"})
-                    df = df.set_index(["Gene", "Site", "Peptide", "Database_ID"]) # Turn these columns into a multiindex
+                    df = df.set_index(["Name", "Site", "Peptide", "Database_ID"]) # Turn these columns into a multiindex
 
                 df = df.sort_index()
                 df = df.transpose()
@@ -166,10 +166,10 @@ class Ovarian(DataSet):
         for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
             del self._data[name]
 
-        # Drop name of column axis for all dataframes
+        # Set name of column axis to "Name" for all dataframes
         for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
             df = self._data[name]
-            df.columns.name = None
+            df.columns.name = "Name"
             self._data[name] = df
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
