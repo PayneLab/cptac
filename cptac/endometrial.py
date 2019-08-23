@@ -10,6 +10,7 @@
 #   limitations under the License.
 
 import pandas as pd
+import numpy as np
 import os
 import warnings
 from .dataset import DataSet
@@ -83,13 +84,21 @@ class Endometrial(DataSet):
 
             elif file_name == "somatic.maf.gz":
                 df = pd.read_csv(file_path, sep = "\t")
-                split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n = 1, expand = True) # The first part of the barcode is the patient id, which we need want to make the index
+                split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n=1, expand=True) # The first part of the barcode is the patient id, which we need want to make the index
                 df["Tumor_Sample_Barcode"] = split_barcode[0]
                 df = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]]
                 df = df.rename({"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
                 df = df.sort_values(by=["Patient_ID", "Gene"])
                 df = df.set_index("Patient_ID")
                 self._data["somatic_mutation"] = df # Maps dataframe name to dataframe
+
+            elif file_name == "acetylproteomics.cct.gz" or file_name == "phosphoproteomics_site.cct.gz":
+                df = pd.read_csv(file_path, sep = "\t", index_col=0)
+                df.index = df.index.str.rsplit('-', n=1, expand=True) # Separate the index into a multiindex where the 1st level is the gene, and 2nd is the site
+                df.index = df.index.set_names(["Name", "Site"]) # Properly name the levels
+                df = df.sort_index()
+                df = df.transpose()
+                self._data[df_name] = df # Maps dataframe name to dataframe
 
             else:
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
@@ -101,7 +110,7 @@ class Endometrial(DataSet):
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
-        # Separate out clinical, derived_molecular, and experimental_setup dataframes
+        # Separate out clinical, derived_molecular, and experimental_design dataframes
         all_clinical = self._data["clinical"]
         clinical = all_clinical[[
             'Proteomics_Participant_ID', 'Case_excluded',  'Proteomics_Tumor_Normal',  'Country',
@@ -123,11 +132,11 @@ class Endometrial(DataSet):
             'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'], axis=1)
         self._data["derived_molecular"] = derived_molecular
 
-        experimental_setup = all_clinical[['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs',
+        experimental_design = all_clinical[['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs',
             'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'WXS_tumor_filename',
             'WXS_tumor_UUID', 'WGS_normal_sample_type', 'WGS_normal_UUID', 'WGS_tumor_sample_type', 'WGS_tumor_UUID', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID',
             'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']]
-        self._data["experimental_setup"] = experimental_setup
+        self._data["experimental_design"] = experimental_design
 
         # Add Sample_ID column to somatic_mutations dataframe and make it the index
         clinical = self._data["clinical"] # We need the Patient_ID column from clinical, to map sample ids to patient ids. The sample ids are the clinical index, and the patient ids are in the Patient_ID column.
@@ -179,10 +188,10 @@ class Endometrial(DataSet):
             df_rename_index.index.name = "Sample_ID"
             self._data[name] = df_rename_index
 
-        # Drop name of column axis for all dataframes
+        # Set name of column axis to "Name" for all dataframes
         for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
             df = self._data[name]
-            df.columns.name = None
+            df.columns.name = "Name"
             self._data[name] = df
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

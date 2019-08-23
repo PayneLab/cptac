@@ -10,6 +10,7 @@
 #   limitations under the License.
 
 import pandas as pd
+import numpy as np
 import os
 import warnings
 from .dataset import DataSet
@@ -71,7 +72,6 @@ class RenalCcrcc(DataSet):
 
             if file_name == "6_CPTAC3_CCRCC_Phospho_abundance_gene_protNorm=2_CB_imputed.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df.index.name = None # It's going to become our column headers, and we don't want the column axes to have names
                 ref_intensities = df["ReferenceIntensity"] # Copy this out, so we can subtract the reference intensities later
                 df = df.drop(columns=["NumberPSM", "Proteins", "ReferenceIntensity"] + nci_dotted_labels + qc_labels)
                 df = df.subtract(ref_intensities, axis="index") # Subtract reference intensities from all the values, to get ratios
@@ -81,35 +81,51 @@ class RenalCcrcc(DataSet):
             elif file_name == "6_CPTAC3_CCRCC_Phospho_abundance_phosphosite_protNorm=2_CB.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
 
-                # Parse out the sites and append to gene names
-                old_index = df["Index"]
-                split_index = old_index.str.rsplit("_", n=1, expand=True)
-                sites = split_index[1]
-                genes = df["Gene"]
-                genes_with_sites = genes.str.cat(sites, sep='-')
-                df["Gene"] = genes_with_sites
-
-                # Sites where the site location is 0 are unlocalized, and we're going to drop them.
-                unlocalized_sites = (sites == '0') 
+                # Drop unlocalized sites
+                unlocalized_sites = (df["Index"].str.rsplit("_", n=1, expand=True)[1] == '0') 
                 df = df[~unlocalized_sites]
 
-                df = df.set_index("Gene")
-                ref_intensities = df["ReferenceIntensity"] # Copy this out, so we can subtract the reference intensities later
-                df = df.drop(columns=["Index", "Peptide", "ReferenceIntensity"] + nci_labels + qc_labels)
-                df = df.subtract(ref_intensities, axis="index") # Subtract the reference intensities from all the values, to get ratios
+                # Drop unwanted samples
+                df = df.drop(columns=nci_labels + qc_labels)
+
+                # Subtract reference intensities from numerical data columns, to get ratios
+                df = df.rename(columns={"Gene": "Name"})
+                metadata_cols = ["Index", "Name", "Peptide", "ReferenceIntensity"]
+                metadata = df[metadata_cols] # Extract these for later
+                df = df.drop(columns=metadata_cols) # Get the df to contain just the numerical data columns
+                ref_intensities = metadata["ReferenceIntensity"]
+                df = df.subtract(ref_intensities, axis="index") # Subtract reference intensities
+                df = metadata.join(df, how="outer") # Put the metadata columns back in
+                df = df.drop(columns="ReferenceIntensity") # Don't need this anymore
+
+                # Parse a few columns out of the "Index" column that we'll need for our multiindex
+                split_ids = df["Index"].str.split('_', expand=True)
+                df = df.drop(columns="Index")
+                sites = split_ids.iloc[:, -1]
+                database_ids = split_ids[0].str.cat(split_ids[1], sep='_')
+                df = df.assign(**{"Site": sites, "Database_ID": database_ids})
+
+                # Some rows have at least one localized phosphorylation site, but also have other phosphorylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
+                unlocalized_to_drop = df.index[~split_ids[4].eq(split_ids[5]) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)] # Column 4 of the split "Index" column is number of phosphorylations detected, and column 5 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
+                df = df.drop(index=unlocalized_to_drop)
+
+                # Give it a multiindex
+                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"]) # This will create a multiindex from these columns, in this order.
                 df = df.sort_index()
                 df = df.transpose()
+                df = df.sort_index()
                 self._data["phosphoproteomics"] = df
             
             elif file_name == "6_CPTAC3_CCRCC_Whole_abundance_protein_pep=unique_protNorm=2_CB.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
-                df = df.set_index("Proteins")
-                df.index.name = None # It's going to become our column headers, and we don't want the column axes to have names
+                df = df.rename(columns={"Proteins": "Name", "Index": "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"])
                 ref_intensities = df["ReferenceIntensity"] # Copy this out, so we can subtract the reference intensities later
-                df = df.drop(columns=["NumberPSM", "Index", "ReferenceIntensity"] + nci_labels + qc_labels)
+                df = df.drop(columns=["NumberPSM", "ReferenceIntensity"] + nci_labels + qc_labels)
                 df = df.subtract(ref_intensities, axis="index") # Subtract reference intensities from all the values, to get ratios
                 df = df.sort_index()
                 df = df.transpose()
+                df = df.sort_index()
                 self._data["proteomics"] = df
             
             elif file_name == "Clinical Table S1.xlsx":
@@ -141,8 +157,8 @@ class RenalCcrcc(DataSet):
             
             elif file_name == "kirc_wgs_cnv_gene.csv.gz":
                 df = pd.read_csv(file_path)
-                df = df.drop(columns="gene_id")
-                df = df.set_index("gene_name")
+                df = df.rename(columns={"gene_name": "Name", "gene_id": "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"])
                 df = df.sort_index()
                 df = df.transpose()
 
@@ -200,12 +216,7 @@ class RenalCcrcc(DataSet):
         clinical["histologic_type"] = auth_clin["Histologic_Type"]
 
         specimen_attributes = clinical_dfs["Specimen_Attributes"] # Before we can join in this dataframe, we need to prepend "N" to the normal samples' index values
-        new_specimen_attributes_index = []
-        for index, row in specimen_attributes.iterrows(): # Prepend "N" to the index values of normal samples
-            if row["tissue_type"] == "normal":
-                index = "N" + index
-            new_specimen_attributes_index.append(index)
-        specimen_attributes.index = new_specimen_attributes_index
+        specimen_attributes.index = np.where(specimen_attributes["tissue_type"] == "normal", 'N' + specimen_attributes.index, specimen_attributes.index)
         specimen_attributes.index.name = "Patient_ID" # Name the index Patient_ID, since the index values are in fact the patient IDs (also called case IDs)
         clinical = clinical.join(specimen_attributes, how="outer") # Join in our nicely reindexed dataframe
 
@@ -311,10 +322,10 @@ class RenalCcrcc(DataSet):
         for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
             del self._data[name]
 
-        # Drop name of column axis for all dataframes
+        # Set name of column axis to "Name" for all dataframes
         for name in self._data.keys():
             df = self._data[name]
-            df.columns.name = None
+            df.columns.name = "Name"
             self._data[name] = df
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
