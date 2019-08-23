@@ -434,6 +434,7 @@ def parse_hotspot(path, cancer_type):
     cluster_df = pd.read_csv(path, sep = '\t')
     
     #Importing the desired cancer type mutation dataframe from cptac
+    import cptac
     cptac.download(dataset=cancer_type)
     
     #Checking what cancer_type variable was passed into the function to get the corresponding cancer data. 
