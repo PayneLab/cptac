@@ -397,13 +397,13 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
 
     return freq_mutated_df
 
-def parse_hotspot(path, cancer_type):
+def parse_hotspot(path, mut_df):
     '''
     @Param path:
         (String) The path to the cluster output file that is on your computer after running the Hotspot analysis
     
-    @Param cancer_type:
-        (String) The cancer type that the hotspot analysis was run on. Please use one of the following: 'Ovarian', 'Endometrial', 'Colon', or 'Renal'.
+    @Param mut_df:
+        (Dataframe) The dataframe that is obtained by performing the .get_mutations() function of cptac
         
     @Return:
         There will be four outputs for this function:
@@ -428,27 +428,10 @@ def parse_hotspot(path, cancer_type):
             
             A dictionary that contains the hotspot gene as the key, and a list of mutations that make up that hotspot
             
-    This function will take two parameters (cluster file path and cancer type) and use them to parse the Hotspot3D program output. It creates a cluster dataframe from the Hotspot3D output, and identifies the patients who contain hotspot mutations. The outputs of this function can be used to run further statistical analysis and exploration on the cancer datasets.
+    This function will take two parameters (cluster file path and mutations dataframe) and use them to parse the Hotspot3D program output. It creates a cluster dataframe from the Hotspot3D output, and identifies the patients who contain hotspot mutations. The outputs of this function can be used to run further statistical analysis and exploration on the cancer datasets.
     '''
     #Importing the desired cluster file from the specified path on the computer
     cluster_df = pd.read_csv(path, sep = '\t')
-    
-    #Importing the desired cancer type mutation dataframe from cptac
-    import cptac
-    cptac.download(dataset=cancer_type)
-    
-    #Checking what cancer_type variable was passed into the function to get the corresponding cancer data. 
-    if cancer_type == 'Colon':
-        cancer = cptac.Colon()
-    if cancer_type == 'Renal':
-        cancer = cptac.RenalCcrcc()
-    if cancer_type == 'Endometrial':
-        cancer = cptac.Endometrial()
-    if cancer_type == 'Ovarian':
-        cancer = cptac.Ovarian()
-
-    #Importing the somatic mutations data for the correct cancer
-    mut_df = cancer.get_mutations()
     
     #Creating a list of all the identified hotspot clusters
     cluster_list_initial = (cluster_df.Cluster.unique()).tolist()
