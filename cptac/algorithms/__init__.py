@@ -395,7 +395,6 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     freq_mutated_df = freq_mutated_df.join(fraction_truncation, how='left').fillna(0)
     freq_mutated_df = freq_mutated_df.reset_index() #move genes to their own column
 
-<<<<<<< HEAD
     return freq_mutated_df
 
 def parse_hotspot(path, cancer_type):
@@ -534,6 +533,3 @@ def parse_hotspot(path, cancer_type):
     
     #Return of the three dataframes and mutation dictionary
     return(vis_hs_df, bin_hs_df, det_hs_df, mut_dict)
-=======
-    return freq_mutated_df
->>>>>>> parent of 09c2a52... Add the parse_hotspot function
