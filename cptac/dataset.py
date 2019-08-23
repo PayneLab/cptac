@@ -126,11 +126,11 @@ class DataSet:
         return self._get_dataframe("transcriptomics")
 
     # Methods to get mutations dataframes
-    def get_mutations(self):
+    def get_somatic_mutation(self):
         """Get the somatic_mutation dataframe."""
         return self._get_dataframe("somatic_mutation")
 
-    def get_mutations_binary(self):
+    def get_somatic_mutation_binary(self):
         """Get the somatic_mutation_binary dataframe, which has a binary value indicating, for each location on each gene, whether there was a mutation in that gene at that location, for each sample."""
         return self._get_dataframe("somatic_mutation_binary")
 
@@ -539,7 +539,7 @@ class DataSet:
         Returns:
         pandas DataFrame: The mutations in each patient for the specified gene(s).
         """
-        somatic_mutation = self.get_mutations()
+        somatic_mutation = self.get_somatic_mutation()
 
         # Process genes parameter
         if isinstance(genes, str): # If it's a single gene, make it a list so we can treat everything the same

@@ -343,7 +343,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     total_tumor_samples = len(tumors)
     
     # Get mutations data frame
-    somatic_mutations = cancer_object.get_mutations() 
+    somatic_mutations = cancer_object.get_somatic_mutation() 
 
     # Drop silent mutations for Ovarian and RenalCcrcc dataset 
     if 'Silent' in somatic_mutations['Mutation'].unique():
@@ -403,7 +403,7 @@ def parse_hotspot(path, mut_df):
         (String) The path to the cluster output file that is on your computer after running the Hotspot analysis
     
     @Param mut_df:
-        (Dataframe) The dataframe that is obtained by performing the .get_mutations() function of cptac
+        (Dataframe) The dataframe that is obtained by performing the .get_somatic_mutation() function of cptac
         
     @Return:
         There will be four outputs for this function:
