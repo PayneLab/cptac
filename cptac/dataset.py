@@ -191,6 +191,40 @@ class DataSet:
         webbrowser.open(url)
         print(" " * len(message), end='\r') # Erase the message
 
+    def reduce_multiindex(self, df, levels_to_drop=None, flatten=False, sep='_'):
+        """Drop levels from and/or flatten the column axis of a dataframe with a column multiindex.
+
+        Parameters:
+        df (pandas DataFrame): The dataframe to make the changes to.
+        levels_to_drop (str, int, or list or array-like of str or int, optional): Levels, or indices of levels, to drop from the dataframe's column multiindex. These must match the names or indices of actual levels of the multiindex. Default of None will drop no levels.
+        flatten (bool, optional): Whether or not to flatten the multiindex. Default of False will not flatten.
+        sep (str, optional): String to use to separate index levels when flattening. Default is underscore.
+
+        Returns:
+        pandas DataFrame: The dataframe, with the desired column index changes made.
+        """
+        # Make a copy, so the original dataframe is preserved
+        df = df.copy()
+
+        if levels_to_drop is not None:
+            if isinstance(levels_to_drop, (str, int)):
+                levels_to_drop = [levels_to_drop]
+            elif not isinstance(levels_to_drop, (list, pd.core.series.Series, pd.core.indexes.base.Index)):
+                raise InvalidParameterError(f"Parameter 'levels_to_drop' is of invalid type {type(levels_to_drop)}. Valid types: str, int, list or array-like of str or int, or NoneType.")
+            df.columns = df.columns.droplevel(levels_to_drop)
+
+            num_dups = df.columns.duplicated().sum()
+            if num_dups > 0:
+                warnings.warn(f"Due to dropping the specified levels, dataframe now has {num_dups} duplicated column headers.", DuplicateColumnHeaderWarning, stacklevel=2)
+
+        if flatten:
+            tuples = df.columns.to_flat_index() # Converts multiindex to an index of tuples
+            no_nan = tuples.map(lambda x: [item for item in x if pd.notnull(item)]) # Cut any NaNs out of tuples
+            joined = no_nan.map(lambda x: sep.join(x)) # Join each tuple
+            df.columns = joined
+
+        return df
+
     # Join functions
     def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None):
         """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
@@ -677,7 +711,7 @@ class DataSet:
         for mutation_col in mutation_cols:
         
             # Log how many values we're going to fill for this gene
-            num_filled = (((sample_status_map == "Normal") | (sample_status_map == "Tumor")) & (pd.isnull(joined[mutation_col]))).tolist().count(True) # See how many values we'll fill
+            num_filled = (((sample_status_map == "Normal") | (sample_status_map == "Tumor")) & (pd.isnull(joined[mutation_col]))).sum() # See how many values we'll fill by using sum to get number of "True" in array
             if num_filled > 0:
                 if isinstance(mutation_col, tuple):
                     gene = mutation_col[0].rsplit("_", maxsplit=1)[0]

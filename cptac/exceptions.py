@@ -71,6 +71,10 @@ class InsertedNanWarning(CptacWarning):
     """NaNs were inserted during a dataframe join."""
     pass
 
+class DuplicateColumnHeaderWarning(CptacWarning):
+    """Due to a requested column multiindex flattening, the column index now has duplicate labels."""
+    pass
+
 class FilledMutationDataWarning(CptacWarning):
     """Mutation data was automatically filled during a dataframe join."""
     pass

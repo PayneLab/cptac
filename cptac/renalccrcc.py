@@ -200,13 +200,7 @@ class RenalCcrcc(DataSet):
 
         # Process and combine the multiple clinical dataframes
         clinical = clinical_dfs["metadata_and_keys"] # We'll start with this dataframe, and add the others to it.
-        new_clinical_index = [] # We gonna reindex this here dataframe
-        for index, row in clinical.iterrows(): # Prepend "N" to the index values of normal samples
-            if row["Type"] == "Normal":
-                index = "N" + index
-            new_clinical_index.append(index)
-
-        clinical.index = new_clinical_index
+        clinical.index = clinical.index.where(~(clinical["Type"] == "Normal"), 'N' + clinical.index) # Prepend an 'N' to the patient IDs of normal samples
         clinical.index.name = "Patient_ID" # Name the index Patient_ID, since the index values are in fact the patient IDs (also called case IDs)
         clinical = clinical.sort_index()
         clinical = clinical.rename(columns={"Type": "Sample_Tumor_Normal"}) # This matches the other datasets.
