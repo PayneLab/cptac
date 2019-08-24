@@ -213,7 +213,7 @@ class DataSet:
                 raise InvalidParameterError(f"Parameter 'levels_to_drop' is of invalid type {type(levels_to_drop)}. Valid types: str, int, list or array-like of str or int, or NoneType.")
             df.columns = df.columns.droplevel(levels_to_drop)
 
-            num_dups = df.columns.duplicated().sum()
+            num_dups = df.columns.duplicated(keep=False).sum()
             if num_dups > 0:
                 warnings.warn(f"Due to dropping the specified levels, dataframe now has {num_dups} duplicated column headers.", DuplicateColumnHeaderWarning, stacklevel=2)
 

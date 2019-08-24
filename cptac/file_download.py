@@ -71,6 +71,8 @@ def download(dataset, version="latest", redownload=False):
     password_protected_datasets = [
         "brca",
         "luad",
+        "gbm",
+        "hnscc",
         ]
     password = None
 
