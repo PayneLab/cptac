@@ -12,6 +12,7 @@
 import numpy as np
 import pandas as pd
 import os
+import warnings
 from .dataset import DataSet
 from .dataframe_tools import *
 from .file_download import update_index
@@ -184,37 +185,32 @@ class Luad(DataSet):
             elif file_name == "luad-v2.0-rnaseq-circ-rna.csv.gz":
                 df = pd.read_csv(file_path, sep=",")
 
-                chrm = df['junction.3'].str.extract(r'(^[^:]+)', expand=False) #Get the chromosome
-                five_prime = df['junction.5'].str.extract(r'(?<=\:)(.*?)(?=\:)', expand=False) #Get the nucleotide coordinates of the first base of the donor
-                three_prime = df['junction.3'].str.extract(r'(?<=\:)(.*?)(?=\:)', expand=False) #get the nucleotide coordinate of the last base of the acceptor
-                #Now we need the gene name
-                diff = df['gene.5'] != df['gene.3'] #create a boolean filter where genes are different
-                temp = df['gene.5'].where(diff, other="") #replace the ones that are the same with an empty string
-                gene_name = temp.str.cat(df['gene.3']) #concatentate the temp column(which only has the genes from gene.5 that are different) to gene.3
+                junct_3_split = df['junction.3'].str.split(':', n=2, expand=True)
+                chrm = junct_3_split[0] # Get the chromosome
+                three_prime = junct_3_split[1] # Get the nucleotide coordinate of the last base of the acceptor
 
-                #put all those pieces of information together
-                df['geneID'] = chrm.str.cat(five_prime, sep="_")
-                df['geneID'] = df['geneID'].str.cat(three_prime, sep="_")
-                df['geneID'] = df['geneID'].str.cat(gene_name, sep="_")
+                junct_5_split = df['junction.5'].str.split(':', n=2, expand=True)
+                five_prime = junct_5_split[1] # Get the nucleotide coordinates of the first base of the donor
 
-                #Get rid of all unnecessary columns
-                keep = ['geneID', 'spanning.reads', 'Sample.ID']
-                df = df.drop(df.columns.difference(keep), 1)
+                # Now we need the gene name
+                diff = df['gene.5'] != df['gene.3'] # Create a boolean filter where genes are different
+                temp = df['gene.5'].where(diff, other="") # Replace the ones that are the same with an empty string
+                gene_name = temp + df["gene.3"] # Concatentate the temp column(which only has the genes from gene.5 that are different) to gene.3
+
+                # Put all those pieces of information together
+                df = df.assign(geneID=chrm + '_' + five_prime + '_' + three_prime + '_' + gene_name)
+
+                # Slice out the columns we want
+                df = df[['geneID', 'spanning.reads', 'Sample.ID']]
 
                 #There are about 3,000 duplicates in the file. Duplicate meaning that they have identical Sample IDs and identical geneID, but different spanning reads.
                 # Marcin Cieslik said to drop the one with the lowest spanning read.
-                df = df.sort_values('spanning.reads', ascending=False).drop_duplicates(['Sample.ID','geneID']).sort_index()
+                df = df.sort_values(by='spanning.reads', ascending=False).drop_duplicates(['Sample.ID','geneID']).sort_index()
 
                 df = df.pivot(index="Sample.ID", columns="geneID")['spanning.reads']
-
                 df.index.name = "Patient_ID"
-                df.columns.name=None
                 df = df.sort_index()
-
                 self._data['circular_RNA'] = df
-
-
-
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
