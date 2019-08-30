@@ -116,7 +116,6 @@ class Hnscc(DataSet):
                 df = df.set_index('CASE_ID')
                 df.columns.name=None
                 df.index.name="Patient_ID"
-                import pdb; pdb.set_trace()
                 #Split the clinicl data in to clincial data and derived molecular data
                 derived_molecular_cols = ['P53GENE_ANALYSIS', 'EGFR_AMP_STATUS']
                 derived_molecular_df = df[derived_molecular_cols]
