@@ -479,12 +479,12 @@ def test_get_phosphosites():
     PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
-def test_get_mutations():
-    """Test get_mutations."""
+def test_get_somatic_mutation():
+    """Test get_somatic_mutation."""
 
-    print('Running test_get_mutations...')
+    print('Running test_get_somatic_mutation...')
 
-    df = en.get_mutations()
+    df = en.get_somatic_mutation()
     dimensions = (52560, 3)
     headers = ['Gene', 'Mutation', 'Location']
     test_coord = ((52000, 2), (12, 0), (34567, 1))
@@ -493,12 +493,12 @@ def test_get_mutations():
     PASS = check_getter(df, dimensions, headers, test_coord, test_vals)
     print_test_result(PASS)
 
-def test_get_mutations_binary():
-    """Test get_mutations_binary."""
+def test_get_somatic_mutation_binary():
+    """Test get_somatic_mutation_binary."""
 
-    print('Running test_get_mutations_binary...')
+    print('Running test_get_somatic_mutation_binary...')
 
-    df = en.get_mutations_binary()
+    df = en.get_somatic_mutation_binary()
     dimensions = (95, 51559)
     headers = ['A1BG_p.E298K', 'A1BG_p.S181N', 'A1CF_p.F487L', 'A1CF_p.S236Y', 'A2ML1_p.A8V', 'A2ML1_p.G1306D', 'A2ML1_p.L1347F', 'A2ML1_p.L82I', 'A2ML1_p.P712S', 'A2ML1_p.R443Q', 'ZYG11A_p.Q442H', 'ZYG11B_p.H315R', 'ZYG11B_p.R495M', 'ZYG11B_p.R728C', 'ZYX_p.C447Y', 'ZZEF1_p.A2723V', 'ZZEF1_p.D845Y', 'ZZEF1_p.K1251E', 'ZZEF1_p.K2387Sfs*40', 'ZZZ3_p.Y891C']
     test_coord = ((94, 51558), (0, 0), (45, 25436))
@@ -1023,7 +1023,7 @@ def test_join_mutations_source_preservation():
     PASS = True
 
     # Load the source dataframes, set our variables
-    mut = en.get_mutations()
+    mut = en.get_somatic_mutation()
     acet = en.get_acetylproteomics()
     acet_name = "acetylproteomics"
     mut_gene = 'TP53'
@@ -1090,7 +1090,7 @@ def test_join_mutations_one_mut_one_omics():
     if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    mutations = en.get_somatic_mutation() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, joined, mut_gene):
         PASS = False
 
@@ -1131,7 +1131,7 @@ def test_join_mutations_one_mut_three_omics():
     if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    mutations = en.get_somatic_mutation() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, joined, mut_gene):
         PASS = False
 
@@ -1166,7 +1166,7 @@ def test_join_mutations_one_mut_all_omics():
     if not check_joined_columns(phos, joined, phos.columns, phos_name):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    mutations = en.get_somatic_mutation() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, joined, mut_gene):
         PASS = False
 
@@ -1207,7 +1207,7 @@ def test_join_mutations_three_mut_one_omics():
     if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    mutations = en.get_somatic_mutation() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, joined, mut_genes):
         PASS = False
 
@@ -1248,7 +1248,7 @@ def test_join_mutations_three_mut_three_omics():
     if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    mutations = en.get_somatic_mutation() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, joined, mut_genes):
         PASS = False
 
@@ -1283,7 +1283,7 @@ def test_join_mutations_three_mut_all_omics():
     if not check_joined_columns(phos, joined, phos.columns, phos_name):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    mutations = en.get_somatic_mutation() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, joined, mut_genes):
         PASS = False
 
@@ -1324,7 +1324,7 @@ def test_join_mutations_one_mut_one_omics_no_location():
     if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    mutations = en.get_somatic_mutation() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, joined, mut_gene, show_location=False):
         PASS = False
 
@@ -1365,7 +1365,7 @@ def test_join_mutations_one_mut_three_omics_no_location():
     if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    mutations = en.get_somatic_mutation() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, joined, mut_gene, show_location=False):
         PASS = False
 
@@ -1400,7 +1400,7 @@ def test_join_mutations_one_mut_all_omics_no_location():
     if not check_joined_columns(phos, joined, phos.columns, phos_name):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    mutations = en.get_somatic_mutation() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, joined, mut_gene, show_location=False):
         PASS = False
 
@@ -1441,7 +1441,7 @@ def test_join_mutations_three_mut_one_omics_no_location():
     if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    mutations = en.get_somatic_mutation() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, joined, mut_genes, show_location=False):
         PASS = False
 
@@ -1482,7 +1482,7 @@ def test_join_mutations_three_mut_three_omics_no_location():
     if not check_joined_columns(phos, joined, phos_cols.columns, phos_name):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    mutations = en.get_somatic_mutation() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, joined, mut_genes, show_location=False):
         PASS = False
 
@@ -1517,7 +1517,7 @@ def test_join_mutations_three_mut_all_omics_no_location():
     if not check_joined_columns(phos, joined, phos.columns, phos_name):
         PASS = False
 
-    mutations = en.get_mutations() # Load the somatic_mutation dataframe, which the mutation data was drawn from
+    mutations = en.get_somatic_mutation() # Load the somatic_mutation dataframe, which the mutation data was drawn from
     if not check_mutation_columns(mutations, joined, mut_genes, show_location=False):
         PASS = False
 
@@ -2096,8 +2096,8 @@ test_get_CNV()
 test_get_phosphoproteomics()
 test_get_phosphoproteomics_gene()
 test_get_phosphosites()
-test_get_mutations()
-test_get_mutations_binary()
+test_get_somatic_mutation()
+test_get_somatic_mutation_binary()
 
 print("\nTesting compare and join functions...")
 test_join_omics_to_omics_source_preservation()

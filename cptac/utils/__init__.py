@@ -18,6 +18,8 @@ import urllib3
 import json
 import operator
 import collections
+import os
+
 
 '''
 @Param df:
@@ -264,8 +266,50 @@ def get_interacting_proteins(protein, number=25):
                 interacting_proteins.append(prot)
 
         return interacting_proteins
+ 
 
-
+'''
+@Param protein:
+    The name of the protein that you want to generate a list of interacting proteins for.
+    
+@Return:
+    A list of proteins which are interacting partners with the specified protein, according to the bioplex data table.
+    Returns None if specified protein isn't found, or no interacting partners are found.
+    
+This method takes as a parameter the name of a protein. It then accesses the bioplex data table and returns a list of any protein found to be an interacting partner to the given protein.
+'''
+        
+def get_interacting_proteins_bioplex(protein, secondary_interactions=False):
+    path_here = os.path.abspath(os.path.dirname(__file__))
+    file_name = "BioPlex_interactionList_v4a.tsv"
+    file_path = os.path.join(path_here, file_name)
+    
+    bioplex_interactions = pd.read_csv(file_path, sep='\t')
+    
+    A_df = bioplex_interactions.loc[bioplex_interactions['SymbolA'] == protein]
+    B_df = bioplex_interactions.loc[bioplex_interactions['SymbolB'] == protein]
+    
+    A_interactions = list(A_df['SymbolB'])
+    B_interactions = list(B_df['SymbolA'])
+    
+    all_interactions = list(set(A_interactions + B_interactions))
+    
+    if secondary_interactions:
+        secondary_interactions_list = []
+        for interaction in all_interactions:
+            secondary = get_interacting_proteins_bioplex(interaction, False)
+            for si in secondary:
+                secondary_interactions_list.append(si)
+                
+        for asi in secondary_interactions_list:
+            if asi not in all_interactions:
+                all_interactions.append(asi)
+    
+    if len(all_interactions) > 0:
+        return all_interactions
+    else:
+        return None
+    
 def get_frequently_mutated(cancer_object, cutoff = 0.1):  
     """
     Takes a cancer object and find the frequently 
@@ -299,7 +343,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     total_tumor_samples = len(tumors)
     
     # Get mutations data frame
-    somatic_mutations = cancer_object.get_mutations() 
+    somatic_mutations = cancer_object.get_somatic_mutation() 
 
     # Drop silent mutations for Ovarian and RenalCcrcc dataset 
     if 'Silent' in somatic_mutations['Mutation'].unique():
@@ -352,3 +396,124 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     freq_mutated_df = freq_mutated_df.reset_index() #move genes to their own column
 
     return freq_mutated_df
+
+def parse_hotspot(path, mut_df):
+    '''
+    @Param path:
+        (String) The path to the cluster output file that is on your computer after running the Hotspot analysis
+    
+    @Param mut_df:
+        (Dataframe) The dataframe that is obtained by performing the .get_somatic_mutation() function of cptac
+        
+    @Return:
+        There will be four outputs for this function:
+        
+        vis_hs_df: 
+            visualize hotspot dataframe
+            
+            A small dataframe which will allow quick visualization regarding the number of cancer patients that contain hotspot mutations
+        
+        bin_hs_df: 
+            binary hotspot dataframe
+            
+            A larger dataframe that contains boolean values for each patient and their relationship with the hotspot(True = patient has a hotspot mutation, False = patient does not have a hotspot mutation)
+        
+        det_hs_df: 
+            detailed hotspot dataframe
+            
+            A larger dataframe that contains nonbinary values for each patient and their relationship with the hotspot(No = no mutation, Yes = mutation but not in the hotspot, Yes_HS = mutation in the hotspot)
+        
+        mut_dict:
+            mutations dictionary
+            
+            A dictionary that contains the hotspot gene as the key, and a list of mutations that make up that hotspot
+            
+    This function will take two parameters (cluster file path and mutations dataframe) and use them to parse the Hotspot3D program output. It creates a cluster dataframe from the Hotspot3D output, and identifies the patients who contain hotspot mutations. The outputs of this function can be used to run further statistical analysis and exploration on the cancer datasets.
+    '''
+    #Importing the desired cluster file from the specified path on the computer
+    cluster_df = pd.read_csv(path, sep = '\t')
+    
+    #Creating a list of all the identified hotspot clusters
+    cluster_list_initial = (cluster_df.Cluster.unique()).tolist()
+    cluster_list = list()
+    
+    #Checking each cluster to make sure that only clusters containing 2 or more mutations are looked at ('clusters' with only 1 mutation are technically just frequently mutated)
+    for value in cluster_list_initial:
+        length = len(cluster_df[cluster_df['Cluster'] == value])
+        if length >= 2:
+            cluster_list.append(value)
+    
+    #Sorting the list numerically
+    cluster_list.sort()
+    
+    #If there are no clusters that have more than one mutation, the function ends and returns the statement below
+    if len(cluster_list) == 0:
+        print('There are no hotspot clusters that contain more than one mutation.')
+        return None
+    
+    #creating the multiple dictionaries that are used to compile hotspots and corresponding mutations
+    gene_dict = {}
+    mut_dict = {}
+    rev_mut_dict = {}
+    hs_count = {}
+    
+    #This loop contructs a reverse dictionary to be used to classify patients' mutations as well as the mutation dictionary output
+    for value in cluster_list:
+        gene_dict[value] = cluster_df.loc[cluster_df['Cluster'] == value, 'Gene/Drug'].values[0]
+        mut_list = cluster_df[cluster_df['Cluster'] == value]['Mutation/Gene'].values.tolist()
+        if str(value).endswith('0'):
+            mut_dict[gene_dict[value]] = mut_list
+            hs_count[gene_dict[value]] = 0
+        else:
+            mut_dict[str(gene_dict[value]) + '_' + str(value)[-1]] = mut_list
+            hs_count[str(gene_dict[value]) + '_' + str(value)[-1]] = 0
+    
+    #This loop finalizes the reverse dictionary
+    for hs in mut_dict.keys():
+        for mutation in mut_dict[hs]:
+            rev_mut_dict[mutation] = hs
+    
+    #The three dataframe outputs are initialized
+    vis_hs_df = pd.DataFrame()
+    vis_hs_df['hotspot_id'] = mut_dict.keys()
+    
+    bin_hs_df = pd.DataFrame()
+    bin_hs_df['sample_id'] = mut_df.index.unique()
+    
+    det_hs_df = pd.DataFrame()
+    det_hs_df['sample_id'] = mut_df.index.unique()
+    
+    #This loop populates default values for each patient and hotspot
+    for hs in mut_dict.keys():
+        bin_hs_df[hs] = False
+        det_hs_df[hs] = 'No'
+    
+    #This loop iterates through each individual mutation and then properly identifies the mutation in the different dataframes
+    for row in mut_df.iterrows():
+        info = list(row[1])
+        gene = info[0]
+        location = info[2]
+        location = 'p.'+str(location)
+        sample_id = row[0]
+        
+        #This statement checks to see if the mutation is one of the hotspot mutations
+        if location in rev_mut_dict.keys():
+            hs = rev_mut_dict[location]
+            hs_count[hs] += 1
+            
+            bin_hs_df.loc[bin_hs_df['sample_id'] == sample_id, hs] = True
+            det_hs_df.loc[det_hs_df['sample_id'] == sample_id, hs] = 'Yes_HS'
+        
+        #This statement is used if the mutation is not a hotspot mutation, but if it still on one of the proteins that contains a hotspot
+        elif gene in mut_dict.keys():
+            det_hs_df.loc[det_hs_df['sample_id'] == sample_id, hs] = 'Yes'
+    
+    #This loop adds the patient count for each hotspot to the small visualize hotspot dataframe
+    for hs in hs_count.keys():
+        vis_hs_df.loc[vis_hs_df['hotspot_id'] == hs, 'patients_within'] = hs_count[hs]
+        
+    bin_hs_df = bin_hs_df.set_index('sample_id')
+    det_hs_df = det_hs_df.set_index('sample_id')
+    
+    #Return of the three dataframes and mutation dictionary
+    return(vis_hs_df, bin_hs_df, det_hs_df, mut_dict)

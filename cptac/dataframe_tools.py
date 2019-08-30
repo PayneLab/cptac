@@ -10,6 +10,7 @@
 #   limitations under the License.
 
 import pandas as pd
+import numpy as np
 from .exceptions import ReindexMapError
 
 def unionize_indices(dataset):
@@ -38,14 +39,8 @@ def generate_sample_status_col(df, normal_test):
     Returns:
     pandas Series: A sample status column for the dataframe.
     """
-    sample_status_list = []
-    for sample in df.index:
-        if normal_test(sample):
-            sample_status_list.append("Normal")
-        else:
-            sample_status_list.append("Tumor")
-
-    sample_status_col = pd.Series(data=sample_status_list, index=df.index.copy())
+    sample_status_array = np.where(df.index.map(normal_test), "Normal", "Tumor")
+    sample_status_col = pd.Series(data=sample_status_array, index=df.index.copy())
     return sample_status_col
 
 def get_reindex_map(series):
@@ -100,16 +95,14 @@ def reindex_dataframe(df, reindex_map, new_index_name, keep_old):
     Returns:
     pandas DataFrame: A copy of the given dataframe, with the new index.
     """
-    new_index_list = []
-    for row in df.index:
-        if row in reindex_map.keys(): # This works for a dict or a pandas Series, because Series have a .keys() attribute that's an alias for the index
-            new_index_list.append(reindex_map[row])
-        else:
-            raise ReindexMapError(row)
+    if not df.index.isin(reindex_map.keys()).all(): # This works for a dict or a pandas Series, because Series have a .keys() attribute that's an alias for the index
+        not_in = df.index[~(df.index.isin(reindex_map.keys()))]
+        raise ReindexMapError(not_in)
+
+    new_index = df.index.map(reindex_map.get)
 
     if keep_old:
         df = df.reset_index() # This gives the dataframe a numerical index and makes the old index a column, so it's not dropped when we set the new index.
-    df = df.assign(**{new_index_name: new_index_list})
-    df = df.set_index(new_index_name) # Make the Sample_ID column the index
+    df.index = new_index
     df = df.sort_index()
     return df

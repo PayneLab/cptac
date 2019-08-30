@@ -12,6 +12,7 @@
 import numpy as np
 import pandas as pd
 import os
+import warnings
 from .dataset import DataSet
 from .dataframe_tools import *
 from .file_download import update_index
@@ -90,18 +91,18 @@ class Luad(DataSet):
                 # Prepare some columns we'll need later for the multiindex
                 df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "") # Get rid of all lowercase delimeters and whitespace in the sites
                 df = df.rename(columns={
-                    "geneSymbol": "Gene",
+                    "geneSymbol": "Name",
                     "variableSites": "Site",
                     "sequence": "Peptide", # We take this instead of sequenceVML, to match the other datasets' format
                     "accession_numbers": "Database_ID" # We take all accession numbers they have, instead of the singular accession_number column
                     })
 
                 # Some rows have at least one localized phosphorylation site, but also have other phosphorylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
-                unlocalized_to_drop = df.index[~df['Best_numActualVMSites_sty'].eq(df['Best_numLocalizedVMsites_sty']) & df.duplicated(["Gene", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split "id" column is number of phosphorylations detected, and column 4 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
+                unlocalized_to_drop = df.index[~df['Best_numActualVMSites_sty'].eq(df['Best_numLocalizedVMsites_sty']) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split "id" column is number of phosphorylations detected, and column 4 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
                 df = df.drop(index=unlocalized_to_drop)
 
                 # Give it a multiindex
-                df = df.set_index(["Gene", "Site", "Peptide", "Database_ID"])                
+                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])                
 
                 cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsVMsiteObserved', 'bestScore', 'bestDeltaForwardReverseScore',
                 'Best_scoreVML', 'Best_numActualVMSites_sty', 'Best_numLocalizedVMsites_sty', 'sequenceVML',
@@ -113,7 +114,6 @@ class Luad(DataSet):
                 df = df.transpose()
                 df = df.sort_index()
                 df.index.name="Patient_ID"
-                df.columns.name = None
                 self._data["phosphoproteomics"] = df
 
 
@@ -123,8 +123,8 @@ class Luad(DataSet):
                 gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
 
-                df = df.rename(columns={"GeneSymbol": "Gene", 'accession_numbers': "Database_ID"})
-                df = df.set_index(["Gene", "Database_ID"])
+                df = df.rename(columns={"GeneSymbol": "Name", 'accession_numbers': "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"])
                 cols_to_drop = ['id', 'id.1', 'id.description', 'geneSymbol', 'numColumnsProteinObserved',
                 'numSpectraProteinObserved', 'protein_mw', 'percentCoverage', 'numPepsUnique',
                 'scoreUnique', 'species', 'orfCategory', 'accession_number', 
@@ -151,7 +151,6 @@ class Luad(DataSet):
                  df = df.transpose()
                  df = df.sort_index()
                  df.index.name = "Patient_ID"
-                 df.columns.name = None
                  df = df.sort_index()
                  self._data["transcriptomics"] = df
 
@@ -186,37 +185,32 @@ class Luad(DataSet):
             elif file_name == "luad-v2.0-rnaseq-circ-rna.csv.gz":
                 df = pd.read_csv(file_path, sep=",")
 
-                chrm = df['junction.3'].str.extract(r'(^[^:]+)', expand=False) #Get the chromosome
-                five_prime = df['junction.5'].str.extract(r'(?<=\:)(.*?)(?=\:)', expand=False) #Get the nucleotide coordinates of the first base of the donor
-                three_prime = df['junction.3'].str.extract(r'(?<=\:)(.*?)(?=\:)', expand=False) #get the nucleotide coordinate of the last base of the acceptor
-                #Now we need the gene name
-                diff = df['gene.5'] != df['gene.3'] #create a boolean filter where genes are different
-                temp = df['gene.5'].where(diff, other="") #replace the ones that are the same with an empty string
-                gene_name = temp.str.cat(df['gene.3']) #concatentate the temp column(which only has the genes from gene.5 that are different) to gene.3
+                junct_3_split = df['junction.3'].str.split(':', n=2, expand=True)
+                chrm = junct_3_split[0] # Get the chromosome
+                three_prime = junct_3_split[1] # Get the nucleotide coordinate of the last base of the acceptor
 
-                #put all those pieces of information together
-                df['geneID'] = chrm.str.cat(five_prime, sep="_")
-                df['geneID'] = df['geneID'].str.cat(three_prime, sep="_")
-                df['geneID'] = df['geneID'].str.cat(gene_name, sep="_")
+                junct_5_split = df['junction.5'].str.split(':', n=2, expand=True)
+                five_prime = junct_5_split[1] # Get the nucleotide coordinates of the first base of the donor
 
-                #Get rid of all unnecessary columns
-                keep = ['geneID', 'spanning.reads', 'Sample.ID']
-                df = df.drop(df.columns.difference(keep), 1)
+                # Now we need the gene name
+                diff = df['gene.5'] != df['gene.3'] # Create a boolean filter where genes are different
+                temp = df['gene.5'].where(diff, other="") # Replace the ones that are the same with an empty string
+                gene_name = temp + df["gene.3"] # Concatentate the temp column(which only has the genes from gene.5 that are different) to gene.3
+
+                # Put all those pieces of information together
+                df = df.assign(geneID=chrm + '_' + five_prime + '_' + three_prime + '_' + gene_name)
+
+                # Slice out the columns we want
+                df = df[['geneID', 'spanning.reads', 'Sample.ID']]
 
                 #There are about 3,000 duplicates in the file. Duplicate meaning that they have identical Sample IDs and identical geneID, but different spanning reads.
                 # Marcin Cieslik said to drop the one with the lowest spanning read.
-                df = df.sort_values('spanning.reads', ascending=False).drop_duplicates(['Sample.ID','geneID']).sort_index()
+                df = df.sort_values(by='spanning.reads', ascending=False).drop_duplicates(['Sample.ID','geneID']).sort_index()
 
                 df = df.pivot(index="Sample.ID", columns="geneID")['spanning.reads']
-
                 df.index.name = "Patient_ID"
-                df.columns.name=None
                 df = df.sort_index()
-
                 self._data['circular_RNA'] = df
-
-
-
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
@@ -259,10 +253,10 @@ class Luad(DataSet):
         for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
             del self._data[name]
 
-        # Drop name of column axis for all dataframes
+        # Set name of column axis to "Name" for all dataframes
         for name in self._data.keys():
             df = self._data[name]
-            df.columns.name = None
+            df.columns.name = "Name"
             self._data[name] = df
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
