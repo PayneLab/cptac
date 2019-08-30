@@ -32,10 +32,6 @@ class Hnscc(DataSet):
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
         super().__init__("hnscc")
 
-        # FILL: The following overloading may or not be needed for your dataset.
-        # Overload the gene separator for column names in the phosphoproteomics dataframe. In the hnscc data, it's an underscore, not a dash like most datasets.
-        #self._gene_separator = "_"
-
         # FILL: If needed, overload the self._valid_omics_dfs and self._valid_metadata_dfs variables that were initialized in the parent DataSet init.
 
         # Update the index, if possible. If there's no internet, that's fine.

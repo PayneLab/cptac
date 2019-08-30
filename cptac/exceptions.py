@@ -50,6 +50,10 @@ class ReindexMapError(DataError):
     """Problem reindexing a dataframe."""
     pass
 
+class DropFromSingleIndexError(DataError):
+    """They tried to drop a level from a single-level index."""
+    pass
+
 class NoDefinitionsError(DataError):
     """They tried to access definitions for a dataset that doesn't provide any."""
     pass
@@ -73,6 +77,10 @@ class InsertedNanWarning(CptacWarning):
 
 class DuplicateColumnHeaderWarning(CptacWarning):
     """Due to a requested column multiindex flattening, the column index now has duplicate labels."""
+    pass
+
+class FlattenSingleIndexWarning(CptacWarning):
+    """They tried to flatten a single-level index. We didn't do anything."""
     pass
 
 class FilledMutationDataWarning(CptacWarning):

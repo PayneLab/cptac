@@ -30,10 +30,6 @@ class Luad(DataSet):
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
         super().__init__("luad")
 
-        # FILL: The following overloading may or not be needed for your dataset.
-        # Overload the gene separator for column names in the phosphoproteomics dataframe. In the luad data, it's an underscore, not a dash like most datasets.
-        #self._gene_separator = "_"
-
         # FILL: If needed, overload the self._valid_omics_dfs and self._valid_metadata_dfs variables that were initialized in the parent DataSet init.
 
         # Update the index, if possible. If there's no internet, that's fine.
@@ -195,7 +191,7 @@ class Luad(DataSet):
                 # Now we need the gene name
                 diff = df['gene.5'] != df['gene.3'] # Create a boolean filter where genes are different
                 temp = df['gene.5'].where(diff, other="") # Replace the ones that are the same with an empty string
-                gene_name = temp + df["gene.3"] # Concatentate the temp column(which only has the genes from gene.5 that are different) to gene.3
+                gene_name = temp + '_' + df["gene.3"] # Concatentate the temp column(which only has the genes from gene.5 that are different) to gene.3
 
                 # Put all those pieces of information together
                 df = df.assign(geneID=chrm + '_' + five_prime + '_' + three_prime + '_' + gene_name)

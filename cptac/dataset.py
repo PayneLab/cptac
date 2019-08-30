@@ -196,7 +196,7 @@ class DataSet:
 
         Parameters:
         df (pandas DataFrame): The dataframe to make the changes to.
-        levels_to_drop (str, int, or list or array-like of str or int, optional): Levels, or indices of levels, to drop from the dataframe's column multiindex. These must match the names or indices of actual levels of the multiindex. Default of None will drop no levels.
+        levels_to_drop (str, int, or list or array-like of str or int, optional): Levels, or indices of levels, to drop from the dataframe's column multiindex. These must match the names or indices of actual levels of the multiindex. Must be either all strings, or all ints. Default of None will drop no levels.
         flatten (bool, optional): Whether or not to flatten the multiindex. Default of False will not flatten.
         sep (str, optional): String to use to separate index levels when flattening. Default is underscore.
 
@@ -207,10 +207,31 @@ class DataSet:
         df = df.copy()
 
         if levels_to_drop is not None:
+            if df.columns.nlevels < 2:
+                raise DropFromSingleIndexError("You attempted to drop level(s) from an index with only one level.")
+
             if isinstance(levels_to_drop, (str, int)):
                 levels_to_drop = [levels_to_drop]
             elif not isinstance(levels_to_drop, (list, pd.core.series.Series, pd.core.indexes.base.Index)):
                 raise InvalidParameterError(f"Parameter 'levels_to_drop' is of invalid type {type(levels_to_drop)}. Valid types: str, int, list or array-like of str or int, or NoneType.")
+
+            # Check that they're not trying to drop too many columns
+            existing_len = len(df.columns.names)
+            to_drop_len = len(levels_to_drop)
+            if to_drop_len >= existing_len:
+                raise InvalidParameterError(f"You tried to drop too many levels from the dataframe column index. The most levels you can drop is one less than however many exist. {existing_len} levels exist; you tried to drop {to_drop_len}.")
+
+            # Check that the levels they want to drop all exist
+            to_drop_set = set(levels_to_drop)
+            if all(isinstance(level, int) for level in to_drop_set):
+                existing_set_indices = set(range(len(df.columns.names)))
+                if not to_drop_set <= existing_set_indices:
+                    raise InvalidParameterError(f"Some level indices in {levels_to_drop} do not exist in dataframe column index, so they cannot be dropped. Existing column level indices: {list(range(len(df.columns.names)))}")
+            else:
+                existing_set = set(df.columns.names)
+                if not to_drop_set <= existing_set:
+                    raise InvalidParameterError(f"Some levels in {levels_to_drop} do not exist in dataframe column index, so they cannot be dropped. Existing column levels: {df.columns.names}")
+
             df.columns = df.columns.droplevel(levels_to_drop)
 
             num_dups = df.columns.duplicated(keep=False).sum()
@@ -218,10 +239,15 @@ class DataSet:
                 warnings.warn(f"Due to dropping the specified levels, dataframe now has {num_dups} duplicated column headers.", DuplicateColumnHeaderWarning, stacklevel=2)
 
         if flatten:
+            if df.columns.nlevels < 2:
+                warnings.warn("You tried to flatten an index that didn't have multiple levels, so we didn't actually change anything.", FlattenSingleIndexWarning, stacklevel=2)
+                return df
+
             tuples = df.columns.to_flat_index() # Converts multiindex to an index of tuples
             no_nan = tuples.map(lambda x: [item for item in x if pd.notnull(item)]) # Cut any NaNs out of tuples
             joined = no_nan.map(lambda x: sep.join(x)) # Join each tuple
             df.columns = joined
+            df.columns.name = "Name" # For consistency
 
         return df
 
