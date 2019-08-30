@@ -19,10 +19,6 @@ from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import *
 from .exceptions import NoInternetError, FailedReindexWarning
 
-# Dummy values to fill:
-# Fill """NewDataSet""" or hnscc with CamelCased name of dataset. 2-letter acronyms are kept all caps; for longer acronym, only the first letter is captialized, e.g. RenalCcrcc for the renal CCRCC dataset
-# Fill """newdataset""" or hnscc with all lowercase name of dataset, with no spaces or underscores, e.g. renalccrcc for the renal CCRCC dataset
-# Comments beginning with "# FILL:" contain specific filling instructions.
 
 class Hnscc(DataSet):
 
@@ -31,8 +27,6 @@ class Hnscc(DataSet):
 
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
         super().__init__("hnscc")
-
-        # FILL: If needed, overload the self._valid_omics_dfs and self._valid_metadata_dfs variables that were initialized in the parent DataSet init.
 
         # Update the index, if possible. If there's no internet, that's fine.
         try:
@@ -106,7 +100,7 @@ class Hnscc(DataSet):
                 df = df.sort_index()
                 df = df.sort_index(axis='columns')
                 df.columns.name=None
-                self._data["somatic_mutations"] = df
+                self._data["somatic_mutation"] = df
 
             elif file_name == "clinic.tsi.gz":
                 df = pd.read_csv(file_path, sep="\t")
