@@ -28,7 +28,7 @@ from .gbm import Gbm
 from .hnscc import Hnscc
 from .luad import Luad
 from .ovarian import Ovarian
-from .renalccrcc import RenalCcrcc
+from .ccrcc import Ccrcc
 
 def list_datasets():
     """List all available datasets."""
@@ -42,7 +42,7 @@ def list_datasets():
         "Hnscc": ["head and neck", "password access only", "unpublished"],
         "Luad": ["lung adenocarcinoma", "password access only", "unpublished"],
         "Ovarian": ["high grade serous ovarian cancer", "no restrictions", "unpublished"],
-        "RenalCcrcc": ["clear cell renal cell carcinoma (kidney)", "no restrictions", "unpublished"],
+        "Ccrcc": ["clear cell renal cell carcinoma (kidney)", "no restrictions", "unpublished"],
         }
     dataset_df = pd.DataFrame(data=datasets, index=col_index)
     dataset_df = dataset_df.transpose()

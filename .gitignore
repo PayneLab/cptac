@@ -14,7 +14,7 @@ cptac/data_gbm/*
 cptac/data_hnscc/*
 cptac/data_luad/*
 cptac/data_ovarian/*
-cptac/data_renalccrcc/*
+cptac/data_ccrcc/*
 
 # Include index url files
 !cptac/data_brca/index_urls.tsv
@@ -24,4 +24,4 @@ cptac/data_renalccrcc/*
 !cptac/data_hnscc/index_urls.tsv
 !cptac/data_luad/index_urls.tsv
 !cptac/data_ovarian/index_urls.tsv
-!cptac/data_renalccrcc/index_urls.tsv
+!cptac/data_ccrcc/index_urls.tsv

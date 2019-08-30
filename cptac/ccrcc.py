@@ -19,13 +19,13 @@ from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import *
 from .exceptions import FailedReindexWarning, NoInternetError, ReindexMapError
 
-class RenalCcrcc(DataSet):
+class Ccrcc(DataSet):
 
     def __init__(self, version="latest"):
-        """Load all of the renalccrcc dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
+        """Load all of the ccrcc dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
 
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
-        super().__init__("renalccrcc")
+        super().__init__("ccrcc")
 
         # Update the index, if possible. If there's no internet, that's fine.
         try:

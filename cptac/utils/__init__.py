@@ -345,7 +345,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     # Get mutations data frame
     somatic_mutations = cancer_object.get_somatic_mutation() 
 
-    # Drop silent mutations for Ovarian and RenalCcrcc dataset 
+    # Drop silent mutations for Ovarian and Ccrcc dataset 
     if 'Silent' in somatic_mutations['Mutation'].unique():
         origin_df = somatic_mutations.loc[somatic_mutations['Mutation'] != 'Silent'].reset_index()
     else:

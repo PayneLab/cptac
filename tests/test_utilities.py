@@ -250,7 +250,7 @@ def test_get_frequently_mutated_ov_05_cutoff():
     print_test_result(PASS)
     
 def test_get_frequently_mutated_renal_default_cutoff():
-    rc = cptac.RenalCcrcc()
+    rc = cptac.Ccrcc()
     print('Running get_frequently_mutated...')
     df = cptac.algorithms.get_frequently_mutated(rc)
    
@@ -290,7 +290,7 @@ def test_get_frequently_mutated_renal_default_cutoff():
     
     
 def test_get_frequently_mutated_renal_01_cutoff():
-    rc = cptac.RenalCcrcc()
+    rc = cptac.Ccrcc()
     print('Running get_frequently_mutated...')
     df = cptac.algorithms.get_frequently_mutated(rc, cutoff=0.01)
     

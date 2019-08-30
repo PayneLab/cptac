@@ -54,7 +54,7 @@ class DataSet:
         self._valid_metadata_dfs = [
             'clinical',
             'derived_molecular',
-            'experimental_design'] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in RenalCcrcc, because they both have multiple rows for each sample.
+            'experimental_design'] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in Ccrcc, because they both have multiple rows for each sample.
 
     # Methods to get metadata dataframes
     def get_clinical(self):
