@@ -33,9 +33,6 @@ setup(name='cptac',
 		'scipy>=1.2.1',
 		'urllib3>=1.24.2',
 	],
-#    data_files=[
-#         ('bioplex_interactions',['cptac/algorithms/BioPlex_interactionList_v4a.tsv'])
-#    ],
 	classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
