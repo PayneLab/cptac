@@ -493,7 +493,8 @@ def parse_hotspot(path, mut_df):
         info = list(row[1])
         gene = info[0]
         location = info[2]
-        location = 'p.'+str(location)
+        if str(location)[0] != 'p':
+            location = 'p.'+str(location)
         sample_id = row[0]
         
         #This statement checks to see if the mutation is one of the hotspot mutations
