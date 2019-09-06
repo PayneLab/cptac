@@ -343,9 +343,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     omics_and_mutations = cancer_object.join_omics_to_mutations(
         mutations_genes = 'TP53', omics_df_name = 'proteomics', omics_genes = 'TP53')
     tumors = omics_and_mutations.Sample_Status
-    v = tumors.value_counts()
-    total_tumors = v['Tumor']
-    total_tumor_count = int(total_tumors)
+    total_tumor_samples = len(tumors.loc[tumors[NAN] == 'Tumor'])
     
     # Get mutations data frame
     somatic_mutations = cancer_object.get_somatic_mutation() 
@@ -382,7 +380,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     count_mutations = origin_df.groupby(['Gene']).nunique()
     count_mutations = count_mutations.rename(columns={"Patient_ID": "Unique_Samples_Mut"}) # Step 2 
     count_mutations = count_mutations.drop(['Gene', 'Mutation', 'Location'], axis = 1)
-    fraction_mutated = count_mutations.apply(lambda x: x / total_tumor_count) # Step 3 
+    fraction_mutated = count_mutations.apply(lambda x: x / total_tumor_samples) # Step 3 
     fraction_greater_than_cutoff = fraction_mutated.where(lambda x: x > cutoff) #na used when not > cutoff
     filtered_gene_df = fraction_greater_than_cutoff.dropna() # drop genes below cutoff
     
@@ -391,7 +389,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     count_miss = miss.groupby(['Gene']).nunique()
     missense_df = count_miss.rename(columns={"Patient_ID": "Missense_Mut"})
     missense_df = missense_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
-    fraction_missense = missense_df.apply(lambda x: x / total_tumor_count)
+    fraction_missense = missense_df.apply(lambda x: x / total_tumor_samples)
     freq_mutated_df = filtered_gene_df.join(fraction_missense, how='left').fillna(0)
     
     # Create and join Truncation column (following similar steps as seen above)
@@ -399,7 +397,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     count_trunc = trunc.groupby(['Gene']).nunique()
     truncation_df = count_trunc.rename(columns={"Patient_ID": "Truncation_Mut"})
     truncation_df = truncation_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
-    fraction_truncation = truncation_df.apply(lambda x: x / total_tumor_count)
+    fraction_truncation = truncation_df.apply(lambda x: x / total_tumor_samples)
     freq_mutated_df = freq_mutated_df.join(fraction_truncation, how='left').fillna(0)
     freq_mutated_df = freq_mutated_df.reset_index() #move genes to their own column
     
