@@ -310,10 +310,10 @@ def get_interacting_proteins_bioplex(protein, secondary_interactions=False):
     else:
         return None
     
-def get_frequently_mutated(cancer_object, cutoff = 0.1):  
-    """
+""" get_frequently_mutated
     Takes a cancer object and find the frequently 
     mutated genes (in the tumor samples) compared to the cutoff.
+    
     Parameters:
     cancer_object (object): cancer type from cptac module 
     cutoff (float): used as a comparison to determine the 
@@ -334,18 +334,21 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     These columns count multiple mutations of one gene in the 
     same sample, so fractions in the last two columns may 
     exceed the Unique_Samples_Mut column which only counts if 
-    the gene was mutated once per sample."""    
+    the gene was mutated once per sample.""" 
     
+def get_frequently_mutated(cancer_object, cutoff = 0.1):  
+       
     # Get total tumors/patients
     omics_and_mutations = cancer_object.join_omics_to_mutations(
         mutations_genes = 'TP53', omics_df_name = 'proteomics', omics_genes = 'TP53')
-    tumors = omics_and_mutations.loc[omics_and_mutations['Sample_Status'] == 'Tumor'] 
-    total_tumor_samples = len(tumors)
+    flatten_omics_and_mut = cancer_object.reduce_multiindex(omics_and_mutations, levels_to_drop=1, flatten=True) #single col 
+    tumors = flatten_omics_and_mut.loc[flatten_omics_and_mut['Sample_Status'] == 'Tumor']
+    total_tumor_count = len(tumors)
     
     # Get mutations data frame
     somatic_mutations = cancer_object.get_somatic_mutation() 
 
-    # Drop silent mutations for Ovarian and Ccrcc dataset 
+    # Drop silent mutations for Ovarian and RenalCcrcc dataset 
     if 'Silent' in somatic_mutations['Mutation'].unique():
         origin_df = somatic_mutations.loc[somatic_mutations['Mutation'] != 'Silent'].reset_index()
     else:
@@ -363,38 +366,57 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
             'Missense_Mutation': 'M', 'Frame_Shift_Del': 'T','Nonsense_Mutation': 'T', 
             'Splice_Site': 'T', 'Frame_Shift_Ins': 'T','Nonstop_Mutation':'T'}
     mutations_replaced_M_T = origin_df.replace(missense_truncation_groups)
-    # Check that all mutation names are catagorized
-    if len(mutations_replaced_M_T['Mutation'].unique()) != 2:
-        print('Warning: New mutation name not classified. Counts will be affected.')
+    
+    # replace non_coding mutations for Gbm
+    unique_mutations = len(mutations_replaced_M_T['Mutation'].unique())
+    if unique_mutations != 2:
+        non_coding = {'Intron': 'NC', 'RNA': 'NC', "5'Flank": 'NC', "3'Flank": 'NC', 
+            "5'UTR": 'NC', "3'UTR": 'NC', 'Splice_Region' : 'NC'}
+        mutations_replaced_M_T = mutations_replaced_M_T.replace(non_coding)
+        gbm = True
+        unique_mutations_2 = len(mutations_replaced_M_T['Mutation'].unique())
+        if unique_mutations_2 != 3: # Check that all mutation names are catagorized
+            print('Warning: New mutation name not classified. Counts will be affected.')
     
     # Find frequently mutated genes (total fraction > cutoff)
+    # Same steps will be repeated for finding the missense and truncation mutation frequencies
     # Step 1 - group by gene and count unique samples
-    count_mutations = origin_df.groupby(['Gene']).nunique()
     # Step 2 - format
-    count_mutations = count_mutations.rename(columns={"Sample_ID": "Unique_Samples_Mut"})
-    count_mutations = count_mutations.drop(['Gene', 'Mutation','Location'], axis = 1)
-    # Step 3 - filter using the cutoff and create fraction
-    fraction_mutated = count_mutations.apply(lambda x: x / total_tumor_samples)
-    fraction_greater_than_cutoff = fraction_mutated.where(lambda x: x > cutoff) #na used when false
-    filtered_gene_df = fraction_greater_than_cutoff.dropna()
+    # Step 3 - filter using the cutoff and create fraction 
+    count_mutations = origin_df.groupby(['Gene']).nunique()
+    count_mutations = count_mutations.rename(columns={"Patient_ID": "Unique_Samples_Mut"}) # Step 2 
+    count_mutations = count_mutations.drop(['Gene', 'Mutation', 'Location'], axis = 1)
+    fraction_mutated = count_mutations.apply(lambda x: x / total_tumor_count) # Step 3 
+    fraction_greater_than_cutoff = fraction_mutated.where(lambda x: x > cutoff) #na used when not > cutoff
+    filtered_gene_df = fraction_greater_than_cutoff.dropna() # drop genes below cutoff
     
     # Create and join Missense column (following similar steps as seen above)
     miss = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'M']
     count_miss = miss.groupby(['Gene']).nunique()
-    missense_df = count_miss.rename(columns={"Sample_ID": "Missense_Mut"})
+    missense_df = count_miss.rename(columns={"Patient_ID": "Missense"})
     missense_df = missense_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
-    fraction_missense = missense_df.apply(lambda x: x / total_tumor_samples)
+    fraction_missense = missense_df.apply(lambda x: x / total_tumor_count)
     freq_mutated_df = filtered_gene_df.join(fraction_missense, how='left').fillna(0)
     
     # Create and join Truncation column (following similar steps as seen above)
     trunc = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'T']
     count_trunc = trunc.groupby(['Gene']).nunique()
-    truncation_df = count_trunc.rename(columns={"Sample_ID": "Truncation_Mut"})
+    truncation_df = count_trunc.rename(columns={"Patient_ID": "Truncation"})
     truncation_df = truncation_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
-    fraction_truncation = truncation_df.apply(lambda x: x / total_tumor_samples)
+    fraction_truncation = truncation_df.apply(lambda x: x / total_tumor_count)
     freq_mutated_df = freq_mutated_df.join(fraction_truncation, how='left').fillna(0)
     freq_mutated_df = freq_mutated_df.reset_index() #move genes to their own column
-
+    
+    if gbm == True:
+        # Create and join non-coding column (following similar steps as seen above)
+        nc = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'NC']
+        count_nc = nc.groupby(['Gene']).nunique()
+        nc_df = count_nc.rename(columns={"Patient_ID": "Non-Coding"})
+        nc_df = nc_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
+        fraction_nc = nc_df.apply(lambda x: x / total_tumor_count)
+        freq_mutated_df = freq_mutated_df.join(fraction_nc, how='left').fillna(0)
+        
+    
     return freq_mutated_df
 
 def parse_hotspot(path, mut_df):
