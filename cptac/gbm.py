@@ -77,6 +77,14 @@ class Gbm(DataSet):
             df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
             if file_name == "acetylome_pnnl_d6.v2.0.20190905.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t')
+                split_genes = df["site"].str.rsplit("-", n=1,expand=True)  # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
+                df = df.drop(columns="site")
+                df = df.assign(Site=split_genes[1])
+                df["Site"] = df["Site"].str.replace(r"[k]", r"")  # Get rid of all lowercase s, t, and y delimeters in the sites
+                df = df.rename(columns={"gene": "Name", "peptide": "Peptide"})
+                df = df.set_index(["Name", "Site", "Peptide"])  # Turn these columns into a multiindex
+                df = df.sort_index()
+                df = df.transpose()
                 self._data["acetylproteomics"] = df
                 #rename columns
                 #gene -> Name, refseq_id -> Database_ID, site -> Site, peptide -> Peptide
@@ -84,6 +92,8 @@ class Gbm(DataSet):
                 #drop the lowercase letters from the site column
                 #set the index as "name, site, peptide, databaseID"
                 #transpose rows = columns
+                #drop any rows where the site is 0
+
             if file_name == "clinical_data_core.v1.0.20190802.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 self._data["clinical"] = df
