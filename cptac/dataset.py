@@ -34,9 +34,6 @@ class DataSet:
         # Initialize the _version instance variable
         self._version = None
 
-        # Assign the gene separator for searching columns of phosphoproteomics and acetylproteomics dataframes. Child class can override if needed.
-        self._gene_separator = "-"
-
         # Assign the valid dfs lists, but make them instance variables so they're easy to override if needed
         # These are the omics dataframes that are valid for use in the utilities functions
         self._valid_omics_dfs = [

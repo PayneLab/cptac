@@ -182,6 +182,16 @@ class Ccrcc(DataSet):
                 df = pd.read_csv(file_path, sep='\t')
                 df = df.sort_index()
                 df = df.transpose()
+
+                # There are a couple duplicate column headers, but they're full of just zeros. We'll drop them.
+                # You can do this with a one liner: df =  df.loc[:, ~df.columns.duplicated(keep=False) | (df != 0).any(axis=0)]
+                # But the one liner is about 100 times slower.
+                dups = df.loc[:, df.columns.duplicated(keep=False)] # Select all the columns with duplicated headers
+                dups = dups.loc[:, (dups != 0).any(axis=0)] # Get only the columns that aren't all zeros
+                df = df.loc[:, ~df.columns.duplicated(keep=False)] # Get rid of the duplicate columns from the original dataframe
+                df = df.join(dups, how="outer") # Sub in our un-duplicated selections
+                df = df.sort_index(axis="columns") # Get all the column names in order again
+
                 self._data["transcriptomics"] = df
             
             elif file_name == "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx":
