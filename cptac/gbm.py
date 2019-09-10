@@ -37,16 +37,31 @@ class Gbm(DataSet):
         self._version = validate_version(version, self._cancer_type, use_context="init")
 
         # Get the paths to all the data files
-        data_files = [
-            "clinical_data_core.v1.0.20190802.tsv.gz",
-            "mirnaseq_mirna_mature_tpm.v1.0.20190802.tsv.gz",
-            "phosphoproteome_pnnl_d6.v1.0.20190802.tsv.gz",
-            "proteome_pnnl_per_gene_d4.v1.0.20190802.tsv.gz",
-            "proteome_tmt_design.v1.0.20190802.tsv.gz",
-            "rnaseq_gdc_fpkm_uq.v1.0.20190802.tsv.gz",
-            "tindaisy_all_cases_filtered.v1.0.20190802.maf.gz",
-            "wgs_somatic_cnv_per_gene.v1.0.20190802.tsv.gz",
-        ]
+        if self._version == '1.0' :
+            data_files = [
+                "clinical_data_core.v1.0.20190802.tsv.gz",
+                "mirnaseq_mirna_mature_tpm.v1.0.20190802.tsv.gz",
+                "phosphoproteome_pnnl_d6.v1.0.20190802.tsv.gz",
+                "proteome_pnnl_per_gene_d4.v1.0.20190802.tsv.gz",
+                "proteome_tmt_design.v1.0.20190802.tsv.gz",
+                "rnaseq_gdc_fpkm_uq.v1.0.20190802.tsv.gz",
+                "tindaisy_all_cases_filtered.v1.0.20190802.maf.gz",
+                "wgs_somatic_cnv_per_gene.v1.0.20190802.tsv.gz",
+            ]
+        elif self._version == '2.0':
+            data_files = [
+                "acetylome_pnnl_d6.v2.0.20190905.tsv.gz",
+                "clinical_data_core.v2.0.20190905.tsv.gz",
+                "metabolome_pnnl.v2.0.20190905.tsv.gz",
+                "mirnaseq_mirna_mature_tpm.v2.0.20190905.tsv.gz",
+                "phosphoproteome_pnnl_d6.v2.0.20190905.tsv.gz",
+                "proteome_pnnl_per_gene_d4.v2.0.20190905.tsv.gz",
+                "proteome_tmt_design.v2.0.20190905.tsv.gz",
+                "rnaseq_gene_fusion.v2.0.20190905.tsv.gz",
+                "rnaseq_washu_fpkm_uq.v2.0.20190905.tsv.gz",
+                "tindaisy_all_cases_filtered.v2.0.20190905.maf.gz",
+                "wgs_somatic_cnv_per_gene.v2.0.20190905.tsv.gz",
+            ]
         data_files_paths = get_version_files_paths(self._cancer_type, self._version, data_files)
 
         # Load the data into dataframes in the self._data dict
@@ -60,6 +75,24 @@ class Gbm(DataSet):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
             df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
+            if file_name == "acetylome_pnnl_d6.v2.0.20190905.tsv.gz":
+                df = pd.read_csv(file_path, sep='\t')
+                split_genes = df["site"].str.rsplit("-", n=1,expand=True)  # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
+                df = df.drop(columns="site")
+                df = df.assign(Site=split_genes[1])
+                df["Site"] = df["Site"].str.replace(r"[k]", r"")  # Get rid of all lowercase s, t, and y delimeters in the sites
+                df = df.rename(columns={"gene": "Name", "peptide": "Peptide"})
+                df = df.set_index(["Name", "Site", "Peptide"])  # Turn these columns into a multiindex
+                df = df.sort_index()
+                df = df.transpose()
+                self._data["acetylproteomics"] = df
+                #rename columns
+                #gene -> Name, refseq_id -> Database_ID, site -> Site, peptide -> Peptide
+                #drop everything before the dash in the site column
+                #drop the lowercase letters from the site column
+                #set the index as "name, site, peptide, databaseID"
+                #transpose rows = columns
+                #drop any rows where the site is 0
 
             if file_name == "clinical_data_core.v1.0.20190802.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
