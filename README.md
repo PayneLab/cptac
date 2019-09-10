@@ -1,7 +1,7 @@
 # cptac
 This project is intended to facilitate accessing and interacting with cancer data from the National Cancer Institute CPTAC consortium, which characterizes and studies the proteogenomic landscape of tumors. Currently, the datasets available are: endometrial cancer, ovarian cancer and colon cancer. These cancer studies are downloadable via our Python package as native dataframe objects and can therefore be integrated very quickly and easily with other Python-based data analysis tools. Follow our walkthrough tutorials for a demonstration of ways to use our system.
 
-Setup instructions can be found <a href="https://github.com/PayneLab/cptac/blob/master/docs/setup.md">here<\a>.
+Setup instructions can be found <a href="https://github.com/PayneLab/cptac/blob/master/docs/setup.md">here</a>.
 
 ## Tutorials
 Tutorials for this package describe how to use the package functions for research with the provided data. All the tutorials are written in Python using the interactive Jupyter notebooks. If you are unfamiliar with Jupyter, follow the instructions given at jupyter.org/install. You will then be able to run our tutorials as interactive, exploratory data analyses.
