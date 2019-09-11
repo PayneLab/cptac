@@ -310,7 +310,8 @@ def get_interacting_proteins_bioplex(protein, secondary_interactions=False):
     else:
         return None
     
-""" get_frequently_mutated
+def get_frequently_mutated(cancer_object, cutoff = 0.1):  
+    """
     Takes a cancer object and find the frequently 
     mutated genes (in the tumor samples) compared to the cutoff.
     
@@ -335,35 +336,7 @@ def get_interacting_proteins_bioplex(protein, secondary_interactions=False):
     same sample, so fractions in the last two columns may 
     exceed the Unique_Samples_Mut column which only counts if 
     the gene was mutated once per sample.""" 
-    
-  """
-    Takes a cancer object and find the frequently 
-    mutated genes (in the tumor samples) compared to the cutoff.
-    Parameters:
-    cancer_object (object): cancer type from cptac module 
-    cutoff (float): used as a comparison to determine the 
-                    status of gene mutation frequency
-    Returns:
-    freq_mutated_df (pd.DataFrame): DataFrame of frequently 
-        mutated genes passing the cutoff. Columns contain the 
-        fractions of total unique mutations,missense type 
-        mutations, and truncation type mutations per gene.
-    
-    The Missense_Mut column includes: 
-        In_Frame_Del, In_Frame_Ins, Missense_Mutation
    
-    The Truncation_Mut column includes: 
-        Frame_Shift_Del, Frame_Shift_Ins, Splice_Site, 
-        Nonsense_Mutation, Nonstop_Mutation
-        
-    These columns count multiple mutations of one gene in the 
-    same sample, so fractions in the last two columns may 
-    exceed the Unique_Samples_Mut column which only counts if 
-    the gene was mutated once per sample."""   
-
-def get_frequently_mutated(cancer_object, cutoff = 0.1):  
-   
-    
     # Get total tumors/patients
     omics_and_mutations = cancer_object.join_omics_to_mutations(
         mutations_genes = 'TP53', omics_df_name = 'proteomics', omics_genes = 'TP53')
