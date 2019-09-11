@@ -87,6 +87,14 @@ class DataSet:
         """Get the CNV dataframe."""
         return self._get_dataframe("CNV")
 
+    def get_lipidomics(self):
+        """Get the lipidomics dataframe."""
+        return self._get_dataframe("lipidomics")
+
+    def get_metabolomics(self):
+        """Get the metabolomics dataframe."""
+        return self._get_dataframe("metabolomics")
+
     def get_methylation(self):
         """Get the methylation dataframe."""
         return self._get_dataframe("methylation")
@@ -123,6 +131,10 @@ class DataSet:
         return self._get_dataframe("transcriptomics")
 
     # Methods to get mutations dataframes
+    def get_gene_fusion(self):
+        """Get the gene_fusion dataframe."""
+        return self._get_dataframe("gene_fusion")
+
     def get_somatic_mutation(self):
         """Get the somatic_mutation dataframe."""
         return self._get_dataframe("somatic_mutation")
