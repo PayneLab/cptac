@@ -787,6 +787,9 @@ class DataSet:
             truncations = ['Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', 'Splice_Site']
             missenses = ['In_Frame_Del', 'In_Frame_Ins', 'Missense_Mutation']
 
+        if self._cancer_type == "gbm":
+            noncodings = ["Intron", "RNA", "3'Flank", "Splice_Region", "5'UTR", "5'Flank", "3'UTR"]
+
         # Filter the mutations!!
         chosen_indices = []
         for filter_val in mutations_filter: # This will start at the beginning of the filter list, thus filters earlier in the list are prioritized, like we want
@@ -805,6 +808,11 @@ class DataSet:
         if len(chosen_indices) == 0: # None of them were in the filter, nor were truncations, so we'll grab all the missenses
             for mutation in sample_mutations_list:
                 if mutation in missenses:
+                    chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
+
+        if self._cancer_type == "gbm" and len(chosen_indices) == 0: # None of them were in the filter, nor were truncations, nor missenses, so we'll grab all the noncodings
+            for mutation in sample_mutations_list:
+                if mutation in noncodings:
                     chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
 
         if len(chosen_indices) == 0: # There were no truncations or missenses, so they should all be Silent mutations

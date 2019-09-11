@@ -28,11 +28,11 @@ class Gbm(DataSet):
         super().__init__("gbm")
 
         # Update the index, if possible. If there's no internet, that's fine.
-        try:
-            update_index(self._cancer_type)
-        except NoInternetError:
-            pass
-
+#        try:
+#            update_index(self._cancer_type)
+#        except NoInternetError:
+#            pass
+#
         # Validate the version
         self._version = validate_version(version, self._cancer_type, use_context="init")
 
@@ -53,10 +53,14 @@ class Gbm(DataSet):
                 "acetylome_pnnl_d6.v2.0.20190905.tsv.gz",
                 "clinical_data_core.v2.0.20190905.tsv.gz",
                 "metabolome_pnnl.v2.0.20190905.tsv.gz",
+                "metabolome_sample_info.v2.0.20190905.tsv.gz",
                 "mirnaseq_mirna_mature_tpm.v2.0.20190905.tsv.gz",
+                "negative_lipidome_pnnl.v2.0.20190905.tsv.gz",
                 "phosphoproteome_pnnl_d6.v2.0.20190905.tsv.gz",
+                "positive_lipidome_pnnl.v2.0.20190905.tsv.gz",
                 "proteome_pnnl_per_gene_d4.v2.0.20190905.tsv.gz",
                 "proteome_tmt_design.v2.0.20190905.tsv.gz",
+                "rnaseq_bcm_circular_rna_expression_rsem_uq.v2.0.20190905.tsv.gz",
                 "rnaseq_gene_fusion.v2.0.20190905.tsv.gz",
                 "rnaseq_washu_fpkm_uq.v2.0.20190905.tsv.gz",
                 "tindaisy_all_cases_filtered.v2.0.20190905.maf.gz",
@@ -74,31 +78,42 @@ class Gbm(DataSet):
 
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
-            df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
-            if file_name == "acetylome_pnnl_d6.v2.0.20190905.tsv.gz":
+            df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name, so we don't include the version
+
+            if df_name == "acetylome_pnnl_d6":
                 df = pd.read_csv(file_path, sep='\t')
                 split_genes = df["site"].str.rsplit("-", n=1,expand=True)  # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
                 df = df.drop(columns="site")
                 df = df.assign(Site=split_genes[1])
-                df["Site"] = df["Site"].str.replace(r"[k]", r"")  # Get rid of all lowercase s, t, and y delimeters in the sites
-                df = df.rename(columns={"gene": "Name", "peptide": "Peptide"})
-                df = df.set_index(["Name", "Site", "Peptide"])  # Turn these columns into a multiindex
+                df["Site"] = df["Site"].str.replace(r"k", r"")  # Get rid of all lowercase k delimeters in the sites
+
+                # Create the multiindex
+                df = df.rename(columns={
+                        "gene": "Name",
+                        "peptide": "Peptide",
+                        "refseq_id": "Database_ID",
+                    })
+                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])  # Turn these columns into a multiindex
                 df = df.sort_index()
+
                 df = df.transpose()
                 self._data["acetylproteomics"] = df
-                #rename columns
-                #gene -> Name, refseq_id -> Database_ID, site -> Site, peptide -> Peptide
-                #drop everything before the dash in the site column
-                #drop the lowercase letters from the site column
-                #set the index as "name, site, peptide, databaseID"
-                #transpose rows = columns
-                #drop any rows where the site is 0
 
-            if file_name == "clinical_data_core.v1.0.20190802.tsv.gz":
+            elif df_name == "clinical_data_core":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 self._data["clinical"] = df
 
-            if file_name == "mirnaseq_mirna_mature_tpm.v1.0.20190802.tsv.gz":
+            elif df_name == "metabolome_pnnl":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.transpose()
+                self._data["metabolomics"] = df
+
+            elif df_name == "metabolome_sample_info":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df.index.name = "Patient_ID"
+                self._data["sample_info"] = df
+
+            elif df_name == "mirnaseq_mirna_mature_tpm":
                 df = pd.read_csv(file_path, sep='\t')
                 df = df.rename(columns={"name": "Name", "unique_id": "Database_ID"})
                 df = df.set_index(["Name", "Database_ID"]) # We use a multiindex with database IDs, not just names, to avoid duplicate column headers
@@ -107,7 +122,12 @@ class Gbm(DataSet):
                 df = df.transpose()
                 self._data["miRNA"] = df
 
-            if file_name == "phosphoproteome_pnnl_d6.v1.0.20190802.tsv.gz":
+            elif df_name == "negative_lipidome_pnnl":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.transpose()
+                self._data["lipidomics_negative"] = df
+
+            elif df_name == "phosphoproteome_pnnl_d6":
                 df = pd.read_csv(file_path, sep='\t')
 
                 # Create our multiindex
@@ -122,18 +142,35 @@ class Gbm(DataSet):
                 df = df.transpose()
                 self._data["phosphoproteomics"] = df
 
-            if file_name == "proteome_pnnl_per_gene_d4.v1.0.20190802.tsv.gz":
+            elif df_name == "positive_lipidome_pnnl":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.transpose()
+                self._data["lipidomics_positive"] = df
+
+            elif df_name == "proteome_pnnl_per_gene_d4":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.sort_index()
                 df = df.transpose()
                 self._data["proteomics"] = df
 
-            if file_name == "proteome_tmt_design.v1.0.20190802.tsv.gz":
+            elif df_name == "proteome_tmt_design":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df.index.name = "Patient_ID"
                 self._data["experimental_design"] = df
 
-            if file_name == "rnaseq_gdc_fpkm_uq.v1.0.20190802.tsv.gz":
+            elif df_name == "rnaseq_bcm_circular_rna_expression_rsem_uq":
+                df = pd.read_csv(file_path, sep='\t')
+                df["circRNA_id"] = df["circRNA_id"].str.split('_', n=1, expand=True)[1] # Drop the "circ_" prefix on all the keys
+                df = df.set_index("circRNA_id")
+                df = df.drop(columns=["gene_id", "gene_name", "gene_type", "alias"])
+                df = df.transpose()
+                self._data["circular_RNA"] = df
+
+            elif df_name == "rnaseq_gene_fusion":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                self._data["gene_fusion"] = df
+
+            elif file_name in ("rnaseq_gdc_fpkm_uq.v1.0.20190802.tsv.gz", "rnaseq_washu_fpkm_uq.v2.0.20190905.tsv.gz"):
                 df = pd.read_csv(file_path, sep='\t')
                 df = df.rename(columns={"gene_name": "Name", "gene_id": "Database_ID"})
                 df = df.set_index(["Name", "Database_ID"]) # We use a multiindex with Ensembl IDs, not just gene names, to avoid duplicate column headers
@@ -143,7 +180,7 @@ class Gbm(DataSet):
                 df = df.sort_index()
                 self._data["transcriptomics"] = df
 
-            if file_name == "tindaisy_all_cases_filtered.v1.0.20190802.maf.gz":
+            elif df_name == "tindaisy_all_cases_filtered":
                 df = pd.read_csv(file_path, sep='\t')
                 split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n = 1, expand = True) # The first part of the barcode is the patient id, which we need want to make the index
                 df["Tumor_Sample_Barcode"] = split_barcode[0]
@@ -153,7 +190,7 @@ class Gbm(DataSet):
                 df = df.set_index("Patient_ID")
                 self._data["somatic_mutation"] = df
 
-            if file_name == "wgs_somatic_cnv_per_gene.v1.0.20190802.tsv.gz":
+            elif df_name == "wgs_somatic_cnv_per_gene":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.drop(columns=["gene_id", "gene_id_version", "original_symbol"])
                 df = df.sort_index()
@@ -165,6 +202,12 @@ class Gbm(DataSet):
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
+
+        if self._version == "2.0":
+            import pdb; pdb.set_trace()
+            # Combine positive and negative lipidomics tables
+
+            # Deal with sample_info table
 
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data)
