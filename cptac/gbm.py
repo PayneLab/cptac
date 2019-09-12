@@ -28,11 +28,11 @@ class Gbm(DataSet):
         super().__init__("gbm")
 
         # Update the index, if possible. If there's no internet, that's fine.
-#        try:
-#            update_index(self._cancer_type)
-#        except NoInternetError:
-#            pass
-#
+        try:
+            update_index(self._cancer_type)
+        except NoInternetError:
+            pass
+
         # Validate the version
         self._version = validate_version(version, self._cancer_type, use_context="init")
 

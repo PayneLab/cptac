@@ -40,6 +40,8 @@ class DataSet:
             'acetylproteomics',
             'circular_RNA',
             'CNV',
+            'lipidomics',
+            'metabolomics',
             'miRNA',
             'phosphoproteomics',
             'phosphoproteomics_gene',
