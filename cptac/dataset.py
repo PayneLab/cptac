@@ -165,7 +165,7 @@ class DataSet:
         """Return the cancer type for this dataset, as a string."""
         return self._cancer_type
 
-    def get_version(self):
+    def version(self):
         """Return the dataset version of this instance, as a string."""
         return self._version
 
