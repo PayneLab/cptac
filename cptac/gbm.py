@@ -28,11 +28,11 @@ class Gbm(DataSet):
         super().__init__("gbm")
 
         # Update the index, if possible. If there's no internet, that's fine.
-#        try:
-#            update_index(self._cancer_type)
-#        except NoInternetError:
-#            pass
-#
+        try:
+            update_index(self._cancer_type)
+        except NoInternetError:
+            pass
+
         # Validate the version
         self._version = validate_version(version, self._cancer_type, use_context="init")
 
@@ -136,12 +136,18 @@ class Gbm(DataSet):
                 df = df.drop(columns="site")
                 df = df.assign(Site=split_genes[1])
                 df["Site"] = df["Site"].str.replace(r"[sty]", r"") # Get rid of all lowercase s, t, and y delimeters in the sites
-                df = df.rename(columns={
-                        "gene": "Name",
-                        "peptide": "Peptide",
-                        "refseq_id": "Database_ID",
-                    })
-                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"]) # Turn these columns into a multiindex
+
+                if self._version == "1.0":
+                    df = df.rename(columns={"gene": "Name", "peptide": "Peptide"})
+                    df = df.set_index(["Name", "Site", "Peptide"]) # Turn these columns into a multiindex
+
+                elif self._version == "2.0":
+                    df = df.rename(columns={
+                            "gene": "Name",
+                            "peptide": "Peptide",
+                            "refseq_id": "Database_ID",
+                        })
+                    df = df.set_index(["Name", "Site", "Peptide", "Database_ID"]) # Turn these columns into a multiindex
 
                 df = df.sort_index()
                 df = df.transpose()
@@ -155,7 +161,10 @@ class Gbm(DataSet):
 
             elif df_name == "proteome_pnnl_per_gene_d4":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.drop(columns="refseq_id") # We don't need this database ID, because the gene name index is already unique
+
+                if self._version == "2.0":
+                    df = df.drop(columns="refseq_id") # We don't need this database ID, because the gene name index is already unique
+
                 df = df.sort_index()
                 df = df.transpose()
                 self._data["proteomics"] = df
