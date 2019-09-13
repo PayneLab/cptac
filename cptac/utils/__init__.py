@@ -398,8 +398,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     missense_df = count_miss.rename(columns={"Sample_ID": "Missense_Mut"})
     missense_df = missense_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
     fraction_missense = missense_df.apply(lambda x: x / total_tumor_count)
-    freq_mutated_df = filtered_gene_df.join(fraction_missense, how='left', rsuffix='m').fillna(0)
-    #print(freq_mutated_df)
+    freq_mutated_df = filtered_gene_df.join(fraction_missense, how='left').fillna(0)
     
     # Create and join Truncation column (following similar steps as seen above)
     trunc = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'T']
@@ -407,7 +406,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     truncation_df = count_trunc.rename(columns={"Sample_ID": "Truncation_Mut"})
     truncation_df = truncation_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
     fraction_truncation = truncation_df.apply(lambda x: x / total_tumor_count)
-    freq_mutated_df = freq_mutated_df.join(fraction_truncation, how='left', rsuffix='m').fillna(0)
+    freq_mutated_df = freq_mutated_df.join(fraction_truncation, how='left').fillna(0)
     freq_mutated_df = freq_mutated_df.reset_index() #move genes to their own column
     
     if gbm == True:
@@ -417,7 +416,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
         nc_df = count_nc.rename(columns={"Sample_ID": "Non-Coding"})
         nc_df = nc_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
         fraction_nc = nc_df.apply(lambda x: x / total_tumor_count)
-        freq_mutated_df = freq_mutated_df.join(fraction_nc, how='left', rsuffix='m').fillna(0)
+        freq_mutated_df = freq_mutated_df.join(fraction_nc, how='left').fillna(0)
     
     return freq_mutated_df
 
