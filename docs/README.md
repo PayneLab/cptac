@@ -1,6 +1,6 @@
 # Tutorials
 
-Tutorials for this package describe how to use the package functions for research with the provided data. All the tutorials are written in Python using the interactive Jupyter notebooks. If you are unfamiliar with Jupyter, follow the instructions given at jupyter.org/install. You will then be able to run our tutorials as interactive, exploratory data analyses.
+Tutorials for this package describe how to use the package functions for research with the provided data. All the tutorials are written in Python using the interactive Jupyter notebooks. If you are unfamiliar with Jupyter, follow the instructions given <a href="https://jupyter.org/install">here</a> on the Jupyter website. You will then be able to run our tutorials as interactive, exploratory data analyses.
 
 <ul>
   <li>Tutorial 1: CPTAC data introduction</li>

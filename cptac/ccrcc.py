@@ -182,6 +182,16 @@ class Ccrcc(DataSet):
                 df = pd.read_csv(file_path, sep='\t')
                 df = df.sort_index()
                 df = df.transpose()
+
+                # There are a couple duplicate column headers, but they're full of just zeros. We'll drop them.
+                # You can do this with a one liner: df =  df.loc[:, ~df.columns.duplicated(keep=False) | (df != 0).any(axis=0)]
+                # But the one liner is about 100 times slower.
+                dups = df.loc[:, df.columns.duplicated(keep=False)] # Select all the columns with duplicated headers
+                dups = dups.loc[:, (dups != 0).any(axis=0)] # Get only the columns that aren't all zeros
+                df = df.loc[:, ~df.columns.duplicated(keep=False)] # Get rid of the duplicate columns from the original dataframe
+                df = df.join(dups, how="outer") # Sub in our un-duplicated selections
+                df = df.sort_index(axis="columns") # Get all the column names in order again
+
                 self._data["transcriptomics"] = df
             
             elif file_name == "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx":
@@ -285,13 +295,28 @@ class Ccrcc(DataSet):
         # Now that we've used the RNA.ID and Specimen.Label columns to reindex the dataframes that needed it, we can drop them from the clinical dataframe
         clinical = clinical.drop(columns=["Specimen.Label", "RNA.ID"])
 
+        # Replace the clinical dataframe in the data dictionary with our new and improved version!
+        self._data['clinical'] = clinical
+
+        # There are 28 samples in the CNV table, 26 of which are also in the methylation table, that aren't in any other tables, and were actually excluded from analysis. We're going to drop them.
+        # All samples used for analysis should be in the proteomics dataframe, so we'll use that test to determine which samples to drop from CNV and methylation.
+        prot = self._data["proteomics"]
+
+        cnv = self._data["CNV"]
+        to_drop = cnv.index.difference(prot.index)
+        cnv = cnv.drop(index=to_drop)
+        self._data["CNV"] = cnv
+
+        methylation = self._data["methylation"]
+        to_drop = methylation.index.difference(prot.index)
+        methylation = methylation.drop(index=to_drop)
+        self._data["methylation"] = methylation
+
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data)
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
         clinical = clinical.reindex(master_index)
-
-        # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = clinical
 
         # Generate a sample ID for each patient ID

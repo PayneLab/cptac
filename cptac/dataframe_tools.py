@@ -104,5 +104,6 @@ def reindex_dataframe(df, reindex_map, new_index_name, keep_old):
     if keep_old:
         df = df.reset_index() # This gives the dataframe a numerical index and makes the old index a column, so it's not dropped when we set the new index.
     df.index = new_index
+    df.index.name = new_index_name
     df = df.sort_index()
     return df
