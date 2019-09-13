@@ -400,6 +400,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     fraction_missense = missense_df.apply(lambda x: x / total_tumor_count)
     freq_mutated_df = filtered_gene_df.join(fraction_missense, how='left', rsuffix='m').fillna(0)
     print(freq_mutated_df)
+    
     # Create and join Truncation column (following similar steps as seen above)
     trunc = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'T']
     count_trunc = trunc.groupby(['Gene']).nunique()
