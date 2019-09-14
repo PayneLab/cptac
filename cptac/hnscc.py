@@ -136,7 +136,7 @@ class Hnscc(DataSet):
         df_normal = self._data.get("proteomics_normal")
         df_tumor = self._data.get("proteomics_tumor")
 
-        df_normal.index = "N" + df_normal.index #concatenate an ".N" onto the end of the normal data so we can identify it as normal after it's appended to tumor
+        df_normal.index = df_normal.index + "N" #concatenate an ".N" onto the end of the normal data so we can identify it as normal after it's appended to tumor
         prot_combined = df_tumor.append(df_normal) #append the normal data onto the end of the tumor data
         prot_combined = prot_combined.sort_index(axis='columns') # Put all the columns in alphabetical order
         prot_combined = prot_combined.sort_index()
@@ -153,13 +153,22 @@ class Hnscc(DataSet):
 
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data)
+        # Sort this master_index so all the samples with an N suffix are last. Because the N is a suffix, not a prefix, this is kind of messy.
+        status_col = np.where(master_index.str.endswith("N"), "Normal", "Tumor")
+        status_df = pd.DataFrame(data={"Patient_ID": master_index, "Status": status_col}) # Create a new dataframe with the master_index as a column called "Patient_ID"
+        status_df = status_df.sort_values(by=["Status", "Patient_ID"], ascending=[False, True]) # Sorts first by status, and in descending order, so "Tumor" samples are first
+        master_index = pd.Index(status_df["Patient_ID"])
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        clinical = self._data["clinical"]
-        clinical = clinical.reindex(master_index)
+        master_clinical = self._data['clinical'].reindex(master_index)
+
+        # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample is a tumor or normal sample. Samples with a Patient_ID ending in N are normal.
+        clinical_status_col = generate_sample_status_col(master_clinical, normal_test=lambda sample: sample[-1] == 'N')
+        master_clinical.insert(0, "Sample_Tumor_Normal", clinical_status_col)
+
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
-        self._data['clinical'] = clinical
+        self._data['clinical'] = master_clinical
 
         # Generate a sample ID for each patient ID
         sample_id_dict = generate_sample_id_map(master_index)
