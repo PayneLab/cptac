@@ -38,6 +38,10 @@ class DataVersionNotInstalledError(FileError):
     """They requested a version they haven't installed of a dataset."""
     pass
 
+class PackageCannotHandleDataVersionError(CptacError):
+    """They tried to load a new version of the data, but they have an old version of the package that doesn't have the code for the new data, so they need to update the package."""
+    pass
+
 class MissingFileError(FileError):
     """A data file was missing."""
     pass
