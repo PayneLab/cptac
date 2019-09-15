@@ -19,3 +19,6 @@ This package is intended to run on Python 3.6 or greater with pandas version 0.2
 
 ## License
 This package contains LICENSE.md document which describes the license for use. Please note the difference between the license as it applies to code versus data.
+
+## Contact
+This package is maintained by the Payne lab at Brigham Young University, https://payne.byu.edu
