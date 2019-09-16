@@ -17,7 +17,7 @@ from .dataset import DataSet
 from .file_download import update_index
 from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import *
-from .exceptions import NoInternetError, FailedReindexWarning
+from .exceptions import FailedReindexWarning, NoInternetError, PackageCannotHandleDataVersionError, ReindexMapError
 
 class Gbm(DataSet):
 
@@ -25,7 +25,8 @@ class Gbm(DataSet):
         """Load all of the gbm dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
 
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
-        super().__init__("gbm")
+        valid_versions = ["1.0", "2.0"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        super().__init__("gbm", valid_versions)
 
         # Update the index, if possible. If there's no internet, that's fine.
         try:
@@ -35,6 +36,8 @@ class Gbm(DataSet):
 
         # Validate the version
         self._version = validate_version(version, self._cancer_type, use_context="init")
+        if self._version not in self._valid_versions:
+            raise PackageCannotHandleDataVersionError(f"You tried to load data version {self._version}, but your version of cptac can only handle these versions: {self._valid_versions}. Update your package to be able to load the new data.")
 
         # Get the paths to all the data files
         if self._version == '1.0' :

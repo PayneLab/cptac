@@ -30,10 +30,10 @@ def unionize_indices(dataset):
     return master_index
 
 def generate_sample_status_col(df, normal_test):
-    """Add a sample status column, called Sample_Tumor_Normal, to a dataframe.
+    """Create a sample status column, called Sample_Tumor_Normal, for a dataframe.
 
     Parameters:
-    df (pandas DataFrame): The dataframe to add Sample_Status column to.
+    df (pandas DataFrame): The dataframe to create a Sample_Status column for, indexed with Patient_IDs.
     normal_test (function): A function that takes a given Patient_ID and returns a bool indicating whether it corresponds to a normal sample.
 
     Returns:

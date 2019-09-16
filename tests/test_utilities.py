@@ -1,13 +1,13 @@
 # Tests for get_frequently_mutated from the utilities
-# NOTE: change cptac.algorithms to cptac.utilities when the switch is made
 
 import pandas as pd
 import cptac
+import cptac.utils as ut
 
 def test_get_frequently_mutated_en_default_cutoff():
     en = cptac.Endometrial()
     print('Running get_frequently_mutated...')
-    df = cptac.algorithms.get_frequently_mutated(en)
+    df = ut.get_frequently_mutated(en)
     
     name = "frequently_mutated"
     dimensions = (232, 4)
@@ -47,7 +47,7 @@ def test_get_frequently_mutated_en_default_cutoff():
 def test_get_frequently_mutated_en_cutoff_20_cutoff():
     en = cptac.Endometrial()
     print('Running get_frequently_mutated...')
-    df = cptac.algorithms.get_frequently_mutated(en, cutoff=0.2)
+    df = ut.get_frequently_mutated(en, cutoff=0.2)
     
     dimensions = (10, 4)
     headers = ['Gene', 'Unique_Samples_Mut', 'Missense_Mut', 'Truncation_Mut']
@@ -87,7 +87,7 @@ def test_get_frequently_mutated_en_cutoff_20_cutoff():
 def test_get_frequently_mutated_co_default_cutoff():
     co = cptac.Colon()
     print('Running get_frequently_mutated...')
-    df = cptac.algorithms.get_frequently_mutated(co)
+    df = ut.get_frequently_mutated(co)
     
     dimensions = (612, 4)
     headers = ['Gene', 'Unique_Samples_Mut', 'Missense_Mut', 'Truncation_Mut']
@@ -130,7 +130,7 @@ def test_get_frequently_mutated_co_default_cutoff():
 def test_get_frequently_mutated_co_15_cutoff():
     co = cptac.Colon()
     print('Running get_frequently_mutated...')
-    df = cptac.algorithms.get_frequently_mutated(co, 0.15)
+    df = ut.get_frequently_mutated(co, 0.15)
     
     dimensions = (138, 4)
     headers = ['Gene', 'Unique_Samples_Mut', 'Missense_Mut', 'Truncation_Mut']
@@ -172,7 +172,7 @@ def test_get_frequently_mutated_co_15_cutoff():
 def test_get_frequently_mutated_ov_default_cutoff():
     ov = cptac.Ovarian()
     print('Running get_frequently_mutated...')
-    df = cptac.algorithms.get_frequently_mutated(ov)
+    df = ut.get_frequently_mutated(ov)
     
     dimensions = (16, 4)
     headers = ['Gene', 'Unique_Samples_Mut', 'Missense_Mut', 'Truncation_Mut']
@@ -212,7 +212,7 @@ def test_get_frequently_mutated_ov_default_cutoff():
 def test_get_frequently_mutated_ov_05_cutoff():
     ov = cptac.Ovarian()
     print('Running get_frequently_mutated...')
-    df = cptac.algorithms.get_frequently_mutated(ov, 0.05)
+    df = ut.get_frequently_mutated(ov, 0.05)
     
     dimensions = (142, 4)
     headers = ['Gene', 'Unique_Samples_Mut', 'Missense_Mut', 'Truncation_Mut']
@@ -252,7 +252,7 @@ def test_get_frequently_mutated_ov_05_cutoff():
 def test_get_frequently_mutated_renal_default_cutoff():
     rc = cptac.Ccrcc()
     print('Running get_frequently_mutated...')
-    df = cptac.algorithms.get_frequently_mutated(rc)
+    df = ut.get_frequently_mutated(rc)
    
     dimensions = (6, 4)
     headers = ['Gene', 'Unique_Samples_Mut', 'Missense_Mut', 'Truncation_Mut']
@@ -292,7 +292,7 @@ def test_get_frequently_mutated_renal_default_cutoff():
 def test_get_frequently_mutated_renal_01_cutoff():
     rc = cptac.Ccrcc()
     print('Running get_frequently_mutated...')
-    df = cptac.algorithms.get_frequently_mutated(rc, cutoff=0.01)
+    df = ut.get_frequently_mutated(rc, cutoff=0.01)
     
     dimensions = (1106, 4)
     headers = ['Gene', 'Unique_Samples_Mut', 'Missense_Mut', 'Truncation_Mut']
@@ -429,7 +429,7 @@ def check_getter(df, exp_dim, exp_headers, coordinates, values):
     
 
 # Run tests
-print("\nTesting get_frequently_mutated from algorithms...")
+print("\nTesting get_frequently_mutated from utils...")
 import cptac as cptac
 test_get_frequently_mutated_en_default_cutoff()
 test_get_frequently_mutated_co_default_cutoff()
