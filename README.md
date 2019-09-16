@@ -4,7 +4,7 @@ This project is intended to facilitate accessing and interacting with cancer dat
 Setup instructions can be found <a href="https://github.com/PayneLab/cptac/blob/master/docs/setup.md">here</a>.
 
 ## Tutorials
-Tutorials for this package describe how to use the package functions for research with the provided data. All the tutorials are written in Python using the interactive Jupyter notebooks. If you are unfamiliar with Jupyter, follow the instructions given at jupyter.org/install. You will then be able to run our tutorials as interactive, exploratory data analyses.
+Tutorials for this package describe how to use the package functions for research with the provided data. All the tutorials are written in Python using the interactive Jupyter notebooks. If you are unfamiliar with Jupyter, follow the instructions given at <a href = "https://jupyter.org/install">jupyter.org/install</a>. You will then be able to run our tutorials as interactive, exploratory data analyses.
 <ul>
   <li>Tutorial 1: CPTAC data introduction</li>
   <li>Tutorial 2: Using pandas to work with cptac dataframes</li>
