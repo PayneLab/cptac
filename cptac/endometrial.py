@@ -17,7 +17,7 @@ from .dataset import DataSet
 from .file_download import update_index
 from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import *
-from .exceptions import FailedReindexWarning, NoInternetError, ReindexMapError
+from .exceptions import FailedReindexWarning, NoInternetError, ReindexMapError, PackageCannotHandleDataVersionError
 
 class Endometrial(DataSet):
 
@@ -25,7 +25,8 @@ class Endometrial(DataSet):
         """Load all of the endometrial dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
 
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
-        super().__init__("endometrial")
+        valid_versions = ["2.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        super().__init__("endometrial", valid_versions)
 
         # Update the index, if possible. If there's no internet, that's fine.
         try:
@@ -33,8 +34,10 @@ class Endometrial(DataSet):
         except NoInternetError:
             pass
 
-        # Validate the index
+        # Validate the version
         self._version = validate_version(version, self._cancer_type, use_context="init")
+        if self._version not in self._valid_versions:
+            raise PackageCannotHandleDataVersionError(f"You tried to load data version {self._version}, but your version of cptac can only handle these versions: {self._valid_versions}. Update your package to be able to load the new data.")
 
         # Get the paths to all the data files
         data_files = [

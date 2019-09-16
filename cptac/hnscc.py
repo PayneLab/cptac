@@ -17,8 +17,7 @@ from .dataset import DataSet
 from .file_download import update_index
 from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import *
-from .exceptions import NoInternetError, FailedReindexWarning
-
+from .exceptions import FailedReindexWarning, NoInternetError, PackageCannotHandleDataVersionError, ReindexMapError
 
 class Hnscc(DataSet):
 
@@ -26,7 +25,8 @@ class Hnscc(DataSet):
         """Load all of the hnscc dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
 
         # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
-        super().__init__("hnscc")
+        valid_versions = ["0.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        super().__init__("hnscc", valid_versions)
 
         # Update the index, if possible. If there's no internet, that's fine.
         try:
@@ -36,6 +36,8 @@ class Hnscc(DataSet):
 
         # Validate the version
         self._version = validate_version(version, self._cancer_type, use_context="init")
+        if self._version not in self._valid_versions:
+            raise PackageCannotHandleDataVersionError(f"You tried to load data version {self._version}, but your version of cptac can only handle these versions: {self._valid_versions}. Update your package to be able to load the new data.")
 
         # Get the paths to all the data files
         data_files = [
@@ -76,7 +78,8 @@ class Hnscc(DataSet):
                 df = df.transpose()
                 df = df.sort_index()
                 df.columns.name=None
-                df.index = df.index.str.replace(r'.', '-', 1)
+                df.index = df.index.str.replace(r'\.', '-', 1)
+                df.index = df.index.str.replace(r'\.T$', '', 1)
                 df.index.name = "Patient_ID"
                 self._data["transcriptomics"] = df
 
@@ -86,7 +89,8 @@ class Hnscc(DataSet):
                 df = df.transpose()
                 df = df.sort_index()
                 df.columns.name=None
-                df.index = df.index.str.replace(r'.', '-', 1) #We want all the patientIDs to have the the format C3L-00977, and these have the form C3L.00977.N, so we need to replace the first "." with a "-"
+                df.index = df.index.str.replace(r'\.', '-', 1) #We want all the patientIDs to have the the format C3L-00977, and these have the form C3L.00977.N, so we need to replace the first "." with a "-"
+                df.index = df.index.str.replace(r'\.T$', '', 1)
                 df.index.name = "Patient_ID"
                 self._data["circular_RNA"] = df
 
@@ -94,11 +98,10 @@ class Hnscc(DataSet):
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.rename(columns={"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol_Annovar":"Gene","Variant_Classification_Annovar":"Mutation"}) #Rename the columns we want to keep to the appropriate names
                 df['Location'] = df['Annovar_Info_protein'].str.extract(r'([^:]+$)') #The location that we care about is stored after the last colon
-                keep = ['Gene', 'Mutation', 'Location', 'Patient_ID']
-                df = df.drop(df.columns.difference(keep), 1)
+                df = df[['Patient_ID', 'Gene', 'Mutation', 'Location']]
+                df = df.sort_values(by=["Patient_ID", "Gene"])
                 df = df.set_index("Patient_ID")
                 df = df.sort_index()
-                df = df.sort_index(axis='columns')
                 df.columns.name=None
                 self._data["somatic_mutation"] = df
 
@@ -131,12 +134,15 @@ class Hnscc(DataSet):
                 elif file_name == "Proteomics_DIA_Gene_level_Tumor.cct.gz":
                     self._data["proteomics_tumor"] = df
 
+        print(' ' * len(loading_msg), end='\r') # Erase the loading message
+        formatting_msg = "Formatting dataframes..."
+        print(formatting_msg, end='\r')
 
-        #get the proteomics data
+        # Combine the two proteomics dataframes
         df_normal = self._data.get("proteomics_normal")
         df_tumor = self._data.get("proteomics_tumor")
 
-        df_normal.index = "N" + df_normal.index #concatenate an ".N" onto the end of the normal data so we can identify it as normal after it's appended to tumor
+        df_normal.index = df_normal.index + ".N" #concatenate a ".N" onto the end of the normal data so we can identify it as normal after it's appended to tumor
         prot_combined = df_tumor.append(df_normal) #append the normal data onto the end of the tumor data
         prot_combined = prot_combined.sort_index(axis='columns') # Put all the columns in alphabetical order
         prot_combined = prot_combined.sort_index()
@@ -144,22 +150,24 @@ class Hnscc(DataSet):
         del self._data["proteomics_normal"]
         del self._data["proteomics_tumor"]
 
-
-        print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
-        print(formatting_msg, end='\r')
-
-
-
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data)
 
+        # Sort this master_index so all the samples with an N suffix are last. Because the N is a suffix, not a prefix, this is kind of messy.
+        status_col = np.where(master_index.str.endswith("N"), "Normal", "Tumor")
+        status_df = pd.DataFrame(data={"Patient_ID": master_index, "Status": status_col}) # Create a new dataframe with the master_index as a column called "Patient_ID"
+        status_df = status_df.sort_values(by=["Status", "Patient_ID"], ascending=[False, True]) # Sorts first by status, and in descending order, so "Tumor" samples are first
+        master_index = pd.Index(status_df["Patient_ID"])
+
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        clinical = self._data["clinical"]
-        clinical = clinical.reindex(master_index)
+        master_clinical = self._data['clinical'].reindex(master_index)
+
+        # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample is a tumor or normal sample. Samples with a Patient_ID ending in N are normal.
+        clinical_status_col = generate_sample_status_col(master_clinical, normal_test=lambda sample: sample[-1] == 'N')
+        master_clinical.insert(0, "Sample_Tumor_Normal", clinical_status_col)
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
-        self._data['clinical'] = clinical
+        self._data['clinical'] = master_clinical
 
         # Generate a sample ID for each patient ID
         sample_id_dict = generate_sample_id_map(master_index)
@@ -182,12 +190,10 @@ class Hnscc(DataSet):
         for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
             del self._data[name]
 
-        # Drop name of column axis for all dataframes
+        # Set name to "Name" for column axis for all dataframes
         for name in self._data.keys():
             df = self._data[name]
-            df.columns.name = None
+            df.columns.name = "Name"
             self._data[name] = df
-
-
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

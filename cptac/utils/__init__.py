@@ -341,6 +341,11 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     omics_and_mutations = cancer_object.join_omics_to_mutations(
         mutations_genes = 'TP53', omics_df_name = 'proteomics', omics_genes = 'TP53')
     tumors = omics_and_mutations.Sample_Status
+
+    if isinstance(tumors, pd.core.frame.DataFrame): # This would happen if our proteomics dataframe has a column multiindex, which leads to a joined df with a column multiindex, and causes our selection to be a dataframe instead of a series.
+        tumors = tumors.iloc[:, 0]
+        tumors.name = "Sample_Status"
+
     v = tumors.value_counts()
     total_tumors = v['Tumor']
     total_tumor_count = int(total_tumors)
@@ -370,6 +375,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     
     # replace non_coding mutations for Gbm
     unique_mutations = len(mutations_replaced_M_T['Mutation'].unique())
+    gbm = False
     if cancer_object.get_cancer_type() == 'gbm':
         gbm = True
         non_coding = {'Intron': 'NC', 'RNA': 'NC', "5'Flank": 'NC', "3'Flank": 'NC', 

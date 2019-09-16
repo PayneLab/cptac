@@ -21,15 +21,16 @@ class DataSet:
     the same function calls exist for cptac.Endometrial, cptac.Colon, etc.
     """
 
-    def __init__(self, cancer_type):
+    def __init__(self, cancer_type, valid_versions):
         """Initialize variables for a DataSet object."""
 
         # Initialize dataframe and definitions dicts as empty for this parent class
         self._data = {}
         self._definitions = {}
 
-        # Initialize the _cancer_type instance variable
+        # Initialize the _cancer_type and _valid_versions instance variables
         self._cancer_type = cancer_type.lower()
+        self._valid_versions = valid_versions
 
         # Initialize the _version instance variable
         self._version = None
@@ -517,7 +518,7 @@ class DataSet:
         # Check that they passed a valid omics df
         self._check_df_valid(omics_df_name, "omics")
         
-        # Get our omics df
+        # Get our omics df, using _get_dataframe to catch invalid requests
         omics_df = self._get_dataframe(omics_df_name)
 
         # Process genes parameter
@@ -577,7 +578,7 @@ class DataSet:
         # Check that they passed a valid metadata df
         self._check_df_valid(df_name, "metadata")
 
-        # Get our dataframe
+        # Get our dataframe, using _get_dataframe to catch invalid requests
         df = self._get_dataframe(df_name)
 
         # Process genes parameter
@@ -710,7 +711,7 @@ class DataSet:
         pandas DataFrame: The joined dataframe, with a Sample_Status column added and NaNs filled.
         """
         # Make the indices the same
-        if mutations.columns.names != other.columns.names:
+        if mutations.columns.nlevels != other.columns.nlevels:
             mutations.columns = self._add_levels(to=mutations.columns, source=other.columns)
         joined = other.join(mutations, how="outer")
 
@@ -797,6 +798,9 @@ class DataSet:
         if self._cancer_type == 'colon':
             truncations = ['frameshift deletion', 'frameshift insertion', 'frameshift substitution', 'stopgain', 'stoploss']
             missenses = ['nonframeshift deletion', 'nonframeshift insertion', 'nonframeshift substitution', 'nonsynonymous SNV']
+        elif self._cancer_type == 'hnscc':
+            truncations =["stopgain", "stoploss"]
+            missenses = ["nonframeshift insertion", "nonframeshift deletion"]
         else:
             truncations = ['Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', 'Splice_Site']
             missenses = ['In_Frame_Del', 'In_Frame_Ins', 'Missense_Mutation']
@@ -831,7 +835,7 @@ class DataSet:
 
         if len(chosen_indices) == 0: # There were no truncations or missenses, so they should all be Silent mutations
             for mutation in sample_mutations_list:
-                if mutation != "Silent":
+                if mutation not in ["Silent", "synonymous SNV"]:
                     warnings.warn(f"Unknown mutation type {mutation}. Assigned lowest priority in filtering.", ParameterWarning, stacklevel=4)
             chosen_indices = range(len(sample_mutations_list)) # We'll sort them all by location
 
