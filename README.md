@@ -9,9 +9,9 @@ Tutorials for this package describe how to use the package functions for researc
   <li>Tutorial 1: CPTAC data introduction</li>
   <li>Tutorial 2: Using pandas to work with cptac dataframes</li>
   <li>Tutorial 3: Joining dataframes with cptac</li>
-  <li>Use Case 1: Comparing transcriptomics and proteomics for a single gene</li>
+  <li>Use Case 1: Comparing transcriptomics and proteomics</li>
   <li>Use Case 2: Looking for correlation between clinical attributes</li>
-  <li>Use Case 3: Associating clinical variables with acetylation</li>
+  <li>Use Case 3: Associating clinical variables with omics data</li>
 </ul>
 
 ## Requirements
