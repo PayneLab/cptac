@@ -3,12 +3,13 @@ This project is intended to facilitate accessing and interacting with cancer dat
 
 Setup instructions can be found in <a href="https://github.com/PayneLab/cptac/blob/master/docs/setup.md">docs/setup.md</a>.
 
-## Tutorials
-Tutorials for this package describe how to use the package functions for research with the provided data. All the tutorials are written in Python using the interactive Jupyter notebooks. If you are unfamiliar with Jupyter, follow the instructions given at <a href = "https://jupyter.org/install">jupyter.org/install</a>. You will then be able to run our tutorials as interactive, exploratory data analyses.
+## Documentation and Tutorials
+All documentation for the project is contained in the ~/docs folder. This contains both tutorials - which are written to explain the data formats and conventions - and use cases - which are written to demonstrate exploring the data for biological discovery. All documentation is written in Python using the interactive Jupyter notebooks. If you are unfamiliar with Jupyter, follow the instructions given at <a href = "https://jupyter.org/install">jupyter.org/install</a>. You will then be able to run our tutorials as interactive, exploratory data analyses.
 <ul>
   <li>Tutorial 1: CPTAC data introduction</li>
   <li>Tutorial 2: Using pandas to work with cptac dataframes</li>
   <li>Tutorial 3: Joining dataframes with cptac</li>
+  <li>Tutorial 4: Understand multi-indexes</li>
   <li>Use Case 1: Comparing transcriptomics and proteomics</li>
   <li>Use Case 2: Looking for correlation between clinical attributes</li>
   <li>Use Case 3: Associating clinical variables with omics data</li>
