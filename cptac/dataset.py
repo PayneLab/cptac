@@ -13,6 +13,8 @@ import numpy as np
 import webbrowser
 import re
 import warnings
+from .file_download import update_index
+from .file_tools import validate_version, get_version_files_paths
 from .exceptions import *
 
 class DataSet:
@@ -21,19 +23,34 @@ class DataSet:
     the same function calls exist for cptac.Endometrial, cptac.Colon, etc.
     """
 
-    def __init__(self, cancer_type, valid_versions):
-        """Initialize variables for a DataSet object."""
+    def __init__(self, cancer_type, version, valid_versions, data_files):
+        """Initialize variables for a DataSet object.
+
+        Parameters:
+        cancer_type (str): 
+        version (str): 
+        valid_versions (list of str): 
+        data_files (dict, keys of str, values of list of str):
+        """
+        # Initialize the _cancer_type instance variable
+        self._cancer_type = cancer_type.lower()
+
+        # Update the index, if possible. If there's no internet, that's fine.
+        try:
+            update_index(self._cancer_type)
+        except NoInternetError:
+            pass
+
+        # Validate the version
+        self._version = validate_version(version, self._cancer_type, use_context="init", valid_versions=valid_versions)
+
+        # Get the paths to the data files
+        version_data_files = data_files[self._version] # Get the data files for this version from the data files dictionary
+        self._data_files_paths = get_version_files_paths(self._cancer_type, self._version, version_data_files)
 
         # Initialize dataframe and definitions dicts as empty for this parent class
         self._data = {}
         self._definitions = {}
-
-        # Initialize the _cancer_type and _valid_versions instance variables
-        self._cancer_type = cancer_type.lower()
-        self._valid_versions = valid_versions
-
-        # Initialize the _version instance variable
-        self._version = None
 
         # Assign the valid dfs lists, but make them instance variables so they're easy to override if needed
         # These are the omics dataframes that are valid for use in the utilities functions

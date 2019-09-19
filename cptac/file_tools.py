@@ -32,13 +32,14 @@ def get_dataset_path(dataset):
     else:
         raise InvalidParameterError(f"{dataset} is not a valid dataset.")
 
-def validate_version(version, dataset, use_context):
+def validate_version(version, dataset, use_context, valid_versions=None):
     """Parse and validate a given version number. If version is "latest", check that index and installed latest match.
 
     Parameters:
     version (str): The version number to validate.
     dataset (str): The name of the dataset we're validating the version for.
     use_context (str): Either "download" or "init", depending on whether the function is being called as part of a data download or a dataset loading. Allows for more detailed error messages. Pass None if you don't want more detailed error messages.
+    valid_versions (list of str, optional): A list of versions that are valid for this dataset. This way, we can ensure that if there's a new data version from the downloaded index that this version of the package doesn't have the code to handle, it won't try to load it. Default of None will skip this check.
 
     Returns:
     str: The version number.
@@ -52,22 +53,28 @@ def validate_version(version, dataset, use_context):
 
     # Parse and validate the version they passed
     if version in index.keys():
-        if float(version) < float(index_latest): # Print a warning if they're using an old version
+        if version != index_latest: # Print a warning if they're using an old version
             warnings.warn(f"Old data version. Latest is {index_latest}. This is {version}.", OldDataVersionWarning, stacklevel=3)
-        return version
+        return_version = version
 
     elif version.lower() == "latest":
         latest_installed = get_latest_installed(dataset_path)
         if (index_latest == latest_installed) or (latest_installed is None):
-            return index_latest
+            return_version = index_latest
         else: # If their latest installed version is different from the latest version recorded in the index, then we don't know which one they meant when they passed "latest".
             if use_context == "download":
                 warnings.warn(f"Downloading new version of {dataset} dataset: {index_latest}. This will now be the default version when the dataset is loaded. If you wish to load an older version of the data, you must specify it with the 'version' parameter when you load the dataset.", DownloadingNewLatestWarning, stacklevel=3)
-                return index_latest
+                return_version = index_latest
             elif use_context == "init":
                 raise AmbiguousLatestError(f"You requested to load the {dataset} dataset. Latest version is {index_latest}, which is not installed locally. To download it, run \"cptac.download(dataset='{dataset}')\". You will then be able to load the latest version of the dataset. To skip this and instead load the older version that is already installed, call \"cptac.{dataset.title()}(version='{latest_installed}')\".")
     else:
         raise InvalidParameterError(f"{version} is an invalid version for the {dataset} dataset. Valid versions: {', '.join(index.keys())}")
+
+    if valid_versions is not None:
+        if return_version not in valid_versions:
+            raise PackageCannotHandleDataVersionError(f"You tried to load data version {return_version}, but your version of cptac can only handle these versions: {valid_versions}. Update your package to be able to load the new data. Or, if you cannot currently update, manually specify the old data version using the 'version' parameter when you load the dataset.")
+
+    return return_version
 
 def get_version_files_paths(dataset, version, data_files):
     """For dataset loading. Check that a version is installed, then return the paths to the data files for that version.
