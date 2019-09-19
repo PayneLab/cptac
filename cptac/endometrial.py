@@ -24,41 +24,31 @@ class Endometrial(DataSet):
     def __init__(self, version="latest"):
         """Load all of the endometrial dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
 
-        # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
+        # Set some needed variables, and pass them to the parent DataSet class __init__ function
+
         valid_versions = ["2.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        super().__init__("endometrial", valid_versions)
 
-        # Update the index, if possible. If there's no internet, that's fine.
-        try:
-            update_index(self._cancer_type)
-        except NoInternetError:
-            pass
+        data_files = {
+            "2.1": [
+                "acetylproteomics.cct.gz", 
+                "clinical.txt", 
+                "CNA.cct.gz", 
+                "definitions.txt",
+                "miRNA.cct.gz", 
+                "phosphoproteomics_gene.cct.gz", 
+                "phosphoproteomics_site.cct.gz", 
+                "proteomics.cct.gz", 
+                "somatic_binary.cbt.gz", 
+                "somatic.maf.gz", 
+                "transcriptomics_circular.cct.gz", 
+                "transcriptomics_linear.cct.gz"]
+        }
 
-        # Validate the version
-        self._version = validate_version(version, self._cancer_type, use_context="init")
-        if self._version not in self._valid_versions:
-            raise PackageCannotHandleDataVersionError(f"You tried to load data version {self._version}, but your version of cptac can only handle these versions: {self._valid_versions}. Update your package to be able to load the new data.")
-
-        # Get the paths to all the data files
-        data_files = [
-            "acetylproteomics.cct.gz", 
-            "clinical.txt", 
-            "CNA.cct.gz", 
-            "definitions.txt",
-            "miRNA.cct.gz", 
-            "phosphoproteomics_gene.cct.gz", 
-            "phosphoproteomics_site.cct.gz", 
-            "proteomics.cct.gz", 
-            "somatic_binary.cbt.gz", 
-            "somatic.maf.gz", 
-            "transcriptomics_circular.cct.gz", 
-            "transcriptomics_linear.cct.gz"]
-
-        data_files_paths = get_version_files_paths(self._cancer_type, self._version, data_files)
+        super().__init__(cancer_type="endometrial", version=version, valid_versions=valid_versions, data_files=data_files)
 
         # Load the data files into dataframes in the self._data dict
         loading_msg = "Loading dataframes"
-        for file_path in data_files_paths: 
+        for file_path in self._data_files_paths: 
 
             # Print a loading message. We add a dot every time, so the user knows it's not frozen.
             loading_msg = loading_msg + "."
