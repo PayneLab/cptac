@@ -97,5 +97,5 @@ except NoInternetError:
 else:
     local_version = version()
     if remote_version != local_version:
-        warnings.warn(f"Your version of cptac ({local_version}) is out-of-date. Latest is {remote_version}. Please run 'pip install cptac --upgrade' to update it.", OldPackageVersionWarning, stacklevel=2)
+        warnings.warn(f"Your version of cptac ({local_version}) is out-of-date. Latest is {remote_version}. Please run 'pip install --upgrade cptac' to update it.", OldPackageVersionWarning, stacklevel=2)
 
