@@ -64,6 +64,7 @@ class DataSet:
             'phosphoproteomics',
             'phosphoproteomics_gene',
             'proteomics',
+            'somatic_mutation_binary',
             'transcriptomics',
             ]
 
