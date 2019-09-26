@@ -234,7 +234,7 @@ class DataSet:
         pandas DataFrame: The dataframe, with the desired column index changes made.
         """
         # Make a copy, so the original dataframe is preserved
-        df = df.copy()
+        df = df.copy(deep=True)
 
         if levels_to_drop is not None:
             if df.columns.nlevels < 2:
