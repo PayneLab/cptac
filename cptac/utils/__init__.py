@@ -28,14 +28,19 @@ import os
 @Param label_column:
     The name of the label column. This column must be in the dataframe, and must contain exactly 2 unique values.
     
-@Param comparison_columns:
+@Param comparison_columns (default - will use all in dataframe):
     A list of columns on which t-tests will be performed. Each column must be in the dataframe, and must be real valued.
+    If no value is specified, by default it will use every column in the dataframe, aside from the specified label column.
 
 @Param alpha (default = .05):
     Significance level. Will be adjusted using bonferroni correction if more than 1 comparison is done.
     
 @Param verbose (default = False):
     Boolean. If true, will print p-value of every comparison, whether or not it meets significance cutoff.
+    
+@Param return_all (default = False):
+    Boolean. If true, will return a dataframe containing all comparisons and p-values, regardless of significance.
+    If false, will only return significant comparisons and p-values in the dataframe, or None if no significant comparisons.
 
 @Return:
     A pandas dataframe of column names and corresponding p-values which were determined to be significant in 
@@ -55,27 +60,33 @@ The cutoff for significance will be determined using a bonferroni correction, an
 with their p-values, will be returned as a dataframe, sorted by p-value.
 '''
 
-def wrap_ttest(df, label_column, comparison_columns, alpha=.05, verbose=False):
+def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, verbose=False, return_all=False):
     try:
         '''Verify precondition that label column exists and has exactly 2 unique values'''
         label_values = df[label_column].unique()
         if len(label_values) != 2:
             print("Incorrectly Formatted Dataframe! Label column must have exactly 2 unique values.")
             return None
-        
+
         '''Partition dataframe into two sets, one for each of the two unique values from the label column'''
         partition1 = df.loc[df[label_column] == label_values[0]]
         partition2 = df.loc[df[label_column] == label_values[1]]
-        
+
+        '''If no comparison columns specified, use all columns except the specified labed column'''
+        if not comparison_columns:
+            comparison_columns = list(df.columns)
+            comparison_columns.remove(label_column)
+
         '''Determine the number of real valued columns on which we will do t-tests'''
         number_of_comparisons = len(comparison_columns)
-        
+
         '''Use a bonferroni correction to adjust for multiple testing by altering the p-value needed for acceptance'''
         bonferroni_cutoff = alpha/number_of_comparisons
-        
+
         '''Store significant comparisons with their p-values in a dictionary'''
         significant_comparisons = {}
-        
+        insignificant_comparisons = {}
+
         '''Loop through each comparison column, perform the t-test, and determine whether it meets the significance cutoff'''
         for column in comparison_columns:
             stat, pval = scipy.stats.ttest_ind(partition1[column].dropna(axis=0), partition2[column].dropna(axis=0))
@@ -83,24 +94,59 @@ def wrap_ttest(df, label_column, comparison_columns, alpha=.05, verbose=False):
                 print(column, ": ", pval)
             if pval <= bonferroni_cutoff:
                 significant_comparisons[column] = pval
-        
+            else:
+                insignificant_comparisons[column] = pval
+
         '''If no comparison met the significance cutoff, notify that no comparison was signficant, and return None'''
         if len(significant_comparisons) == 0:
             print("No significant comparisons.")
-            return None
-        
+
+            '''If return all specified, return the insignificant comparisons'''
+            if return_all:
+                sorted_insignificant_comparisons = sorted(insignificant_comparisons.items(), key=lambda kv: kv[1])
+                sorted_insignificant_comparisons_df = pd.DataFrame.from_dict(sorted_insignificant_comparisons)
+                sorted_insignificant_comparisons_df.columns = ['Comparison','P_Value']
+                return sorted_insignificant_comparisons_df
+
+            else:
+                return None
+
             '''If one or more comparison did meet the significance cutoff, sort the dictionary by significance and return it to the caller'''
         else:
-            '''Sort dictionary to list smallest p-values first'''
-            sorted_significant_comparisons = sorted(significant_comparisons.items(), key=lambda kv: kv[1])
-            '''Format as a dataframe and return to caller'''
-            sorted_significant_comparisons_df = pd.DataFrame.from_dict(sorted_significant_comparisons)
-            sorted_significant_comparisons_df.columns = ['Comparison', 'P_Value']
-            return sorted_significant_comparisons_df
-    
+            print(str(len(significant_comparisons)) + " significant comparisons!" )
+            if return_all:
+                '''Sort significant comparisons dictionary to list smallest p-values first'''
+                sorted_significant_comparisons = sorted(significant_comparisons.items(), key=lambda kv: kv[1])
+                '''Format as a dataframe'''
+                sorted_significant_comparisons_df = pd.DataFrame.from_dict(sorted_significant_comparisons)
+                sorted_significant_comparisons_df.columns = ['Comparison', 'P_Value']
+
+                '''If there are insignificant comparisons, sort and return them too'''
+                if len(insignificant_comparisons) > 0:
+                    '''Sort insignificant comparisons dictionary to list smallest p-values first'''
+                    sorted_insignificant_comparisons = sorted(insignificant_comparisons.items(), key=lambda kv: kv[1])
+                    '''Format as dataframe'''
+                    sorted_insignificant_comparisons_df = pd.DataFrame.from_dict(sorted_insignificant_comparisons)
+                    sorted_insignificant_comparisons_df.columns = ['Comparison','P_Value']
+
+                    '''Join significant and insignificant dataframes and return to caller'''
+                    sorted_all_comparisons_df = pd.concat([sorted_significant_comparisons_df, sorted_insignificant_comparisons_df], ignore_index=True)
+                    return sorted_all_comparisons_df
+
+                else:
+                    return sorted_significant_comparisons_df
+
+            else: 
+                '''Sort dictionary to list smallest p-values first'''
+                sorted_significant_comparisons = sorted(significant_comparisons.items(), key=lambda kv: kv[1])
+                '''Format as a dataframe and return to caller'''
+                sorted_significant_comparisons_df = pd.DataFrame.from_dict(sorted_significant_comparisons)
+                sorted_significant_comparisons_df.columns = ['Comparison', 'P_Value']
+                return sorted_significant_comparisons_df
     except:
         print("Incorrectly Formatted Dataframe!")
         return None
+
 
 '''
 @Param protein:
