@@ -24,24 +24,12 @@ class Gbm(DataSet):
     def __init__(self, version="latest"):
         """Load all of the gbm dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
 
-        # Call the parent DataSet __init__ function, which initializes self._data and other variables we need
+        # Set some needed variables, and pass them to the parent DataSet class __init__ function
+
         valid_versions = ["1.0", "2.0"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        super().__init__("gbm", valid_versions)
 
-        # Update the index, if possible. If there's no internet, that's fine.
-        try:
-            update_index(self._cancer_type)
-        except NoInternetError:
-            pass
-
-        # Validate the version
-        self._version = validate_version(version, self._cancer_type, use_context="init")
-        if self._version not in self._valid_versions:
-            raise PackageCannotHandleDataVersionError(f"You tried to load data version {self._version}, but your version of cptac can only handle these versions: {self._valid_versions}. Update your package to be able to load the new data.")
-
-        # Get the paths to all the data files
-        if self._version == '1.0' :
-            data_files = [
+        data_files = {
+            "1.0": [
                 "clinical_data_core.v1.0.20190802.tsv.gz",
                 "mirnaseq_mirna_mature_tpm.v1.0.20190802.tsv.gz",
                 "phosphoproteome_pnnl_d6.v1.0.20190802.tsv.gz",
@@ -49,10 +37,8 @@ class Gbm(DataSet):
                 "proteome_tmt_design.v1.0.20190802.tsv.gz",
                 "rnaseq_gdc_fpkm_uq.v1.0.20190802.tsv.gz",
                 "tindaisy_all_cases_filtered.v1.0.20190802.maf.gz",
-                "wgs_somatic_cnv_per_gene.v1.0.20190802.tsv.gz",
-            ]
-        elif self._version == '2.0':
-            data_files = [
+                "wgs_somatic_cnv_per_gene.v1.0.20190802.tsv.gz"],
+            "2.0": [
                 "acetylome_pnnl_d6.v2.0.20190905.tsv.gz",
                 "clinical_data_core.v2.0.20190905.tsv.gz",
                 "metabolome_pnnl.v2.0.20190905.tsv.gz",
@@ -67,13 +53,14 @@ class Gbm(DataSet):
                 "rnaseq_gene_fusion.v2.0.20190905.tsv.gz",
                 "rnaseq_washu_fpkm_uq.v2.0.20190905.tsv.gz",
                 "tindaisy_all_cases_filtered.v2.0.20190905.maf.gz",
-                "wgs_somatic_cnv_per_gene.v2.0.20190905.tsv.gz",
-            ]
-        data_files_paths = get_version_files_paths(self._cancer_type, self._version, data_files)
+                "wgs_somatic_cnv_per_gene.v2.0.20190905.tsv.gz"]
+        }
+
+        super().__init__(cancer_type="gbm", version=version, valid_versions=valid_versions, data_files=data_files)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = "Loading dataframes"
-        for file_path in data_files_paths: # Loops through files variable
+        for file_path in self._data_files_paths: # Loops through files variable
 
             # Print a loading message. We add a dot every time, so the user knows it's not frozen.
             loading_msg = loading_msg + "."

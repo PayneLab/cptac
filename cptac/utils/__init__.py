@@ -413,7 +413,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     truncation_df = truncation_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
     fraction_truncation = truncation_df.apply(lambda x: x / total_tumor_count)
     freq_mutated_df = freq_mutated_df.join(fraction_truncation, how='left').fillna(0)
-    freq_mutated_df = freq_mutated_df.reset_index() #move genes to their own column
+    
     
     if gbm == True:
         # Create and join non-coding column (following similar steps as seen above)
@@ -423,6 +423,8 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
         nc_df = nc_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
         fraction_nc = nc_df.apply(lambda x: x / total_tumor_count)
         freq_mutated_df = freq_mutated_df.join(fraction_nc, how='left').fillna(0)
+        
+    freq_mutated_df = freq_mutated_df.reset_index() #move genes to their own column
     
     return freq_mutated_df
 
