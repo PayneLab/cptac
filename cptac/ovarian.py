@@ -15,9 +15,8 @@ import os
 import warnings
 from .dataset import DataSet
 from .file_download import update_index
-from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import *
-from .exceptions import FailedReindexWarning, NoInternetError, ReindexMapError, PackageCannotHandleDataVersionError
+from .exceptions import FailedReindexWarning, ReindexMapError
 
 class Ovarian(DataSet):
 
