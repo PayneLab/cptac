@@ -186,6 +186,7 @@ class Endometrial(DataSet):
             self._data[name] = df
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
+        print("success!!")
 
     # Overload the self._get_sample_status_map function to work with "Proteomics_Tumor_Normal" column instead of default "Sample_Tumor_Normal" column
     def _get_sample_status_map(self):
