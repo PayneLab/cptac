@@ -54,7 +54,7 @@ def validate_version(version, dataset, use_context, valid_versions=None):
     # Parse and validate the version they passed
     if version in index.keys():
         if version != index_latest: # Print a warning if they're using an old version
-            warnings.warn(f"Old data version. Latest is {index_latest}. This is {version}.", OldDataVersionWarning, stacklevel=3)
+            warnings.warn(f"Old data version. Latest is {index_latest}. This is {version}.", OldDataVersionWarning, stacklevel=4)
         return_version = version
 
     elif version.lower() == "latest":
