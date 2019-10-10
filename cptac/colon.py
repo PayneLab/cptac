@@ -66,10 +66,12 @@ class Colon(DataSet):
         mut = self._data["mutation"]
         mut = mut.transpose() # Transpose it back to its original orientation
         mut = mut.sort_values(by="SampleID")
+        mut = mut.reset_index()
         mut = mut[["SampleID","Gene","Variant_Type","Protein_Change"]]
+        mut = mut.drop_duplicates(keep="first") # Get rid of rows that are now duplicates since we didn't keep the mRNA column. We do this before setting the index, because drop_duplicates doesn't consider the index.
         mut = mut.rename(columns={"SampleID":"Patient_ID", "Variant_Type":"Mutation", "Protein_Change":"Location"})
         mut = mut.sort_values(by=["Patient_ID", "Gene"])
-        mut = mut.set_index("Patient_ID")
+        mut = mut.set_index("Patient_ID") # We only do this after the drop_duplicates call above because drop_duplicates doesn't consider the index, but we of course want the Patient_ID to be considered when identifying duplicate rows to drop.
         self._data["somatic_mutation"] = mut # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
         del self._data["mutation"] # Delete the old version with the old name
 
