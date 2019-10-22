@@ -6,7 +6,7 @@ This data API is a Python package and is therefore only accessible via Python so
 
 ## Getting the API and data
 
-The package is accessible on the Python Package Index (PyPI) and therefore installs with pip. You can download it from there with
+The package is accessible <a href="https://pypi.org/project/cptac/">on the Python Package Index (PyPI)</a> and therefore installs with pip. You can download it from there with
 
 ```
 pip install cptac
