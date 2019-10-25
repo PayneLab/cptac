@@ -8,7 +8,7 @@ pip install cptac
 ```
 
 ## Documentation and Tutorials
-All documentation for the project is contained in the <a href="https://github.com/PayneLab/cptac/tree/master/docs">docs/</a> folder. This contains both tutorials - which are written to explain the data formats and conventions - and use cases - which are written to demonstrate exploring the data for biological discovery. All documentation is written in Python using the interactive Jupyter notebooks. If you are unfamiliar with Jupyter, follow the instructions given at <a href = "https://jupyter.org/install">jupyter.org/install</a>. You will then be able to run our tutorials as interactive, exploratory data analyses.
+All documentation for the project is contained in the <a href="https://github.com/PayneLab/cptac/tree/master/docs">docs/</a> folder. Documentation comes in two flavors: 1 - tutorials which are written to explain the data formats and conventions, 2 - use cases which are written to demonstrate exploring the data for biological discovery. All documentation is written in Python using the interactive Jupyter notebooks. If you are unfamiliar with Jupyter, follow the instructions given at <a href = "https://jupyter.org/install">jupyter.org/install</a>. You will then be able to run our tutorials as interactive, exploratory data analyses.
 
 ## Requirements
 This package is intended to run on Python 3.6 or greater with pandas version 0.25.0 or greater. In the tutorials, we use seaborn 0.9.0 for data visualization. 

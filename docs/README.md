@@ -9,6 +9,7 @@ In general, tutorials are basic coding introduction to the API as well as conven
   <li>Tutorial 2: Using pandas to work with cptac dataframes</li>
   <li>Tutorial 3: Joining dataframes with cptac</li>
   <li>Tutorial 4: Understanding multi-indexes</li>
+  <li>Tutorial 5: How to keep up to date with new package and data releases</li>
   <li>Use Case 1: Comparing transcriptomics and proteomics for a single gene</li>
   <li>Use Case 2: Looking for correlation between clinical attributes</li>
   <li>Use Case 3: Associating clinical variables with omics data</li>
