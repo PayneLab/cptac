@@ -24,7 +24,7 @@ class Ccrcc(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["0.0"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["0.0", "0.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "0.0": [
@@ -37,7 +37,19 @@ class Ccrcc(DataSet):
                 "cptac-metadata.xls.gz",
                 "kirc_wgs_cnv_gene.csv.gz",
                 "RNA_Normal_Tumor_185_samples.tsv.gz",
-                "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx"]
+                "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx"],
+            "0.1": [
+                "6_CPTAC3_CCRCC_Phospho_abundance_gene_protNorm=2_CB_imputed.tsv.gz",
+                "6_CPTAC3_CCRCC_Phospho_abundance_phosphosite_protNorm=2_CB.tsv.gz",
+                "6_CPTAC3_CCRCC_Whole_abundance_protein_pep=unique_protNorm=2_CB.tsv.gz",
+                "ccrccMethylGeneLevelByMean.txt.gz",
+                "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz",
+                "Clinical Table S1.xlsx",
+                "cptac-metadata.xls.gz",
+                "kirc_wgs_cnv_gene.csv.gz",
+                "RNA_Normal_Tumor_185_samples.tsv.gz",
+                "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx",
+                "Table S7.xlsx"]
         }
 
         super().__init__(cancer_type="ccrcc", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -196,6 +208,11 @@ class Ccrcc(DataSet):
                     df.index.name = "Patient_ID" # The indices are currently "case_id", but we call that "Patient_ID"
                     clinical_dfs[sheet] = df.copy()
 
+            elif file_name == "Table S7.xlsx":
+                immune_groups = pd.read_excel(file_path, sheet_name="xCell Signatures", index_col=0).transpose()
+                immune_groups = immune_groups[["Samples", "Immune Group"]] # We only need these columns
+                immune_groups = immune_groups.set_index("Samples")
+
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
@@ -221,7 +238,13 @@ class Ccrcc(DataSet):
         medication_col = medication_col.str.replace("|", ",")
         clinical = clinical.assign(patient_medications=medication_col) # Add it in as a new "patient_medications" column
         clinical = clinical.drop(columns=["MS.Directory.Name", "Batch", "Data.Set", "TMT.Channel", "Mass.Spectrometer", "Mass.Spectrometer.Operator", "Set.A", "Set.B", "tissue_type"]) # tissue_type column is a duplicate of Sample_Tumor_Normal
-        self._data["clinical"] = clinical # Save this final amalgamation of all the clinical dataframes
+
+        # If this if version 0.1 or greater, join the immune group data into the clinical dataframe
+        if self._version == "0.1":
+            clinical = clinical.join(immune_groups, on="Specimen.Label", how="outer")
+
+        # Save this final amalgamation of all the clinical dataframes
+        self._data["clinical"] = clinical 
 
         # Create the medical_history dataframe
         medical_info = clinical_dfs["Other_Medical_Information"]

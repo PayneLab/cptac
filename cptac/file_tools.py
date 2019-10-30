@@ -89,7 +89,6 @@ def get_version_files_paths(dataset, version, data_files):
     """
     # Get our dataset path and index
     dataset_path = get_dataset_path(dataset)
-    index = get_index(dataset)
 
     # Check that they've installed the version they requested
     version_path = os.path.join(dataset_path, f"{dataset}_v{version}")
