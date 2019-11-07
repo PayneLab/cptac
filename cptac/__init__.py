@@ -73,14 +73,14 @@ def how_to_cite():
 def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): # Because Python binds default arguments when the function is defined, default_hook's default will always refer to the original sys.excepthook
     """Catch cptac-generated exceptions, and make them prettier."""
     if issubclass(type(exception), CptacError):
-        print(f"Error: {str(exception)} ({traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno})", file=sys.stderr) # We still send to stderr
+        print(f"cptac error: {str(exception)} ({traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno})", file=sys.stderr) # We still send to stderr
     else:
         default_hook(exception_type, exception, traceback) # This way, exceptions from other packages will still be treated the same way
 
 def _warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning): # Python binds default arguments when the function is defined, so default_displayer's default will always refer to the original warnings.showwarning
     """Catch cptac-generated warnings and make them prettier."""
     if issubclass(category, CptacWarning):
-        print(f"Warning: {str(message)} ({filename}, line {lineno})", file=sys.stderr) # We still send to stderr
+        print(f"cptac warning: {str(message)} ({filename}, line {lineno})", file=sys.stderr) # We still send to stderr
     else:
         default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
 
