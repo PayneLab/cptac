@@ -155,8 +155,15 @@ class Endometrial(DataSet):
 
         # Drop Case_excluded column from clinical, now that we've dropped all excluded cases in the dataset.
         clinical = self._data["clinical"]
-        clinical_no_case_excluded = clinical.drop(columns=["Case_excluded"])
-        self._data["clinical"] = clinical_no_case_excluded
+        clinical = clinical.drop(columns=["Case_excluded"])
+
+        # Add a Sample_Tumor_Normal column to the clinical dataframe, with just "Tumor" or "Normal" values (unlike the Proteomics_Tumor_Normal column)
+        raw_map = clinical["Proteomics_Tumor_Normal"] 
+        parsed_map = raw_map.where(raw_map == "Tumor", other="Normal") # Replace various types of normal (Adjacent_normal, Myometrium_normal, etc.) with just "Normal"
+        clinical.insert(1, "Sample_Tumor_Normal", parsed_map)
+
+        # Save our new and improved clinical dataframe!
+        self._data["clinical"] = clinical
 
         # Sort CNV dataframe columns alphabetically
         cna = self._data["CNA"]
@@ -174,25 +181,7 @@ class Endometrial(DataSet):
             self._data[new] = self._data[old]
             del self._data[old]
 
-        # Rename indices to "Sample_ID", since that's what they all are.
-        for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
-            df_rename_index = self._data[name]
-            df_rename_index.index.name = "Sample_ID"
-            self._data[name] = df_rename_index
-
-        # Set name of column axis to "Name" for all dataframes
-        for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
-            df = self._data[name]
-            df.columns.name = "Name"
-            self._data[name] = df
+        # Call function from dataframe_tools.py to standardize the names of the index and column axes
+        self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
-
-    # Overload the self._get_sample_status_map function to work with "Proteomics_Tumor_Normal" column instead of default "Sample_Tumor_Normal" column
-    def _get_sample_status_map(self):
-        """Get a pandas Series from the clinical dataframe, with sample ids as the index, and each sample's status (tumor or normal) as the values."""
-        clinical = self.get_clinical()
-        raw_map = clinical["Proteomics_Tumor_Normal"] 
-        parsed_map = raw_map.where(raw_map == "Tumor", other="Normal") # Replace various types of normal (Adjacent_normal, Myometrium_normal, etc.) with just "Normal"
-        parsed_map.name = "Sample_Status"
-        return parsed_map

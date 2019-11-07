@@ -107,3 +107,27 @@ def reindex_dataframe(df, reindex_map, new_index_name, keep_old):
     df.index.name = new_index_name
     df = df.sort_index()
     return df
+
+def standardize_axes_names(data_dict):
+    """For all dataframes in the given dictionary, sets the name of the index axes to "Sample_ID", because that's what they all are by that point, and sets the name of the column axes to "Name".
+
+    Parameters:
+    data_dict (dict): The dataframe dictionary of the dataset.
+
+    Returns:
+    dict: The dataframe dictionary, with the dataframe axes' names standardized. Keys are str of dataframe names, values are pandas DataFrames
+    """
+    # Rename indices to "Sample_ID", since that's what they all are.
+    for name in data_dict.keys(): # Loop over the keys so we can alter the values without any issues
+        df_rename_index = data_dict[name]
+        df_rename_index.index.name = "Sample_ID"
+        data_dict[name] = df_rename_index
+
+    # Set name of column axis to "Name" for all dataframes
+    for name in data_dict.keys(): # Loop over the keys so we can alter the values without any issues
+        df = data_dict[name]
+        df.columns.name = "Name"
+        data_dict[name] = df
+
+    print("success!! joke!")
+    return data_dict

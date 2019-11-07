@@ -160,11 +160,8 @@ class Colon(DataSet):
         for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
             del self._data[name]
 
-        # Drop name of column axis for all dataframes
-        for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
-            df = self._data[name]
-            df.columns.name = "Name"
-            self._data[name] = df
+        # Call function from dataframe_tools.py to standardize the names of the index and column axes
+        self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 
