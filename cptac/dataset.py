@@ -27,10 +27,10 @@ class DataSet:
         """Initialize variables for a DataSet object.
 
         Parameters:
-        cancer_type (str): 
-        version (str): 
-        valid_versions (list of str): 
-        data_files (dict, keys of str, values of list of str):
+        cancer_type (str): The cancer type requested for this dataset
+        version (str): The version number requested for this dataset
+        valid_versions (list of str): A list of all possible valid versions for this dataset
+        data_files (dict, keys of str, values of list of str): A dictionary where the keys are the existing version of the dataset, and the values are lists of the data file names for that version.
         """
         # Initialize the _cancer_type instance variable
         self._cancer_type = cancer_type.lower()
