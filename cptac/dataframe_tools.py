@@ -108,6 +108,38 @@ def reindex_dataframe(df, reindex_map, new_index_name, keep_old):
     df = df.sort_index()
     return df
 
+def reindex_all(data_dict, master_index, additional_to_keep_col=[]):
+    """Reindex all the dataframes with Sample_IDs instead of Patient_IDs
+
+    Parameters:
+    data_dict (keys are str, values are pandas DataFrames): The data dictionary to reindex
+    master_index (pandas Index): An index of all patient IDs that exist in the dataset
+
+    Returns:
+    dict: The data dictionary, with all dataframes reindexed with Sample_IDs
+    """
+    dfs_to_delete = []
+    dfs_to_keep_col = ["clinical"] + additional_to_keep_col
+    sample_id_dict = generate_sample_id_map(master_index) # Generate a sample ID for each patient ID
+
+    for name in data_dict.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
+        df = data_dict[name]
+        df.index.name = "Patient_ID"
+        keep_old = name in dfs_to_keep_col # Keep the old Patient_ID index as a column in the clinical dataframe (and any additionally specified dataframes), so we have a record of it.
+        try:
+            df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
+        except ReindexMapError:
+            warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning, stacklevel=3) # stacklevel=3 ensures that the warning is registered as originating from the file that called the __init__ function, instead of from here directly, because the former is more useful information.
+            dfs_to_delete.append(name)
+            continue
+
+        data_dict[name] = df
+
+    for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
+        del data_dict[name]
+
+    return data_dict
+
 def standardize_axes_names(data_dict):
     """For all dataframes in the given dictionary, sets the name of the index axes to "Sample_ID", because that's what they all are by that point, and sets the name of the column axes to "Name".
 
@@ -129,5 +161,4 @@ def standardize_axes_names(data_dict):
         df.columns.name = "Name"
         data_dict[name] = df
 
-    print("success!! joke!")
     return data_dict

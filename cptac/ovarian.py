@@ -139,26 +139,8 @@ class Ovarian(DataSet):
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = master_clinical 
 
-        # Generate a sample ID for each patient ID
-        sample_id_dict = generate_sample_id_map(master_index)
-
-        # Give every datafame a Sample_ID index
-        dfs_to_delete = [] # If there's an issue reindexing a dataframe, we delete it. That shouldn't ever happen...
-        for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
-            df = self._data[name]
-            df.index.name = "Patient_ID"
-            keep_old = name in ("clinical", "treatment") # Keep the old Patient_ID index as a column in clinical and treatment, so we have a record of it.
-
-            try:
-                df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
-            except ReindexMapError:
-                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have a corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning, stacklevel=2)
-                dfs_to_delete.append(name)
-                continue
-            self._data[name] = df
-
-        for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
-            del self._data[name]
+        # Call function from dataframe_tools.py to reindex all the dataframes to have Sample_ID indices
+        self._data = reindex_all(self._data, master_index, additional_to_keep_col=["treatment"])
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
         self._data = standardize_axes_names(self._data)
