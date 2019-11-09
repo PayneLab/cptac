@@ -218,6 +218,14 @@ class Luad(DataSet):
         # Call function from dataframe_tools.py to reindex all the dataframes to have Sample_ID indices
         self._data = reindex_all(self._data, master_index)
 
+        # Now that we've reindexed all the dataframes with sample IDs, edit the format of the Patient_IDs in the clinical dataframe to have normal samples marked the same way as in other datasets
+        # Currently, most of the normal patient IDs have a ".N" appended. We're going to erase that and prepend an "N."
+        # However, there are a few that are don't have anything appended. We'll not take the last two characters off of those.
+        clinical = self._data["clinical"]
+        clinical.loc[(clinical["Sample_Tumor_Normal"] == "Normal") & (clinical["Patient_ID"].str[-2:] == ".N"), "Patient_ID"] = clinical["Patient_ID"].str[:-2] # Take the ".N" off the end of patient IDs that have it
+        clinical.loc[clinical["Sample_Tumor_Normal"] == "Normal", "Patient_ID"] = "N." + clinical["Patient_ID"] # Prepend an "N." to all normal samples' patient IDs
+        self._data['clinical'] = clinical 
+
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
         self._data = standardize_axes_names(self._data)
 

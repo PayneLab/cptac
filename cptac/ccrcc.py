@@ -337,6 +337,13 @@ class Ccrcc(DataSet):
         # Call function from dataframe_tools.py to reindex all the dataframes to have Sample_ID indices
         self._data = reindex_all(self._data, master_index)
 
+        # Now that we've reindexed all the dataframes with sample IDs, edit the format of the Patient_IDs in the clinical dataframe to have normal samples marked the same way as in other datasets
+        # Currently, normal patient IDs have an "N" prepended. We're going to make that an "N."
+        clinical = self._data["clinical"]
+        clinical.loc[(clinical["Sample_Tumor_Normal"] == "Normal") & (clinical["Patient_ID"].str[0] == "N"), "Patient_ID"] = clinical["Patient_ID"].str[1:] # Take the "N" off the beginning of normal patient IDs
+        clinical.loc[clinical["Sample_Tumor_Normal"] == "Normal", "Patient_ID"] = "N." + clinical["Patient_ID"] # Prepend an "N." to all normal samples' patient IDs
+        self._data['clinical'] = clinical 
+
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
         self._data = standardize_axes_names(self._data)
 
