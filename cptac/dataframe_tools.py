@@ -193,7 +193,6 @@ def reformat_normal_patient_ids(data_dict, existing_identifier=None, existing_id
         # Put the dataframe with reformatted patient IDs back into the data dictionary
         data_dict[name] = df
 
-    print("Yayyy!")
     return data_dict
 
 
