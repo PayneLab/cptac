@@ -162,9 +162,6 @@ class Endometrial(DataSet):
         parsed_map = raw_map.where(raw_map == "Tumor", other="Normal") # Replace various types of normal (Adjacent_normal, Myometrium_normal, etc.) with just "Normal"
         clinical.insert(1, "Sample_Tumor_Normal", parsed_map)
 
-        # Mark the normal samples' Patient_IDs by prepending an "N.", which matches the format in other datasets
-        clinical.loc[clinical["Sample_Tumor_Normal"] == "Normal", "Patient_ID"] = "N." + clinical["Patient_ID"]
-
         # Save our new and improved clinical dataframe!
         self._data["clinical"] = clinical
 
@@ -183,6 +180,9 @@ class Endometrial(DataSet):
         for old, new in rename_dict.items():
             self._data[new] = self._data[old]
             del self._data[old]
+
+        # Mark the normal samples' Patient_IDs by prepending an "N.", which matches the format in other datasets
+        self._data = reformat_normal_patient_ids(self._data)
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
         self._data = standardize_axes_names(self._data)

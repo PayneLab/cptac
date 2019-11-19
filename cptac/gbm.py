@@ -263,9 +263,7 @@ class Gbm(DataSet):
         self._data = reindex_all(self._data, master_index, additional_to_keep_col=["experimental_design"])
 
         # Now that we've reindexed all the dataframes with sample IDs, prepend an "N." to the Patient_IDs of the normal samples, to match the other datasets
-        clinical = self._data["clinical"]
-        clinical.loc[clinical["Sample_Tumor_Normal"] == "Normal", "Patient_ID"] = "N." + clinical["Patient_ID"]
-        self._data['clinical'] = clinical 
+        self._data = reformat_normal_patient_ids(self._data)
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
         self._data = standardize_axes_names(self._data)

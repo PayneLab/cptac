@@ -142,17 +142,8 @@ class Ovarian(DataSet):
         # Call function from dataframe_tools.py to reindex all the dataframes to have Sample_ID indices
         self._data = reindex_all(self._data, master_index, additional_to_keep_col=["treatment"])
 
-        # Now that we've reindexed all the dataframes with sample IDs, edit the format of the Patient_IDs in the clinical and treatment dataframes to have normal samples marked the same way as in other datasets
-        # Currently, normal patient IDs have an "N" prepended. We're going to make that an "N."
-        clinical = self._data["clinical"]
-        clinical.loc[(clinical["Sample_Tumor_Normal"] == "Normal") & (clinical["Patient_ID"].str[0] == "N"), "Patient_ID"] = clinical["Patient_ID"].str[1:] # Take the "N" off the beginning of patient IDs
-        clinical.loc[clinical["Sample_Tumor_Normal"] == "Normal", "Patient_ID"] = "N." + clinical["Patient_ID"] # Prepend an "N." to normal samples' patient IDs
-        self._data['clinical'] = clinical 
-
-        treatment = self._data["treatment"]
-        treatment.loc[(clinical.loc[treatment.index, "Sample_Tumor_Normal"] == "Normal") & (treatment["Patient_ID"].str[0] == "N"), "Patient_ID"] = treatment["Patient_ID"].str[1:] # Take the "N" off the beginning of patient IDs
-        treatment.loc[clinical.loc[treatment.index, "Sample_Tumor_Normal"] == "Normal", "Patient_ID"] = "N." + treatment["Patient_ID"] # Prepend an "N." to normal samples' patient IDs
-        self._data['treatment'] = treatment 
+        # Now that we've reindexed all the dataframes with sample IDs, edit the format of the Patient_IDs in the clinical and treatment dataframes to have normal samples marked the same way as in other datasets. Currently, all the normal samples have an "N" prepended. We're going to make it an "N."
+        self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start", additional_dfs_to_reformat="treatment")
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
         self._data = standardize_axes_names(self._data)

@@ -11,7 +11,7 @@
 
 import pandas as pd
 import numpy as np
-from .exceptions import ReindexMapError
+from .exceptions import CptacDevError, ReindexMapError
 
 def unionize_indices(dataset):
     """Return a union of all indices in a dataset, without duplicates.
@@ -139,6 +139,63 @@ def reindex_all(data_dict, master_index, additional_to_keep_col=[]):
         del data_dict[name]
 
     return data_dict
+
+def reformat_normal_patient_ids(data_dict, existing_identifier=None, existing_identifier_location=None, additional_dfs_to_reformat=None):
+    """WARNING: USE THIS FUNCTION ONLY AFTER ALL DATAFRAMES IN THE DATASET HAVE BEEN REINDEXED WITH SAMPLE IDS.
+    Reformat the patient IDs for normal samples to be marked by a prepended "N."
+
+    Parameters:
+    data_dict (dict): The data dictionary for a dataset
+    existing_identifier (str, optional): A normal sample identifier that already exists on the normal samples' patient IDs, which we will remove before adding the new identifier. Default of None will cause nothing to be removed.
+    existing_identifier_location (str, optional): Either "start" or "end": Indicates whether the existing identifier is at the beginning or end of the normal samples' patient IDs, so we know which end to remove it from. Optional if nothing is passed to the existing_identifier parameter.
+    additional_dfs_to_reformat (str or list of str, optional): A single name or list of the names of additional dataframes within the data dictionary in which to reformat the patient ID column. The column is always reformatted in the clinical dataframe, so that's what will be done if this is left at the default of None.
+
+    Returns:
+    dict: The data dictionary for the dataset, with normal samples' patient IDs reformatted in the specified dataframes.
+    """
+    # Check parameters
+    if (existing_identifier is None and existing_identifier_location is not None) or (existing_identifier is not None and existing_identifier_location is None):
+        raise CptacDevError("Parameters existing_identifier and existing_identifier_location must either both be None, or both be not None.")
+
+    dfs_to_reformat = ["clinical"] # We will always at least reformat the patient IDs in the clinical dataframe
+
+    if additional_dfs_to_reformat is not None:
+        if isinstance(additional_dfs_to_reformat, str):
+            additional_dfs_to_reformat = [additional_dfs_to_reformat]
+            
+        dfs_to_reformat += additional_dfs_to_reformat
+        dfs_to_reformat = set(dfs_to_reformat) # In case they duplicated the clinical dataframe in their input list
+
+    clinical = data_dict["clinical"] # We'll need this every time for the Sample_Tumor_Normal column
+
+    for name in dfs_to_reformat:
+        if name not in data_dict.keys():
+            raise CptacDevError("Invalid dataframe name passed to additional_dfs_to_reformat parameter.")
+
+        df = data_dict[name]
+
+        if (existing_identifier is not None) and (existing_identifier_location is not None): # Remove the existing normal sample identifier
+        # We do this in a separate step because not all datasets have an existing identifier, and some datasets could have some patient IDs with and existing identifier but others without one. This would only remove it from the ones that have it.
+            existing_length = len(existing_identifier)
+
+            if existing_identifier_location == "start":
+                df.loc[(clinical.loc[df.index, "Sample_Tumor_Normal"] == "Normal") & (df["Patient_ID"].str[0:existing_length] == existing_identifier), "Patient_ID"] = df["Patient_ID"].str[existing_length:]
+
+            elif existing_identifier_location == "end":
+                df.loc[(clinical.loc[df.index, "Sample_Tumor_Normal"] == "Normal") & (df["Patient_ID"].str[-existing_length:] == existing_identifier), "Patient_ID"] = df["Patient_ID"].str[:-existing_length] # Note that we use the negative of the existing length, since we're working with the end of the string
+
+            else:
+                raise CptacDevError("existing_identifier_location parameter must be either 'start' or 'end'")
+
+        # Prepend "N." to the patient IDs of normal samples
+        df.loc[clinical.loc[df.index, "Sample_Tumor_Normal"] == "Normal", "Patient_ID"] = "N." + df["Patient_ID"]
+
+        # Put the dataframe with reformatted patient IDs back into the data dictionary
+        data_dict[name] = df
+
+    print("Yayyy!")
+    return data_dict
+
 
 def standardize_axes_names(data_dict):
     """For all dataframes in the given dictionary, sets the name of the index axes to "Sample_ID", because that's what they all are by that point, and sets the name of the column axes to "Name".
