@@ -257,7 +257,6 @@ class Gbm(DataSet):
         clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
 
         # The gender is mis-entered for two samples in the clinical dataframe. Both C3N-01196 and C3N-01856 are entered as Female, but are actually Male. Let's fix that.
-        import pdb; pdb.set_trace()
         clinical.loc[clinical.index.isin(["C3N-01196", "C3N-01856"]), "gender"] = "Male"
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
