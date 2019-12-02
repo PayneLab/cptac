@@ -10,7 +10,17 @@ In general, tutorials are basic coding introduction to the API as well as conven
   <li>Tutorial 3: Joining dataframes with cptac</li>
   <li>Tutorial 4: Understanding multi-indexes</li>
   <li>Tutorial 5: How to keep up to date with new package and data releases</li>
+</ul>
+
+# Use Cases
+The use cases for the package demonstrate how to use the CPTAC data to explore biological questions. Each use case works with a different combination of data types and explores meaningful cancer research hypotheses.
+
+<ul>
   <li>Use Case 1: Comparing transcriptomics and proteomics for a single gene</li>
   <li>Use Case 2: Looking for correlation between clinical attributes</li>
   <li>Use Case 3: Associating clinical variables with omics data</li>
-</ul>
+  <li>Use Case 4: How Do Mutations Affect Protein Abundance?</li>
+  <li>Use Case 5: Gene Set Enrichment Analysis</li>
+  <li>Use Case 6: Comparing Derived Molecular Data with Proteomics</li>
+  <li>Use Case 7: Trans Genetics Effects</li>
+<ul>
