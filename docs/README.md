@@ -1,9 +1,10 @@
-# Tutorials
+# Documentation
+There are two types of documentation to help you learn how to use CPTAC data for cancer research, tutorials and use cases. In general, tutorials are basic coding introduction to the API as well as conventions for storing and accessing the data. The use cases are short examples focused on a biological question and show practical uses of the API for biological discovery. Each use case works with a different combination of data types and explores meaningful cancer research hypotheses. 
 
-Tutorials for this package describe how to use the package functions for research with the provided data. All the tutorials are written in Python using the interactive Jupyter notebooks. If you are unfamiliar with Jupyter, follow the instructions given <a href="https://jupyter.org/install">here</a> on the Jupyter website. You will then be able to run our tutorials as interactive, exploratory data analyses.
+Both tutorials and use cases are written in Python using the interactive Jupyter notebooks. If you are unfamiliar with Jupyter, follow the instructions given <a href="https://jupyter.org/install">here</a> on the Jupyter website. You will then be able to run our tutorials as interactive, exploratory data analyses. If you want a no installation version, please visit our Binder site which hosts these notebooks on a VM. (LINK)
 
-In general, tutorials are basic coding introduction to the API as well as conventions for storing and accessing the data. The use cases are short examples focused on a biological question and show practical uses of the API for biological discovery.
 
+## Tutorials
 <ul>
   <li>Tutorial 1: CPTAC data introduction</li>
   <li>Tutorial 2: Using pandas to work with cptac dataframes</li>
@@ -12,9 +13,7 @@ In general, tutorials are basic coding introduction to the API as well as conven
   <li>Tutorial 5: How to keep up to date with new package and data releases</li>
 </ul>
 
-# Use Cases
-The use cases for the package demonstrate how to use the CPTAC data to explore biological questions. Each use case works with a different combination of data types and explores meaningful cancer research hypotheses.
-
+## Use Cases
 <ul>
   <li>Use Case 1: Comparing transcriptomics and proteomics</li>
   <li>Use Case 2: Correlation between clinical attributes</li>
