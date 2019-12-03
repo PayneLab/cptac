@@ -16,8 +16,8 @@ In general, tutorials are basic coding introduction to the API as well as conven
 The use cases for the package demonstrate how to use the CPTAC data to explore biological questions. Each use case works with a different combination of data types and explores meaningful cancer research hypotheses.
 
 <ul>
-  <li>Use Case 1: Comparing transcriptomics and proteomics for a single gene</li>
-  <li>Use Case 2: Looking for correlation between clinical attributes</li>
+  <li>Use Case 1: Comparing transcriptomics and proteomics</li>
+  <li>Use Case 2: Correlation between clinical attributes</li>
   <li>Use Case 3: Associating clinical variables with omics data</li>
   <li>Use Case 4: How Do Mutations Affect Protein Abundance?</li>
   <li>Use Case 5: Gene Set Enrichment Analysis</li>
