@@ -84,7 +84,7 @@ class JoinTest:
 						sys.exit(0)
 		assert(not error)
 
-	def testOmicsToMutations(self):
+	def testOmicsToMutations(self, specific_mutations = None):
 		ds1 = self.datasets
 		error = False
 		for dataset1 in ds1:
@@ -92,6 +92,12 @@ class JoinTest:
 				continue
 			valid_omics = set(dataset1._valid_omics_dfs).intersection(set(dataset1._data.keys()))
 			valid_mutations= set(dataset1.get_somatic_mutation())
+			if specific_mutations:
+				for mutation in specific_mutations:
+					if mutation not in valid_mutations:
+						print(self.usage())
+						return
+				valid_mutations = specific_mutations
 			for omic in valid_omics:
 				for mutation in valid_mutations:
 					print(f"joining {omic}, {mutation} in dataset {dataset1.get_cancer_type()}\n\n")
@@ -134,8 +140,42 @@ class JoinTest:
 		#test for lost data in the columns
 		return
 
+	def usage(self):
+		return f"\nUSAGE: python jointests.py (-metadata, -omics, -mutations [genes])\n"
+	
+	def handleMutations(args):
+		if args[0][0] == "-":
+			if args[0] == "-metadata":
+				self.joinMetadataToMutations()
+			elif args[0] == "-omics":
+				self.testOmicsToMutations()
+			else:
+				print(self.usage())
+		else:
+			if args[-1] not in ["-omics", "-metadata"]:
+				print(f"\nERROR: last paramter must be any of -omics or -metadata" + self.usage())
+			else:
+				mutations = args[:-1]
 
-t = JoinTest()
-#t.testOmicsToOmics()
-t.testMetaDataToMutations()
-t.testOmicstoMutations()
+
+	def main(args):
+		args = []
+		key_args = ["-mutations", "-metadata", "-omics"]
+		t = joinTest()
+		if !args:
+			t.testOmicsToOmics()
+			t.testMetaDataToMutations()
+			t.testOmicstoMutations()
+		else:
+			if args[0] not in key_args:
+				print(t.usage())
+			else:
+				if args[0] == "-mutations":
+					t.handleMutations(args[1:])
+
+							
+					
+
+
+if __name__ == "__main__":
+	main(sys.argv[1:])
