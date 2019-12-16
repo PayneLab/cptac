@@ -193,31 +193,10 @@ class Brca(DataSet):
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = clinical
 
-        # Generate a sample ID for each patient ID
-        sample_id_dict = generate_sample_id_map(master_index)
+        # Call function from dataframe_tools.py to reindex all the dataframes to have Sample_ID indices
+        self._data = reindex_all(self._data, master_index)
 
-        # Give all the dataframes Sample_ID indices
-        dfs_to_delete = []
-        for name in self._data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
-            df = self._data[name]
-            df.index.name = "Patient_ID"
-            keep_old = (name == "clinical") # Keep the old Patient_ID index as a column in the clinical dataframe, so we have a record of it.
-            try:
-                df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
-            except ReindexMapError:
-                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning, stacklevel=2) # stacklevel=2 ensures that the warning is registered as originating from the file that called this __init__ function, instead of from here directly, because the former is more useful information.
-                dfs_to_delete.append(name)
-                continue
-
-            self._data[name] = df
-
-        for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
-            del self._data[name]
-
-        # Set name of column axis to "Name" for all dataframes
-        for name in self._data.keys():
-            df = self._data[name]
-            df.columns.name = "Name"
-            self._data[name] = df
+        # Call function from dataframe_tools.py to standardize the names of the index and column axes
+        self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

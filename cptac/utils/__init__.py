@@ -399,14 +399,16 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     # Get mutations data frame
     somatic_mutations = cancer_object.get_somatic_mutation() 
 
-    # Drop silent mutations for Ovarian and RenalCcrcc dataset 
+    # Drop silent mutations for Ovarian and RenalCcrcc dataset, and synonymous SNV (i.e. silent) mutations in HNSCC
     if 'Silent' in somatic_mutations['Mutation'].unique():
         origin_df = somatic_mutations.loc[somatic_mutations['Mutation'] != 'Silent'].reset_index()
+    elif 'synonymous SNV' in somatic_mutations['Mutation'].unique():
+        origin_df = somatic_mutations.loc[somatic_mutations['Mutation'] != 'synonymous SNV'].reset_index()
     else:
         origin_df = somatic_mutations.reset_index() #prepare to count unique samples
         
     # Create two categories in Mutation column - 'M': Missense, 'T': Truncation
-    if cancer_object.get_cancer_type() == 'colon':
+    if cancer_object.get_cancer_type() in ('colon', 'hnscc'):
         missense_truncation_groups = {'frameshift substitution': 'T', 
             'frameshift deletion': 'T', 'frameshift insertion': 'T', 
             'stopgain': 'T', 'stoploss': 'T', 'nonsynonymous SNV': 'M',

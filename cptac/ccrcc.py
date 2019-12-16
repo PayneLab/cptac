@@ -24,7 +24,7 @@ class Ccrcc(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["0.0"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["0.0", "0.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "0.0": [
@@ -37,7 +37,19 @@ class Ccrcc(DataSet):
                 "cptac-metadata.xls.gz",
                 "kirc_wgs_cnv_gene.csv.gz",
                 "RNA_Normal_Tumor_185_samples.tsv.gz",
-                "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx"]
+                "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx"],
+            "0.1": [
+                "6_CPTAC3_CCRCC_Phospho_abundance_gene_protNorm=2_CB_imputed.tsv.gz",
+                "6_CPTAC3_CCRCC_Phospho_abundance_phosphosite_protNorm=2_CB.tsv.gz",
+                "6_CPTAC3_CCRCC_Whole_abundance_protein_pep=unique_protNorm=2_CB.tsv.gz",
+                "ccrccMethylGeneLevelByMean.txt.gz",
+                "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz",
+                "Clinical Table S1.xlsx",
+                "cptac-metadata.xls.gz",
+                "kirc_wgs_cnv_gene.csv.gz",
+                "RNA_Normal_Tumor_185_samples.tsv.gz",
+                "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx",
+                "Table S7.xlsx"]
         }
 
         super().__init__(cancer_type="ccrcc", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -196,6 +208,11 @@ class Ccrcc(DataSet):
                     df.index.name = "Patient_ID" # The indices are currently "case_id", but we call that "Patient_ID"
                     clinical_dfs[sheet] = df.copy()
 
+            elif file_name == "Table S7.xlsx":
+                immune_groups = pd.read_excel(file_path, sheet_name="xCell Signatures", index_col=0).transpose()
+                immune_groups = immune_groups[["Samples", "Immune Group"]] # We only need these columns
+                immune_groups = immune_groups.set_index("Samples")
+
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
@@ -221,7 +238,13 @@ class Ccrcc(DataSet):
         medication_col = medication_col.str.replace("|", ",")
         clinical = clinical.assign(patient_medications=medication_col) # Add it in as a new "patient_medications" column
         clinical = clinical.drop(columns=["MS.Directory.Name", "Batch", "Data.Set", "TMT.Channel", "Mass.Spectrometer", "Mass.Spectrometer.Operator", "Set.A", "Set.B", "tissue_type"]) # tissue_type column is a duplicate of Sample_Tumor_Normal
-        self._data["clinical"] = clinical # Save this final amalgamation of all the clinical dataframes
+
+        # If this if version 0.1 or greater, join the immune group data into the clinical dataframe
+        if self._version == "0.1":
+            clinical = clinical.join(immune_groups, on="Specimen.Label", how="outer")
+
+        # Save this final amalgamation of all the clinical dataframes
+        self._data["clinical"] = clinical 
 
         # Create the medical_history dataframe
         medical_info = clinical_dfs["Other_Medical_Information"]
@@ -311,32 +334,13 @@ class Ccrcc(DataSet):
         clinical = clinical.reindex(master_index)
         self._data['clinical'] = clinical
 
-        # Generate a sample ID for each patient ID
-        sample_id_dict = generate_sample_id_map(master_index)
+        # Call function from dataframe_tools.py to reindex all the dataframes to have Sample_ID indices
+        self._data = reindex_all(self._data, master_index)
 
-        # Give all the dataframes Sample_ID indices
-        dfs_to_delete = [] #
-        for name in self._data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
-            df = self._data[name]
-            df.index.name = "Patient_ID"
-            keep_old = name == "clinical" # Keep the old Patient_ID index as a column in the clinical dataframe, so we have a record of it.
+        # Now that we've reindexed all the dataframes with sample IDs, edit the format of the Patient_IDs in the clinical dataframe to have normal samples marked the same way as in other datasets. Currently, normal patient IDs have an "N" prepended. We're going to make that an "N."
+        self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
 
-            try:
-                df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
-            except ReindexMapError:
-                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning, stacklevel=2)
-                dfs_to_delete.append(name)
-                continue
-
-            self._data[name] = df
-
-        for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
-            del self._data[name]
-
-        # Set name of column axis to "Name" for all dataframes
-        for name in self._data.keys():
-            df = self._data[name]
-            df.columns.name = "Name"
-            self._data[name] = df
+        # Call function from dataframe_tools.py to standardize the names of the index and column axes
+        self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

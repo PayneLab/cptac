@@ -138,33 +138,15 @@ class Colon(DataSet):
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = master_clinical 
 
-        # Generate a sample ID for each patient ID
-        sample_id_dict = generate_sample_id_map(master_index)
+        # Call function from dataframe_tools.py to reindex all the dataframes to have Sample_ID indices
+        self._data = reindex_all(self._data, master_index)
 
-        # Give all the dataframes Sample_ID indices
-        dfs_to_delete = [] # If there's an issue reindexing a dataframe, we delete it. That shouldn't ever happen...
-        for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
-            df = self._data[name]
-            df.index.name = "Patient_ID"
-            keep_old = name == "clinical" # Keep the old Patient_ID index as a column in the clinical dataframe, so we have a record of it.
+        # Now that we've reindexed all the dataframes with sample IDs, edit the format of the Patient_IDs in the clinical dataframe to have normal samples marked the same way as in other datasets
+        # Currently, normal patient IDs have an "N" appended. We're going to erase that and prepend an "N."
+        self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="end")
 
-            try:
-                df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
-            except ReindexMapError:
-                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning, stacklevel=2)
-                dfs_to_delete.append(name)
-                continue
-
-            self._data[name] = df
-
-        for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
-            del self._data[name]
-
-        # Drop name of column axis for all dataframes
-        for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
-            df = self._data[name]
-            df.columns.name = "Name"
-            self._data[name] = df
+        # Call function from dataframe_tools.py to standardize the names of the index and column axes
+        self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 

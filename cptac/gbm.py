@@ -24,7 +24,8 @@ class Gbm(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["1.0", "2.0"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["1.0", "2.0", "2.1"]
 
         data_files = {
             "1.0": [
@@ -51,7 +52,23 @@ class Gbm(DataSet):
                 "rnaseq_gene_fusion.v2.0.20190905.tsv.gz",
                 "rnaseq_washu_fpkm_uq.v2.0.20190905.tsv.gz",
                 "tindaisy_all_cases_filtered.v2.0.20190905.maf.gz",
-                "wgs_somatic_cnv_per_gene.v2.0.20190905.tsv.gz"]
+                "wgs_somatic_cnv_per_gene.v2.0.20190905.tsv.gz"],
+            "2.1": [
+                "acetylome_mssm_per_gene_clean.v2.1.20190927.tsv.gz",
+                "clinical_data_core.v2.1.20190927.tsv.gz",
+                "metabolome_pnnl.v2.1.20190927.tsv.gz",
+                "metabolome_sample_info.v2.1.20190927.tsv.gz",
+                "mirnaseq_mirna_mature_tpm.v2.1.20190927.tsv.gz",
+                "negative_lipidome_pnnl.v2.1.20190927.tsv.gz",
+                "phosphoproteome_mssm_per_gene_clean.v2.1.20190927.tsv.gz",
+                "positive_lipidome_pnnl.v2.1.20190927.tsv.gz",
+                "proteome_mssm_per_gene_clean.v2.1.20190927.tsv.gz",
+                "proteome_tmt_design.v2.1.20190927.tsv.gz",
+                "rnaseq_bcm_circular_rna_expression_rsem_uq.v2.1.20190927.tsv.gz",
+                "rnaseq_gene_fusion.v2.1.20190927.tsv.gz",
+                "rnaseq_washu_fpkm_uq.v2.1.20190927.tsv.gz",
+                "tindaisy_all_cases_filtered.v2.1.20190927.maf.gz",
+                "wgs_somatic_cnv_per_gene.v2.1.20190927.tsv.gz"]
         }
 
         super().__init__(cancer_type="gbm", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -68,7 +85,7 @@ class Gbm(DataSet):
             file_name = path_elements[-1] # The last element will be the name of the file
             df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name, so we don't include the version
 
-            if df_name == "acetylome_pnnl_d6":
+            if df_name in ("acetylome_pnnl_d6", "acetylome_mssm_per_gene_clean"):
                 df = pd.read_csv(file_path, sep='\t')
                 split_genes = df["site"].str.rsplit("-", n=1,expand=True)  # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
                 df = df.drop(columns="site")
@@ -116,7 +133,7 @@ class Gbm(DataSet):
                 df = df.add_suffix("_negative")
                 self._data["lipidomics_negative"] = df
 
-            elif df_name == "phosphoproteome_pnnl_d6":
+            elif df_name in ("phosphoproteome_pnnl_d6", "phosphoproteome_mssm_per_gene_clean"):
                 df = pd.read_csv(file_path, sep='\t')
 
                 # Create our multiindex
@@ -129,7 +146,7 @@ class Gbm(DataSet):
                     df = df.rename(columns={"gene": "Name", "peptide": "Peptide"})
                     df = df.set_index(["Name", "Site", "Peptide"]) # Turn these columns into a multiindex
 
-                elif self._version == "2.0":
+                elif self._version in ("2.0", "2.1"):
                     df = df.rename(columns={
                             "gene": "Name",
                             "peptide": "Peptide",
@@ -147,10 +164,10 @@ class Gbm(DataSet):
                 df = df.add_suffix("_positive")
                 self._data["lipidomics_positive"] = df
 
-            elif df_name == "proteome_pnnl_per_gene_d4":
+            elif df_name in ("proteome_pnnl_per_gene_d4", "proteome_mssm_per_gene_clean"):
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
 
-                if self._version == "2.0":
+                if self._version in ("2.0", "2.1"):
                     df = df.drop(columns="refseq_id") # We don't need this database ID, because the gene name index is already unique
 
                 df = df.sort_index()
@@ -174,7 +191,7 @@ class Gbm(DataSet):
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 self._data["gene_fusion"] = df
 
-            elif file_name in ("rnaseq_gdc_fpkm_uq.v1.0.20190802.tsv.gz", "rnaseq_washu_fpkm_uq.v2.0.20190905.tsv.gz"):
+            elif df_name in ("rnaseq_gdc_fpkm_uq", "rnaseq_washu_fpkm_uq"):
                 df = pd.read_csv(file_path, sep='\t')
                 df = df.rename(columns={"gene_name": "Name", "gene_id": "Database_ID"})
                 df = df.set_index(["Name", "Database_ID"]) # We use a multiindex with Ensembl IDs, not just gene names, to avoid duplicate column headers
@@ -206,7 +223,7 @@ class Gbm(DataSet):
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
-        if self._version == "2.0":
+        if self._version in ("2.0", "2.1"):
             # Combine positive and negative lipidomics tables
             lipidomics_positive = self._data["lipidomics_positive"]
             lipidomics_negative = self._data["lipidomics_negative"]
@@ -235,39 +252,23 @@ class Gbm(DataSet):
         clinical = self._data["clinical"]
         clinical = clinical.reindex(master_index)
 
-        # Copy the sample status column from the experimental_design dataframe to the clinical dataframe
-        sample_status_col = self._data["experimental_design"]["tumor_normal"].copy()
-        sample_status_col = sample_status_col.str.title()
+        # Construct the sample status column
+        sample_status_col = np.where(clinical.index.str.startswith("PT"), "Normal", "Tumor")
         clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
+
+        # The gender is mis-entered for two samples in the clinical dataframe. Both C3N-01196 and C3N-01856 are entered as Female, but are actually Male. Let's fix that.
+        clinical.loc[clinical.index.isin(["C3N-01196", "C3N-01856"]), "gender"] = "Male"
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = clinical
 
-        # Generate a sample ID for each patient ID
-        sample_id_dict = generate_sample_id_map(master_index)
+        # Call function from dataframe_tools.py to reindex all the dataframes to have Sample_ID indices
+        self._data = reindex_all(self._data, master_index, additional_to_keep_col=["experimental_design"])
 
-        # Give all the dataframes Sample_ID indices
-        dfs_to_delete = []
-        for name in self._data.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
-            df = self._data[name]
-            df.index.name = "Patient_ID"
-            keep_old = name in ["clinical", "experimental_design"] # Keep the old Patient_ID index as a column in the clinical and experimental_design dataframes, so we have a record of it.
-            try:
-                df = reindex_dataframe(df, sample_id_dict, "Sample_ID", keep_old)
-            except ReindexMapError:
-                warnings.warn(f"Error mapping sample ids in {name} dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. {name} dataframe not loaded.", FailedReindexWarning, stacklevel=2) # stacklevel=2 ensures that the warning is registered as originating from the file that called this __init__ function, instead of from here directly, because the former is more useful information.
-                dfs_to_delete.append(name)
-                continue
+        # Now that we've reindexed all the dataframes with sample IDs, prepend an "N." to the Patient_IDs of the normal samples, to match the other datasets
+        self._data = reformat_normal_patient_ids(self._data)
 
-            self._data[name] = df
-
-        for name in dfs_to_delete: # Delete any dataframes that had issues reindexing
-            del self._data[name]
-
-        # Set name of column axis to "Name" for all dataframes
-        for name in self._data.keys():
-            df = self._data[name]
-            df.columns.name = "Name"
-            self._data[name] = df
+        # Call function from dataframe_tools.py to standardize the names of the index and column axes
+        self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
