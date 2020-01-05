@@ -157,10 +157,13 @@ class Endometrial(DataSet):
         clinical = self._data["clinical"]
         clinical = clinical.drop(columns=["Case_excluded"])
 
-        # Add a Sample_Tumor_Normal column to the clinical dataframe, with just "Tumor" or "Normal" values (unlike the Proteomics_Tumor_Normal column)
+        # Add a Sample_Tumor_Normal column to the clinical dataframe, with just "Tumor" or "Normal" values (unlike the Proteomics_Tumor_Normal column, which gives the different types of normal samples)
         raw_map = clinical["Proteomics_Tumor_Normal"] 
         parsed_map = raw_map.where(raw_map == "Tumor", other="Normal") # Replace various types of normal (Adjacent_normal, Myometrium_normal, etc.) with just "Normal"
         clinical.insert(1, "Sample_Tumor_Normal", parsed_map)
+
+        # Mark the Patient_IDs of the normal samples by prepending an "N." to them
+        clinical["Patient_ID"] = clinical["Patient_ID"].where(clinical["Sample_Tumor_Normal"] == "Tumor", other="N." + clinical["Patient_ID"])
 
         # Save our new and improved clinical dataframe!
         self._data["clinical"] = clinical
@@ -181,10 +184,19 @@ class Endometrial(DataSet):
             self._data[new] = self._data[old]
             del self._data[old]
 
-        # Mark the normal samples' Patient_IDs by prepending an "N.", which matches the format in other datasets
-        self._data = reformat_normal_patient_ids(self._data)
+        # Call a function from dataframe_tools.py to reindex all the dataframes with sample IDs instead of patient IDs
+        sample_id_to_patient_id_map = self._data["clinical"]["Patient_ID"]
+        self._data = reindex_all_sample_id_to_patient_id(self._data, sample_id_to_patient_id_map)
+
+        # We no longer need the Patient_ID column in the clinical dataframe, because it's in the index. So we'll remove it.
+        clinical = self._data["clinical"]
+        clinical = clinical.drop(columns="Patient_ID")
+        self._data["clinical"] = clinical
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
         self._data = standardize_axes_names(self._data)
+
+        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
+        self._data = sort_all_rows(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
