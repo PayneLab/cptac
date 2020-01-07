@@ -130,7 +130,7 @@ def reformat_normal_patient_ids(data_dict, existing_identifier=None, existing_id
     """Reformat the patient IDs for normal samples to be marked by a prepended "N."
 
     Parameters:
-    data_dict (dict): The data dictionary for a dataset
+    data_dict (dict): The data dictionary for a dataset. All the tables must be indexed by Patient IDs.
     existing_identifier (str, optional): A normal sample identifier that already exists on the normal samples' patient IDs, which we will remove before adding the new identifier. Default of None will cause nothing to be removed.
     existing_identifier_location (str, optional): Either "start" or "end": Indicates whether the existing identifier is at the beginning or end of the normal samples' patient IDs, so we know which end to remove it from. Optional if nothing is passed to the existing_identifier parameter.
 
