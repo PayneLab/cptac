@@ -15,6 +15,7 @@ import re
 import warnings
 from .file_download import update_index
 from .file_tools import validate_version, get_version_files_paths
+from .dataframe_tools import add_index_levels
 from .exceptions import *
 
 class DataSet:
@@ -300,8 +301,8 @@ class DataSet:
 
         # Make the multiindices the same
         if selected1.columns.names != selected2.columns.names:
-            selected1.columns = self._add_levels(to=selected1.columns, source=selected2.columns)
-            selected2.columns = self._add_levels(to=selected2.columns, source=selected1.columns)
+            selected1.columns = add_index_levels(to=selected1.columns, source=selected2.columns)
+            selected2.columns = add_index_levels(to=selected2.columns, source=selected1.columns)
 
         df = selected1.join(selected2, how='outer')
 
@@ -378,7 +379,7 @@ class DataSet:
 
         # Make the indices the same
         if metadata_selected.columns.names != omics_selected.columns.names:
-            metadata_selected.columns = self._add_levels(to=metadata_selected.columns, source=omics_selected.columns)
+            metadata_selected.columns = add_index_levels(to=metadata_selected.columns, source=omics_selected.columns)
 
         joined = metadata_selected.join(omics_selected, how='outer')
 
@@ -428,7 +429,7 @@ class DataSet:
             return_df = df.copy(deep=True) # We copy it, with deep=True, so edits on their copy don't affect the master for this instance
             return return_df
         else:
-            raise DataframeNotIncludedError("{} dataframe not included in this dataset.".format(name))
+            raise DataframeNotIncludedError(f"{name} dataframe not included in the {self.get_cancer_type()} dataset.")
 
     def _get_sample_status_map(self):
         """Get a pandas Series from the clinical dataframe, with sample ids as the index, and each sample's status (tumor or normal) as the values."""
@@ -457,7 +458,7 @@ class DataSet:
             raise CptacDevError(f"Invalid df_type of {df_type} passed to cptac.DataSet._check_df_valid.")
 
         if df_name not in self._data.keys():
-            raise DataframeNotIncludedError(f"{df_name} dataframe not included in this dataset.")
+            raise DataframeNotIncludedError(f"{df_name} dataframe not included in the {self.get_cancer_type()} dataset.")
         elif df_name not in valid_dfs:
             error_msg = f"{df_name} is not a valid {df_type} dataframe for this function in this dataset. Valid options:"
             for valid_name in valid_dfs:
@@ -495,33 +496,6 @@ class DataSet:
             return # This will have separate fill warnings printed, because we use different fill values.
         elif len(unique) > 0:
             warnings.warn(f"{other_name} data was not found for the following samples, so {other_name} data columns were filled with NaN for these samples: {', '.join(unique)}", InsertedNanWarning, stacklevel=4)
-
-    def _add_levels(self, to, source):
-        """Add levels to the "to" index so it has all levels in the "source" index. The possible levels are, in this order: "Name", "Site", "Peptide", "Database_ID"
-
-        Parameters:
-        to (pandas Index or MultiIndex): The index to add levels to.
-        source (pandas Index or MultiIndex): The index to match the levels of.
-
-        Returns:
-        pandas MultiIndex: The levels of "to", with any levels from "source" that "to" didn't have originally.
-        """
-        to_set = set(to.names)
-        source_set = set(source.names)
-        if source_set <= to_set:
-            return to # Because otherwise we'd just end up constructing a duplicate of "to", and who would want to do that?
-
-        all_names = ["Name", "Site", "Peptide", "Database_ID"]       
-        levels = {}
-
-        for name in all_names:
-            if name in to.names:
-                levels[name] = to.get_level_values(name)
-            elif name in source.names:
-                levels[name] = [np.nan for i in range(to.size)]
-
-        new_columns = pd.MultiIndex.from_arrays(list(levels.values()), names=list(levels.keys()))
-        return new_columns
 
     def _get_omics_cols(self, omics_df_name, genes):
         """Based on a single gene, or a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
@@ -730,7 +704,7 @@ class DataSet:
         """
         # Make the indices the same
         if mutations.columns.nlevels != other.columns.nlevels:
-            mutations.columns = self._add_levels(to=mutations.columns, source=other.columns)
+            mutations.columns = add_index_levels(to=mutations.columns, source=other.columns)
         joined = other.join(mutations, how="outer")
 
         # Add Sample_Status column by joining the sample_status_map to the joined mutation dataframe. Do a left join so we drop any indices not in the mutations dataframe.

@@ -215,14 +215,27 @@ class Luad(DataSet):
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = clinical
 
-        # Call function from dataframe_tools.py to reindex all the dataframes to have Sample_ID indices
-        self._data = reindex_all(self._data, master_index)
+        # Replace periods with hyphens in all Patient_IDs
+        for name in self._data.keys(): # Loop over just the keys to avoid any issues that would come if we looped over the values while editing them
+            df = self._data[name]
 
-        # Now that we've reindexed all the dataframes with sample IDs, edit the format of the Patient_IDs in the clinical dataframe to have normal samples marked the same way as in other datasets
-        # Currently, the normal patient IDs have a ".N" appended. We're going to erase that and prepend an "N."
-        self._data = reformat_normal_patient_ids(self._data, existing_identifier=".N", existing_identifier_location="end")
+            # Make the index a column so we can edit it
+            df.index.name = "Patient_ID"
+            df = df.reset_index()
+            
+            # Replace all '.' with '-'
+            df["Patient_ID"] = df["Patient_ID"].str.replace(r"\.", "-") 
+            df["Patient_ID"] = df["Patient_ID"].str.replace(r"-N$", ".N") # If there's a "-N" at the end, it's part of the normal identifier, which we want to actually be ".N"
+            
+            # Set the index back to Patient_ID
+            df = df.set_index("Patient_ID")
+
+            self._data[name] = df
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
         self._data = standardize_axes_names(self._data)
+
+        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
+        self._data = sort_all_rows(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

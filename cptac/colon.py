@@ -138,15 +138,15 @@ class Colon(DataSet):
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = master_clinical 
 
-        # Call function from dataframe_tools.py to reindex all the dataframes to have Sample_ID indices
-        self._data = reindex_all(self._data, master_index)
-
-        # Now that we've reindexed all the dataframes with sample IDs, edit the format of the Patient_IDs in the clinical dataframe to have normal samples marked the same way as in other datasets
-        # Currently, normal patient IDs have an "N" appended. We're going to erase that and prepend an "N."
+        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets
+        # Currently, normal patient IDs have an "N" appended. We're going to make that a ".N"
         self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="end")
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
         self._data = standardize_axes_names(self._data)
+
+        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
+        self._data = sort_all_rows(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 
