@@ -162,8 +162,8 @@ class Endometrial(DataSet):
         parsed_map = raw_map.where(raw_map == "Tumor", other="Normal") # Replace various types of normal (Adjacent_normal, Myometrium_normal, etc.) with just "Normal"
         clinical.insert(1, "Sample_Tumor_Normal", parsed_map)
 
-        # Mark the Patient_IDs of the normal samples by prepending an "N." to them
-        clinical["Patient_ID"] = clinical["Patient_ID"].where(clinical["Sample_Tumor_Normal"] == "Tumor", other="N." + clinical["Patient_ID"])
+        # Mark the Patient_IDs of the normal samples by appending a ".N" to them
+        clinical["Patient_ID"] = clinical["Patient_ID"].where(clinical["Sample_Tumor_Normal"] == "Tumor", other=clinical["Patient_ID"] + ".N")
 
         # Save our new and improved clinical dataframe!
         self._data["clinical"] = clinical

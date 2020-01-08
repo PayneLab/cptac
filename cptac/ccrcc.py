@@ -334,7 +334,7 @@ class Ccrcc(DataSet):
         clinical = clinical.reindex(master_index)
         self._data['clinical'] = clinical
 
-        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. Currently, normal patient IDs have an "N" prepended. We're going to make that an "N."
+        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. Currently, normal patient IDs have an "N" prepended. We're going to erase that and append a ".N"
         self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes

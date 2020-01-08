@@ -127,7 +127,7 @@ def reindex_all_sample_id_to_patient_id(data_dict, reindex_map, additional_to_ke
     return data_dict
 
 def reformat_normal_patient_ids(data_dict, existing_identifier=None, existing_identifier_location=None):
-    """Reformat the patient IDs for normal samples to be marked by a prepended "N."
+    """Reformat the patient IDs for normal samples to be marked by an appended ".N"
 
     Parameters:
     data_dict (dict): The data dictionary for a dataset. All the tables must be indexed by Patient IDs.
@@ -175,10 +175,10 @@ def reformat_normal_patient_ids(data_dict, existing_identifier=None, existing_id
             else:
                 raise CptacDevError("existing_identifier_location parameter must be either 'start' or 'end'")
 
-        # Prepend "N." to the patient IDs of normal samples
+        # Append ".N" to the patient IDs of normal samples
         df["Patient_ID"] = df["Patient_ID"].where(
             cond=(~(df["Sample_Tumor_Normal"] == "Normal")),
-            other="N." + df["Patient_ID"]
+            other=df["Patient_ID"] + ".N"
         )
 
         # Set the index to the reformatted Patient IDs

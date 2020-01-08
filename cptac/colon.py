@@ -139,7 +139,7 @@ class Colon(DataSet):
         self._data['clinical'] = master_clinical 
 
         # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets
-        # Currently, normal patient IDs have an "N" appended. We're going to erase that and prepend an "N."
+        # Currently, normal patient IDs have an "N" appended. We're going to make that a ".N"
         self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="end")
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes

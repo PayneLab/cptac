@@ -224,16 +224,13 @@ class Luad(DataSet):
             df = df.reset_index()
             
             # Replace all '.' with '-'
-            df["Patient_ID"] = df["Patient_ID"].str.replace(r"\.", "-")
+            df["Patient_ID"] = df["Patient_ID"].str.replace(r"\.", "-") 
+            df["Patient_ID"] = df["Patient_ID"].str.replace(r"-N$", ".N") # If there's a "-N" at the end, it's part of the normal identifier, which we want to actually be ".N"
             
             # Set the index back to Patient_ID
             df = df.set_index("Patient_ID")
 
             self._data[name] = df
-
-        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets
-        # Currently, the normal patient IDs have a ".N" appended. We're going to erase that and prepend an "N."
-        self._data = reformat_normal_patient_ids(self._data, existing_identifier="-N", existing_identifier_location="end")
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
         self._data = standardize_axes_names(self._data)

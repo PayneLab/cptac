@@ -279,7 +279,7 @@ class Gbm(DataSet):
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = clinical
 
-        # Prepend an "N." to the Patient_IDs of the normal samples, to match the other datasets
+        # Append a ".N" to the Patient_IDs of the normal samples, to match the other datasets
         self._data = reformat_normal_patient_ids(self._data)
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes

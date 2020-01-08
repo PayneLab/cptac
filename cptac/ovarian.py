@@ -139,7 +139,7 @@ class Ovarian(DataSet):
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = master_clinical 
 
-        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. Currently, all the normal samples have an "N" prepended. We're going to make it an "N."
+        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. Currently, all the normal samples have an "N" prepended. We're going to erase that and put a ".N" at the end.
         self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
