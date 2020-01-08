@@ -235,7 +235,6 @@ class Hnscc(DataSet):
             del self._data["proteomics_normal"]
             del self._data["proteomics_tumor"]
 
-        import pdb; pdb.set_trace()
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data)
 
