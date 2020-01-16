@@ -33,15 +33,17 @@ import os
     If no value is specified, by default it will use every column in the dataframe, aside from the specified label column.
 
 @Param alpha (default = .05):
-    Significance level. Will be adjusted using bonferroni correction if more than 1 comparison is done.
-    
-@Param verbose (default = False):
-    Boolean. If true, will print p-value of every comparison, whether or not it meets significance cutoff.
+    Significance level. Will be adjusted using parameter correction_method if more than 1 comparison is done.
     
 @Param return_all (default = False):
     Boolean. If true, will return a dataframe containing all comparisons and p-values, regardless of significance.
     If false, will only return significant comparisons and p-values in the dataframe, or None if no significant comparisons.
 
+@Param correction_method (default = 'bonferroni')
+    String. Specifies method of adjustment for multiple testing. See -
+    https://www.statsmodels.org/stable/generated/statsmodels.stats.multitest.multipletests.html
+    - for documentation and available methods.
+    
 @Return:
     A pandas dataframe of column names and corresponding p-values which were determined to be significant in 
     the comparison, sorted by significance (smallest p-values at the head). The 2 columns of the dataframe are 
@@ -56,11 +58,11 @@ as the third parameter. No t-test will be done on columns not included in this l
 
 The wrap_ttest method will then compare the two groups, as partitioned by the two values in the Label column, and 
 perform t-tests for each real valued column in the passed in list, generating a p-value.
-The cutoff for significance will be determined using a bonferroni correction, and the significant columns, 
-with their p-values, will be returned as a dataframe, sorted by p-value.
+The resulting p-values will be corrected for multiple testing, using a specified 'correction_method', and a dataframe with 
+the significant results will be returned as a dataframe, sorted by p-value.
 '''
 
-def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, verbose=False, return_all=False):
+def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, return_all=False, correction_method='bonferroni'):
     try:
         '''Verify precondition that label column exists and has exactly 2 unique values'''
         label_values = df[label_column].unique()
@@ -80,73 +82,50 @@ def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, verbose=Fal
         '''Determine the number of real valued columns on which we will do t-tests'''
         number_of_comparisons = len(comparison_columns)
 
-        '''Use a bonferroni correction to adjust for multiple testing by altering the p-value needed for acceptance'''
-        bonferroni_cutoff = alpha/number_of_comparisons
+        '''Store comparisons and p-values in two arrays'''
+        comparisons = []
+        pvals = []
 
-        '''Store significant comparisons with their p-values in a dictionary'''
-        significant_comparisons = {}
-        insignificant_comparisons = {}
-
-        '''Loop through each comparison column, perform the t-test, and determine whether it meets the significance cutoff'''
+        '''Loop through each comparison column, perform the t-test, and record the p-val'''
         for column in comparison_columns:
             stat, pval = scipy.stats.ttest_ind(partition1[column].dropna(axis=0), partition2[column].dropna(axis=0))
-            if verbose:
-                print(column, ": ", pval)
-            if pval <= bonferroni_cutoff:
-                significant_comparisons[column] = pval
-            else:
-                insignificant_comparisons[column] = pval
+            comparisons.append(column)
+            pvals.append(pval)
+            
+        '''Correct for multiple testing to determine if each comparison meets the new cutoff'''
+        results = statsmodels.stats.multitest.multipletests(pvals=pvals, alpha=alpha, method=correction_method)
+        reject = results[0]
+        
+        '''Format results in a pandas dataframe'''
+        results_df = pd.DataFrame(columns=['Comparison','P_Value'])
 
-        '''If no comparison met the significance cutoff, notify that no comparison was signficant, and return None'''
-        if len(significant_comparisons) == 0:
-            print("No significant comparisons.")
-
-            '''If return all specified, return the insignificant comparisons'''
-            if return_all:
-                sorted_insignificant_comparisons = sorted(insignificant_comparisons.items(), key=lambda kv: kv[1])
-                sorted_insignificant_comparisons_df = pd.DataFrame.from_dict(sorted_insignificant_comparisons)
-                sorted_insignificant_comparisons_df.columns = ['Comparison','P_Value']
-                return sorted_insignificant_comparisons_df
-
-            else:
-                return None
-
-            '''If one or more comparison did meet the significance cutoff, sort the dictionary by significance and return it to the caller'''
+        '''If return all, add all comparisons and p-values to dataframe'''
+        if return_all:
+            results_df['Comparison'] = comparisons
+            results_df['P_Value'] = pvals
+        
+            '''Else only add significant comparisons'''
         else:
-            print(str(len(significant_comparisons)) + " significant comparisons!" )
-            if return_all:
-                '''Sort significant comparisons dictionary to list smallest p-values first'''
-                sorted_significant_comparisons = sorted(significant_comparisons.items(), key=lambda kv: kv[1])
-                '''Format as a dataframe'''
-                sorted_significant_comparisons_df = pd.DataFrame.from_dict(sorted_significant_comparisons)
-                sorted_significant_comparisons_df.columns = ['Comparison', 'P_Value']
-
-                '''If there are insignificant comparisons, sort and return them too'''
-                if len(insignificant_comparisons) > 0:
-                    '''Sort insignificant comparisons dictionary to list smallest p-values first'''
-                    sorted_insignificant_comparisons = sorted(insignificant_comparisons.items(), key=lambda kv: kv[1])
-                    '''Format as dataframe'''
-                    sorted_insignificant_comparisons_df = pd.DataFrame.from_dict(sorted_insignificant_comparisons)
-                    sorted_insignificant_comparisons_df.columns = ['Comparison','P_Value']
-
-                    '''Join significant and insignificant dataframes and return to caller'''
-                    sorted_all_comparisons_df = pd.concat([sorted_significant_comparisons_df, sorted_insignificant_comparisons_df], ignore_index=True)
-                    return sorted_all_comparisons_df
-
-                else:
-                    return sorted_significant_comparisons_df
-
-            else: 
-                '''Sort dictionary to list smallest p-values first'''
-                sorted_significant_comparisons = sorted(significant_comparisons.items(), key=lambda kv: kv[1])
-                '''Format as a dataframe and return to caller'''
-                sorted_significant_comparisons_df = pd.DataFrame.from_dict(sorted_significant_comparisons)
-                sorted_significant_comparisons_df.columns = ['Comparison', 'P_Value']
-                return sorted_significant_comparisons_df
+            for i in range(0, len(reject)):
+                if reject[i]:
+                    results_df = results_df.append({'Comparison':comparisons[i],'P_Value':pvals[i]}, ignore_index=True)
+                    
+              
+        '''Sort dataframe by ascending p-value'''
+        results_df = results_df.sort_values(by='P_Value', ascending=True)
+        results_df = results_df.reset_index(drop=True)
+        
+        '''If results df is not empty, return it, else return None'''
+        if len(results_df) > 0:
+            return results_df
+        else:
+            return None
+        
+    
     except:
         print("Incorrectly Formatted Dataframe!")
         return None
-
+    
 
 '''
 @Param protein:
