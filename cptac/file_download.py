@@ -73,6 +73,7 @@ def download(dataset, version="latest", redownload=False):
         "luad",
         "gbm",
         "hnscc",
+        "lscc",
         ]
     password = None
 
