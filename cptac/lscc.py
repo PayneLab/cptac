@@ -29,7 +29,7 @@ class Lscc(DataSet):
             "1.0": [
                 "lscc-v1.0-any-somatic-mutation-freq-by-gene.gct.gz",
                 "lscc-v1.0-cnv-gene-level-log2.gct.gz", #done
-                "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz", #done
+                "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz", #What is this one?
                 "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz",
                 "lscc-v1.0-mirna-mature-tpm-log2.gct.gz",
                 "lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz", #done
@@ -52,35 +52,42 @@ class Lscc(DataSet):
             file_name = path_elements[-1] # The last element will be the name of the file
             df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
-            if file_name == "lscc-v1.0-cnv-gene-level-log2.gct.gz":
-                df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
-                gene_filter = df['Description'] != 'na' #Filter out metadata rows
-                df = df[gene_filter]
-                cols_to_drop = ["GeneID","Description"] #We don't need these columns (We only need to keep columns that contain quantitative values)
-                df = df.drop(columns=cols_to_drop)
+            if file_name == "lscc-v1.0-cnv-gene-level-log2.gct.gz": #I think it's done?
+            #     df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
+            #     gene_filter = df['Description'] != 'na' #Filter out metadata rows
+            #     df = df[gene_filter]
+            #     cols_to_drop = ["GeneID","Description"] #We don't need these columns (We only need to keep columns that contain quantitative values)
+            #     df = df.drop(columns=cols_to_drop)
+            #     df = df.set_index("id")
+            #     df = df.apply(pd.to_numeric)
+            #     df = df.sort_index()
+            #     df = df.transpose()
+            #     df = df.sort_index()
+            #     df.index.name="Patient_ID"
+            #     df.columns.name=None
+            #     self._data["CNV"] = df
+                df = pd.read_csv("lscc-v1.0-cnv-gene-level-log2.gct", sep="\t", skiprows=2, dtype=object)
                 df = df.set_index("id")
-                df = df.apply(pd.to_numeric)
+                # df = df.apply(pd.to_numeric)
                 df = df.sort_index()
                 df = df.transpose()
                 df = df.sort_index()
                 df.index.name="Patient_ID"
-                df.columns.name=None
                 self._data["CNV"] = df
 
-
-            elif file_name == "lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz":
-                df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
+            elif file_name == "lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz": #Done
+                df = pd.read_csv(file_name, sep="\t", skiprows=2, dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Drop rows of metadata
                 df = df[gene_filter]
 
                 # Prepare some columns we'll need later for the multiindex
                 df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "") # Get rid of all lowercase delimeters and whitespace in the sites
                 df = df.rename(columns={
-                    "geneSymbol": "Name",
-                    "variableSites": "Site",
-                    "sequence": "Peptide", # We take this instead of sequenceVML, to match the other datasets' format
-                    "accession_numbers": "Database_ID" # We take all accession numbers they have, instead of the singular accession_number column
-                    })
+                "geneSymbol": "Name",
+                "variableSites": "Site",
+                "sequence": "Peptide", # We take this instead of sequenceVML, to match the other datasets' format
+                "accession_numbers": "Database_ID" # We take all accession numbers they have, instead of the singular accession_number column
+                })
 
                 # Some rows have at least one localized phosphorylation site, but also have other phosphorylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
                 unlocalized_to_drop = df.index[~df['Best_numActualVMSites_sty'].eq(df['Best_numLocalizedVMsites_sty']) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split "id" column is number of phosphorylations detected, and column 4 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
@@ -89,7 +96,8 @@ class Lscc(DataSet):
                 # Give it a multiindex
                 df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])
 
-                cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsVMsiteObserved', 'bestScore', 'bestDeltaForwardReverseScore',
+
+                cols_to_drop = ['id','id.description', 'numColumnsVMsiteObserved', 'bestScore', 'bestDeltaForwardReverseScore',
                 'Best_scoreVML', 'Best_numActualVMSites_sty', 'Best_numLocalizedVMsites_sty', 'sequenceVML',
                 'accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA', 'protein_mw', 'species',
                 'speciesMulti', 'orfCategory', 'accession_number', 'protein_group_num', 'entry_name', 'GeneSymbol']
@@ -103,7 +111,7 @@ class Lscc(DataSet):
 
 
 
-            elif file_name == "lscc-v1.0-proteome-ratio-norm-NArm.gct.gz":
+            elif file_name == "lscc-v1.0-proteome-ratio-norm-NArm.gct.gz": #done
                 df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
@@ -141,7 +149,7 @@ class Lscc(DataSet):
                  self._data["transcriptomics"] = df
 
 
-            elif file_name == "lscc-v1.0-sample-annotation.csv.gz":
+            elif file_name == "lscc-v1.0-sample-annotation.csv.gz": #done
                 df = pd.read_csv(file_path, sep=",", dtype=object)
                 filter = df['QC.status'] == "QC.pass" #There are some samples that are internal references. IRs are used for scaling purposes, and don't belong to a single patient, so we want to drop them.
                 df = df[filter]
@@ -155,11 +163,15 @@ class Lscc(DataSet):
                 experimental_design_df = df[experimental_design_cols]
                 df = df.drop(columns=experimental_design_cols)
                 #Make a derived_molecular dataframe
-                derived_molecular_cols = ['TP53.mutation', 'KRAS.mutation', 'STK11.mutation', 'EGFR.mutation', 'KEAP1.mutation', 'RB1.mutation',
-                'IL21R.mutation', 'EGFL6.mutation', 'LMO2.mutation', 'C10orf62.mutation', 'DKK3.mutation', 'BIRC6.mutation', 'TP53.mutation.status',
-                'KRAS.mutation.status', 'STK11.mutation.status', 'EGFR.mutation.status', 'KEAP1.mutation.status', 'RB1.mutation.status', 'IL21R.mutation.status',
-                'EGFL6.mutation.status', 'LMO2.mutation.status', 'C10orf62.mutation.status', 'DKK3.mutation.status', 'BIRC6.mutation.status',
-                'Mutation.Signature.Activity.W1.COSMIC5', 'Mutation.Signature.Activity.W2.COSMIC4', 'Mutation.Signature.Activity.W3.COSMIC2', 'fusion.EML4-ALK']
+                derived_molecular_cols = ['TP53.mutation', 'CDKN2A.mutation', 'PTEN.mutation', 'PIK3CA.mutation',
+                 'KEAP1.mutation', 'HLA.A.mutation', 'NFE2L2.mutation', 'NOTCH1.mutation', 'RB1.mutation',
+                 'HRAS.mutation', 'FBXW7.mutation', 'SMARCA4.mutation', 'NF1.mutation', 'SMAD4.mutation',
+                 'EGFR.mutation', 'APC.mutation', 'BRAF.mutation', 'TNFAIP3.mutation', 'CREBBP.mutation',
+                 'TP53.mutation.status', 'CDKN2A.mutation.status', 'PTEN.mutation.status', 'PIK3CA.mutation.status',
+                 'KEAP1.mutation.status', 'HLA.A.mutation.status', 'NFE2L2.mutation.status', 'NOTCH1.mutation.status',
+                 'RB1.mutation.status', 'HRAS.mutation.status', 'FBXW7.mutation.status', 'SMARCA4.mutation.status',
+                 'NF1.mutation.status', 'SMAD4.mutation.status', 'EGFR.mutation.status', 'APC.mutation.status',
+                 'BRAF.mutation.status', 'TNFAIP3.mutation.status', 'CREBBP.mutation.status']
                 derived_molecular_df = df[derived_molecular_cols]
                 df = df.drop(columns = derived_molecular_cols)
                 self._data["clinical"]= df
