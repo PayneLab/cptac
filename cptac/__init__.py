@@ -44,7 +44,7 @@ def list_datasets():
         "Luad": ["lung adenocarcinoma", "password access only", "unpublished"],
         "Ovarian": ["high grade serous ovarian cancer", "no restrictions", "unpublished"],
         "Ccrcc": ["clear cell renal cell carcinoma (kidney)", "no restrictions", "unpublished"],
-        "Lscc": ["lung squamous cell carcinoma", "password access only", "unpublished"]
+        "Lscc": ["lung squamous cell carcinoma", "password access only", "unpublished"],
         }
     dataset_df = pd.DataFrame(data=datasets, index=col_index)
     dataset_df = dataset_df.transpose()
