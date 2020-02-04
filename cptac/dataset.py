@@ -282,6 +282,126 @@ class DataSet:
 
         return df
 
+    def get_genotype_all_vars(self, mutations_genes, mutations_filter=None, show_location=True, mutation_hotspot=None):
+        """Return a dataframe that has the mutation type and wheather or not it is a multiple mutation
+        Parameters:
+        mutation_genes (str, or list or array-like of str): The gene(s) to get mutation data for.
+        mutations_filter (list, optional):  List of mutations to prioritize when filtering out multiple mutations, in order of priority.
+        show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
+        mutation_hotspot (optional): a list of hotspots
+        """
+
+        #If they don't give us a filter, this is the default.
+        if mutations_filter == None:
+            mutations_filter = ["deletion", 'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Missense_Mutation_hotspot',
+    	                           'Missense_Mutation', 'amplification', 'In_Frame_Del', 'In_Frame_Ins', 'wildtype']
+
+
+        #combine the cnv and mutations dataframe
+        combined = self.join_omics_to_mutations(omics_df_name="CNV", mutations_genes=mutations_genes, omics_genes=mutations_genes)
+
+        #If there are hotspot mutations, append 'hotspot' to the mutation type so that it's prioritized correctly
+        def mark_hotspot_locations(row):
+            #iterate through each location in the current row
+            mutations = []
+            for location in row[mutations_genes+'_Location']:
+                if location in mutation_hotspot: #if it's a hotspot mutation
+                    #get the position of the location
+                    position = row[mutations_genes+'_Location'].index(location)
+                    #use that to change the correct mutation
+                    mutations.append(row[mutations_genes+"_Mutation"][position] + "_hotspot")
+                else:
+                    # get the position of the location
+                    position = row[mutations_genes+'_Location'].index(location)
+                    mutations.append(row[mutations_genes+"_Mutation"][position])
+            return mutations
+
+        if mutation_hotspot is not None:
+            combined['hotspot'] = combined.apply(mark_hotspot_locations, axis=1)
+            combined[mutations_genes+"_Mutation"] = combined['hotspot']
+            combined = combined.drop(columns='hotspot')
+
+        # Based on cnv make a new column with mutation type that includes deletions and amplifications
+        def add_del_and_amp(row):
+            if row[mutations_genes+"_CNV"] <= -.2:
+                mutations = row[mutations_genes+"_Mutation"] + ['deletion']
+                locations = row[mutations_genes+'_Location']+['deletion']
+
+            elif row[mutations_genes+"_CNV"] >= .2:
+                mutations = row[mutations_genes+"_Mutation"] + ['amplification']
+                locations = row[mutations_genes+'_Location']+['amplification']
+            else:
+                mutations = row[mutations_genes+"_Mutation"]
+                locations = row[mutations_genes+"_Location"]
+
+            return mutations, locations
+
+
+        combined['mutations'], combined['locations'] = zip(*combined.apply(add_del_and_amp, axis=1))
+
+
+        #now that we have the deletion and amplifications, we need to prioritize the correct mutations.
+        def sort(row):
+            sortedcol = []
+            location = []
+            chosen_indices = []
+            sample_mutations_list = row['mutations']
+            sample_locations_list = row['locations']
+            if len(sample_mutations_list) == 1: #if there's only one mutation in the list
+                sortedcol.append(sample_mutations_list[0])
+                location.append(sample_locations_list[0])
+
+            else:
+                for filter_val in mutations_filter: # This will start at the beginning of the filter list, thus filters earlier in the list are prioritized, like we want
+                    if filter_val in sample_mutations_list:
+                        chosen_indices = [index for index, value in enumerate(sample_mutations_list) if value == filter_val]
+                    if len(chosen_indices) > 0: # We found at least one mutation from the filter to prioritize, so we don't need to worry about later values in the filter priority list
+                        break
+                if len(chosen_indices) == 0: # None of the mutations for the sample were in the filter
+                    for mutation in sample_mutations_list:
+                        if mutation in truncations:
+                            chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
+
+                soonest_mutation = sample_mutations_list[chosen_indices[0]]
+                soonest_location = sample_locations_list[chosen_indices[0]]
+                chosen_indices.clear()
+                sortedcol.append(soonest_mutation)
+                location.append(soonest_location)
+
+            return pd.Series([sortedcol, location],index=['mutations', 'locations'])
+
+        df = combined.apply(sort, axis=1)
+        combined['Mutation'] = df['mutations']
+        combined['Location'] = df['locations']
+
+        #get a sample_status column that says if the gene has multiple mutations (including dletion and amplification)
+        def sample_status(row):
+            if len(row['mutations']) > 1: #if there's more than one mutation
+                if len(row['mutations']) == 2 and "Wildtype_Tumor" in row['mutations']: #one of the mutations might be a "wildtype tumor"
+                    status ="Single_mutation"
+
+                elif len(row['mutations']) == 2 and "Wildtype_Normal" in row['mutations']:
+                    status ="Single_mutation"
+
+                else:
+                    status = "Multiple_mutation"
+            else:
+                if row["mutations"] == ["Wildtype_Normal"]:
+                    status = "Wildtype_Normal"
+                elif row['mutations'] == ['Wildtype_Tumor']:
+                    status = "Wildtype_Tumor"
+                else:
+                    status = "Single_mutation"
+
+            return status
+        combined['Mutation_Status'] = combined.apply(sample_status, axis=1)
+
+        #drop all the unnecessary Columns
+        df = combined.drop(columns=[mutations_genes+"_CNV", mutations_genes+"_Mutation", mutations_genes+"_Location", mutations_genes+"_Mutation_Status", 'Sample_Status', 'mutations','locations'])
+        if show_location == False: df = df.drop(columns="Location") #if they don't want us to show the location, drop it
+        return df
+
+
     # Join functions
     def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None):
         """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
@@ -334,7 +454,7 @@ class DataSet:
 
         # Warn them about any NaNs that were inserted in the outer join
         self._warn_inserted_nans(omics_df_name, "somatic_mutation", omics.index, mutations.index)
-        
+
         return joined
 
     def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None):
@@ -434,7 +554,7 @@ class DataSet:
     def _get_sample_status_map(self):
         """Get a pandas Series from the clinical dataframe, with sample ids as the index, and each sample's status (tumor or normal) as the values."""
         clinical = self.get_clinical()
-        status_map = clinical["Sample_Tumor_Normal"] 
+        status_map = clinical["Sample_Tumor_Normal"]
         status_map.name = "Sample_Status"
         return status_map
 
@@ -509,7 +629,7 @@ class DataSet:
         """
         # Check that they passed a valid omics df
         self._check_df_valid(omics_df_name, "omics")
-        
+
         # Get our omics df, using _get_dataframe to catch invalid requests
         omics_df = self._get_dataframe(omics_df_name)
 
@@ -521,7 +641,7 @@ class DataSet:
         elif genes is None: # If it's the default of None, rename columns and return the entire dataframe
             # Add the gene name to end beginning of each column header, to preserve info when we join dataframes.
             if isinstance(omics_df.columns, pd.core.index.MultiIndex):
-                omics_df.columns = omics_df.columns.set_levels(omics_df.columns.levels[0] + '_' + omics_df_name, level=0)            
+                omics_df.columns = omics_df.columns.set_levels(omics_df.columns.levels[0] + '_' + omics_df_name, level=0)
             else:
                 omics_df = omics_df.add_suffix('_' + omics_df_name)
             return omics_df
@@ -552,7 +672,7 @@ class DataSet:
 
         # Append dataframe name to end of each column header, to preserve info when we merge dataframes
         if isinstance(omics_df.columns, pd.core.index.MultiIndex):
-            selected.columns = selected.columns.set_levels(selected.columns.levels[0] + '_' + omics_df_name, level=0)            
+            selected.columns = selected.columns.set_levels(selected.columns.levels[0] + '_' + omics_df_name, level=0)
         else:
             selected = selected.add_suffix('_' + omics_df_name)
         return selected
@@ -739,7 +859,7 @@ class DataSet:
 
         fill_log = [] # We're going to keep track of value filling, and let the user know we did it.
         for mutation_col in mutation_cols:
-        
+
             # Log how many values we're going to fill for this gene
             num_filled = (((sample_status_map == "Normal") | (sample_status_map == "Tumor")) & (pd.isnull(joined[mutation_col]))).sum() # See how many values we'll fill by using sum to get number of "True" in array
             if num_filled > 0:
@@ -750,7 +870,7 @@ class DataSet:
                 fill_log.append(f"{num_filled} samples for the {gene} gene")
 
             # Impute values
-            joined.loc[(sample_status_map == "Normal") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_normal_fill # Change all NaN mutation values for Normal samples to Wildtype_Normal. 
+            joined.loc[(sample_status_map == "Normal") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_normal_fill # Change all NaN mutation values for Normal samples to Wildtype_Normal.
             joined.loc[(sample_status_map == "Tumor") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_tumor_fill # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
 
         if len(fill_log) > 0:
@@ -836,7 +956,7 @@ class DataSet:
         soonest_location = sample_locations_list[chosen_indices[0]]
         for index in chosen_indices:
             mutation = sample_mutations_list[index]
-            location = sample_locations_list[index]                            
+            location = sample_locations_list[index]
 
             if pd.isnull(location): # Some of the mutations have no location. We'll de-prioritize those.
                 continue
