@@ -16,7 +16,7 @@ import warnings
 from .dataset import DataSet
 from .dataframe_tools import *
 from .exceptions import FailedReindexWarning, ReindexMapError
-class Luad(DataSet):
+class Lscc(DataSet):
 
     def __init__(self, version="latest"):
         """Load all of the lscc dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
@@ -28,14 +28,14 @@ class Luad(DataSet):
         data_files = {
             "1.0": [
                 "lscc-v1.0-any-somatic-mutation-freq-by-gene.gct.gz",
-                "lscc-v1.0-cnv-gene-level-log2.gct.gz",
-                "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
+                "lscc-v1.0-cnv-gene-level-log2.gct.gz", #done
+                "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz", #done
                 "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz",
                 "lscc-v1.0-mirna-mature-tpm-log2.gct.gz",
                 "lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz", #done
                 "lscc-v1.0-proteome-ratio-norm-NArm.gct.gz", #done
                 "lscc-v1.0-rnaseq-uq-fpkm-log2-NArm.gct.gz", # done
-                "lscc-v1.0-sample-annotation.csv.gz"]
+                "lscc-v1.0-sample-annotation.csv.gz"] #done
         }
 
         super().__init__(cancer_type="lscc", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -52,7 +52,7 @@ class Luad(DataSet):
             file_name = path_elements[-1] # The last element will be the name of the file
             df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
-            if file_name == "luad-v2.0-cnv-gene-LR.gct.gz":
+            if file_name == "lscc-v1.0-cnv-gene-level-log2.gct.gz":
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
                 gene_filter = df['Description'] != 'na' #Filter out metadata rows
                 df = df[gene_filter]
@@ -124,7 +124,8 @@ class Luad(DataSet):
                 self._data["proteomics"] = df
 
 
-            elif file_name == "luad-v2.0-rnaseq-prot-uq-rpkm-log2-NArm-row-norm.gct.gz":
+            # elif file_name == "luad-v2.0-rnaseq-prot-uq-rpkm-log2-NArm-row-norm.gct.gz":
+            elif file_name == "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz":
                  df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
                  gene_filter = df['geneSymbol'] != 'na'
                  df = df[gene_filter]
@@ -140,7 +141,7 @@ class Luad(DataSet):
                  self._data["transcriptomics"] = df
 
 
-            elif file_name == "luad-v2.0-sample-annotation.csv.gz":
+            elif file_name == "lscc-v1.0-sample-annotation.csv.gz":
                 df = pd.read_csv(file_path, sep=",", dtype=object)
                 filter = df['QC.status'] == "QC.pass" #There are some samples that are internal references. IRs are used for scaling purposes, and don't belong to a single patient, so we want to drop them.
                 df = df[filter]
