@@ -24,7 +24,7 @@ class Endometrial(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["2.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["2.1", "2.1.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "2.1": [
@@ -39,7 +39,20 @@ class Endometrial(DataSet):
                 "somatic_binary.cbt.gz", 
                 "somatic.maf.gz", 
                 "transcriptomics_circular.cct.gz", 
-                "transcriptomics_linear.cct.gz"]
+                "transcriptomics_linear.cct.gz"],
+            "2.1.1": [
+                "acetylproteomics.cct.gz",
+                "clinical.txt",
+                "CNA.cct.gz",
+                "definitions.txt",
+                "miRNA.cct.gz",
+                "phosphoproteomics_site.cct.gz",
+                "proteomics.cct.gz",
+                "somatic_binary.cbt.gz",
+                "somatic.maf.gz",
+                "transcriptomics_circular.cct.gz",
+                "transcriptomics_linear.cct.gz",
+                "UCEC_followup_9_12.xlsx"],
         }
 
         super().__init__(cancer_type="endometrial", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -90,6 +103,20 @@ class Endometrial(DataSet):
                 df = df.sort_index()
                 df = df.transpose()
                 self._data[df_name] = df # Maps dataframe name to dataframe
+
+            elif file_name == 'UCEC_followup_9_12.xlsx' and self._version == "2.1.1":
+                df = pd.read_excel(file_path)
+
+                # Replace redundant values for 'not reported' with NaN
+                nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Applicable', 'na', 'unknown',
+                    'Not Performed', 'Unknown tumor status', 'Unknown', 'Unknown Tumor Status', 'Not specified']
+                    
+                df = df.replace(nan_equivalents, np.nan)
+
+                # Rename column to merge on, and then merge follow-up with clinical data
+                df = df.rename({'Case ID': 'Patient_ID'}, axis='columns')
+
+                self._data["followup"] = df
 
             else:
                 df = pd.read_csv(file_path, sep="\t", index_col=0)

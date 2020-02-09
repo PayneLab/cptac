@@ -24,7 +24,7 @@ class Hnscc(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["0.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["0.1", "2.0"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "0.1": [
@@ -37,13 +37,14 @@ class Hnscc(DataSet):
                 "clinic.tsi.gz"],
             "2.0": [
                 "circRNAseq_RSEM_UQ_log2_Combined.cct.gz",
+                "HN_followUp_9_24.xlsx",
                 "Meta_table.tsv.gz",
                 "microRNA_log2_Combined.cct.gz",
-                "Phosphoproteomics_TMT_site_level_Combined_all.cct.gz",
-                "Proteomics_TMT_Gene_level_Combined_all.cct.gz",
+                "Phosphoproteomics_TMT_site_level_combined_all.cct.gz",
+                "Proteomics_TMT_gene_level_combined_all.cct.gz",
                 "RNAseq_RSEM_UQ_Combined.cct.gz",
                 "SCNA_log2_gene_level.cct.gz",
-                "SomaticMutations_maf.tsv.gz"]
+                "SomaticMutations_maf.tsv.gz"],
         }
 
         super().__init__(cancer_type="hnscc", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -164,7 +165,6 @@ class Hnscc(DataSet):
                 self._data["clinical"] = df
                 self._data["derived_molecular"] = derived_molecular_df
 
-            #the only files left are the proteomics files
             elif file_name in ["Proteomics_DIA_Gene_level_Normal.cct.gz", "Proteomics_DIA_Gene_level_Tumor.cct.gz", "Proteomics_TMT_Gene_level_Combined_all.cct.gz"]:
                 df = pd.read_csv(file_path, sep="\t")
 
@@ -180,7 +180,7 @@ class Hnscc(DataSet):
                     df.index = df.index.str.replace(r'-N$', '.N', 1)
                     df.index = df.index.str.replace(r'-C$', '.C', 1) #-C is cored NAT samples
 
-                #Once the files are formatted correctly load them into self._data
+                # Once the files are formatted correctly load them into self._data
                 if file_name == "Proteomics_DIA_Gene_level_Normal.cct.gz":
                     self._data["proteomics_normal"] = df
                 elif file_name == "Proteomics_DIA_Gene_level_Tumor.cct.gz":
@@ -217,6 +217,10 @@ class Hnscc(DataSet):
                 df.index = df.index.str.replace(r'-C$', '.C', 1) #-C is cored NAT samples
                 df = df.sort_index()
                 self._data["phosphoproteomics"] = df
+
+            elif file_name == 'HN_followUp_9_24.xlsx' and self._version == "2.0":
+                df = pd.read_excel(file_path)
+                self._data["followup"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."

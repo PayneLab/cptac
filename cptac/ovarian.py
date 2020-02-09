@@ -25,7 +25,7 @@ class Ovarian(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["0.0"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["0.0", "0.0.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "0.0": [
@@ -36,7 +36,17 @@ class Ovarian(DataSet):
                 "proteomics.txt.gz",
                 "somatic_38.maf.gz",
                 "transcriptomics.tsv.gz",
-                "treatment.csv.gz"]
+                "treatment.csv.gz"],
+            "0.0.1": [
+                "clinical.csv.gz",
+                "cnv.tsv.gz",
+                "definitions.txt",
+                "Ovary_One_Year_Clinical_Data_20160927.xls",
+                "phosphoproteomics.txt.gz",
+                "proteomics.txt.gz",
+                "somatic_38.maf.gz",
+                "transcriptomics.tsv.gz",
+                "treatment.csv.gz"],
         }
 
         super().__init__(cancer_type="ovarian", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -121,6 +131,21 @@ class Ovarian(DataSet):
                 date_cols = ['1-Dec', '1-Sep', '10-Mar', '10-Sep', '11-Sep', '12-Sep', '14-Sep', '15-Sep', '2-Mar', '2-Sep', '3-Mar', '3-Sep', '4-Mar', '4-Sep', '5-Mar', '6-Mar', '6-Sep', '7-Mar', '7-Sep', '8-Mar', '8-Sep', '9-Mar', '9-Sep']
                 df = df.drop(columns=date_cols) # Drop all date values until new data is uploaded
                 self._data[df_name] = df #maps dataframe name to dataframe
+
+            elif file_name == 'Ovary_One_Year_Clinical_Data_20160927.xls' and self._version == "0.0.1":
+                df = pd.read_excel(file_path)
+
+                # Replace redundant values for "not reported" with NaN
+                nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Applicable',
+                    'na', 'unknown', 'Not Performed', 'Unknown tumor status', 'Unknown', 
+                    'Unknown Tumor Status', 'Not specified']
+
+                df = df.replace(nan_equivalents, np.nan)
+
+                # Rename PPID to Patient_ID and set as index
+                df = df.rename({'PPID': 'Patient_ID'}, axis='columns')
+
+                self._data["followup"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."

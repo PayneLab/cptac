@@ -24,7 +24,7 @@ class Ccrcc(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["0.0", "0.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["0.0", "0.1", "0.1.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "0.0": [
@@ -49,7 +49,20 @@ class Ccrcc(DataSet):
                 "kirc_wgs_cnv_gene.csv.gz",
                 "RNA_Normal_Tumor_185_samples.tsv.gz",
                 "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx",
-                "Table S7.xlsx"]
+                "Table S7.xlsx"],
+            "0.1.1": [
+                "6_CPTAC3_CCRCC_Phospho_abundance_gene_protNorm=2_CB_imputed.tsv.gz",
+                "6_CPTAC3_CCRCC_Phospho_abundance_phosphosite_protNorm=2_CB.tsv.gz",
+                "6_CPTAC3_CCRCC_Whole_abundance_protein_pep=unique_protNorm=2_CB.tsv.gz",
+                "CCRCC_followup_9_12.xlsx",
+                "ccrccMethylGeneLevelByMean.txt.gz",
+                "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz",
+                "Clinical Table S1.xlsx",
+                "cptac-metadata.xls.gz",
+                "kirc_wgs_cnv_gene.csv.gz",
+                "RNA_Normal_Tumor_185_samples.tsv.gz",
+                "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx",
+                "Table S7.xlsx"],
         }
 
         super().__init__(cancer_type="ccrcc", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -212,6 +225,25 @@ class Ccrcc(DataSet):
                 immune_groups = pd.read_excel(file_path, sheet_name="xCell Signatures", index_col=0).transpose()
                 immune_groups = immune_groups[["Samples", "Immune Group"]] # We only need these columns
                 immune_groups = immune_groups.set_index("Samples")
+
+            elif file_name == 'CCRCC_followup_9_12.xlsx' and self._version == "0.1.1":
+                df = pd.read_excel(file_path)
+
+                # Replace redundant values for "not reported" with NaN
+                nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Applicable', 'na',
+                    'unknown', 'Not Performed', 'Unknown tumor status', 'Unknown', ' Unknown', 'Unknown ',
+                    'Unknown Tumor Status', 'Not specified']
+
+                df = df.replace(nan_equivalents, np.nan)
+
+                # Replace redundanct values in "Cause of Death" column
+                disease_prog_equivalents = ['Metastatic Renal Cell Carcinoma', 'Tumor progression',
+                    'Progression of disease', 'Progression of disease ', 'Tumor', 'Disease progression',
+                    'Progressive Disease', 'Disease progression', 'disease progression ', 'main disease ']
+
+                df['Cause of Death'] = df['Cause of Death'].replace(disease_prog_equivalents, 'Disease progression')
+
+                self._data["followup"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."

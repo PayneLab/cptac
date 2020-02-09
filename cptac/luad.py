@@ -24,7 +24,7 @@ class Luad(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["2.0"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["2.0", "3.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "2.0": [
@@ -33,7 +33,22 @@ class Luad(DataSet):
                 "luad-v2.0-proteome-ratio-norm-NArm.gct.gz",
                 "luad-v2.0-rnaseq-circ-rna.csv.gz",
                 "luad-v2.0-rnaseq-prot-uq-rpkm-log2-NArm-row-norm.gct.gz",
-                "luad-v2.0-sample-annotation.csv.gz"]
+                "luad-v2.0-sample-annotation.csv.gz"],
+            "3.1": [
+                "LUAD_followup_9_12.xlsx",
+                "luad-v3.0-rnaseq-circ-rna.csv.gz",
+                "luad-v3.0-rnaseq-gene-fusions.csv.gz",
+                "luad-v3.0-wxs-somatic.luad.v1.4.20190517.maf.gz",
+                "luad-v3.1-acetylome-ratio-norm-NArm.gct.gz",
+                "luad-v3.1-any-germline-mutation-freq-by-gene.gct.gz",
+                "luad-v3.1-any-somatic-mutation-freq-by-gene.gct.gz",
+                "luad-v3.1-cnv-gene-LR.gct.gz",
+                "luad-v3.1-mirna-mature-tpm-log2.gct.gz",
+                "luad-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "luad-v3.1-proteome-ratio-norm-NArm.gct.gz",
+                "luad-v3.1-rnaseq-linc-uq-rpkm-log2-NArm.gct.gz",
+                "luad-v3.1-rnaseq-prot-uq-rpkm-log2-NArm.gct.gz",
+                "luad-v3.1-sample-annotation.csv.gz"],
         }
 
         super().__init__(cancer_type="luad", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -194,6 +209,24 @@ class Luad(DataSet):
                 df.index.name = "Patient_ID"
                 df = df.sort_index()
                 self._data['circular_RNA'] = df
+
+            elif file_name == 'LUAD_followup_9_12.xlsx' and self._version == "3.1":
+                df = pd.read_excel(file_path)
+
+                # Replace redundant values for "not reported" with NaN
+                nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Applicable',
+                    'na', 'unknown', 'Not Performed', 'Unknown tumor status', 'Unknown',
+                    'Unknown Tumor Status', 'Not specified']
+
+                df = df.replace(nan_equivalents, np.nan)
+
+                # Replace redundant values for cause of death
+                disease_prog_equivalents = ['Progression of disease', 'Progression of disease ', 'Tumor', 'Disease progression',
+                    'Progressive Disease', 'disease progression', 'disease progression ', 'main disease ']
+
+                df['Cause of Death'] = df['Cause of Death'].replace(disease_prog_equivalents, 'Disease progression')
+
+                self._data["followup"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."

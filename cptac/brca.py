@@ -24,7 +24,7 @@ class Brca(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["3.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["3.1", "3.1.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "3.1": [
@@ -33,7 +33,16 @@ class Brca(DataSet):
                 "prosp-brca-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz",
                 "prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz",
                 "prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz",
-                "prosp-brca-v3.1-sample-annotation.csv.gz"]
+                "prosp-brca-v3.1-sample-annotation.csv.gz"],
+            "3.1.1": [
+                "Breast_One_Year_Clinical_Data_20160927.xls",
+                "prosp-brca-v3.0-v1.4.somatic.variants.070918.maf.gz",
+                "prosp-brca-v3.1-acetylome-ratio-norm-NArm.gct.gz",
+                "prosp-brca-v3.1-gene-level-cnv-gistic2-all_data_by_genes.gct.gz",
+                "prosp-brca-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz",
+                "prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz",
+                "prosp-brca-v3.1-sample-annotation.csv.gz"],
         }
 
         super().__init__(cancer_type="brca", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -160,6 +169,18 @@ class Brca(DataSet):
                 df = df.rename(columns={"Sample.IDs": "Replicate_Measurement_IDs", "Type": "Sample_Tumor_Normal"})
                 df.index.name = "Patient_ID"
                 self._data["metadata"] = df
+
+            elif file_name == "Breast_One_Year_Clinical_Data_20160927.xls" and self._version == "3.1.1":
+                df = pd.read_excel(file_path)
+
+                # Replace redundant values for "not reported" with NaN
+                nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Reported / Unknown', 'Not Reported /Unknown',
+                    'Not Applicable', 'not applicable', 'Not applicable;', 'na', 'Not Performed', 'Not Performed;',
+                    'Unknown tumor status', 'Unknown Tumor Status','Unknown', 'unknown', 'Not specified', 'Not Reported/ Unknown;']
+
+                df = df.replace(nan_equivalents, np.nan)
+
+                self._data["followup"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
