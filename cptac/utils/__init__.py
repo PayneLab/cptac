@@ -420,7 +420,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     # Step 2 - format
     # Step 3 - filter using the cutoff and create fraction 
     count_mutations = origin_df.groupby(['Gene']).nunique()
-    count_mutations = count_mutations.rename(columns={"Sample_ID": "Unique_Samples_Mut"}) # Step 2 
+    count_mutations = count_mutations.rename(columns={"Patient_ID": "Unique_Samples_Mut"}) # Step 2 
     count_mutations = count_mutations.drop(['Gene', 'Mutation', 'Location'], axis = 1)
     fraction_mutated = count_mutations.apply(lambda x: x / total_tumor_count) # Step 3 
     fraction_greater_than_cutoff = fraction_mutated.where(lambda x: x > cutoff) #na used when not > cutoff
@@ -429,7 +429,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     # Create and join Missense column (following similar steps as seen above)
     miss = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'M']
     count_miss = miss.groupby(['Gene']).nunique()
-    missense_df = count_miss.rename(columns={"Sample_ID": "Missense_Mut"})
+    missense_df = count_miss.rename(columns={"Patient_ID": "Missense_Mut"})
     missense_df = missense_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
     fraction_missense = missense_df.apply(lambda x: x / total_tumor_count)
     freq_mutated_df = filtered_gene_df.join(fraction_missense, how='left').fillna(0)
@@ -437,7 +437,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     # Create and join Truncation column (following similar steps as seen above)
     trunc = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'T']
     count_trunc = trunc.groupby(['Gene']).nunique()
-    truncation_df = count_trunc.rename(columns={"Sample_ID": "Truncation_Mut"})
+    truncation_df = count_trunc.rename(columns={"Patient_ID": "Truncation_Mut"})
     truncation_df = truncation_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
     fraction_truncation = truncation_df.apply(lambda x: x / total_tumor_count)
     freq_mutated_df = freq_mutated_df.join(fraction_truncation, how='left').fillna(0)
@@ -447,7 +447,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
         # Create and join non-coding column (following similar steps as seen above)
         nc = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'NC']
         count_nc = nc.groupby(['Gene']).nunique()
-        nc_df = count_nc.rename(columns={"Sample_ID": "Non-Coding"})
+        nc_df = count_nc.rename(columns={"Patient_ID": "Non-Coding"})
         nc_df = nc_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
         fraction_nc = nc_df.apply(lambda x: x / total_tumor_count)
         freq_mutated_df = freq_mutated_df.join(fraction_nc, how='left').fillna(0)

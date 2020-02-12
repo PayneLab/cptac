@@ -25,7 +25,7 @@ class Ovarian(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["0.0"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["0.0", "0.0.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "0.0": [
@@ -36,7 +36,17 @@ class Ovarian(DataSet):
                 "proteomics.txt.gz",
                 "somatic_38.maf.gz",
                 "transcriptomics.tsv.gz",
-                "treatment.csv.gz"]
+                "treatment.csv.gz"],
+            "0.0.1": [
+                "clinical.csv.gz",
+                "cnv.tsv.gz",
+                "definitions.txt",
+                "Ovary_One_Year_Clinical_Data_20160927.xls",
+                "phosphoproteomics.txt.gz",
+                "proteomics.txt.gz",
+                "somatic_38.maf.gz",
+                "transcriptomics.tsv.gz",
+                "treatment.csv.gz"],
         }
 
         super().__init__(cancer_type="ovarian", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -122,6 +132,23 @@ class Ovarian(DataSet):
                 df = df.drop(columns=date_cols) # Drop all date values until new data is uploaded
                 self._data[df_name] = df #maps dataframe name to dataframe
 
+            elif file_name == 'Ovary_One_Year_Clinical_Data_20160927.xls' and self._version == "0.0.1":
+                df = pd.read_excel(file_path)
+
+                # Replace redundant values for "not reported" with NaN
+                nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Applicable',
+                    'na', 'unknown', 'Not Performed', 'Unknown tumor status', 'Unknown', 
+                    'Unknown Tumor Status', 'Not specified']
+
+                df = df.replace(nan_equivalents, np.nan)
+
+                # Rename PPID to Patient_ID and set as index
+                df = df.rename(columns={'PPID': 'Patient_ID'})
+                df = df.set_index("Patient_ID")
+                df = df.sort_index()
+
+                self._data["followup"] = df
+
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
@@ -139,13 +166,13 @@ class Ovarian(DataSet):
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = master_clinical 
 
-        # Call function from dataframe_tools.py to reindex all the dataframes to have Sample_ID indices
-        self._data = reindex_all(self._data, master_index, additional_to_keep_col=["treatment"])
-
-        # Now that we've reindexed all the dataframes with sample IDs, edit the format of the Patient_IDs in the clinical and treatment dataframes to have normal samples marked the same way as in other datasets. Currently, all the normal samples have an "N" prepended. We're going to make it an "N."
-        self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start", additional_dfs_to_reformat="treatment")
+        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. Currently, all the normal samples have an "N" prepended. We're going to erase that and put a ".N" at the end.
+        self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
         self._data = standardize_axes_names(self._data)
+
+        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
+        self._data = sort_all_rows(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

@@ -24,7 +24,7 @@ class Brca(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["3.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["3.1", "3.1.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "3.1": [
@@ -33,7 +33,16 @@ class Brca(DataSet):
                 "prosp-brca-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz",
                 "prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz",
                 "prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz",
-                "prosp-brca-v3.1-sample-annotation.csv.gz"]
+                "prosp-brca-v3.1-sample-annotation.csv.gz"],
+            "3.1.1": [
+                "Breast_One_Year_Clinical_Data_20160927.xls",
+                "prosp-brca-v3.0-v1.4.somatic.variants.070918.maf.gz",
+                "prosp-brca-v3.1-acetylome-ratio-norm-NArm.gct.gz",
+                "prosp-brca-v3.1-gene-level-cnv-gistic2-all_data_by_genes.gct.gz",
+                "prosp-brca-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz",
+                "prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz",
+                "prosp-brca-v3.1-sample-annotation.csv.gz"],
         }
 
         super().__init__(cancer_type="brca", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -161,6 +170,39 @@ class Brca(DataSet):
                 df.index.name = "Patient_ID"
                 self._data["metadata"] = df
 
+            elif file_name == "Breast_One_Year_Clinical_Data_20160927.xls" and self._version == "3.1.1":
+                df = pd.read_excel(file_path)
+
+                # Replace redundant values for "not reported" with NaN
+                nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Reported / Unknown', 'Not Reported /Unknown',
+                    'Not Applicable', 'not applicable', 'Not applicable;', 'na', 'Not Performed', 'Not Performed;',
+                    'Unknown tumor status', 'Unknown Tumor Status','Unknown', 'unknown', 'Not specified', 'Not Reported/ Unknown;']
+
+                df = df.replace(nan_equivalents, np.nan)
+
+                # Set and name the index
+                df = df.rename(columns={"Participant ID": "Patient_ID"})
+                df["Patient_ID"] = "X" + df["Patient_ID"]
+                df = df.set_index("Patient_ID")
+                df = df.sort_index()
+
+                self._data["followup"] = df
+
+            elif file_name == "prosp-brca-v3.0-v1.4.somatic.variants.070918.maf.gz" and self._version == "3.1.1":
+                df = pd.read_csv(file_path, sep='\t')
+                df = df.rename(columns={"Sample.ID": "Patient_ID"})
+
+                df = df[['Patient_ID','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
+                df = df.rename(columns={
+                    "Hugo_Symbol":"Gene",
+                    "Variant_Classification":"Mutation",
+                    "HGVSp_Short":"Location"}) # Rename the columns we want to keep to the appropriate names
+
+                df = df.sort_values(by=["Patient_ID", "Gene"])
+                df = df.set_index("Patient_ID")
+
+                self._data["somatic_mutation"] = df
+
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
@@ -190,13 +232,16 @@ class Brca(DataSet):
         clinical = self._data["clinical"]
         clinical = clinical.reindex(master_index)
 
+        # Fill in NaNs in the clinical table's Sample_Tumor_Normal column
+        clinical["Sample_Tumor_Normal"] = clinical["Sample_Tumor_Normal"].where(cond=~(pd.isnull(clinical["Sample_Tumor_Normal"]) & ~clinical.index.str.endswith(".N")), other="Tumor")
+
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = clinical
 
-        # Call function from dataframe_tools.py to reindex all the dataframes to have Sample_ID indices
-        self._data = reindex_all(self._data, master_index)
-
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
         self._data = standardize_axes_names(self._data)
+
+        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
+        self._data = sort_all_rows(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
