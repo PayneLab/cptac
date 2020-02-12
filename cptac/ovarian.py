@@ -143,7 +143,9 @@ class Ovarian(DataSet):
                 df = df.replace(nan_equivalents, np.nan)
 
                 # Rename PPID to Patient_ID and set as index
-                df = df.rename({'PPID': 'Patient_ID'}, axis='columns')
+                df = df.rename(columns={'PPID': 'Patient_ID'})
+                df = df.set_index("Patient_ID")
+                df = df.sort_index()
 
                 self._data["followup"] = df
 

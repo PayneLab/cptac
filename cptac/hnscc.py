@@ -74,6 +74,17 @@ class Hnscc(DataSet):
                 df.index.name = "Patient_ID"
                 self._data["CNV"] = df
 
+            elif file_name == "microRNA_log2_Combined.cct.gz" and self._version == "2.0":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.sort_index()
+                df = df.transpose()
+
+                # Reformat patient ids
+                df.index = df.index.str.replace(r'-T$', '', 1)
+                df.index = df.index.str.replace(r'-N$', '.N', 1)
+
+                self._data["miRNA"] = df
+
             elif file_name == "RNAseq_RSEM_UQ_log2.cct.gz" or file_name == "RNAseq_RSEM_UQ_Combined.cct.gz":
                 df = pd.read_csv(file_path, sep="\t")
 
@@ -101,12 +112,15 @@ class Hnscc(DataSet):
                 df = df.transpose()
                 df = df.sort_index()
                 df.columns.name=None
+
                 if self._version == "0.1":
-                    df.index = df.index.str.replace(r'\.', '-', 1) #We want all the patientIDs to have the the format C3L-00977, and these have the form C3L.00977.N, so we need to replace the first "." with a "-"
+                    df.index = df.index.str.replace(r'\.', '-', 1) # We want all the patientIDs to have the the format C3L-00977, and these have the form C3L.00977.N, so we need to replace the first "." with a "-"
                     df.index = df.index.str.replace(r'\.T$', '', 1)
-                if self._version == "2.0":
+
+                elif self._version == "2.0":
                     df.index = df.index.str.replace(r'-T$', '', 1)
                     df.index = df.index.str.replace(r'-N$', '.N', 1)
+
                 df.index.name = "Patient_ID"
                 self._data["circular_RNA"] = df
 
@@ -117,6 +131,7 @@ class Hnscc(DataSet):
                     df = df.rename(columns={"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol_Annovar":"Gene","Variant_Classification_Annovar":"Mutation"}) #Rename the columns we want to keep to the appropriate names
                     df['Location'] = df['Annovar_Info_protein'].str.extract(r'([^:]+$)') #The location that we care about is stored after the last colon
                     df = df[['Patient_ID', 'Gene', 'Mutation', 'Location']]
+
                 elif self._version == "2.0":
                     df = df[['Tumor_Sample_Barcode','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
                     df = df.rename(columns={
@@ -141,10 +156,12 @@ class Hnscc(DataSet):
 
                 df.columns.name=None
                 df.index.name="Patient_ID"
-                #Split the clinicl data in to clincial data and derived molecular data
+
+                # Split the clinical data in to clinical data and derived molecular data
 
                 if self._version == "0.1":
                     derived_molecular_cols = ['P53GENE_ANALYSIS', 'EGFR_AMP_STATUS']
+
                 elif self._version == "2.0":
                     derived_molecular_cols = ['NAT_pathology_review', 'tumor_pathology_review',
                        'ESTIMATE_stromal_score', 'ESTIMATE_immune_score', 'stemness_score',
@@ -156,16 +173,19 @@ class Hnscc(DataSet):
                        'Hypoxia_pathway', 'JAK.STAT_pathway', 'MAPK_pathway', 'NFkB_pathway',
                        'PI3K_pathway', 'TGFb_pathway', 'TNFa_pathway', 'Trail_pathway',
                        'VEGF_pathway', 'p53_pathway']
-                derived_molecular_df = df[derived_molecular_cols]#resume here on update
+
+                derived_molecular_df = df[derived_molecular_cols]
                 derived_molecular_df = derived_molecular_df.sort_index(axis='columns')
                 derived_molecular_df = derived_molecular_df.sort_index()
+
                 df = df.drop(columns=derived_molecular_cols)
                 df = df.sort_index()
                 df = df.sort_index(axis='columns')
+
                 self._data["clinical"] = df
                 self._data["derived_molecular"] = derived_molecular_df
 
-            elif file_name in ["Proteomics_DIA_Gene_level_Normal.cct.gz", "Proteomics_DIA_Gene_level_Tumor.cct.gz", "Proteomics_TMT_Gene_level_Combined_all.cct.gz"]:
+            elif file_name in ["Proteomics_DIA_Gene_level_Normal.cct.gz", "Proteomics_DIA_Gene_level_Tumor.cct.gz", "Proteomics_TMT_gene_level_combined_all.cct.gz"]:
                 df = pd.read_csv(file_path, sep="\t")
 
                 if self._version == "2.0":
@@ -183,12 +203,14 @@ class Hnscc(DataSet):
                 # Once the files are formatted correctly load them into self._data
                 if file_name == "Proteomics_DIA_Gene_level_Normal.cct.gz":
                     self._data["proteomics_normal"] = df
+
                 elif file_name == "Proteomics_DIA_Gene_level_Tumor.cct.gz":
                     self._data["proteomics_tumor"] = df
-                elif file_name == "Proteomics_TMT_Gene_level_Combined_all.cct.gz":
+
+                elif file_name == "Proteomics_TMT_gene_level_combined_all.cct.gz":
                     self._data["proteomics"] = df
 
-            elif file_name == "Phosphoproteomics_TMT_site_level_Combined_all.cct.gz" and self._version == "2.0":
+            elif file_name == "Phosphoproteomics_TMT_site_level_combined_all.cct.gz" and self._version == "2.0":
                 df = pd.read_csv(file_path, sep='\t')
 
                 df = df.rename(columns={"Gene": "Name"})
@@ -220,6 +242,12 @@ class Hnscc(DataSet):
 
             elif file_name == 'HN_followUp_9_24.xlsx' and self._version == "2.0":
                 df = pd.read_excel(file_path)
+
+                # Rename, set, and sort by index
+                df = df.rename(columns={"CASE_ID": "Patient_ID"})
+                df = df.set_index("Patient_ID")
+                df = df.sort_index()
+
                 self._data["followup"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
@@ -242,18 +270,16 @@ class Hnscc(DataSet):
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data)
 
-        # Sort this master_index so all the samples with an N suffix are last. Because the N is a suffix, not a prefix, this is kind of messy.
-        status_col = np.where(master_index.str.endswith("N"), "Normal", "Tumor")
-        status_df = pd.DataFrame(data={"Patient_ID": master_index, "Status": status_col}) # Create a new dataframe with the master_index as a column called "Patient_ID"
-        status_df = status_df.sort_values(by=["Status", "Patient_ID"], ascending=[False, True]) # Sorts first by status, and in descending order, so "Tumor" samples are first
-        master_index = pd.Index(status_df["Patient_ID"])
-
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
         master_clinical = self._data['clinical'].reindex(master_index)
 
-        # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample is a tumor or normal sample. Samples with a Patient_ID ending in N are normal.
-        clinical_status_col = generate_sample_status_col(master_clinical, normal_test=lambda sample: sample[-1] == 'N')
+        # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample is a tumor or normal sample. Samples with a Patient_ID ending in ".N" are normal.
+        clinical_status_col = generate_sample_status_col(master_clinical, normal_test=lambda sample: sample[-1] in ['N', 'C'])
         master_clinical.insert(0, "Sample_Tumor_Normal", clinical_status_col)
+
+        # Add a column called "Cored_Sample", with True for the six cored normal samples, and False for all others. The cored normal samples have a Patient_ID ending with a ".C".
+        cored_sample_col = master_clinical.index.str.endswith(".C")
+        master_clinical.insert(1, "Cored_Sample", cored_sample_col)
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = master_clinical

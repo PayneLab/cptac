@@ -113,8 +113,10 @@ class Endometrial(DataSet):
                     
                 df = df.replace(nan_equivalents, np.nan)
 
-                # Rename column to merge on, and then merge follow-up with clinical data
-                df = df.rename({'Case ID': 'Patient_ID'}, axis='columns')
+                # Rename, set, and sort index
+                df = df.rename(columns={'Case ID': 'Patient_ID'})
+                df = df.set_index("Patient_ID")
+                df = df.sort_index()
 
                 self._data["followup"] = df
 
@@ -161,6 +163,7 @@ class Endometrial(DataSet):
         clinical = self._data["clinical"] # We need the Patient_ID column from clinical, to map sample ids to patient ids. The sample ids are the clinical index, and the patient ids are in the Patient_ID column.
         patient_id_col = clinical.loc[clinical["Proteomics_Tumor_Normal"] == "Tumor", "Patient_ID"] # We only want to generate a map for tumor samples, because all the normal samples are from the same patients as the tumor samples, so they have duplicate patient ids.
         patient_id_col.index.name = "Sample_ID" # Label the sample id column (it's currently the index)
+
         mutations = self._data["somatic_mutation"]
         try:
             patient_id_map = get_reindex_map(patient_id_col)
@@ -212,8 +215,15 @@ class Endometrial(DataSet):
             del self._data[old]
 
         # Call a function from dataframe_tools.py to reindex all the dataframes with sample IDs instead of patient IDs
+        # But first take out the followup dataframe, because it's indexed with Patient_IDs and includes patients from the confirmatory cohort too
+        followup = self._data["followup"] 
+        del self._data["followup"] 
+
         sample_id_to_patient_id_map = self._data["clinical"]["Patient_ID"]
         self._data = reindex_all_sample_id_to_patient_id(self._data, sample_id_to_patient_id_map)
+
+        # Put the followup back in
+        self._data["followup"] = followup
 
         # We no longer need the Patient_ID column in the clinical dataframe, because it's in the index. So we'll remove it.
         clinical = self._data["clinical"]

@@ -243,6 +243,11 @@ class Ccrcc(DataSet):
 
                 df['Cause of Death'] = df['Cause of Death'].replace(disease_prog_equivalents, 'Disease progression')
 
+                # Rename, set, and sort by index
+                df = df.rename(columns={"Case ID": "Patient_ID"})
+                df = df.set_index("Patient_ID")
+                df = df.sort_index()
+
                 self._data["followup"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
@@ -359,12 +364,13 @@ class Ccrcc(DataSet):
         methylation = methylation.drop(index=to_drop)
         self._data["methylation"] = methylation
 
-        # Get a union of all dataframes' indices, with duplicates removed
-        master_index = unionize_indices(self._data)
-
-        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        clinical = clinical.reindex(master_index)
-        self._data['clinical'] = clinical
+# Taking this out for now, because the followup table has a bunch of samples that aren't anywhere else.
+#        # Get a union of all dataframes' indices, with duplicates removed
+#        master_index = unionize_indices(self._data)
+#
+#        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
+#        clinical = clinical.reindex(master_index)
+#        self._data['clinical'] = clinical
 
         # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. Currently, normal patient IDs have an "N" prepended. We're going to erase that and append a ".N"
         self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")

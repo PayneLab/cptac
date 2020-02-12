@@ -11,6 +11,7 @@
 
 import pandas as pd
 import numpy as np
+import warnings
 from .exceptions import CptacDevError, ReindexMapError
 
 def unionize_indices(dataset):
