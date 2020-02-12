@@ -37,14 +37,13 @@ class DataSet:
         self._cancer_type = cancer_type.lower()
 
         # Update the index, if possible. If there's no internet, that's fine.
-#        try:
-#            update_index(self._cancer_type)
-#        except NoInternetError:
-#            pass
+        try:
+            update_index(self._cancer_type)
+        except NoInternetError:
+            pass
 
         # Validate the version
-#        self._version = validate_version(version, self._cancer_type, use_context="init", valid_versions=valid_versions)
-        self._version = version # TEMP FOR DEV; REPLACE W/ ABOVE WHEN DONE
+        self._version = validate_version(version, self._cancer_type, use_context="init", valid_versions=valid_versions)
 
         # Get the paths to the data files
         version_data_files = data_files[self._version] # Get the data files for this version from the data files dictionary
