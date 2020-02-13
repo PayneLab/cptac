@@ -417,20 +417,27 @@ class Luad(DataSet):
         print(formatting_msg, end='\r')
 
         # Get a union of all dataframes' indices, with duplicates removed
-        master_index = unionize_indices(self._data)
+        if self._version == "3.1":
+            # But first take out the followup dataframe, because it's indexed with Patient_IDs and includes patients from the confirmatory cohort too
+            followup = self._data["followup"] 
+            del self._data["followup"] 
 
-        # Sort this master_index so all the samples with an N suffix are last. Because the N is a suffix, not a prefix, this is kind of messy.
-        status_col = np.where(master_index.str.endswith("N"), "Normal", "Tumor")
-        status_df = pd.DataFrame(data={"Patient_ID": master_index, "Status": status_col}) # Create a new dataframe with the master_index as a column called "Patient_ID"
-        status_df = status_df.sort_values(by=["Status", "Patient_ID"], ascending=[False, True]) # Sorts first by status, and in descending order, so "Tumor" samples are first
-        master_index = pd.Index(status_df["Patient_ID"])
+        master_index = unionize_indices(self._data)
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
         clinical = self._data["clinical"]
         clinical = clinical.reindex(master_index)
 
+        # Impute any NaNs in Sample_Tumor_Normal
+        clinical["Sample_Tumor_Normal"] = clinical["Sample_Tumor_Normal"].where(cond=~(pd.isnull(clinical["Sample_Tumor_Normal"]) & clinical.index.str.endswith(".N")), other="Normal")
+        clinical["Sample_Tumor_Normal"] = clinical["Sample_Tumor_Normal"].where(cond=~(pd.isnull(clinical["Sample_Tumor_Normal"]) & ~clinical.index.str.endswith(".N")), other="Tumor")
+
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = clinical
+
+        if self._version == "3.1":
+            # Put the followup back in
+            self._data["followup"] = followup
 
         # Replace periods with hyphens in all Patient_IDs
         for name in self._data.keys(): # Loop over just the keys to avoid any issues that would come if we looped over the values while editing them

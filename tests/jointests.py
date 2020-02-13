@@ -16,24 +16,34 @@ class InvalidArgumentsError(Exception):
 
 class JoinTest:
     def __init__(self):
-        cptac.download(dataset="endometrial", version='latest')
-        # cptac.download(dataset="brca", version='latest')
-        # cptac.download(dataset="gbm", version='latest')
-        # cptac.download(dataset="hsncc", version='latest')
-        # cptac.download(dataset="luad", version='latest')
-        cptac.download(dataset="ovarian", version='latest')
-        cptac.download(dataset="ccrcc", version='latest')
-        cptac.download(dataset="colon", version='latest')
-        self.en = cptac.Endometrial()
-        # self.brca = cptac.Brca()
-        # self.gbm = cptac.Gbm()
-        # self.hsncc = cptac.Hnscc()
-        # self.luad= cptac.Luad()
-        self.ovarian = cptac.Ovarian()
-        self.ccrcc = cptac.Ccrcc()
-        self.colon = cptac.Colon()
-        # self.datasets = list(self.en,self.brca,self.gbm,self.hsncc,self.luad,self.ovarian,self.ccrcc)
-        self.datasets = list([self.en, self.ovarian, self.ccrcc, self.colon])
+#        cptac.download(dataset="brca", version='latest')
+#        cptac.download(dataset="ccrcc", version='latest')
+#        cptac.download(dataset="colon", version='latest')
+#        cptac.download(dataset="endometrial", version='latest')
+#        cptac.download(dataset="gbm", version='latest')
+#        cptac.download(dataset="hsncc", version='latest')
+#        cptac.download(dataset="luad", version='latest')
+#        cptac.download(dataset="ovarian", version='latest')
+
+        self.brca = cptac.Brca("3.1.1")
+        self.ccrcc = cptac.Ccrcc("0.1.1")
+        self.colon = cptac.Colon("0.0.1")
+        self.en = cptac.Endometrial("2.1.1")
+        self.gbm = cptac.Gbm("3.0")
+        self.hsncc = cptac.Hnscc("2.0")
+        self.luad= cptac.Luad("3.1")
+        self.ovarian = cptac.Ovarian("0.0.1")
+
+        self.datasets = [
+            self.brca,
+            self.ccrcc,
+            self.colon,
+            self.en,
+            self.gbm,
+            self.hsncc,
+            self.luad,
+            self.ovarian,
+            ]
 
     @staticmethod
     def RepresentsInt(s: str) -> bool:

@@ -215,15 +215,17 @@ class Endometrial(DataSet):
             del self._data[old]
 
         # Call a function from dataframe_tools.py to reindex all the dataframes with sample IDs instead of patient IDs
-        # But first take out the followup dataframe, because it's indexed with Patient_IDs and includes patients from the confirmatory cohort too
-        followup = self._data["followup"] 
-        del self._data["followup"] 
+        if self._version == "2.1.1":
+            # But first take out the followup dataframe, because it's indexed with Patient_IDs and includes patients from the confirmatory cohort too
+            followup = self._data["followup"] 
+            del self._data["followup"] 
 
         sample_id_to_patient_id_map = self._data["clinical"]["Patient_ID"]
         self._data = reindex_all_sample_id_to_patient_id(self._data, sample_id_to_patient_id_map)
 
-        # Put the followup back in
-        self._data["followup"] = followup
+        if self._version == "2.1.1":
+            # Put the followup back in
+            self._data["followup"] = followup
 
         # We no longer need the Patient_ID column in the clinical dataframe, because it's in the index. So we'll remove it.
         clinical = self._data["clinical"]

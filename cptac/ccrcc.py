@@ -364,13 +364,21 @@ class Ccrcc(DataSet):
         methylation = methylation.drop(index=to_drop)
         self._data["methylation"] = methylation
 
-# Taking this out for now, because the followup table has a bunch of samples that aren't anywhere else.
-#        # Get a union of all dataframes' indices, with duplicates removed
-#        master_index = unionize_indices(self._data)
-#
-#        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-#        clinical = clinical.reindex(master_index)
-#        self._data['clinical'] = clinical
+        # Get a union of all dataframes' indices, with duplicates removed
+        if self._version == "0.1.1":
+            # But first take out the followup dataframe, because it's indexed with Patient_IDs and includes patients from the confirmatory cohort too
+            followup = self._data["followup"] 
+            del self._data["followup"] 
+
+        master_index = unionize_indices(self._data)
+
+        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
+        clinical = clinical.reindex(master_index)
+        self._data['clinical'] = clinical
+
+        if self._version == "0.1.1":
+            # Put the followup back in
+            self._data["followup"] = followup
 
         # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. Currently, normal patient IDs have an "N" prepended. We're going to erase that and append a ".N"
         self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
