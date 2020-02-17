@@ -15,7 +15,6 @@ class InvalidArgumentsError(Exception):
 
 
 class JoinTest:
-
     def __init__(self):
         cptac.download(dataset="endometrial", version='latest')
         # cptac.download(dataset="brca", version='latest')

@@ -24,7 +24,7 @@ class Endometrial(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["2.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["2.1", "2.1.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "2.1": [
@@ -39,7 +39,20 @@ class Endometrial(DataSet):
                 "somatic_binary.cbt.gz", 
                 "somatic.maf.gz", 
                 "transcriptomics_circular.cct.gz", 
-                "transcriptomics_linear.cct.gz"]
+                "transcriptomics_linear.cct.gz"],
+            "2.1.1": [
+                "acetylproteomics.cct.gz",
+                "clinical.txt",
+                "CNA.cct.gz",
+                "definitions.txt",
+                "miRNA.cct.gz",
+                "phosphoproteomics_site.cct.gz",
+                "proteomics.cct.gz",
+                "somatic_binary.cbt.gz",
+                "somatic.maf.gz",
+                "transcriptomics_circular.cct.gz",
+                "transcriptomics_linear.cct.gz",
+                "UCEC_followup_9_12.xlsx"],
         }
 
         super().__init__(cancer_type="endometrial", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -91,6 +104,22 @@ class Endometrial(DataSet):
                 df = df.transpose()
                 self._data[df_name] = df # Maps dataframe name to dataframe
 
+            elif file_name == 'UCEC_followup_9_12.xlsx' and self._version == "2.1.1":
+                df = pd.read_excel(file_path)
+
+                # Replace redundant values for 'not reported' with NaN
+                nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Applicable', 'na', 'unknown',
+                    'Not Performed', 'Unknown tumor status', 'Unknown', 'Unknown Tumor Status', 'Not specified']
+                    
+                df = df.replace(nan_equivalents, np.nan)
+
+                # Rename, set, and sort index
+                df = df.rename(columns={'Case ID': 'Patient_ID'})
+                df = df.set_index("Patient_ID")
+                df = df.sort_index()
+
+                self._data["followup"] = df
+
             else:
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
                 df = df.transpose()
@@ -134,6 +163,7 @@ class Endometrial(DataSet):
         clinical = self._data["clinical"] # We need the Patient_ID column from clinical, to map sample ids to patient ids. The sample ids are the clinical index, and the patient ids are in the Patient_ID column.
         patient_id_col = clinical.loc[clinical["Proteomics_Tumor_Normal"] == "Tumor", "Patient_ID"] # We only want to generate a map for tumor samples, because all the normal samples are from the same patients as the tumor samples, so they have duplicate patient ids.
         patient_id_col.index.name = "Sample_ID" # Label the sample id column (it's currently the index)
+
         mutations = self._data["somatic_mutation"]
         try:
             patient_id_map = get_reindex_map(patient_id_col)
@@ -185,8 +215,15 @@ class Endometrial(DataSet):
             del self._data[old]
 
         # Call a function from dataframe_tools.py to reindex all the dataframes with sample IDs instead of patient IDs
+        # But first take out the followup dataframe, because it's indexed with Patient_IDs and includes patients from the confirmatory cohort too
+        followup = self._data["followup"] 
+        del self._data["followup"] 
+
         sample_id_to_patient_id_map = self._data["clinical"]["Patient_ID"]
         self._data = reindex_all_sample_id_to_patient_id(self._data, sample_id_to_patient_id_map)
+
+        # Put the followup back in
+        self._data["followup"] = followup
 
         # We no longer need the Patient_ID column in the clinical dataframe, because it's in the index. So we'll remove it.
         clinical = self._data["clinical"]

@@ -59,6 +59,7 @@ class DataSet:
             'acetylproteomics',
             'circular_RNA',
             'CNV',
+            'lincRNA',
             'lipidomics',
             'metabolomics',
             'miRNA',
@@ -71,9 +72,11 @@ class DataSet:
 
         # These are the metadata dataframes that are valid for use in the utilities functions
         self._valid_metadata_dfs = [
-            'clinical',
-            'derived_molecular',
-            'experimental_design'] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in Ccrcc, because they both have multiple rows for each sample.
+            "clinical",
+            "derived_molecular",
+            "experimental_design",
+            #"followup", # Right now there are duplicate rows, so don't include follow up tables for joins.
+            ] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in Ccrcc, because they both have multiple rows for each sample.
 
     # Methods to get metadata dataframes
     def get_clinical(self):
@@ -96,6 +99,10 @@ class DataSet:
         """Get the treatment dataframe."""
         return self._get_dataframe("treatment")
 
+    def get_followup(self):
+        """Get the followup dataframe."""
+        return self._get_dataframe("followup")
+
     # Methods to get omics dataframes
     def get_acetylproteomics(self):
         """Get the acetylproteomics dataframe."""
@@ -108,6 +115,10 @@ class DataSet:
     def get_CNV(self):
         """Get the CNV dataframe."""
         return self._get_dataframe("CNV")
+
+    def get_lincRNA(self):
+        """Get the lincRNA dataframe."""
+        return self._get_dataframe("lincRNA")
 
     def get_lipidomics(self):
         """Get the lipidomics dataframe."""

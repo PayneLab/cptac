@@ -13,6 +13,7 @@ import hashlib
 import os
 import glob
 import warnings
+import packaging.version
 from .exceptions import *
 
 def get_dataset_path(dataset):
@@ -49,7 +50,7 @@ def validate_version(version, dataset, use_context, valid_versions=None):
     index = get_index(dataset)
 
     # See what the highest version in the index is
-    index_latest = max(index.keys(), key=float)
+    index_latest = max(index.keys(), key=packaging.version.parse)
 
     # Parse and validate the version they passed
     if version in index.keys():
@@ -123,7 +124,7 @@ def get_latest_installed(dataset_path):
                     if dir.startswith(version_dir_prefix)]
     if len(versions) == 0:
         return
-    latest_installed = max(versions, key=float)
+    latest_installed = max(versions, key=packaging.version.parse)
     return latest_installed
 
 def get_index(dataset):

@@ -24,7 +24,7 @@ class Ccrcc(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["0.0", "0.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["0.0", "0.1", "0.1.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "0.0": [
@@ -49,7 +49,20 @@ class Ccrcc(DataSet):
                 "kirc_wgs_cnv_gene.csv.gz",
                 "RNA_Normal_Tumor_185_samples.tsv.gz",
                 "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx",
-                "Table S7.xlsx"]
+                "Table S7.xlsx"],
+            "0.1.1": [
+                "6_CPTAC3_CCRCC_Phospho_abundance_gene_protNorm=2_CB_imputed.tsv.gz",
+                "6_CPTAC3_CCRCC_Phospho_abundance_phosphosite_protNorm=2_CB.tsv.gz",
+                "6_CPTAC3_CCRCC_Whole_abundance_protein_pep=unique_protNorm=2_CB.tsv.gz",
+                "CCRCC_followup_9_12.xlsx",
+                "ccrccMethylGeneLevelByMean.txt.gz",
+                "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz",
+                "Clinical Table S1.xlsx",
+                "cptac-metadata.xls.gz",
+                "kirc_wgs_cnv_gene.csv.gz",
+                "RNA_Normal_Tumor_185_samples.tsv.gz",
+                "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx",
+                "Table S7.xlsx"],
         }
 
         super().__init__(cancer_type="ccrcc", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -213,6 +226,30 @@ class Ccrcc(DataSet):
                 immune_groups = immune_groups[["Samples", "Immune Group"]] # We only need these columns
                 immune_groups = immune_groups.set_index("Samples")
 
+            elif file_name == 'CCRCC_followup_9_12.xlsx' and self._version == "0.1.1":
+                df = pd.read_excel(file_path)
+
+                # Replace redundant values for "not reported" with NaN
+                nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Applicable', 'na',
+                    'unknown', 'Not Performed', 'Unknown tumor status', 'Unknown', ' Unknown', 'Unknown ',
+                    'Unknown Tumor Status', 'Not specified']
+
+                df = df.replace(nan_equivalents, np.nan)
+
+                # Replace redundanct values in "Cause of Death" column
+                disease_prog_equivalents = ['Metastatic Renal Cell Carcinoma', 'Tumor progression',
+                    'Progression of disease', 'Progression of disease ', 'Tumor', 'Disease progression',
+                    'Progressive Disease', 'Disease progression', 'disease progression ', 'main disease ']
+
+                df['Cause of Death'] = df['Cause of Death'].replace(disease_prog_equivalents, 'Disease progression')
+
+                # Rename, set, and sort by index
+                df = df.rename(columns={"Case ID": "Patient_ID"})
+                df = df.set_index("Patient_ID")
+                df = df.sort_index()
+
+                self._data["followup"] = df
+
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
@@ -327,12 +364,13 @@ class Ccrcc(DataSet):
         methylation = methylation.drop(index=to_drop)
         self._data["methylation"] = methylation
 
-        # Get a union of all dataframes' indices, with duplicates removed
-        master_index = unionize_indices(self._data)
-
-        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        clinical = clinical.reindex(master_index)
-        self._data['clinical'] = clinical
+# Taking this out for now, because the followup table has a bunch of samples that aren't anywhere else.
+#        # Get a union of all dataframes' indices, with duplicates removed
+#        master_index = unionize_indices(self._data)
+#
+#        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
+#        clinical = clinical.reindex(master_index)
+#        self._data['clinical'] = clinical
 
         # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. Currently, normal patient IDs have an "N" prepended. We're going to erase that and append a ".N"
         self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")

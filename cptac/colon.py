@@ -24,7 +24,7 @@ class Colon(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["0.0"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["0.0", "0.0.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "0.0": [
@@ -36,7 +36,19 @@ class Colon(DataSet):
                 "phosphoproteomics_tumor.gz",
                 "proteomics_normal.cct.gz",
                 "proteomics_tumor.cct.gz",
-                "transcriptomics.gz"]
+                "transcriptomics.gz"],
+            "0.0.1": [
+                "clinical.tsi.gz",
+                "Colon_One_Year_Clinical_Data_20160927.xls",
+                "Human__CPTAC_COAD__VU__SCNA__ExomeSeq__01_28_2016__BCM__Gene__BCM_CopyWriteR_GISTIC2.cct.gz",
+                "miRNA.cct.gz",
+                "mutation_binary.cbt.gz",
+                "mutation.txt.gz",
+                "phosphoproteomics_normal.gz",
+                "phosphoproteomics_tumor.gz",
+                "proteomics_normal.cct.gz",
+                "proteomics_tumor.cct.gz",
+                "transcriptomics.gz"],
         }
 
         super().__init__(cancer_type="colon", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -54,9 +66,33 @@ class Colon(DataSet):
             file_name_split = file_name.split(".")
             df_name = file_name_split[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
-            df = pd.read_csv(file_path, sep="\t",index_col=0)
-            df = df.transpose()
-            self._data[df_name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
+            if file_name == 'Colon_One_Year_Clinical_Data_20160927.xls' and self._version == "0.0.1":
+                df = pd.read_excel(file_path)
+
+                # Replace redundant values for "not reported" with NaN
+                nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Applicable',
+                    'na', 'unknown', 'Not Performed', 'Unknown tumor status']
+
+                df = df.replace(nan_equivalents, np.nan)
+
+                # Rename and set index
+                df = df.rename(columns={'PPID': 'Patient_ID'})
+                df = df.set_index("Patient_ID")
+                df = df.sort_index()
+
+                self._data["followup"] = df
+
+            elif file_name == "Human__CPTAC_COAD__VU__SCNA__ExomeSeq__01_28_2016__BCM__Gene__BCM_CopyWriteR_GISTIC2.cct.gz" and self._version == "0.0.1":
+                df = pd.read_csv(file_path, sep="\t",index_col=0)
+                df = df.sort_index()
+                df = df.transpose()
+                self._data["CNV"] = df
+
+            else:
+                df = pd.read_csv(file_path, sep="\t",index_col=0)
+                df = df.sort_index()
+                df = df.transpose()
+                self._data[df_name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."

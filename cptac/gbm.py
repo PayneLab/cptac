@@ -72,6 +72,7 @@ class Gbm(DataSet):
             "3.0": [
                 "acetylome_mssm_per_gene_clean.v3.0.20191121.tsv.gz",
                 "clinical_data_core.v3.0.20191121.tsv.gz",
+                "gbm_all_subtype_collections.2020-01-13.tsv.gz",
                 "metabolome_pnnl.v3.0.20191121.tsv.gz",
                 "metabolome_sample_info.v3.0.20191121.tsv.gz",
                 "mirnaseq_mirna_mature_tpm.v3.0.20191121.tsv.gz",
@@ -123,6 +124,11 @@ class Gbm(DataSet):
             elif df_name == "clinical_data_core":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 self._data["clinical"] = df
+
+            elif file_name == "gbm_all_subtype_collections.2020-01-13.tsv.gz":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.drop(columns="sample_type")
+                self._data["derived_molecular"] = df
 
             elif df_name == "metabolome_pnnl":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
