@@ -293,12 +293,20 @@ class DataSet:
 
         #If they don't give us a filter, this is the default.
         if mutations_filter == None:
-            mutations_filter = ["deletion", 'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Missense_Mutation_hotspot',
-    	                           'Missense_Mutation', 'amplification', 'In_Frame_Del', 'In_Frame_Ins', 'wildtype']
+            mutations_filter = ["Deletion", 'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Missense_Mutation_hotspot',
+    	                           'Missense_Mutation', 'Amplification', 'In_Frame_Del', 'In_Frame_Ins', 'Wildtype']
 
 
         #combine the cnv and mutations dataframe
+
+
         combined = self.join_omics_to_mutations(omics_df_name="CNV", mutations_genes=mutations_genes, omics_genes=mutations_genes)
+
+        #drop the database index from ccrcc
+        if self.get_cancer_type() == "ccrcc":
+             cc = self.get_CNV()
+             drop = ['Database_ID']
+             combined = self.reduce_multiindex(df=combined, levels_to_drop=drop)
 
         #If there are hotspot mutations, append 'hotspot' to the mutation type so that it's prioritized correctly
         def mark_hotspot_locations(row):
@@ -324,12 +332,12 @@ class DataSet:
         # Based on cnv make a new column with mutation type that includes deletions and amplifications
         def add_del_and_amp(row):
             if row[mutations_genes+"_CNV"] <= -.2:
-                mutations = row[mutations_genes+"_Mutation"] + ['deletion']
-                locations = row[mutations_genes+'_Location']+['deletion']
+                mutations = row[mutations_genes+"_Mutation"] + ['Deletion']
+                locations = row[mutations_genes+'_Location']+['Deletion']
 
             elif row[mutations_genes+"_CNV"] >= .2:
-                mutations = row[mutations_genes+"_Mutation"] + ['amplification']
-                locations = row[mutations_genes+'_Location']+['amplification']
+                mutations = row[mutations_genes+"_Mutation"] + ['Amplification']
+                locations = row[mutations_genes+'_Location']+['Amplification']
             else:
                 mutations = row[mutations_genes+"_Mutation"]
                 locations = row[mutations_genes+"_Location"]
