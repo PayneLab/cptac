@@ -13,9 +13,10 @@ import pandas as pd
 import numpy as np
 import os
 import warnings
+import datetime
 from .dataset import DataSet
 from .dataframe_tools import *
-from .exceptions import FailedReindexWarning, ReindexMapError
+from .exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 class Luad(DataSet):
 
@@ -417,13 +418,8 @@ class Luad(DataSet):
         print(formatting_msg, end='\r')
 
         # Get a union of all dataframes' indices, with duplicates removed
-        master_index = unionize_indices(self._data)
-
-        # Sort this master_index so all the samples with an N suffix are last. Because the N is a suffix, not a prefix, this is kind of messy.
-        status_col = np.where(master_index.str.endswith("N"), "Normal", "Tumor")
-        status_df = pd.DataFrame(data={"Patient_ID": master_index, "Status": status_col}) # Create a new dataframe with the master_index as a column called "Patient_ID"
-        status_df = status_df.sort_values(by=["Status", "Patient_ID"], ascending=[False, True]) # Sorts first by status, and in descending order, so "Tumor" samples are first
-        master_index = pd.Index(status_df["Patient_ID"])
+        # Exclude the followup dataframe because it has samples from a different cohort that aren't included anywhere else in the dataset
+        master_index = unionize_indices(self._data, exclude="followup")
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
         clinical = self._data["clinical"]
@@ -456,3 +452,9 @@ class Luad(DataSet):
         self._data = sort_all_rows(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
+
+        # Print data embargo warning, if the date hasn't passed yet.
+        today = datetime.date.today()
+        embargo_date = datetime.date(year=2020, month=7, day=1)
+        if today < embargo_date:
+            warnings.warn("The LUAD dataset is under publication embargo until July 01, 2020. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until after the embargo date. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details.", PublicationEmbargoWarning, stacklevel=2)

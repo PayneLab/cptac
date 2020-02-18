@@ -22,29 +22,29 @@ from .exceptions import CptacError, CptacWarning, InvalidParameterError, NoInter
 
 # Dataset imports
 from .brca import Brca
+from .ccrcc import Ccrcc
 from .colon import Colon
 from .endometrial import Endometrial
 from .gbm import Gbm
 from .hnscc import Hnscc
+from .lscc import Lscc
 from .luad import Luad
 from .ovarian import Ovarian
-from .ccrcc import Ccrcc
-from .lscc import Lscc
 
 def list_datasets():
     """List all available datasets."""
     col_names = ["Description", "Data reuse status", "Publication link"]
     col_index = pd.Index(data=col_names, name="Dataset name")
     datasets = {
-        "Brca": ["breast cancer", "password access only", "unpublished"],
+        "Brca": ["breast cancer", "no restrictions", "unpublished"],
+        "Ccrcc": ["clear cell renal cell carcinoma (kidney)", "no restrictions", "https://www.ncbi.nlm.nih.gov/pubmed/31675502"],
         "Colon": ["colorectal cancer", "no restrictions", "https://www.ncbi.nlm.nih.gov/pubmed/31031003"],
-        "Endometrial": ["endometrial carcinoma (uterine)", "no restrictions", "unpublished"],
-        "Gbm": ["glioblastoma", "password access only", "unpublished"],
+        "Endometrial": ["endometrial carcinoma (uterine)", "no restrictions", "https://www.ncbi.nlm.nih.gov/pubmed/32059776"],
+        "Gbm": ["glioblastoma", "publication embargo", "unpublished"],
         "Hnscc": ["head and neck", "password access only", "unpublished"],
-        "Luad": ["lung adenocarcinoma", "password access only", "unpublished"],
-        "Ovarian": ["high grade serous ovarian cancer", "no restrictions", "unpublished"],
-        "Ccrcc": ["clear cell renal cell carcinoma (kidney)", "no restrictions", "unpublished"],
         "Lscc": ["lung squamous cell carcinoma", "password access only", "unpublished"],
+        "Luad": ["lung adenocarcinoma", "publication embargo", "unpublished"],
+        "Ovarian": ["high grade serous ovarian cancer", "no restrictions", "https://www.ncbi.nlm.nih.gov/pubmed/27372738"],
         }
     dataset_df = pd.DataFrame(data=datasets, index=col_index)
     dataset_df = dataset_df.transpose()

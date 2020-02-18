@@ -159,24 +159,9 @@ class Endometrial(DataSet):
             'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']]
         self._data["experimental_design"] = experimental_design
 
-        # Add Sample_ID column to somatic_mutation dataframe and make it the index
-        clinical = self._data["clinical"] # We need the Patient_ID column from clinical, to map sample ids to patient ids. The sample ids are the clinical index, and the patient ids are in the Patient_ID column.
-        patient_id_col = clinical.loc[clinical["Proteomics_Tumor_Normal"] == "Tumor", "Patient_ID"] # We only want to generate a map for tumor samples, because all the normal samples are from the same patients as the tumor samples, so they have duplicate patient ids.
-        patient_id_col.index.name = "Sample_ID" # Label the sample id column (it's currently the index)
-
-        mutations = self._data["somatic_mutation"]
-        try:
-            patient_id_map = get_reindex_map(patient_id_col)
-            mutations_reindexed = reindex_dataframe(mutations, patient_id_map, "Sample_ID", keep_old=False)
-        except ReindexMapError:
-            del self._data["somatic_mutation"]
-            warnings.warn("Error mapping sample ids in somatic_mutation dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. somatic_mutation dataframe not loaded.", FailedReindexWarning, stacklevel=2)
-        else:
-            self._data["somatic_mutation"] = mutations_reindexed
-
         # Drop all excluded samples from the dataset. They were excluded due to poor sample quality, etc.
         clinical = self._data["clinical"]
-        cases_to_drop = clinical[clinical["Case_excluded"] == "Yes"].index
+        cases_to_drop = clinical[clinical["Case_excluded"] == "Yes"].index.union(clinical[clinical["Case_excluded"] == "Yes"]["Patient_ID"])
 
         for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
             df = self._data[name]
@@ -209,21 +194,16 @@ class Endometrial(DataSet):
             "transcriptomics_linear":"transcriptomics",
             "transcriptomics_circular":"circular_RNA",
             "phosphoproteomics_site":"phosphoproteomics",
-            "somatic_binary":"somatic_mutation_binary",}
+            "somatic_binary":"somatic_mutation_binary",
+            }
         for old, new in rename_dict.items():
             self._data[new] = self._data[old]
             del self._data[old]
 
         # Call a function from dataframe_tools.py to reindex all the dataframes with sample IDs instead of patient IDs
-        # But first take out the followup dataframe, because it's indexed with Patient_IDs and includes patients from the confirmatory cohort too
-        followup = self._data["followup"] 
-        del self._data["followup"] 
-
+        # Skip the followup and somatic_mutation dataframes because they're already indexed with Patient_IDs
         sample_id_to_patient_id_map = self._data["clinical"]["Patient_ID"]
-        self._data = reindex_all_sample_id_to_patient_id(self._data, sample_id_to_patient_id_map)
-
-        # Put the followup back in
-        self._data["followup"] = followup
+        self._data = reindex_all_sample_id_to_patient_id(self._data, sample_id_to_patient_id_map, skip=["followup", "somatic_mutation"])
 
         # We no longer need the Patient_ID column in the clinical dataframe, because it's in the index. So we'll remove it.
         clinical = self._data["clinical"]

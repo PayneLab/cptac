@@ -12,18 +12,22 @@
 import pandas as pd
 import numpy as np
 import warnings
-from .exceptions import CptacDevError, ReindexMapError
+from .exceptions import CptacDevError, ReindexMapError, FailedReindexWarning
 
-def unionize_indices(dataset):
+def unionize_indices(dataset, exclude=[]):
     """Return a union of all indices in a dataset, without duplicates.
 
     Parameters:
     dataset (dict of str: pandas DataFrame): The data dictionary containing the dataset.
+    exclude (str or list of str, optional): A list of dataframes to exclude when unionizing indices.
 
     Returns:
     pandas Index: Union of all indices in the dataset, without duplicates.
     """
-    indices = [df.index for df in dataset.values()]
+    if isinstance(exclude, str): # If it's a single dataframe name, make it a list so we can treat everything the same
+        exclude = [exclude]
+
+    indices = [df.index for name, df in dataset.items() if name not in exclude]
     master_index = pd.Index([])
     for index in indices:
         master_index = master_index.union(index)
@@ -94,21 +98,30 @@ def reindex_dataframe(df, reindex_map, new_index_name, keep_old):
     df = df.sort_index()
     return df
 
-def reindex_all_sample_id_to_patient_id(data_dict, reindex_map, additional_to_keep_col=[]):
+def reindex_all_sample_id_to_patient_id(data_dict, reindex_map, additional_to_keep_col=[], skip=[]):
     """Reindex all the dataframes with Patient_IDs instead of Sample_IDs
 
     Parameters:
     data_dict (keys are str, values are pandas DataFrames): The data dictionary to reindex
     reindex_map (dict or pandas Series): A dictionary or pandas Series with the old index values (Sample_IDs) as the keys or index, and the new ones (Patient_IDs) as the values. Must map for all existing index values in the entire dataset.
     additional_to_keep_col (list of str, optional): The function will already keep the old index as a column in the clinical dataframe. If you want it to do this for any other dataframes, put their names in this list.
+    skip (str or list of str, optional): A list of dataframes to skip when reindexing.
 
     Returns:
     dict: The data dictionary, with all dataframes reindexed with Patient_IDs
     """
+    if isinstance(skip, str): # If it's a single dataframe name, make it a list so we can treat everything the same
+        skip = [skip]
+
     dfs_to_delete = []
     dfs_to_keep_col = ["clinical"] + additional_to_keep_col
 
     for name in data_dict.keys(): # Only loop over keys, to avoid changing the structure of the object we're looping over
+
+        # Skip any specified to skip
+        if name in skip:
+            continue
+
         df = data_dict[name]
         df.index.name = "Sample_ID" # So that it's labeled properly when we keep it as a column in the clinical dataframe.
         keep_old = name in dfs_to_keep_col # Keep the old Patient_ID index as a column in the clinical dataframe (and any additionally specified dataframes), so we have a record of it.

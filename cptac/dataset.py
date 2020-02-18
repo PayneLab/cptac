@@ -11,7 +11,6 @@
 import pandas as pd
 import numpy as np
 import webbrowser
-import re
 import warnings
 from .file_download import update_index
 from .file_tools import validate_version, get_version_files_paths
