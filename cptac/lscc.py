@@ -27,7 +27,6 @@ class Lscc(DataSet):
 
         data_files = {
             "1.0": [
-                "lscc-v1.0-any-somatic-mutation-freq-by-gene.gct.gz", #done
                 "lscc-v1.0-cnv-gene-level-log2.gct.gz", #done
                 "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz", #done
                 "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz", #somatic variant, find sample identifier (maybe cl), name, gene, mutation, location
@@ -53,7 +52,7 @@ class Lscc(DataSet):
             df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
             if file_name == "lscc-v1.0-cnv-gene-level-log2.gct.gz": #Done
-                df = pd.read_csv("lscc-v1.0-cnv-gene-level-log2.gct", sep="\t", skiprows=2, dtype=object)
+                df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
                 df = df.set_index("id")
                 # df = df.apply(pd.to_numeric)
                 df = df.sort_index()
@@ -63,7 +62,7 @@ class Lscc(DataSet):
                 self._data["CNV"] = df
 
             elif file_name == "lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz": #Done
-                df = pd.read_csv(file_name, sep="\t", skiprows=2, dtype=object)
+                df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Drop rows of metadata
                 df = df[gene_filter]
 
@@ -156,37 +155,34 @@ class Lscc(DataSet):
 
 
             elif file_name == "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz":
-                df = pd.read_csv(file_name, sep="\t", dtype=object)
+                df = pd.read_csv(file_path, sep="\t", dtype=object)
 
-                cols_to_drop = ['Hugo_Symbol', 'Entrez_Gene_Id', 'Center', 'NCBI_Build', 'Reference_Allele',
-                'Tumor_Seq_Allele1', 'Tumor_Seq_Allele2', 'dbSNP_RS', 'dbSNP_Val_Status',
-                'Tumor_Sample_Barcode', 'Matched_Norm_Sample_Barcode', 'Match_Norm_Seq_Allele1',
-                'Match_Norm_Seq_Allele2', 'Tumor_Validation_Allele1', 'Tumor_Validation_Allele2',
-                'Match_Norm_Validation_Allele1', 'Match_Norm_Validation_Allele2', 'Verification_Status',
-                'Validation_Status', 'Mutation_Status', 'Sequencing_Phase', 'Sequence_Source',
-                'Validation_Method', 'Score', 'BAM_File', 'Sequencer', 'Tumor_Sample_UUID',
-                'Matched_Norm_Sample_UUID', 'HGVSc', 'HGVSp', 'HGVSp_Short', 'Transcript_ID',
-                'Exon_Number', 't_depth', 't_ref_count', 't_alt_count', 'n_depth', 'n_ref_count',
-                'n_alt_count', 'callers', 'all_effects', 'Allele', 'Gene', 'Feature', 'Feature_type',
-                'Consequence', 'cDNA_position', 'CDS_position', 'Protein_position', 'Amino_acids',
-                'Codons', 'Existing_variation', 'ALLELE_NUM', 'DISTANCE', 'STRAND_VEP', 'SYMBOL',
-                'SYMBOL_SOURCE', 'HGNC_ID', 'BIOTYPE', 'CANONICAL', 'CCDS', 'ENSP', 'SWISSPROT',
-                'TREMBL', 'UNIPARC', 'RefSeq', 'SIFT', 'PolyPhen', 'EXON', 'INTRON', 'DOMAINS',
-                'GMAF', 'AFR_MAF', 'AMR_MAF', 'ASN_MAF', 'EAS_MAF', 'EUR_MAF', 'SAS_MAF', 'AA_MAF',
-                'EA_MAF', 'CLIN_SIG', 'SOMATIC', 'PUBMED', 'MOTIF_NAME', 'MOTIF_POS', 'HIGH_INF_POS',
-                'MOTIF_SCORE_CHANGE', 'IMPACT', 'PICK', 'VARIANT_CLASS', 'TSL', 'HGVS_OFFSET', 'PHENO',
-                'MINIMISED', 'ExAC_AF', 'ExAC_AF_AFR', 'ExAC_AF_AMR', 'ExAC_AF_EAS', 'ExAC_AF_FIN',
-                'ExAC_AF_NFE', 'ExAC_AF_OTH', 'ExAC_AF_SAS', 'GENE_PHENO', 'FILTER', 'flanking_bps',
-                'variant_id', 'variant_qual', 'ExAC_AF_Adj', 'ExAC_AC_AN_Adj', 'ExAC_AC_AN', 'ExAC_AC_AN_AFR',
-                'ExAC_AC_AN_AMR', 'ExAC_AC_AN_EAS', 'ExAC_AC_AN_FIN', 'ExAC_AC_AN_NFE', 'ExAC_AC_AN_OTH',
-                'ExAC_AC_AN_SAS', 'ExAC_FILTER']
+                cols_to_drop = ['Entrez_Gene_Id', 'Center', 'NCBI_Build', 'Chromosome', 'Start_Position', 'End_Position',
+                'Strand', 'Variant_Type', 'Reference_Allele', 'Tumor_Seq_Allele1', 'Tumor_Seq_Allele2', 'dbSNP_RS',
+                'dbSNP_Val_Status', 'Tumor_Sample_Barcode', 'Matched_Norm_Sample_Barcode', 'Match_Norm_Seq_Allele1',
+                'Match_Norm_Seq_Allele2', 'Tumor_Validation_Allele1', 'Tumor_Validation_Allele2', 'Match_Norm_Validation_Allele1',
+                'Match_Norm_Validation_Allele2', 'Verification_Status', 'Validation_Status', 'Mutation_Status', 'Sequencing_Phase',
+                'Sequence_Source', 'Validation_Method', 'Score', 'BAM_File', 'Sequencer', 'Tumor_Sample_UUID', 'Matched_Norm_Sample_UUID',
+                'HGVSc', 'HGVSp', 'Transcript_ID', 'Exon_Number', 't_depth', 't_ref_count', 't_alt_count', 'n_depth',
+                'n_ref_count', 'n_alt_count', 'callers', 'all_effects', 'Allele', 'Gene', 'Feature', 'Feature_type', 'Consequence',
+                'cDNA_position', 'CDS_position', 'Protein_position', 'Amino_acids', 'Codons', 'Existing_variation', 'ALLELE_NUM',
+                'DISTANCE', 'STRAND_VEP', 'SYMBOL', 'SYMBOL_SOURCE', 'HGNC_ID', 'BIOTYPE', 'CANONICAL', 'CCDS', 'ENSP', 'SWISSPROT',
+                'TREMBL', 'UNIPARC', 'RefSeq', 'SIFT', 'PolyPhen', 'EXON', 'INTRON', 'DOMAINS', 'GMAF', 'AFR_MAF', 'AMR_MAF',
+                'ASN_MAF', 'EAS_MAF', 'EUR_MAF', 'SAS_MAF', 'AA_MAF', 'EA_MAF', 'CLIN_SIG', 'SOMATIC', 'PUBMED', 'MOTIF_NAME',
+                'MOTIF_POS', 'HIGH_INF_POS', 'MOTIF_SCORE_CHANGE', 'IMPACT', 'PICK', 'VARIANT_CLASS', 'TSL', 'HGVS_OFFSET', 'PHENO',
+                'MINIMISED', 'ExAC_AF', 'ExAC_AF_AFR', 'ExAC_AF_AMR', 'ExAC_AF_EAS', 'ExAC_AF_FIN', 'ExAC_AF_NFE', 'ExAC_AF_OTH',
+                'ExAC_AF_SAS', 'GENE_PHENO', 'FILTER', 'flanking_bps', 'variant_id', 'variant_qual', 'ExAC_AF_Adj', 'ExAC_AC_AN_Adj',
+                'ExAC_AC_AN', 'ExAC_AC_AN_AFR', 'ExAC_AC_AN_AMR', 'ExAC_AC_AN_EAS', 'ExAC_AC_AN_FIN', 'ExAC_AC_AN_NFE',
+                'ExAC_AC_AN_OTH', 'ExAC_AC_AN_SAS', 'ExAC_FILTER']
 
                 df = df.drop(columns = cols_to_drop)
-                #self._data['somatic_mutation']
-                #not sure what to save this one as
+                df = df.rename(columns={"Sample.ID": "Patient_ID", 'Hugo_Symbol': "Gene", "Variant_Classification": "Mutation", "HGVSp_Short": "Location"})
+                df.set_index("Patient_ID")
+                df.sort_index()
+                self._data['somatic_mutation'] = df
 
             elif file_name == "lscc-v1.0-mirna-mature-tpm-log2.gct.gz": #Done
-                df = pd.read_csv(file_name, skiprows=2, sep='\t', dtype=object)
+                df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
                 gene_filter = df['Name'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
                 df = df.set_index(["Name","ID"])
@@ -197,14 +193,6 @@ class Lscc(DataSet):
                 df.index.name="Patient_ID"
                 df.columns.name=None
                 self._data["miRNA"] = df
-            elif file_name == "lscc-v1.0-any-somatic-mutation-freq-by-gene.gct.gz":
-                df = pd.read_csv(file_name, skiprows=2, sep='\t', dtype=object)
-                gene_filter = df['SYMBOL'] != 'na' #Filter out rows of metadata
-                df = df[gene_filter]
-                df = df.rename(columns={"SYMBOL": "GENE", "id":"ID"})
-                df = df.set_index("GENE")
-                df = df.sort_index()
-                self._data['somatic_mutation'] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
