@@ -33,6 +33,7 @@ setup(name='cptac',
 		'beautifulsoup4>=4.7.1',
 		'scipy>=1.2.1',
 		'urllib3>=1.24.2',
+		'packaging>=19.2',
 	],
     data_files=[
          ('bioplex_interactions',['cptac/utils/BioPlex_interactionList_v4a.tsv'])

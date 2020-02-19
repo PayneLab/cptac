@@ -167,6 +167,8 @@ class Brca(DataSet):
                 df = pd.read_csv(file_path, index_col=0)
                 df = df.drop(columns="Participant") # This column is just a duplicate of the index
                 df = df.rename(columns={"Sample.IDs": "Replicate_Measurement_IDs", "Type": "Sample_Tumor_Normal"})
+                df = df.replace("unknown", np.nan)
+                df = df.astype({"Age.in.Month": np.float64})
                 df.index.name = "Patient_ID"
                 self._data["metadata"] = df
 
@@ -238,10 +240,10 @@ class Brca(DataSet):
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = clinical
 
-        # Call function from dataframe_tools.py to standardize the names of the index and column axes
-        self._data = standardize_axes_names(self._data)
-
         # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
         self._data = sort_all_rows(self._data)
+
+        # Call function from dataframe_tools.py to standardize the names of the index and column axes
+        self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

@@ -246,15 +246,9 @@ def standardize_axes_names(data_dict):
     Returns:
     dict: The dataframe dictionary, with the dataframe axes' names standardized. Keys are str of dataframe names, values are pandas DataFrames
     """
-    # Rename indices to "Patient_ID", since that's what they all are.
-    for name in data_dict.keys(): # Loop over the keys so we can alter the values without any issues
-        df_rename_index = data_dict[name]
-        df_rename_index.index.name = "Patient_ID"
-        data_dict[name] = df_rename_index
-
-    # Set name of column axis to "Name" for all dataframes
     for name in data_dict.keys(): # Loop over the keys so we can alter the values without any issues
         df = data_dict[name]
+        df.index.name = "Patient_ID"
         df.columns.name = "Name"
         data_dict[name] = df
 

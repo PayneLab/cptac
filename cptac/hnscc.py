@@ -274,7 +274,7 @@ class Hnscc(DataSet):
         master_clinical = self._data['clinical'].reindex(master_index)
 
         # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample is a tumor or normal sample. Samples with a Patient_ID ending in ".N" are normal.
-        clinical_status_col = generate_sample_status_col(master_clinical, normal_test=lambda sample: sample[-1] in ['N', 'C'])
+        clinical_status_col = generate_sample_status_col(master_clinical, normal_test=lambda sample: sample[-2:] in ['.N', '.C'])
         master_clinical.insert(0, "Sample_Tumor_Normal", clinical_status_col)
 
         # Add a column called "Cored_Sample", with True for the six cored normal samples, and False for all others. The cored normal samples have a Patient_ID ending with a ".C".
@@ -284,10 +284,10 @@ class Hnscc(DataSet):
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = master_clinical
 
-        # Call function from dataframe_tools.py to standardize the names of the index and column axes
-        self._data = standardize_axes_names(self._data)
-
         # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
         self._data = sort_all_rows(self._data)
+
+        # Call function from dataframe_tools.py to standardize the names of the index and column axes
+        self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

@@ -117,11 +117,13 @@ class Colon(DataSet):
 
         # Separate clinical and derived molecular dataframes
         all_clinical_data = self._data.get("clinical")
-        clinical_df = all_clinical_data.drop(columns=['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity','immuneSubtype', 'CIN', 'Integrated.Phenotype'])
-        derived_molecular_df = all_clinical_data[['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity', 'immuneSubtype', 'CIN', 'Integrated.Phenotype']]
+        clinical_df = all_clinical_data.drop(columns=['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity','immuneSubtype', 'CIN', 'Integrated.Phenotype', 'Transcriptomic_subtype', 'Proteomic_subtype', 'mutation_rate', 'Mutation_Phenotype'])
+        derived_molecular_df = all_clinical_data[['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity', 'immuneSubtype', 'CIN', 'Integrated.Phenotype', 'Transcriptomic_subtype', 'Proteomic_subtype', 'mutation_rate', 'Mutation_Phenotype']]
 
-        # Format clinical dataframe
-        clinical_df = clinical_df.astype({"Age": float, "CEA": float, "mutation_rate": float}) # For one reason or another, these weren't automatically cast on loading.
+        # Format the dataframes
+        clinical_df = clinical_df.apply(pd.to_numeric, errors="ignore")
+        derived_molecular_df = derived_molecular_df.apply(pd.to_numeric, errors="ignore")
+        derived_molecular_df = derived_molecular_df.sort_index(axis="columns")
 
         # Put them in our data dictionary
         self._data["clinical"] = clinical_df # Replaces original clinical dataframe
@@ -158,12 +160,6 @@ class Colon(DataSet):
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data)
 
-        # Sort this master_index so all the samples with an N suffix are last. Because the N is a suffix, not a prefix, this is kind of messy.
-        status_col = np.where(master_index.str.endswith("N"), "Normal", "Tumor")
-        status_df = pd.DataFrame(data={"Patient_ID": master_index, "Status": status_col}) # Create a new dataframe with the master_index as a column called "Patient_ID"
-        status_df = status_df.sort_values(by=["Status", "Patient_ID"], ascending=[False, True]) # Sorts first by status, and in descending order, so "Tumor" samples are first
-        master_index = pd.Index(status_df["Patient_ID"])
-
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
         master_clinical = self._data['clinical'].reindex(master_index)
 
@@ -178,11 +174,11 @@ class Colon(DataSet):
         # Currently, normal patient IDs have an "N" appended. We're going to make that a ".N"
         self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="end")
 
-        # Call function from dataframe_tools.py to standardize the names of the index and column axes
-        self._data = standardize_axes_names(self._data)
-
         # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
         self._data = sort_all_rows(self._data)
+
+        # Call function from dataframe_tools.py to standardize the names of the index and column axes
+        self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 

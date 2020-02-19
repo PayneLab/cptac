@@ -289,11 +289,11 @@ class Gbm(DataSet):
         # Append a ".N" to the Patient_IDs of the normal samples, to match the other datasets
         self._data = reformat_normal_patient_ids(self._data)
 
-        # Call function from dataframe_tools.py to standardize the names of the index and column axes
-        self._data = standardize_axes_names(self._data)
-
         # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
         self._data = sort_all_rows(self._data)
+
+        # Call function from dataframe_tools.py to standardize the names of the index and column axes
+        self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 

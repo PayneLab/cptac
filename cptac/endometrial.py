@@ -210,10 +210,26 @@ class Endometrial(DataSet):
         clinical = clinical.drop(columns="Patient_ID")
         self._data["clinical"] = clinical
 
-        # Call function from dataframe_tools.py to standardize the names of the index and column axes
-        self._data = standardize_axes_names(self._data)
+        # Get a union of all dataframes' indices, with duplicates removed
+        # Exclude the followup dataframe because it has samples from a different cohort that aren't included anywhere else in the dataset
+        master_index = unionize_indices(self._data, exclude="followup")
+
+        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset.
+        clinical = self._data["clinical"]
+        clinical = clinical.reindex(master_index)
+        self._data['clinical'] = clinical
+
+        if self._version == "2.1.1":
+            # Drop rows from the followup dataframe that aren't anywhere else in the dataset
+            clinical = self._data["clinical"]
+            followup = self._data["followup"]
+            followup = followup.drop(index=followup.index[~followup.index.isin(clinical.index)])
+            self._data["followup"] = followup
 
         # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
         self._data = sort_all_rows(self._data)
+
+        # Call function from dataframe_tools.py to standardize the names of the index and column axes
+        self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

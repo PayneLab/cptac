@@ -146,6 +146,7 @@ class Luad(DataSet):
 
                 df = df.drop(columns=['id', 'Alias', 'Name', 'Derives_from', 'Quantified.in.Percent.Samples'])
                 df = df.set_index("ID")
+                df = df.apply(pd.to_numeric)
                 df = df.sort_index()
                 df = df.transpose()
                 df = df.sort_index()
@@ -167,6 +168,7 @@ class Luad(DataSet):
                 df = df.drop(columns=["id", "gene_id", "gene_type", "length"])
                 df = df.rename(columns={"geneSymbol": "Name"})
                 df = df.set_index("Name")
+                df = df.apply(pd.to_numeric)
                 df = df.sort_index()
                 df = df.transpose()
                 df.index.name = "Patient_ID"
@@ -424,9 +426,21 @@ class Luad(DataSet):
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
         clinical = self._data["clinical"]
         clinical = clinical.reindex(master_index)
-
-        # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = clinical
+
+        if self._version == "3.1":
+            # Drop rows from the followup dataframe that aren't anywhere else in the dataset
+            clinical = self._data["clinical"]
+            followup = self._data["followup"]
+            followup = followup.drop(index=followup.index[~followup.index.isin(clinical.index)])
+            self._data["followup"] = followup
+
+            # Drop samples C3N.00545 and C3N.00545.N from the dataset. They were excluded due to poor sample quality (see data freeze README; excluded in data freeze 3.0)
+            cases_to_drop = ["C3N.00545", "C3N.00545.N"]
+            for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
+                df = self._data[name]
+                df = df.drop(index=cases_to_drop, errors="ignore")
+                self._data[name] = df
 
         # Replace periods with hyphens in all Patient_IDs
         for name in self._data.keys(): # Loop over just the keys to avoid any issues that would come if we looped over the values while editing them
@@ -445,11 +459,11 @@ class Luad(DataSet):
 
             self._data[name] = df
 
-        # Call function from dataframe_tools.py to standardize the names of the index and column axes
-        self._data = standardize_axes_names(self._data)
-
         # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
         self._data = sort_all_rows(self._data)
+
+        # Call function from dataframe_tools.py to standardize the names of the index and column axes
+        self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 
