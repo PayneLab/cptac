@@ -24,7 +24,7 @@ class Endometrial(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["2.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["2.1", "2.1.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "2.1": [
@@ -39,7 +39,20 @@ class Endometrial(DataSet):
                 "somatic_binary.cbt.gz", 
                 "somatic.maf.gz", 
                 "transcriptomics_circular.cct.gz", 
-                "transcriptomics_linear.cct.gz"]
+                "transcriptomics_linear.cct.gz"],
+            "2.1.1": [
+                "acetylproteomics.cct.gz",
+                "clinical.txt",
+                "CNA.cct.gz",
+                "definitions.txt",
+                "miRNA.cct.gz",
+                "phosphoproteomics_site.cct.gz",
+                "proteomics.cct.gz",
+                "somatic_binary.cbt.gz",
+                "somatic.maf.gz",
+                "transcriptomics_circular.cct.gz",
+                "transcriptomics_linear.cct.gz",
+                "UCEC_followup_9_12.xlsx"],
         }
 
         super().__init__(cancer_type="endometrial", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -91,6 +104,22 @@ class Endometrial(DataSet):
                 df = df.transpose()
                 self._data[df_name] = df # Maps dataframe name to dataframe
 
+            elif file_name == 'UCEC_followup_9_12.xlsx' and self._version == "2.1.1":
+                df = pd.read_excel(file_path)
+
+                # Replace redundant values for 'not reported' with NaN
+                nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Applicable', 'na', 'unknown',
+                    'Not Performed', 'Unknown tumor status', 'Unknown', 'Unknown Tumor Status', 'Not specified']
+                    
+                df = df.replace(nan_equivalents, np.nan)
+
+                # Rename, set, and sort index
+                df = df.rename(columns={'Case ID': 'Patient_ID'})
+                df = df.set_index("Patient_ID")
+                df = df.sort_index()
+
+                self._data["followup"] = df
+
             else:
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
                 df = df.transpose()
@@ -130,23 +159,9 @@ class Endometrial(DataSet):
             'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']]
         self._data["experimental_design"] = experimental_design
 
-        # Add Sample_ID column to somatic_mutation dataframe and make it the index
-        clinical = self._data["clinical"] # We need the Patient_ID column from clinical, to map sample ids to patient ids. The sample ids are the clinical index, and the patient ids are in the Patient_ID column.
-        patient_id_col = clinical.loc[clinical["Proteomics_Tumor_Normal"] == "Tumor", "Patient_ID"] # We only want to generate a map for tumor samples, because all the normal samples are from the same patients as the tumor samples, so they have duplicate patient ids.
-        patient_id_col.index.name = "Sample_ID" # Label the sample id column (it's currently the index)
-        mutations = self._data["somatic_mutation"]
-        try:
-            patient_id_map = get_reindex_map(patient_id_col)
-            mutations_reindexed = reindex_dataframe(mutations, patient_id_map, "Sample_ID", keep_old=False)
-        except ReindexMapError:
-            del self._data["somatic_mutation"]
-            warnings.warn("Error mapping sample ids in somatic_mutation dataframe. At least one Patient_ID did not have corresponding Sample_ID mapped in clinical dataframe. somatic_mutation dataframe not loaded.", FailedReindexWarning, stacklevel=2)
-        else:
-            self._data["somatic_mutation"] = mutations_reindexed
-
         # Drop all excluded samples from the dataset. They were excluded due to poor sample quality, etc.
         clinical = self._data["clinical"]
-        cases_to_drop = clinical[clinical["Case_excluded"] == "Yes"].index
+        cases_to_drop = clinical[clinical["Case_excluded"] == "Yes"].index.union(clinical[clinical["Case_excluded"] == "Yes"]["Patient_ID"])
 
         for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
             df = self._data[name]
@@ -157,10 +172,13 @@ class Endometrial(DataSet):
         clinical = self._data["clinical"]
         clinical = clinical.drop(columns=["Case_excluded"])
 
-        # Add a Sample_Tumor_Normal column to the clinical dataframe, with just "Tumor" or "Normal" values (unlike the Proteomics_Tumor_Normal column)
+        # Add a Sample_Tumor_Normal column to the clinical dataframe, with just "Tumor" or "Normal" values (unlike the Proteomics_Tumor_Normal column, which gives the different types of normal samples)
         raw_map = clinical["Proteomics_Tumor_Normal"] 
         parsed_map = raw_map.where(raw_map == "Tumor", other="Normal") # Replace various types of normal (Adjacent_normal, Myometrium_normal, etc.) with just "Normal"
         clinical.insert(1, "Sample_Tumor_Normal", parsed_map)
+
+        # Mark the Patient_IDs of the normal samples by appending a ".N" to them
+        clinical["Patient_ID"] = clinical["Patient_ID"].where(clinical["Sample_Tumor_Normal"] == "Tumor", other=clinical["Patient_ID"] + ".N")
 
         # Save our new and improved clinical dataframe!
         self._data["clinical"] = clinical
@@ -176,13 +194,40 @@ class Endometrial(DataSet):
             "transcriptomics_linear":"transcriptomics",
             "transcriptomics_circular":"circular_RNA",
             "phosphoproteomics_site":"phosphoproteomics",
-            "somatic_binary":"somatic_mutation_binary",}
+            "somatic_binary":"somatic_mutation_binary",
+            }
         for old, new in rename_dict.items():
             self._data[new] = self._data[old]
             del self._data[old]
 
-        # Mark the normal samples' Patient_IDs by prepending an "N.", which matches the format in other datasets
-        self._data = reformat_normal_patient_ids(self._data)
+        # Call a function from dataframe_tools.py to reindex all the dataframes with sample IDs instead of patient IDs
+        # Skip the followup and somatic_mutation dataframes because they're already indexed with Patient_IDs
+        sample_id_to_patient_id_map = self._data["clinical"]["Patient_ID"]
+        self._data = reindex_all_sample_id_to_patient_id(self._data, sample_id_to_patient_id_map, skip=["followup", "somatic_mutation"])
+
+        # We no longer need the Patient_ID column in the clinical dataframe, because it's in the index. So we'll remove it.
+        clinical = self._data["clinical"]
+        clinical = clinical.drop(columns="Patient_ID")
+        self._data["clinical"] = clinical
+
+        # Get a union of all dataframes' indices, with duplicates removed
+        # Exclude the followup dataframe because it has samples from a different cohort that aren't included anywhere else in the dataset
+        master_index = unionize_indices(self._data, exclude="followup")
+
+        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset.
+        clinical = self._data["clinical"]
+        clinical = clinical.reindex(master_index)
+        self._data['clinical'] = clinical
+
+        if self._version == "2.1.1":
+            # Drop rows from the followup dataframe that aren't anywhere else in the dataset
+            clinical = self._data["clinical"]
+            followup = self._data["followup"]
+            followup = followup.drop(index=followup.index[~followup.index.isin(clinical.index)])
+            self._data["followup"] = followup
+
+        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
+        self._data = sort_all_rows(self._data)
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
         self._data = standardize_axes_names(self._data)

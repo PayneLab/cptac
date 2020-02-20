@@ -1,9 +1,10 @@
 include README.md
 include cptac/data_brca/index_urls.tsv
+include cptac/data_ccrcc/index_urls.tsv
 include cptac/data_colon/index_urls.tsv
 include cptac/data_endometrial/index_urls.tsv
 include cptac/data_gbm/index_urls.tsv
 include cptac/data_hnscc/index_urls.tsv
+include cptac/data_lscc/index_urls.tsv
 include cptac/data_luad/index_urls.tsv
 include cptac/data_ovarian/index_urls.tsv
-include cptac/data_ccrcc/index_urls.tsv

@@ -13,9 +13,10 @@ import pandas as pd
 import numpy as np
 import os
 import warnings
+import datetime
 from .dataset import DataSet
 from .dataframe_tools import *
-from .exceptions import FailedReindexWarning, ReindexMapError
+from .exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 class Gbm(DataSet):
 
@@ -25,7 +26,7 @@ class Gbm(DataSet):
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        valid_versions = ["1.0", "2.0", "2.1"]
+        valid_versions = ["1.0", "2.0", "2.1", "3.0"]
 
         data_files = {
             "1.0": [
@@ -68,7 +69,24 @@ class Gbm(DataSet):
                 "rnaseq_gene_fusion.v2.1.20190927.tsv.gz",
                 "rnaseq_washu_fpkm_uq.v2.1.20190927.tsv.gz",
                 "tindaisy_all_cases_filtered.v2.1.20190927.maf.gz",
-                "wgs_somatic_cnv_per_gene.v2.1.20190927.tsv.gz"]
+                "wgs_somatic_cnv_per_gene.v2.1.20190927.tsv.gz"],
+            "3.0": [
+                "acetylome_mssm_per_gene_clean.v3.0.20191121.tsv.gz",
+                "clinical_data_core.v3.0.20191121.tsv.gz",
+                "gbm_all_subtype_collections.2020-01-13.tsv.gz",
+                "metabolome_pnnl.v3.0.20191121.tsv.gz",
+                "metabolome_sample_info.v3.0.20191121.tsv.gz",
+                "mirnaseq_mirna_mature_tpm.v3.0.20191121.tsv.gz",
+                "negative_lipidome_pnnl.v3.0.20191121.tsv.gz",
+                "phosphoproteome_mssm_per_gene_clean.v3.0.20191121.tsv.gz",
+                "positive_lipidome_pnnl.v3.0.20191121.tsv.gz",
+                "proteome_mssm_per_gene_clean.v3.0.20191121.tsv.gz",
+                "proteome_tmt_design.v3.0.20191121.tsv.gz",
+                "rnaseq_bcm_circular_rna_expression_rsem_uq.v3.0.20191121.tsv.gz",
+                "rnaseq_gene_fusion.v3.0.20191121.tsv.gz",
+                "rnaseq_washu_fpkm_uq.v3.0.20191121.tsv.gz",
+                "tindaisy_all_cases_filtered.v3.0.20191121.maf.gz",
+                "wgs_somatic_cnv_per_gene.v3.0.20191121.tsv.gz"],
         }
 
         super().__init__(cancer_type="gbm", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -108,6 +126,11 @@ class Gbm(DataSet):
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 self._data["clinical"] = df
 
+            elif file_name == "gbm_all_subtype_collections.2020-01-13.tsv.gz":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.drop(columns="sample_type")
+                self._data["derived_molecular"] = df
+
             elif df_name == "metabolome_pnnl":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
@@ -146,7 +169,7 @@ class Gbm(DataSet):
                     df = df.rename(columns={"gene": "Name", "peptide": "Peptide"})
                     df = df.set_index(["Name", "Site", "Peptide"]) # Turn these columns into a multiindex
 
-                elif self._version in ("2.0", "2.1"):
+                elif self._version in ("2.0", "2.1", "3.0"):
                     df = df.rename(columns={
                             "gene": "Name",
                             "peptide": "Peptide",
@@ -167,7 +190,7 @@ class Gbm(DataSet):
             elif df_name in ("proteome_pnnl_per_gene_d4", "proteome_mssm_per_gene_clean"):
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
 
-                if self._version in ("2.0", "2.1"):
+                if self._version in ("2.0", "2.1", "3.0"):
                     df = df.drop(columns="refseq_id") # We don't need this database ID, because the gene name index is already unique
 
                 df = df.sort_index()
@@ -223,7 +246,7 @@ class Gbm(DataSet):
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
-        if self._version in ("2.0", "2.1"):
+        if self._version in ("2.0", "2.1", "3.0"):
             # Combine positive and negative lipidomics tables
             lipidomics_positive = self._data["lipidomics_positive"]
             lipidomics_negative = self._data["lipidomics_negative"]
@@ -256,19 +279,26 @@ class Gbm(DataSet):
         sample_status_col = np.where(clinical.index.str.startswith("PT"), "Normal", "Tumor")
         clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
 
-        # The gender is mis-entered for two samples in the clinical dataframe. Both C3N-01196 and C3N-01856 are entered as Female, but are actually Male. Let's fix that.
-        clinical.loc[clinical.index.isin(["C3N-01196", "C3N-01856"]), "gender"] = "Male"
+        # For versions 1.0, 2.0, and 2.1, the gender is mis-entered for two samples in the clinical dataframe. Both C3N-01196 and C3N-01856 are entered as Female, but are actually Male. Let's fix that, if we're loading one of those versions.
+        if self._version in ("1.0", "2.0", "2.1"):
+            clinical.loc[clinical.index.isin(["C3N-01196", "C3N-01856"]), "gender"] = "Male"
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = clinical
 
-        # Call function from dataframe_tools.py to reindex all the dataframes to have Sample_ID indices
-        self._data = reindex_all(self._data, master_index, additional_to_keep_col=["experimental_design"])
-
-        # Now that we've reindexed all the dataframes with sample IDs, prepend an "N." to the Patient_IDs of the normal samples, to match the other datasets
+        # Append a ".N" to the Patient_IDs of the normal samples, to match the other datasets
         self._data = reformat_normal_patient_ids(self._data)
+
+        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
+        self._data = sort_all_rows(self._data)
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
         self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
+
+        # Print data embargo warning, if the date hasn't passed yet.
+        today = datetime.date.today()
+        embargo_date = datetime.date(year=2021, month=3, day=1)
+        if today < embargo_date:
+            warnings.warn("The GBM dataset is under publication embargo until March 01, 2021. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until after the embargo date. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details.", PublicationEmbargoWarning, stacklevel=2)

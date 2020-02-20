@@ -103,6 +103,10 @@ class OldPackageVersionWarning(CptacWarning):
     """They're using an old version of the package."""
     pass
 
+class PublicationEmbargoWarning(CptacWarning):
+    """There is a publication embargo on the dataset."""
+    pass
+
 class DownloadingNewLatestWarning(CptacWarning):
     """Downloading a new latest data version. If they want to use an old version, they'll have to manually specify it."""
     pass
