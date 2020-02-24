@@ -302,21 +302,93 @@ class DataSet:
         """
 
         #If they don't give us a filter, this is the default.
+
         if mutations_filter == None:
-            mutations_filter = ["Deletion", 'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Missense_Mutation_hotspot',
-    	                           'Missense_Mutation', 'Amplification', 'In_Frame_Del', 'In_Frame_Ins', 'Wildtype']
+            if self.get_cancer_type() == "colon":
+                mutations_filter = ["Deletion", #deletion
+                                        'frameshift deletion', 'frameshift insertion', 'frameshift substitution', 'stopgain', 'stoploss', #truncation
+                                        'Missense_Mutation_hotspot',
+    	                                'nonframeshift deletion', 'nonframeshift insertion', 'nonframeshift substitution', 'nonsynonymous SNV', #missense
+                                        'Amplification',
+                                         'Wildtype']
+
+
+            elif self.get_cancer_type() == "hnscc":
+                mutations_filter = ["Deletion", #deletion
+                                        'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', #truncation
+                                        'Missense_Mutation_hotspot',
+    	                                'Missense_Mutation',
+                                        'Amplification',
+                                        'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site' #inframe changes
+                                        'Silent','Wildtype']
+
+            elif self.get_cancer_type() == "gbm":
+                mutations_filter = ["Deletion", #deletion
+                                        'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', #truncation
+                                        'Missense_Mutation_hotspot',
+                                        'Missense_Mutation',
+                                        'Amplification',
+                                        'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site' #inframe changes
+                                        'Silent','Wildtype']
+
+            else:
+                mutations_filter = ["Deletion",
+                                        'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', #tuncation
+                                        'Missense_Mutation_hotspot',
+    	                                'Missense_Mutation',
+                                        'Amplification',
+                                        'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site',
+                                        'Silent',
+                                        'Wildtype']
+
+        if self.get_cancer_type() == 'colon':
+            truncations = ['frameshift deletion', 'frameshift insertion', 'frameshift substitution', 'stopgain', 'stoploss']
+            missenses = ['nonframeshift deletion', 'nonframeshift insertion', 'nonframeshift substitution', 'nonsynonymous SNV']
+        elif self.get_cancer_type() == 'hnscc':
+            truncations =["stopgain", "stoploss"]
+            missenses = ["nonframeshift insertion", "nonframeshift deletion"]
+        else:
+            truncations = ['Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', 'Splice_Site']
+            missenses = ['In_Frame_Del', 'In_Frame_Ins', 'Missense_Mutation']
+
+        if self.get_cancer_type() == "gbm":
+            noncodings = ["Intron", "RNA", "3'Flank", "Splice_Region", "5'UTR", "5'Flank", "3'UTR"]
+
+
+
+        #check that gene is in the somatic_mutation DataFrame
+        somatic_mutation = self.get_somatic_mutation()
+        # import pdb; pdb.set_trace()
+        if mutations_genes not in somatic_mutation["Gene"].unique(): #if the gene isn't in the somacic mutations df it will still have CNV data that we want
+            def add_del_and_amp_no_somatic(row):
+                if row[mutations_genes] <= -.2:
+                    mutations = 'Deletion'
+
+                elif row[mutations_genes] >= .2:
+                    mutations = 'Amplification'
+                else:
+                    mutations = "No_Mutation"
+
+                return mutations
+
+
+            cnv = self.get_CNV()
+            gene_cnv = cnv[["PTEN"]]
+            mutation_col = gene_cnv.apply(add_del_and_amp_no_somatic, axis=1)
+            df = gene_cnv.assign(Mutation = mutation_col)
+            return df
 
 
         #combine the cnv and mutations dataframe
-
-
         combined = self.join_omics_to_mutations(omics_df_name="CNV", mutations_genes=mutations_genes, omics_genes=mutations_genes)
 
+
         #drop the database index from ccrcc
-        if self.get_cancer_type() == "ccrcc":
+        if self.get_cancer_type() == "ccrcc" or self.get_cancer_type() == "brca":
              cc = self.get_CNV()
              drop = ['Database_ID']
              combined = self.reduce_multiindex(df=combined, levels_to_drop=drop)
+
 
         #If there are hotspot mutations, append 'hotspot' to the mutation type so that it's prioritized correctly
         def mark_hotspot_locations(row):
@@ -370,14 +442,27 @@ class DataSet:
                 location.append(sample_locations_list[0])
 
             else:
+                # import pdb; pdb.set_trace()
                 for filter_val in mutations_filter: # This will start at the beginning of the filter list, thus filters earlier in the list are prioritized, like we want
                     if filter_val in sample_mutations_list:
                         chosen_indices = [index for index, value in enumerate(sample_mutations_list) if value == filter_val]
                     if len(chosen_indices) > 0: # We found at least one mutation from the filter to prioritize, so we don't need to worry about later values in the filter priority list
                         break
-                if len(chosen_indices) == 0: # None of the mutations for the sample were in the filter
+
+                if len(chosen_indices) == 0: # None of the mutations for the sample were in the filter, so we're going to have to use our default hierarchy
+                    import pdb; pdb.set_trace()
                     for mutation in sample_mutations_list:
                         if mutation in truncations:
+                            chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
+
+                if len(chosen_indices) == 0: # None of them were in the filter, nor were truncations, so we'll grab all the missenses
+                    for mutation in sample_mutations_list:
+                        if mutation in missenses:
+                            chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
+
+                if self.get_cancer_type() == "gbm" and len(chosen_indices) == 0: # None of them were in the filter, nor were truncations, nor missenses, so we'll grab all the noncodings
+                    for mutation in sample_mutations_list:
+                        if mutation in noncodings:
                             chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
 
                 soonest_mutation = sample_mutations_list[chosen_indices[0]]
@@ -416,6 +501,8 @@ class DataSet:
 
         #drop all the unnecessary Columns
         df = combined.drop(columns=[mutations_genes+"_CNV", mutations_genes+"_Mutation", mutations_genes+"_Location", mutations_genes+"_Mutation_Status", 'Sample_Status', 'mutations','locations'])
+        df['Mutation'] = [','.join(map(str, l)) for l in df['Mutation']]
+        df['Location'] = [','.join(map(str, l)) for l in df['Location']]
         if show_location == False: df = df.drop(columns="Location") #if they don't want us to show the location, drop it
         return df
 
