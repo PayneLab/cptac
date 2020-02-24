@@ -337,7 +337,7 @@ class DataSet:
                                         'Missense_Mutation_hotspot',
     	                                'Missense_Mutation',
                                         'Amplification',
-                                        'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site',
+                                        'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site'
                                         'Silent',
                                         'Wildtype']
 
@@ -358,7 +358,6 @@ class DataSet:
 
         #check that gene is in the somatic_mutation DataFrame
         somatic_mutation = self.get_somatic_mutation()
-        # import pdb; pdb.set_trace()
         if mutations_genes not in somatic_mutation["Gene"].unique(): #if the gene isn't in the somacic mutations df it will still have CNV data that we want
             def add_del_and_amp_no_somatic(row):
                 if row[mutations_genes] <= -.2:
@@ -442,7 +441,6 @@ class DataSet:
                 location.append(sample_locations_list[0])
 
             else:
-                # import pdb; pdb.set_trace()
                 for filter_val in mutations_filter: # This will start at the beginning of the filter list, thus filters earlier in the list are prioritized, like we want
                     if filter_val in sample_mutations_list:
                         chosen_indices = [index for index, value in enumerate(sample_mutations_list) if value == filter_val]
@@ -450,7 +448,6 @@ class DataSet:
                         break
 
                 if len(chosen_indices) == 0: # None of the mutations for the sample were in the filter, so we're going to have to use our default hierarchy
-                    import pdb; pdb.set_trace()
                     for mutation in sample_mutations_list:
                         if mutation in truncations:
                             chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
