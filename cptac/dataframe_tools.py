@@ -92,7 +92,7 @@ def reindex_dataframe(df, reindex_map, new_index_name, keep_old):
     new_index = df.index.map(reindex_map.get)
 
     if keep_old:
-        df = df.reset_index() 
+        df = df.reset_index()
     df.index = new_index
     df.index.name = new_index_name
     df = df.sort_index()
@@ -125,7 +125,7 @@ def reindex_all_sample_id_to_patient_id(data_dict, reindex_map, additional_to_ke
         df = data_dict[name]
         df.index.name = "Sample_ID" # So that it's labeled properly when we keep it as a column in the clinical dataframe.
         keep_old = name in dfs_to_keep_col # Keep the old Patient_ID index as a column in the clinical dataframe (and any additionally specified dataframes), so we have a record of it.
-        
+
         try:
             df = reindex_dataframe(df, reindex_map, "Patient_ID", keep_old)
         except ReindexMapError:
@@ -231,7 +231,8 @@ def join_col_to_dataframe(df, col_df):
         col_df.columns = add_index_levels(to=col_df.columns, source=df.columns, fill="") # We fill empty levels with an empty string so that we can select the inserted column with just the first level. This is useful for boolean filters, as in the reformat_normal_patient_ids function.
 
     if col_df.columns.names != df.columns.names: # Just to make sure
-        raise CptacDevError(f"col_df's column axes had levels not found in the {name} dataframe's columns.")
+        # import pdb; pdb.set_trace()
+        raise CptacDevError(f"col_df's column axes had levels not found in the dataframe's columns.")
 
     df = df.join(col_df, how="left") # We do a left join because we only want rows that exist in our dataframe
 
@@ -306,7 +307,7 @@ def add_index_levels(to, source, fill=np.nan):
     if source_set <= to_set:
         return to # Because otherwise we'd just end up constructing a duplicate of "to", and who would want to do that?
 
-    all_names = ["Name", "Site", "Peptide", "Database_ID"]       
+    all_names = ["Name", "Site", "Peptide", "Database_ID"]
     levels = {}
 
     for name in all_names:

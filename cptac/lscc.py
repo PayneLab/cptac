@@ -53,8 +53,12 @@ class Lscc(DataSet):
 
             if file_name == "lscc-v1.0-cnv-gene-level-log2.gct.gz": #Done
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
+                gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
+                df = df[gene_filter]
                 df = df.set_index("id")
-                # df = df.apply(pd.to_numeric)
+                cols_to_drop = ["chrom","geneSymbol","chr_end","chr_start"]
+                df = df.drop(columns = cols_to_drop)
+                df = df.apply(pd.to_numeric)
                 df = df.sort_index()
                 df = df.transpose()
                 df = df.sort_index()
@@ -120,7 +124,13 @@ class Lscc(DataSet):
 
             elif file_name == "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz": #done
                  df = pd.read_csv(file_path, sep="\t", dtype=object)
+                 # df = pd.read_csv(file_path)
+                 df = df.rename(columns={"Sample.ID": "Patient_ID"})
+                 df = df.set_index("Patient_ID")
+
                  self._data['gene_fusion'] = df
+
+                 #look at luad, we need to rename sample ID with patient id, replace dots as dash. reformat it as the index
 
 
             elif file_name == "lscc-v1.0-sample-annotation.csv.gz": #done
@@ -129,8 +139,10 @@ class Lscc(DataSet):
                 df = df[filter]
                 df = df.drop(columns="Participant") #Get rid of the "Participant" column becuase the same information is stored in Sample.ID  which is formatted the way we want.
                 df = df.set_index("Sample.ID")
+                df = df.drop(columns="Sample.IDs")
                 df.index.name="Patient_ID"
                 df = df.rename(columns={"Type":"Sample_Tumor_Normal"})
+                df["Sample_Tumor_Normal"] = df["Sample_Tumor_Normal"].replace("NAT","Normal")
                 #Split the metadata into multiple dataframes
                 #Make experiemntal_set up dataframe
                 experimental_design_cols = ['Experiment', 'Channel', 'QC.status'] #These are the columns for the experimental_design dataframe
@@ -177,16 +189,19 @@ class Lscc(DataSet):
 
                 df = df.drop(columns = cols_to_drop)
                 df = df.rename(columns={"Sample.ID": "Patient_ID", 'Hugo_Symbol': "Gene", "Variant_Classification": "Mutation", "HGVSp_Short": "Location"})
-                df.set_index("Patient_ID")
-                df.sort_index()
+                df = df.set_index("Patient_ID")
+                df = df.sort_values(by=["Patient_ID","Gene"])
                 self._data['somatic_mutation'] = df
 
             elif file_name == "lscc-v1.0-mirna-mature-tpm-log2.gct.gz": #Done
                 df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
                 gene_filter = df['Name'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
-                df = df.set_index(["Name","ID"])
-                #df= df.apply(pd.to_numeric)
+                df = df.rename(columns={"ID": "Database_ID"})
+                df = df.set_index(["Name","Database_ID"])
+                cols_to_drop = ["Derives_from","Quantified.in.Percent.Samples","id","Alias"]
+                df = df.drop(columns = cols_to_drop)
+                df= df.apply(pd.to_numeric)
                 df = df.sort_index()
                 df = df.transpose()
                 df = df.sort_index()
@@ -197,6 +212,18 @@ class Lscc(DataSet):
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
+
+        # rnaSeq = self.get_gene_fusion()
+        # miRNA = self.get_miRNA()
+        # somaticMutation = self.get_somatic_mutation() #change index here
+        # clinical = self.get_clinical()
+        # experimental_design = self.get_experimental_design()
+        # derived_molecular = self.get_derived_molecular()
+        # proteomics = self.get_proteomics()
+        # cnv = self.get_CNV()
+        # phosphoproteomics = self.get_phosphoproteomics()
+        #
+        # import pdb; pdb.set_trace()
 
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data)
