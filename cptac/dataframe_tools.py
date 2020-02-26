@@ -156,7 +156,7 @@ def reformat_normal_patient_ids(data_dict, existing_identifier=None, existing_id
     if (existing_identifier is None and existing_identifier_location is not None) or (existing_identifier is not None and existing_identifier_location is None):
         raise CptacDevError("Parameters existing_identifier and existing_identifier_location must either both be None, or both not be None.")
 
-    sample_statuses_old_index = data_dict["clinical"].loc[:, ["Sample_Tumor_Normal"]].copy(deep=True) # We'll need this every time, and we need it with the un-reformatted index
+    sample_statuses_old_index = data_dict["clinical"]["Sample_Tumor_Normal"] # We'll need this every time, and we need it with the un-reformatted index
 
     for name in data_dict.keys(): # Loop over the keys so we can edit the values without any issues
 
@@ -210,17 +210,17 @@ def reformat_normal_patient_ids(data_dict, existing_identifier=None, existing_id
 
     return data_dict
 
-def join_col_to_dataframe(df, col_df):
+def join_col_to_dataframe(df, col):
     """Join a sample status column into a dataframe, automatically accounting for whether the dataframe has a column multiindex or not.
 
     Parameters:
     df (pandas DataFrame): The dataframe to join the column into
-    col_df (pandas DataFrame): The column to join into the dataframe, as a single-column dataframe.
+    col (pandas Series): The column to join into the dataframe, with a matching index.
 
     Returns:
     pandas DataFrame: The dataframe with the column joined in.
     """
-    col_df = col_df.copy(deep=True)
+    col_df = col.to_frame().copy(deep=True)
 
     # Make sure the columns axes all have the same name
     df.columns.name = "Name"
@@ -228,7 +228,7 @@ def join_col_to_dataframe(df, col_df):
 
     # If df has a column multiindex, edit the col_df column index to match, so we can join them
     if col_df.columns.names != df.columns.names:
-        col_df.columns = add_index_levels(to=col_df.columns, source=df.columns, fill="") # We fill empty levels with an empty string so that we can select the inserted column with just the first level. This is useful for boolean filters, as in the reformat_normal_patient_ids function.
+        col_df.columns = add_index_levels(to=col_df.columns, source=df.columns) 
 
     if col_df.columns.names != df.columns.names: # Just to make sure
         raise CptacDevError(f"col_df's column axes had levels not found in the {name} dataframe's columns.")
@@ -264,39 +264,51 @@ def sort_all_rows(data_dict):
     dict: The dataframe dictionary, with the dataframes sorted by their indices. Keys are str of dataframe names, values are pandas DataFrames
     """
     # Get the Sample_Tumor_Normal column as a single-column dataframe
-    sample_status_col_df = data_dict["clinical"].loc[:, ["Sample_Tumor_Normal"]].copy(deep=True) # We'll need this every time
+    sample_status_col = data_dict["clinical"]["Sample_Tumor_Normal"].copy(deep=True) # We'll need this every time
 
     for name in data_dict.keys(): # Loop over the keys so we can alter the values without any issues
         df = data_dict[name]
-
-        # Add in the tumor/normal statuses for these samples, if they aren't already in the table
-        added_sample_statuses = False # So we can keep track of whether to drop the column when we're done
-        if "Sample_Tumor_Normal" not in df.columns:
-            df = join_col_to_dataframe(df, sample_status_col_df)
-            added_sample_statuses = True
-
-        # Sort first by the Sample_Tumor_Normal column, and then by the index
-        df.index.name = "Patient_ID" # To make sure we can reference it in the next line
-        df = df.sort_values(by=["Sample_Tumor_Normal", "Patient_ID"], ascending=[False, True]) # Sorts first by sample status, and in descending order, so "Tumor" samples are first
-
-        # If we added the Sample_Tumor_Normal column, drop it
-        if added_sample_statuses:
-            if isinstance(df.columns, pd.core.index.MultiIndex):
-                df = df.drop(columns="Sample_Tumor_Normal", level=0) # level=0 prevents a PerformanceWarning
-            else:
-                df = df.drop(columns="Sample_Tumor_Normal")
-
+        df = sort_df_by_sample_status(df, sample_status_col)
         data_dict[name] = df
 
     return data_dict
 
-def add_index_levels(to, source, fill=np.nan):
+def sort_df_by_sample_status(df, sample_status_col):
+    """Sort a dataframe first by sample status, with tumor first, and then by Patient_ID.
+
+    df (pandas DataFrame): The dataframe to sort.
+    sample_status_col (pandas Series): The Sample_Tumor_Normal column for the dataset.
+
+    Returns:
+    pandas DataFrame: The dataframe, sorted.
+    """
+    # Add in the tumor/normal statuses for these samples, if they aren't already in the table
+    added_sample_statuses = False # So we can keep track of whether to drop the column when we're done
+
+    if "Sample_Tumor_Normal" not in df.columns:
+        df = join_col_to_dataframe(df, sample_status_col)
+        added_sample_statuses = True
+
+    # Sort first by the Sample_Tumor_Normal column, and then by the index
+    df.index.name = "Patient_ID" # To make sure we can reference it in the next line
+    df = df.sort_values(by=["Sample_Tumor_Normal", "Patient_ID"], ascending=[False, True]) # Sorts first by sample status, and in descending order, so "Tumor" samples are first
+
+    # If we added the Sample_Tumor_Normal column, drop it
+    if added_sample_statuses:
+        if isinstance(df.columns, pd.core.index.MultiIndex):
+            df = df.drop(columns="Sample_Tumor_Normal", level=0) # level=0 prevents a PerformanceWarning
+        else:
+            df = df.drop(columns="Sample_Tumor_Normal")
+
+    return df
+
+def add_index_levels(to, source, fill=""):
     """Add levels to the "to" index so it has all levels in the "source" index. The possible levels are, in this order: "Name", "Site", "Peptide", "Database_ID"
 
     Parameters:
     to (pandas Index or MultiIndex): The index to add levels to.
     source (pandas Index or MultiIndex): The index to match the levels of.
-    fill (optional): Value to fill empty levels with. Default is np.nan
+    fill (optional): Value to fill empty levels with. Default is an empty string, which allows us to select a column with just the first level. This is useful for boolean filters.
 
     Returns:
     pandas MultiIndex: The levels of "to", with any levels from "source" that "to" didn't have originally.

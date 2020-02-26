@@ -14,7 +14,7 @@ import webbrowser
 import warnings
 from .file_download import update_index
 from .file_tools import validate_version, get_version_files_paths
-from .dataframe_tools import add_index_levels
+from .dataframe_tools import add_index_levels, join_col_to_dataframe, sort_df_by_sample_status
 from .exceptions import *
 
 class DataSet:
@@ -526,13 +526,16 @@ class DataSet:
             selected1.columns = add_index_levels(to=selected1.columns, source=selected2.columns)
             selected2.columns = add_index_levels(to=selected2.columns, source=selected1.columns)
 
-        df = selected1.join(selected2, how='outer')
+        joined = selected1.join(selected2, how='outer')
 
         # Warn them about any NaNs that were inserted in the outer join
         self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
 
-        df = df.sort_index() # Sort rows in ascending order
-        return df
+        # Sort the dataframe so all the tumor samples are first, then all the normal samples
+        sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
+        joined = sort_df_by_sample_status(joined, sample_status_col)
+
+        return joined
 
     def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True):
         """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
@@ -557,6 +560,10 @@ class DataSet:
         # Warn them about any NaNs that were inserted in the outer join
         self._warn_inserted_nans(omics_df_name, "somatic_mutation", omics.index, mutations.index)
 
+        # Sort the dataframe so all the tumor samples are first, then all the normal samples
+        sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
+        joined = sort_df_by_sample_status(joined, sample_status_col)
+
         return joined
 
     def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None):
@@ -575,13 +582,16 @@ class DataSet:
         selected1 = self._get_metadata_cols(df1_name, cols1)
         selected2 = self._get_metadata_cols(df2_name, cols2)
 
-        df = selected1.join(selected2, how='outer', rsuffix='_from_' + df2_name) # Use suffix in case both dataframes have a particular column, such as Patient_ID
+        joined = selected1.join(selected2, how='outer', rsuffix='_from_' + df2_name) # Use suffix in case both dataframes have a particular column, such as Patient_ID
 
         # Warn them about any NaNs that were inserted in the outer join
         self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
 
-        df = df.sort_index() # Sort rows in ascending order
-        return df
+        # Sort the dataframe so all the tumor samples are first, then all the normal samples
+        sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
+        joined = sort_df_by_sample_status(joined, sample_status_col)
+
+        return joined
 
     def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None):
         """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_design) to part or all of an omics dataframe. Intersection (inner join) of indices is used.
@@ -608,7 +618,10 @@ class DataSet:
         # Warn them about any NaNs that were inserted in the outer join
         self._warn_inserted_nans(metadata_df_name, omics_df_name, metadata_selected.index, omics_selected.index)
 
-        joined = joined.sort_index() # Sort rows in ascending order
+        # Sort the dataframe so all the tumor samples are first, then all the normal samples
+        sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
+        joined = sort_df_by_sample_status(joined, sample_status_col)
+
         return joined
 
     def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, mutations_filter=None, show_location=True):
@@ -633,6 +646,10 @@ class DataSet:
 
         # Warn them about any NaNs that were inserted in the outer join
         self._warn_inserted_nans(metadata_df_name, "somatic_mutation", metadata.index, mutations.index)
+
+        # Sort the dataframe so all the tumor samples are first, then all the normal samples
+        sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
+        joined = sort_df_by_sample_status(joined, sample_status_col)
 
         return joined
 
@@ -929,16 +946,9 @@ class DataSet:
             mutations.columns = add_index_levels(to=mutations.columns, source=other.columns)
         joined = other.join(mutations, how="outer")
 
-        # Add Sample_Status column by joining the sample_status_map to the joined mutation dataframe. Do a left join so we drop any indices not in the mutations dataframe.
+        # Add Sample_Status column by joining the sample_status_map to the joined mutation dataframe.
         sample_status_map = self._get_sample_status_map()
-
-        if joined.columns.nlevels > 1:
-            new_header = [sample_status_map.name]
-            for i in range(joined.columns.nlevels - 1):
-                new_header.append(np.nan)
-            sample_status_map.name = tuple(new_header)
-
-        joined = joined.join(sample_status_map, how="left")
+        joined = join_col_to_dataframe(joined, sample_status_map)
         joined.columns.name = "Name" # This attribute gets lost in the join above
 
         # If there's no mutations filter, then based on the dtypes in the dataframe, set our fill values so that .loc will insert the value as a single item in a list, instead of unpacking the list.
