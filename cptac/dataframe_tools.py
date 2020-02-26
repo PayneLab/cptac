@@ -231,7 +231,6 @@ def join_col_to_dataframe(df, col):
         col_df.columns = add_index_levels(to=col_df.columns, source=df.columns) 
 
     if col_df.columns.names != df.columns.names: # Just to make sure
-        # import pdb; pdb.set_trace()
         raise CptacDevError(f"col_df's column axes had levels not found in the dataframe's columns.")
 
     df = df.join(col_df, how="left") # We do a left join because we only want rows that exist in our dataframe

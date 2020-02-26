@@ -16,6 +16,7 @@ import warnings
 from .dataset import DataSet
 from .dataframe_tools import *
 from .exceptions import FailedReindexWarning, ReindexMapError
+
 class Lscc(DataSet):
 
     def __init__(self, version="latest"):
@@ -27,14 +28,14 @@ class Lscc(DataSet):
 
         data_files = {
             "1.0": [
-                "lscc-v1.0-cnv-gene-level-log2.gct.gz", #done
-                "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz", #done
-                "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz", #somatic variant, find sample identifier (maybe cl), name, gene, mutation, location
-                "lscc-v1.0-mirna-mature-tpm-log2.gct.gz", #micro rna #done
-                "lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz", #done
-                "lscc-v1.0-proteome-ratio-norm-NArm.gct.gz", #done
-                "lscc-v1.0-rnaseq-uq-fpkm-log2-NArm.gct.gz", # done
-                "lscc-v1.0-sample-annotation.csv.gz"] #done
+                "lscc-v1.0-cnv-gene-level-log2.gct.gz", 
+                "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz", 
+                "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz",
+                "lscc-v1.0-mirna-mature-tpm-log2.gct.gz",
+                "lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz", 
+                "lscc-v1.0-proteome-ratio-norm-NArm.gct.gz", 
+                "lscc-v1.0-rnaseq-uq-fpkm-log2-NArm.gct.gz",
+                "lscc-v1.0-sample-annotation.csv.gz"] 
         }
 
         super().__init__(cancer_type="lscc", version=version, valid_versions=valid_versions, data_files=data_files)
@@ -49,9 +50,8 @@ class Lscc(DataSet):
 
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
-            df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
-            if file_name == "lscc-v1.0-cnv-gene-level-log2.gct.gz": #Done
+            if file_name == "lscc-v1.0-cnv-gene-level-log2.gct.gz": 
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
@@ -65,7 +65,7 @@ class Lscc(DataSet):
                 df.index.name="Patient_ID"
                 self._data["CNV"] = df
 
-            elif file_name == "lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz": #Done
+            elif file_name == "lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz": 
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Drop rows of metadata
                 df = df[gene_filter]
@@ -86,7 +86,6 @@ class Lscc(DataSet):
                 # Give it a multiindex
                 df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])
 
-
                 cols_to_drop = ['id','id.description', 'numColumnsVMsiteObserved', 'bestScore', 'bestDeltaForwardReverseScore',
                 'Best_scoreVML', 'Best_numActualVMSites_sty', 'Best_numLocalizedVMsites_sty', 'sequenceVML',
                 'accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA', 'protein_mw', 'species',
@@ -99,9 +98,7 @@ class Lscc(DataSet):
                 df.index.name="Patient_ID"
                 self._data["phosphoproteomics"] = df
 
-
-
-            elif file_name == "lscc-v1.0-proteome-ratio-norm-NArm.gct.gz": #done
+            elif file_name == "lscc-v1.0-proteome-ratio-norm-NArm.gct.gz": 
                 df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
@@ -122,18 +119,14 @@ class Lscc(DataSet):
                 self._data["proteomics"] = df
 
 
-            elif file_name == "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz": #done
+            elif file_name == "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz": 
                  df = pd.read_csv(file_path, sep="\t", dtype=object)
-                 # df = pd.read_csv(file_path)
                  df = df.rename(columns={"Sample.ID": "Patient_ID"})
                  df = df.set_index("Patient_ID")
 
                  self._data['gene_fusion'] = df
 
-                 #look at luad, we need to rename sample ID with patient id, replace dots as dash. reformat it as the index
-
-
-            elif file_name == "lscc-v1.0-sample-annotation.csv.gz": #done
+            elif file_name == "lscc-v1.0-sample-annotation.csv.gz": 
                 df = pd.read_csv(file_path, sep=",", dtype=object)
                 filter = df['QC.status'] == "QC.pass" #There are some samples that are internal references. IRs are used for scaling purposes, and don't belong to a single patient, so we want to drop them.
                 df = df[filter]
@@ -143,11 +136,13 @@ class Lscc(DataSet):
                 df.index.name="Patient_ID"
                 df = df.rename(columns={"Type":"Sample_Tumor_Normal"})
                 df["Sample_Tumor_Normal"] = df["Sample_Tumor_Normal"].replace("NAT","Normal")
+
                 #Split the metadata into multiple dataframes
                 #Make experiemntal_set up dataframe
                 experimental_design_cols = ['Experiment', 'Channel', 'QC.status'] #These are the columns for the experimental_design dataframe
                 experimental_design_df = df[experimental_design_cols]
                 df = df.drop(columns=experimental_design_cols)
+
                 #Make a derived_molecular dataframe
                 derived_molecular_cols = ['TP53.mutation', 'CDKN2A.mutation', 'PTEN.mutation', 'PIK3CA.mutation',
                  'KEAP1.mutation', 'HLA.A.mutation', 'NFE2L2.mutation', 'NOTCH1.mutation', 'RB1.mutation',
@@ -164,36 +159,15 @@ class Lscc(DataSet):
                 self._data['experimental_design'] = experimental_design_df
                 self._data['derived_molecular'] = derived_molecular_df
 
-
-
             elif file_name == "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz":
                 df = pd.read_csv(file_path, sep="\t", dtype=object)
-
-                cols_to_drop = ['Entrez_Gene_Id', 'Center', 'NCBI_Build', 'Chromosome', 'Start_Position', 'End_Position',
-                'Strand', 'Variant_Type', 'Reference_Allele', 'Tumor_Seq_Allele1', 'Tumor_Seq_Allele2', 'dbSNP_RS',
-                'dbSNP_Val_Status', 'Tumor_Sample_Barcode', 'Matched_Norm_Sample_Barcode', 'Match_Norm_Seq_Allele1',
-                'Match_Norm_Seq_Allele2', 'Tumor_Validation_Allele1', 'Tumor_Validation_Allele2', 'Match_Norm_Validation_Allele1',
-                'Match_Norm_Validation_Allele2', 'Verification_Status', 'Validation_Status', 'Mutation_Status', 'Sequencing_Phase',
-                'Sequence_Source', 'Validation_Method', 'Score', 'BAM_File', 'Sequencer', 'Tumor_Sample_UUID', 'Matched_Norm_Sample_UUID',
-                'HGVSc', 'HGVSp', 'Transcript_ID', 'Exon_Number', 't_depth', 't_ref_count', 't_alt_count', 'n_depth',
-                'n_ref_count', 'n_alt_count', 'callers', 'all_effects', 'Allele', 'Gene', 'Feature', 'Feature_type', 'Consequence',
-                'cDNA_position', 'CDS_position', 'Protein_position', 'Amino_acids', 'Codons', 'Existing_variation', 'ALLELE_NUM',
-                'DISTANCE', 'STRAND_VEP', 'SYMBOL', 'SYMBOL_SOURCE', 'HGNC_ID', 'BIOTYPE', 'CANONICAL', 'CCDS', 'ENSP', 'SWISSPROT',
-                'TREMBL', 'UNIPARC', 'RefSeq', 'SIFT', 'PolyPhen', 'EXON', 'INTRON', 'DOMAINS', 'GMAF', 'AFR_MAF', 'AMR_MAF',
-                'ASN_MAF', 'EAS_MAF', 'EUR_MAF', 'SAS_MAF', 'AA_MAF', 'EA_MAF', 'CLIN_SIG', 'SOMATIC', 'PUBMED', 'MOTIF_NAME',
-                'MOTIF_POS', 'HIGH_INF_POS', 'MOTIF_SCORE_CHANGE', 'IMPACT', 'PICK', 'VARIANT_CLASS', 'TSL', 'HGVS_OFFSET', 'PHENO',
-                'MINIMISED', 'ExAC_AF', 'ExAC_AF_AFR', 'ExAC_AF_AMR', 'ExAC_AF_EAS', 'ExAC_AF_FIN', 'ExAC_AF_NFE', 'ExAC_AF_OTH',
-                'ExAC_AF_SAS', 'GENE_PHENO', 'FILTER', 'flanking_bps', 'variant_id', 'variant_qual', 'ExAC_AF_Adj', 'ExAC_AC_AN_Adj',
-                'ExAC_AC_AN', 'ExAC_AC_AN_AFR', 'ExAC_AC_AN_AMR', 'ExAC_AC_AN_EAS', 'ExAC_AC_AN_FIN', 'ExAC_AC_AN_NFE',
-                'ExAC_AC_AN_OTH', 'ExAC_AC_AN_SAS', 'ExAC_FILTER']
-
-                df = df.drop(columns = cols_to_drop)
+                df = df[["Sample.ID", "Hugo_Symbol", "Variant_Classification", "HGVSp_Short"]] # We don't need any of the other columns
                 df = df.rename(columns={"Sample.ID": "Patient_ID", 'Hugo_Symbol': "Gene", "Variant_Classification": "Mutation", "HGVSp_Short": "Location"})
                 df = df.set_index("Patient_ID")
                 df = df.sort_values(by=["Patient_ID","Gene"])
                 self._data['somatic_mutation'] = df
 
-            elif file_name == "lscc-v1.0-mirna-mature-tpm-log2.gct.gz": #Done
+            elif file_name == "lscc-v1.0-mirna-mature-tpm-log2.gct.gz": 
                 df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
                 gene_filter = df['Name'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
@@ -213,30 +187,16 @@ class Lscc(DataSet):
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
-        # rnaSeq = self.get_gene_fusion()
-        # miRNA = self.get_miRNA()
-        # somaticMutation = self.get_somatic_mutation() #change index here
-        # clinical = self.get_clinical()
-        # experimental_design = self.get_experimental_design()
-        # derived_molecular = self.get_derived_molecular()
-        # proteomics = self.get_proteomics()
-        # cnv = self.get_CNV()
-        # phosphoproteomics = self.get_phosphoproteomics()
-        #
-        # import pdb; pdb.set_trace()
-
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data)
-
-        # Sort this master_index so all the samples with an N suffix are last. Because the N is a suffix, not a prefix, this is kind of messy.
-        status_col = np.where(master_index.str.endswith("N"), "Normal", "Tumor")
-        status_df = pd.DataFrame(data={"Patient_ID": master_index, "Status": status_col}) # Create a new dataframe with the master_index as a column called "Patient_ID"
-        status_df = status_df.sort_values(by=["Status", "Patient_ID"], ascending=[False, True]) # Sorts first by status, and in descending order, so "Tumor" samples are first
-        master_index = pd.Index(status_df["Patient_ID"])
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
         clinical = self._data["clinical"]
         clinical = clinical.reindex(master_index)
+
+        # Impute any NaNs in Sample_Tumor_Normal
+        clinical["Sample_Tumor_Normal"] = clinical["Sample_Tumor_Normal"].where(cond=~(pd.isnull(clinical["Sample_Tumor_Normal"]) & clinical.index.str.endswith(".N")), other="Normal")
+        clinical["Sample_Tumor_Normal"] = clinical["Sample_Tumor_Normal"].where(cond=~(pd.isnull(clinical["Sample_Tumor_Normal"]) & ~clinical.index.str.endswith(".N")), other="Tumor")
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
         self._data['clinical'] = clinical
@@ -258,10 +218,10 @@ class Lscc(DataSet):
 
             self._data[name] = df
 
-        # Call function from dataframe_tools.py to standardize the names of the index and column axes
-        self._data = standardize_axes_names(self._data)
-
         # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
         self._data = sort_all_rows(self._data)
+
+        # Call function from dataframe_tools.py to standardize the names of the index and column axes
+        self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
