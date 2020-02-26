@@ -28,12 +28,13 @@ setup(name='cptac',
 	packages=['cptac','cptac.utils'],
 	install_requires=[
 		'numpy>=1.16.3',
-		'pandas==0.25.*',
+		'pandas>=0.25.1',
 		'requests>=2.21.0',
 		'beautifulsoup4>=4.7.1',
 		'scipy>=1.2.1',
 		'urllib3>=1.24.2',
 		'packaging>=19.2',
+		'xlrd>=1.2.0',
 	],
     data_files=[
          ('bioplex_interactions',['cptac/utils/BioPlex_interactionList_v4a.tsv'])
