@@ -36,7 +36,7 @@ def check_returned_is_df(returned):
         print("Function under test returned None.")
         return False
     
-    if not isinstance(returned, pd.core.frame.DataFrame):
+    if not isinstance(returned, pd.DataFrame):
         print("Returned object was not a dataframe. Type of object: {}".format(type(returned)))
         return False
     return True

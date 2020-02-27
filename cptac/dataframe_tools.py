@@ -200,7 +200,7 @@ def reformat_normal_patient_ids(data_dict, existing_identifier=None, existing_id
 
         # If we added the Sample_Tumor_Normal column, drop it
         if added_sample_statuses:
-            if isinstance(df.columns, pd.core.index.MultiIndex):
+            if isinstance(df.columns, pd.MultiIndex):
                 df = df.drop(columns="Sample_Tumor_Normal", level=0) # level=0 prevents a PerformanceWarning
             else:
                 df = df.drop(columns="Sample_Tumor_Normal")
@@ -295,7 +295,7 @@ def sort_df_by_sample_status(df, sample_status_col):
 
     # If we added the Sample_Tumor_Normal column, drop it
     if added_sample_statuses:
-        if isinstance(df.columns, pd.core.index.MultiIndex):
+        if isinstance(df.columns, pd.MultiIndex):
             df = df.drop(columns="Sample_Tumor_Normal", level=0) # level=0 prevents a PerformanceWarning
         else:
             df = df.drop(columns="Sample_Tumor_Normal")

@@ -253,7 +253,7 @@ class DataSet:
 
             if isinstance(levels_to_drop, (str, int)):
                 levels_to_drop = [levels_to_drop]
-            elif not isinstance(levels_to_drop, (list, pd.core.series.Series, pd.core.indexes.base.Index)):
+            elif not isinstance(levels_to_drop, (list, pd.Series, pd.Index)):
                 raise InvalidParameterError(f"Parameter 'levels_to_drop' is of invalid type {type(levels_to_drop)}. Valid types: str, int, list or array-like of str or int, or NoneType.")
 
             # Check that they're not trying to drop too many columns
@@ -755,11 +755,11 @@ class DataSet:
         # Process genes parameter
         if isinstance(genes, str): # If it's a single gene, make it a list so we can treat everything the same
             genes = [genes]
-        elif isinstance(genes, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's already a list or array-like, we're all good
+        elif isinstance(genes, (list, pd.Series, pd.Index)): # If it's already a list or array-like, we're all good
             pass
         elif genes is None: # If it's the default of None, rename columns and return the entire dataframe
             # Add the gene name to end beginning of each column header, to preserve info when we join dataframes.
-            if isinstance(omics_df.columns, pd.core.index.MultiIndex):
+            if isinstance(omics_df.columns, pd.MultiIndex):
                 omics_df.columns = omics_df.columns.set_levels(omics_df.columns.levels[0] + '_' + omics_df_name, level=0)
             else:
                 omics_df = omics_df.add_suffix('_' + omics_df_name)
@@ -769,7 +769,7 @@ class DataSet:
 
         genes = pd.Index(genes, name="Name")
 
-        if isinstance(omics_df.columns, pd.core.index.MultiIndex):
+        if isinstance(omics_df.columns, pd.MultiIndex):
             contained = genes.intersection(omics_df.columns.get_level_values("Name")).drop_duplicates() # Get the genes that actually exist in the dataframe's columns
             mi_contained = omics_df.columns[omics_df.columns.get_level_values("Name").isin(genes)]
 
@@ -790,7 +790,7 @@ class DataSet:
             warnings.warn(f"The following columns were not found in the {omics_df_name} dataframe, so they were inserted into joined table, but filled with NaN: {', '.join(not_contained)}", ParameterWarning, stacklevel=3)
 
         # Append dataframe name to end of each column header, to preserve info when we merge dataframes
-        if isinstance(omics_df.columns, pd.core.index.MultiIndex):
+        if isinstance(omics_df.columns, pd.MultiIndex):
             selected.columns = selected.columns.set_levels(selected.columns.levels[0] + '_' + omics_df_name, level=0)
         else:
             selected = selected.add_suffix('_' + omics_df_name)
@@ -815,7 +815,7 @@ class DataSet:
         # Process genes parameter
         if isinstance(cols, str): # If it's a single column, make it a list so we can treat everything the same
             cols = [cols]
-        elif isinstance(cols, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's already a list or array-like, we're all good
+        elif isinstance(cols, (list, pd.Series, pd.Index)): # If it's already a list or array-like, we're all good
             pass
         elif cols is None: # If it's the default of None, return the entire dataframe
             return df
@@ -847,7 +847,7 @@ class DataSet:
         # Process genes parameter
         if isinstance(genes, str): # If it's a single gene, make it a list so we can treat everything the same
             genes = [genes]
-        elif isinstance(genes, (list, pd.core.series.Series, pd.core.indexes.base.Index)): # If it's already a list or array-like, we're all good
+        elif isinstance(genes, (list, pd.Series, pd.Index)): # If it's already a list or array-like, we're all good
             pass
         else: # If it's neither of those, they done messed up. Tell 'em.
             raise InvalidParameterError("Genes parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(genes, type(genes)))
@@ -895,13 +895,13 @@ class DataSet:
                 sample_locations = sample_data[location_col] # Get location(s)
 
                 # Make the mutations a list (even if there's only one)
-                if isinstance(sample_mutations, pd.core.series.Series):
+                if isinstance(sample_mutations, pd.Series):
                     sample_mutations_list = sample_mutations.tolist()
                 else:
                     sample_mutations_list = [sample_mutations]
 
                 # Make the locations a list (even if there's only one)
-                if isinstance(sample_locations, pd.core.series.Series):
+                if isinstance(sample_locations, pd.Series):
                     sample_locations_list = sample_locations.tolist()
                 else:
                     sample_locations_list = [sample_locations]
