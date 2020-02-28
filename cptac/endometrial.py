@@ -219,7 +219,7 @@ class Endometrial(DataSet):
         clinical = clinical.reindex(master_index)
         self._data['clinical'] = clinical
 
-        if self._version == "2.1.1":
+        if "followup" in self._data.keys():
             # Drop rows from the followup dataframe that aren't anywhere else in the dataset
             clinical = self._data["clinical"]
             followup = self._data["followup"]
