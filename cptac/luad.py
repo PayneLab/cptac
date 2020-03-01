@@ -452,13 +452,6 @@ class Luad(DataSet):
 
             self._data[name] = df
 
-        if "followup" in self._data.keys():
-            # Drop rows from the followup dataframe that aren't anywhere else in the dataset
-            clinical = self._data["clinical"]
-            followup = self._data["followup"]
-            followup = followup.drop(index=followup.index[~followup.index.isin(clinical.index)])
-            self._data["followup"] = followup
-
         # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
         self._data = sort_all_rows(self._data)
 

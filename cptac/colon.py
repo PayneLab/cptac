@@ -158,7 +158,7 @@ class Colon(DataSet):
         del self._data["phosphoproteomics_normal"]
 
         # Get a union of all dataframes' indices, with duplicates removed
-        master_index = unionize_indices(self._data)
+        master_index = unionize_indices(self._data, exclude="followup")
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
         master_clinical = self._data['clinical'].reindex(master_index)

@@ -228,7 +228,7 @@ class Brca(DataSet):
         self._data["derived_molecular"] = derived_molecular
 
         # Get a union of all dataframes' indices, with duplicates removed
-        master_index = unionize_indices(self._data)
+        master_index = unionize_indices(self._data, exclude="followup")
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
         clinical = self._data["clinical"]
