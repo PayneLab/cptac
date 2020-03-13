@@ -577,3 +577,32 @@ def parse_hotspot(path, mut_df):
     
     #Return of the three dataframes and mutation dictionary
     return(vis_hs_df, bin_hs_df, det_hs_df, mut_dict)
+
+"""
+@param protein:
+	String. The name of a protein name
+@Return:
+	A list of proteins known by the most recent WikiPathways download to be interacting parters with the specified protein.
+	Returns None if specified protein is not found in the WikiPathways dataframe (which was intersected with Uniprot).
+
+This function takes a path to WikiPathways Dataframe file and protein name and returns a list of all the proteins that interact with it, using the pathways from the WikiPathways relsease file.
+This function loads the WikiPathways dataframe, and iterates through the row labelled with that protein name, return every protein in a pathway that also contains that protein.
+"""
+
+def get_interacting_proteins_wikipathways(protein):
+
+	WikiPathwaysDataframePath = sys.argv[1] # What to put here? Should it be hardcoded?
+	proteinName = protein
+
+	df = pd.read_csv(WikiPathwaysDataframePath, index_col=0)
+
+	if (proteinName in df.)
+	row = df.loc[proteinName]
+	filtered_df = df.loc[:, row.values.tolist()]
+	def has_true(values):
+		for val in values:
+			if val == True:
+				return True
+		return False
+	filtered_df_final = filtered_df.loc[filtered_df.apply(lambda row: has_true(row.values.tolist()), axis=1), :]
+	return filtered_df_final.index.tolist()
