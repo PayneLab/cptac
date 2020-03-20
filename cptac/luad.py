@@ -25,7 +25,7 @@ class Luad(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["2.0", "3.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["2.0", "3.1", "3.1.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "2.0": [
@@ -38,6 +38,19 @@ class Luad(DataSet):
             "3.1": [
                 "LUAD_followup_9_12.xlsx",
                 "luad-v3.0-rnaseq-circ-rna.csv.gz",
+                "luad-v3.0-rnaseq-gene-fusions.csv.gz",
+                "luad-v3.0-wxs-somatic.luad.v1.4.20190517.maf.gz",
+                "luad-v3.1-acetylome-ratio-norm-NArm.gct.gz",
+                "luad-v3.1-cnv-gene-LR.gct.gz",
+                "luad-v3.1-mirna-mature-tpm-log2.gct.gz",
+                "luad-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "luad-v3.1-proteome-ratio-norm-NArm.gct.gz",
+                "luad-v3.1-rnaseq-linc-uq-rpkm-log2-NArm.gct.gz",
+                "luad-v3.1-rnaseq-prot-uq-rpkm-log2-NArm.gct.gz",
+                "luad-v3.1-sample-annotation.csv.gz"],
+            "3.1.1": [
+                "LUAD_followup_9_12.xlsx",
+                "luad-v3.0-rnaseq-circ-rna_parsed.tsv.gz",
                 "luad-v3.0-rnaseq-gene-fusions.csv.gz",
                 "luad-v3.0-wxs-somatic.luad.v1.4.20190517.maf.gz",
                 "luad-v3.1-acetylome-ratio-norm-NArm.gct.gz",
@@ -182,7 +195,7 @@ class Luad(DataSet):
                 if self._version == "2.0":
                     gene_filter = df['Description'] != 'na' 
 
-                elif self._version == "3.1":
+                elif self._version in ["3.1", "3.1.1"]:
                     gene_filter = df['geneSymbol'] != 'na' 
 
                 df = df[gene_filter]
@@ -191,7 +204,7 @@ class Luad(DataSet):
                 if self._version == "2.0":
                     cols_to_drop = ["GeneID","Description"]
                     
-                elif self._version == "3.1":
+                elif self._version in ["3.1", "3.1.1"]:
                     cols_to_drop = ["id", "gene_id"]
 
                 df = df.drop(columns=cols_to_drop)
@@ -200,7 +213,7 @@ class Luad(DataSet):
                 if self._version == "2.0":
                     df = df.set_index("id")
 
-                elif self._version == "3.1":
+                elif self._version in ["3.1", "3.1.1"]:
                     df = df.set_index("geneSymbol")
 
                 df = df.apply(pd.to_numeric)
@@ -241,7 +254,7 @@ class Luad(DataSet):
                         'Best_scoreVML', 'Best_numActualVMSites_sty', 'Best_numLocalizedVMsites_sty', 'sequenceVML',
                         'accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA', 'protein_mw', 'species',
                         'speciesMulti', 'orfCategory', 'accession_number', 'protein_group_num', 'entry_name', 'GeneSymbol']
-                elif self._version == "3.1":
+                elif self._version in ["3.1", "3.1.1"]:
                     cols_to_drop = ["id", "id.description", "numColumnsVMsiteObserved", "bestScore", "bestDeltaForwardReverseScore",
                         "Best_scoreVML", "Best_numActualVMSites_sty", "Best_numLocalizedVMsites_sty", "sequenceVML",
                         "accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA", "protein_mw", "species",
@@ -274,7 +287,7 @@ class Luad(DataSet):
                     cols_to_drop = ['id', 'id.1', 'id.description', 'geneSymbol', 'numColumnsProteinObserved', 'numSpectraProteinObserved',
                         'protein_mw', 'percentCoverage', 'numPepsUnique', 'scoreUnique', 'species', 'orfCategory', 'accession_number',
                         'subgroupNum', 'entry_name']
-                elif self._version == "3.1":
+                elif self._version in ["3.1", "3.1.1"]:
                     cols_to_drop = ["id", "id.description", "geneSymbol", "numColumnsProteinObserved", "numSpectraProteinObserved",
                         "protein_mw", "percentCoverage", "numPepsUnique", "scoreUnique", "species", "orfCategory", "accession_number",
                         "subgroupNum", "entry_name"]
@@ -291,26 +304,33 @@ class Luad(DataSet):
                 self._data["proteomics"] = df
 
             elif file_name == "luad-v2.0-rnaseq-prot-uq-rpkm-log2-NArm-row-norm.gct.gz" or file_name == "luad-v3.1-rnaseq-prot-uq-rpkm-log2-NArm.gct.gz":
-                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
+                df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
 
-                 # Filter out metadata rows
-                 gene_filter = df['geneSymbol'] != 'na'
-                 df = df[gene_filter]
+                # Filter out metadata rows
+                gene_filter = df['geneSymbol'] != 'na'
+                df = df[gene_filter]
 
-                 df = df.set_index('geneSymbol')
-                 cols_to_drop = ['id', 'gene_id', 'gene_type', 'length']
-                 df = df.drop(columns = cols_to_drop)
+                df = df.set_index('geneSymbol')
+                cols_to_drop = ['id', 'gene_id', 'gene_type', 'length']
+                df = df.drop(columns = cols_to_drop)
 
-                 df = df.apply(pd.to_numeric)
-                 df = df.sort_index()
-                 df = df.transpose()
-                 df = df.sort_index()
-                 df.index.name = "Patient_ID"
-                 df = df.sort_index()
+                df = df.apply(pd.to_numeric)
+                df = df.sort_index()
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name = "Patient_ID"
+                df = df.sort_index()
 
-                 self._data["transcriptomics"] = df
+                self._data["transcriptomics"] = df
 
-            elif file_name == "luad-v2.0-rnaseq-circ-rna.csv.gz" or file_name == "luad-v3.0-rnaseq-circ-rna.csv.gz":
+            elif file_name == "luad-v3.0-rnaseq-circ-rna_parsed.tsv.gz" and self._version == "3.1.1":
+                df = pd.read_csv(file_path, sep='\t', dtype={"spanning.reads": "int16"}, engine="c")
+                df = df.reset_index() # More memory efficient to do this here, rather than save with a range index when we parse the file it originally
+                df = df.pivot(index="Sample.ID", columns="geneID", values="spanning.reads")
+                df.index.name = "Patient_ID"
+                df = df.sort_index()
+
+            elif file_name in ["luad-v2.0-rnaseq-circ-rna.csv.gz", "luad-v3.0-rnaseq-circ-rna.csv.gz"] and self._version in ["2.0", "3.1"]:
                 df = pd.read_csv(file_path, sep=",")
 
                 junct_3_split = df['junction.3'].str.split(':', n=2, expand=True)
@@ -357,7 +377,7 @@ class Luad(DataSet):
                 # Make experimental_design dataframe
                 if self._version == "2.0":
                     experimental_design_cols = ['Experiment', 'Channel', 'QC.status']
-                elif self._version == "3.1":
+                elif self._version in ["3.1", "3.1.1"]:
                     experimental_design_cols = ["Experiment", "Channel", "Aliquot", "QC.status"]
 
                 experimental_design_df = df[experimental_design_cols]
@@ -372,7 +392,7 @@ class Luad(DataSet):
                         'EGFL6.mutation.status', 'LMO2.mutation.status', 'C10orf62.mutation.status', 'DKK3.mutation.status', 'BIRC6.mutation.status',
                         'Mutation.Signature.Activity.W1.COSMIC5', 'Mutation.Signature.Activity.W2.COSMIC4', 'Mutation.Signature.Activity.W3.COSMIC2', 'fusion.EML4-ALK']
 
-                elif self._version == "3.1":
+                elif self._version in ["3.1", "3.1.1"]:
                     derived_molecular_cols = ["Smoking.Score.WGS", "Smoking.Signature.Fraction.WGS", "Dominant.Signature.WGS.notSmoking.50perc",
                         "Dominant.Signature.Fraction.WGS.notSmoking", "DNP.GG.to.TT.or.CC.to.AA.Count.WGS", "NMF.consensus", "NMF.cluster.membership",
                         "mRNA.Expression.Subtype.TCGA", "mRNA.stemness.index", "CIMP.status", "Tumor.Purity.byESTIMATE.RNAseq", "TSNet Purity", "ESTIMATEScore",
@@ -392,7 +412,7 @@ class Luad(DataSet):
                 self._data['experimental_design'] = experimental_design_df
                 self._data['derived_molecular'] = derived_molecular_df
 
-            elif file_name == 'LUAD_followup_9_12.xlsx' and self._version == "3.1":
+            elif file_name == 'LUAD_followup_9_12.xlsx' and self._version in ["3.1", "3.1.1"]:
                 df = pd.read_excel(file_path)
 
                 # Replace redundant values for "not reported" with NaN
