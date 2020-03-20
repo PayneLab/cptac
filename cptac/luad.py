@@ -329,6 +329,7 @@ class Luad(DataSet):
                 df = df.pivot(index="Sample.ID", columns="geneID", values="spanning.reads")
                 df.index.name = "Patient_ID"
                 df = df.sort_index()
+                self._data['circular_RNA'] = df
 
             elif file_name in ["luad-v2.0-rnaseq-circ-rna.csv.gz", "luad-v3.0-rnaseq-circ-rna.csv.gz"] and self._version in ["2.0", "3.1"]:
                 df = pd.read_csv(file_path, sep=",")
