@@ -19,8 +19,13 @@ from .exceptions import FailedReindexWarning, ReindexMapError
 
 class Ccrcc(DataSet):
 
-    def __init__(self, version="latest"):
-        """Load all of the ccrcc dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
+    def __init__(self, version="latest", no_internet=False):
+        """Load all of the ccrcc dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+
+        Parameters:
+        version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
+        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        """
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
@@ -65,7 +70,7 @@ class Ccrcc(DataSet):
                 "Table S7.xlsx"],
         }
 
-        super().__init__(cancer_type="ccrcc", version=version, valid_versions=valid_versions, data_files=data_files)
+        super().__init__(cancer_type="ccrcc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # We're going to need to drop the samples below from a couple dataframes
         nci_labels = ["NCI7-1", "NCI7-2", "NCI7-3", "NCI7-4", "NCI7-5"]

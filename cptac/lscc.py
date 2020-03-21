@@ -19,8 +19,13 @@ from .exceptions import FailedReindexWarning, ReindexMapError
 
 class Lscc(DataSet):
 
-    def __init__(self, version="latest"):
-        """Load all of the lscc dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
+    def __init__(self, version="latest", no_internet=False):
+        """Load all of the lscc dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+
+        Parameters:
+        version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
+        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        """
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
@@ -38,7 +43,7 @@ class Lscc(DataSet):
                 "lscc-v1.0-sample-annotation.csv.gz"] 
         }
 
-        super().__init__(cancer_type="lscc", version=version, valid_versions=valid_versions, data_files=data_files)
+        super().__init__(cancer_type="lscc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = "Loading dataframes"

@@ -23,7 +23,7 @@ class DataSet:
     the same function calls exist for cptac.Endometrial, cptac.Colon, etc.
     """
 
-    def __init__(self, cancer_type, version, valid_versions, data_files):
+    def __init__(self, cancer_type, version, valid_versions, data_files, no_internet):
         """Initialize variables for a DataSet object.
 
         Parameters:
@@ -35,11 +35,12 @@ class DataSet:
         # Initialize the _cancer_type instance variable
         self._cancer_type = cancer_type.lower()
 
-        # Update the index, if possible. If there's no internet, that's fine.
-        try:
-            update_index(self._cancer_type)
-        except NoInternetError:
-            pass
+        # Update the index, if possible and desired.
+        if not no_internet:
+            try:
+                update_index(self._cancer_type)
+            except NoInternetError:
+                pass
 
         # Validate the version
         self._version = validate_version(version, self._cancer_type, use_context="init", valid_versions=valid_versions)
