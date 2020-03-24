@@ -81,7 +81,7 @@ class Ccrcc(DataSet):
         clinical_dfs = {}
 
         # Load the data into dataframes in the self._data dict
-        loading_msg = "Loading dataframes"
+        loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
         for file_path in self._data_files_paths: # Loops through files variable
 
             # Print a loading message. We add a dot every time, so the user knows it's not frozen.

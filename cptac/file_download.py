@@ -142,7 +142,7 @@ def update_index(dataset):
     urls_dict = parse_tsv_dict(index_urls_path)
     index_hash_url = urls_dict.get(index_hash_file)
 
-    checking_msg = "Checking that index is up-to-date..."
+    checking_msg = f"Checking that {dataset} index is up-to-date..."
     print(checking_msg, end='\r')
     try:
         server_index_hash = download_text(index_hash_url)
@@ -157,7 +157,7 @@ def update_index(dataset):
             return True
 
     index_url = urls_dict.get(index_file)
-    download_file(index_url, index_path, server_index_hash, file_message="index")
+    download_file(index_url, index_path, server_index_hash, file_message=f"{dataset} index")
 
     if os.path.isfile(index_path):
         local_index_hash = hash_file(index_path)

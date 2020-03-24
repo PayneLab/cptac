@@ -57,7 +57,7 @@ class Ovarian(DataSet):
         super().__init__(cancer_type="ovarian", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data files into dataframes in the self._data dict
-        loading_msg = "Loading dataframes"
+        loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
         for file_path in self._data_files_paths:
 
             # Print a loading message. We add a dot every time, so the user knows it's not frozen.
