@@ -104,45 +104,45 @@ class DataSet:
         return self._get_dataframe("followup")
 
     # Methods to get omics dataframes
-    def get_acetylproteomics(self):
+    def get_acetylproteomics(self, tissue_type = "both"):
         """Get the acetylproteomics dataframe."""
-        return self._get_dataframe("acetylproteomics")
+        return self._get_dataframe("acetylproteomics", tissue_type)
 
-    def get_circular_RNA(self):
+    def get_circular_RNA(self, tissue_type = "both"):
         """Get the circular_RNA dataframe."""
-        return self._get_dataframe("circular_RNA")
+        return self._get_dataframe("circular_RNA", tissue_type)
 
-    def get_CNV(self):
+    def get_CNV(self, tissue_type = "both"):
         """Get the CNV dataframe."""
-        return self._get_dataframe("CNV")
+        return self._get_dataframe("CNV", tissue_type)
 
-    def get_lincRNA(self):
+    def get_lincRNA(self, tissue_type = "both"):
         """Get the lincRNA dataframe."""
-        return self._get_dataframe("lincRNA")
+        return self._get_dataframe("lincRNA",tissue_type)
 
-    def get_lipidomics(self):
+    def get_lipidomics(self, tissue_type = "both"):
         """Get the lipidomics dataframe."""
-        return self._get_dataframe("lipidomics")
+        return self._get_dataframe("lipidomics", tissue_type)
 
-    def get_metabolomics(self):
+    def get_metabolomics(self, tissue_type = "both"):
         """Get the metabolomics dataframe."""
-        return self._get_dataframe("metabolomics")
+        return self._get_dataframe("metabolomics", tissue_type)
 
-    def get_methylation(self):
+    def get_methylation(self, tissue_type = "both"):
         """Get the methylation dataframe."""
-        return self._get_dataframe("methylation")
+        return self._get_dataframe("methylation", tissue_type)
 
-    def get_miRNA(self):
+    def get_miRNA(self, tissue_type = "both"):
         """Get the miRNA dataframe."""
-        return self._get_dataframe("miRNA")
+        return self._get_dataframe("miRNA",tissue_type)
 
-    def get_phosphoproteomics(self):
+    def get_phosphoproteomics(self, tissue_type = "both"):
         """Get the phosphoproteomics dataframe."""
-        return self._get_dataframe("phosphoproteomics")
+        return self._get_dataframe("phosphoproteomics",tissue_type)
 
-    def get_phosphoproteomics_gene(self):
+    def get_phosphoproteomics_gene(self, tissue_type = "both"):
         """Get the phosphoproteomics_gene dataframe. The gene level phosphorylation measurement is an aggregate metric which potentially averages together individual measurements of different sites. Use get_phosphoproteomics() to view the data for individual sites."""
-        return self._get_dataframe("phosphoproteomics_gene")
+        return self._get_dataframe("phosphoproteomics_gene",tissue_type)
 
     def get_phosphosites(self, genes):
         """Returns dataframe with all phosphosites of specified gene or list of genes.
@@ -155,11 +155,15 @@ class DataSet:
         """
         return self._get_omics_cols("phosphoproteomics", genes)
 
-    def get_proteomics(self):
+    def get_proteomics(self, tissue_type = "both"):
         """Get the proteomics dataframe."""
-        return self._get_dataframe("proteomics")
+        return self._get_dataframe("proteomics",tissue_type)
 
     def get_transcriptomics(self):
+        # if tissue_type == "tumor":
+        #     return self._tumor_only(self._get_dataframe("transcriptomics"))
+        # elif tissue_type == "normal":
+        #     return self._normal_only(self._get_dataframe("transcriptomics"))
         """Get the transcriptomics dataframe."""
         return self._get_dataframe("transcriptomics")
 
@@ -1106,3 +1110,15 @@ class DataSet:
                 if found_digits: # We only want the first block of numbers
                     return int(num)
         return int(num) # We get here if the location ended with a digit
+    def _tumor_only(self, df):
+        clinical = self._get_dataframe("clinical")
+        clinical_tumor = clinical[clinical.Sample_Tumor_Normal == "Tumor"]
+        tumor_list = list(clinical_tumor.index.values)
+        tumor_df = df.loc[df.index & tumor_list]
+        return tumor_df
+    def _normal_only(self, df):
+        clinical = self._get_dataframe("clinical")
+        clinical_normal = clinical[clinical.Sample_Tumor_Normal == "Normal"]
+        normal_list = list(clinical_normal.index.values)
+        normal_df = df.loc[df.index & normal_list]
+        return normal_df
