@@ -565,7 +565,7 @@ class DataSet:
         mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
 
         mutations_were_filtered = mutations_filter is not None
-        joined = self._join_other_to_mutations(omics, mutations, mutations_were_filtered, show_location, how=how)
+        joined = self._join_other_to_mutations(omics, mutations, mutations_were_filtered, show_location, how=how, quiet=quiet)
 
         # Warn them about any NaNs that were inserted in the outer join
         if not quiet and how != "inner":
@@ -661,7 +661,7 @@ class DataSet:
         mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
 
         mutations_were_filtered = mutations_filter is not None
-        joined = self._join_other_to_mutations(metadata, mutations, mutations_were_filtered, show_location,how=how)
+        joined = self._join_other_to_mutations(metadata, mutations, mutations_were_filtered, show_location,how=how, quiet=quiet)
 
         # Warn them about any NaNs that were inserted in the outer join
         if not quiet and how != "inner":
@@ -949,7 +949,7 @@ class DataSet:
 
         return df
 
-    def _join_other_to_mutations(self, other, mutations, mutations_were_filtered, show_location, how = "outer"):
+    def _join_other_to_mutations(self, other, mutations, mutations_were_filtered, show_location, how, quiet):
         """Join selected mutations data to selected other omics or metadata, add a Sample_Status column, fill in NaNs with Wildtype_Normal or Wildtype_Tumor, and name the dataframe.
 
         Parameters:
@@ -1005,7 +1005,7 @@ class DataSet:
             joined.loc[(sample_status_map == "Normal") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_normal_fill # Change all NaN mutation values for Normal samples to Wildtype_Normal.
             joined.loc[(sample_status_map == "Tumor") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_tumor_fill # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
 
-        if len(fill_log) > 0:
+        if len(fill_log) > 0 and not quiet:
             warnings.warn(f"In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: {', '.join(fill_log)}", FilledMutationDataWarning, stacklevel=3)
 
         # Depending on show_location, either fill NaN values in the joined dataframe location columns with "No_mutation", or just drop the location columns altogether
