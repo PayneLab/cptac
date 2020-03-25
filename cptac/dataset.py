@@ -533,10 +533,10 @@ class DataSet:
             selected1.columns = add_index_levels(to=selected1.columns, source=selected2.columns)
             selected2.columns = add_index_levels(to=selected2.columns, source=selected1.columns)
 
-        joined = selected1.join(selected2, how='outer')
+        joined = selected1.join(selected2, how= how)
 
         # Warn them about any NaNs that were inserted in the outer join
-        if not quiet:
+        if not quiet and how != "inner":
             self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
 
         # Sort the dataframe so all the tumor samples are first, then all the normal samples
@@ -565,10 +565,10 @@ class DataSet:
         mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
 
         mutations_were_filtered = mutations_filter is not None
-        joined = self._join_other_to_mutations(omics, mutations, mutations_were_filtered, show_location)
+        joined = self._join_other_to_mutations(omics, mutations, mutations_were_filtered, show_location, how=how)
 
         # Warn them about any NaNs that were inserted in the outer join
-        if not quiet:
+        if not quiet and how != "inner":
             self._warn_inserted_nans(omics_df_name, "somatic_mutation", omics.index, mutations.index)
 
         # Sort the dataframe so all the tumor samples are first, then all the normal samples
@@ -595,10 +595,10 @@ class DataSet:
         selected1 = self._get_metadata_cols(df1_name, cols1)
         selected2 = self._get_metadata_cols(df2_name, cols2)
 
-        joined = selected1.join(selected2, how='outer', rsuffix='_from_' + df2_name) # Use suffix in case both dataframes have a particular column, such as Patient_ID
+        joined = selected1.join(selected2, how=how, rsuffix='_from_' + df2_name) # Use suffix in case both dataframes have a particular column, such as Patient_ID
 
         # Warn them about any NaNs that were inserted in the outer join
-        if not quiet:
+        if not quiet and how != "inner":
             self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
 
         # Sort the dataframe so all the tumor samples are first, then all the normal samples
@@ -629,10 +629,10 @@ class DataSet:
         if metadata_selected.columns.names != omics_selected.columns.names:
             metadata_selected.columns = add_index_levels(to=metadata_selected.columns, source=omics_selected.columns)
 
-        joined = metadata_selected.join(omics_selected, how='outer')
+        joined = metadata_selected.join(omics_selected, how=how)
 
         # Warn them about any NaNs that were inserted in the outer join
-        if not quiet:
+        if not quiet and how != "inner":
             self._warn_inserted_nans(metadata_df_name, omics_df_name, metadata_selected.index, omics_selected.index)
 
         # Sort the dataframe so all the tumor samples are first, then all the normal samples
@@ -661,10 +661,10 @@ class DataSet:
         mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
 
         mutations_were_filtered = mutations_filter is not None
-        joined = self._join_other_to_mutations(metadata, mutations, mutations_were_filtered, show_location)
+        joined = self._join_other_to_mutations(metadata, mutations, mutations_were_filtered, show_location,how=how)
 
         # Warn them about any NaNs that were inserted in the outer join
-        if not quiet:
+        if not quiet and how != "inner":
             self._warn_inserted_nans(metadata_df_name, "somatic_mutation", metadata.index, mutations.index)
 
         # Sort the dataframe so all the tumor samples are first, then all the normal samples
@@ -949,7 +949,7 @@ class DataSet:
 
         return df
 
-    def _join_other_to_mutations(self, other, mutations, mutations_were_filtered, show_location):
+    def _join_other_to_mutations(self, other, mutations, mutations_were_filtered, show_location, how = "outer"):
         """Join selected mutations data to selected other omics or metadata, add a Sample_Status column, fill in NaNs with Wildtype_Normal or Wildtype_Tumor, and name the dataframe.
 
         Parameters:
@@ -964,7 +964,7 @@ class DataSet:
         # Make the indices the same
         if mutations.columns.nlevels != other.columns.nlevels:
             mutations.columns = add_index_levels(to=mutations.columns, source=other.columns)
-        joined = other.join(mutations, how="outer")
+        joined = other.join(mutations, how=how)
 
         # Add Sample_Status column by joining the sample_status_map to the joined mutation dataframe.
         sample_status_map = self._get_sample_status_map()
