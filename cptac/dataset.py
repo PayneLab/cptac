@@ -510,7 +510,7 @@ class DataSet:
 
 
     # Join functions
-    def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None):
+    def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None, how = "outer", quiet = False):
         """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -518,6 +518,8 @@ class DataSet:
         df2_name (str): Name of second omics dataframe to select columns from.
         genes1 (str, or list or array-like of str, optional): Gene(s) for column(s) to select from df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
         genes2 (str, or list or array-like of str, optional): Gene(s) for Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
+        how (str, optional): How to perform the join. Defaults to outer.
+        quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
         pandas DataFrame: The selected columns from the two omics dataframes, joined into one dataframe.
@@ -534,7 +536,8 @@ class DataSet:
         joined = selected1.join(selected2, how='outer')
 
         # Warn them about any NaNs that were inserted in the outer join
-        self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
+        if not quiet:
+            self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
 
         # Sort the dataframe so all the tumor samples are first, then all the normal samples
         sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
@@ -542,7 +545,7 @@ class DataSet:
 
         return joined
 
-    def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True):
+    def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True, how = "outer", quiet = False):
         """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
@@ -551,6 +554,8 @@ class DataSet:
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
         mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in filter_prefer, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
+        how (str, optional): How to perform the join. Defaults to outer.
+        quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
         pandas DataFrame: The mutations for the specified gene, joined to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
@@ -563,7 +568,8 @@ class DataSet:
         joined = self._join_other_to_mutations(omics, mutations, mutations_were_filtered, show_location)
 
         # Warn them about any NaNs that were inserted in the outer join
-        self._warn_inserted_nans(omics_df_name, "somatic_mutation", omics.index, mutations.index)
+        if not quiet:
+            self._warn_inserted_nans(omics_df_name, "somatic_mutation", omics.index, mutations.index)
 
         # Sort the dataframe so all the tumor samples are first, then all the normal samples
         sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
@@ -571,7 +577,7 @@ class DataSet:
 
         return joined
 
-    def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None):
+    def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None, how = "outer", quiet = False):
         """Take specified column(s) from one metadata dataframe, and join to specified columns(s) from another metadata dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -579,6 +585,8 @@ class DataSet:
         df2_name (str): Name of second metadata dataframe to select columns from.
         cols1 (str, or list or array-like of str, optional): Column(s) to select from df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
         cols2 (str, or list or array-like of str, optional): Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
+        how (str, optional): How to perform the join. Defaults to outer.
+        quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
         pandas DataFrame: The selected columns from the two metadata dataframes, joined into one dataframe.
@@ -590,7 +598,8 @@ class DataSet:
         joined = selected1.join(selected2, how='outer', rsuffix='_from_' + df2_name) # Use suffix in case both dataframes have a particular column, such as Patient_ID
 
         # Warn them about any NaNs that were inserted in the outer join
-        self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
+        if not quiet:
+            self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
 
         # Sort the dataframe so all the tumor samples are first, then all the normal samples
         sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
@@ -598,7 +607,7 @@ class DataSet:
 
         return joined
 
-    def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None):
+    def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None, how = "outer", quiet = False):
         """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_design) to part or all of an omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -606,6 +615,8 @@ class DataSet:
         omics_df_name (str): Name of omics dataframe to join the metadata columns to.
         metadata_cols (str, or list or array-like of str, optional): Column(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select the entire metadata dataframe.
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select data for from the omics dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select entire dataframe.
+        how (str, optional): How to perform the join. Defaults to outer.
+        quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
         pandas DataFrame: The selected metadata columns, joined with all or part of the omics dataframe.
@@ -621,7 +632,8 @@ class DataSet:
         joined = metadata_selected.join(omics_selected, how='outer')
 
         # Warn them about any NaNs that were inserted in the outer join
-        self._warn_inserted_nans(metadata_df_name, omics_df_name, metadata_selected.index, omics_selected.index)
+        if not quiet:
+            self._warn_inserted_nans(metadata_df_name, omics_df_name, metadata_selected.index, omics_selected.index)
 
         # Sort the dataframe so all the tumor samples are first, then all the normal samples
         sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
@@ -629,7 +641,7 @@ class DataSet:
 
         return joined
 
-    def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, mutations_filter=None, show_location=True):
+    def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, mutations_filter=None, show_location=True, how = "outer", quiet = False):
         """Select all mutations for specified gene(s), and joins them to all or part of the given metadata dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
@@ -638,6 +650,8 @@ class DataSet:
         metadata_cols (str, or list or array-like of str, optional): Gene(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
         mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in filter_prefer, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
+        how (str, optional): How to perform the join. Defaults to outer.
+        quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
         pandas DataFrame: The mutations for the specified gene, joined to all or part of the metadata dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
@@ -650,7 +664,8 @@ class DataSet:
         joined = self._join_other_to_mutations(metadata, mutations, mutations_were_filtered, show_location)
 
         # Warn them about any NaNs that were inserted in the outer join
-        self._warn_inserted_nans(metadata_df_name, "somatic_mutation", metadata.index, mutations.index)
+        if not quiet:
+            self._warn_inserted_nans(metadata_df_name, "somatic_mutation", metadata.index, mutations.index)
 
         # Sort the dataframe so all the tumor samples are first, then all the normal samples
         sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
