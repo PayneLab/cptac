@@ -670,7 +670,7 @@ class DataSet:
         return joined
 
     # "Private" methods
-    def _get_dataframe(self, name):
+    def _get_dataframe(self, name, tissue_type = "both"):
         """Check if a dataframe with the given name exists, and return a copy of it if it does.
 
         Parameters:
