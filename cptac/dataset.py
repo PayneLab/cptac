@@ -23,7 +23,7 @@ class DataSet:
     the same function calls exist for cptac.Endometrial, cptac.Colon, etc.
     """
 
-    def __init__(self, cancer_type, version, valid_versions, data_files):
+    def __init__(self, cancer_type, version, valid_versions, data_files, no_internet):
         """Initialize variables for a DataSet object.
 
         Parameters:
@@ -35,11 +35,12 @@ class DataSet:
         # Initialize the _cancer_type instance variable
         self._cancer_type = cancer_type.lower()
 
-        # Update the index, if possible. If there's no internet, that's fine.
-        try:
-            update_index(self._cancer_type)
-        except NoInternetError:
-            pass
+        # Update the index, if possible and desired.
+        if not no_internet:
+            try:
+                update_index(self._cancer_type)
+            except NoInternetError:
+                pass
 
         # Validate the version
         self._version = validate_version(version, self._cancer_type, use_context="init", valid_versions=valid_versions)
@@ -103,45 +104,45 @@ class DataSet:
         return self._get_dataframe("followup")
 
     # Methods to get omics dataframes
-    def get_acetylproteomics(self):
+    def get_acetylproteomics(self, tissue_type = "both"):
         """Get the acetylproteomics dataframe."""
-        return self._get_dataframe("acetylproteomics")
+        return self._get_dataframe("acetylproteomics", tissue_type)
 
-    def get_circular_RNA(self):
+    def get_circular_RNA(self, tissue_type = "both"):
         """Get the circular_RNA dataframe."""
-        return self._get_dataframe("circular_RNA")
+        return self._get_dataframe("circular_RNA", tissue_type)
 
     def get_CNV(self):
         """Get the CNV dataframe."""
         return self._get_dataframe("CNV")
 
-    def get_lincRNA(self):
+    def get_lincRNA(self, tissue_type = "both"):
         """Get the lincRNA dataframe."""
-        return self._get_dataframe("lincRNA")
+        return self._get_dataframe("lincRNA",tissue_type)
 
-    def get_lipidomics(self):
+    def get_lipidomics(self, tissue_type = "both"):
         """Get the lipidomics dataframe."""
-        return self._get_dataframe("lipidomics")
+        return self._get_dataframe("lipidomics", tissue_type)
 
-    def get_metabolomics(self):
+    def get_metabolomics(self, tissue_type = "both"):
         """Get the metabolomics dataframe."""
-        return self._get_dataframe("metabolomics")
+        return self._get_dataframe("metabolomics", tissue_type)
 
-    def get_methylation(self):
+    def get_methylation(self, tissue_type = "both"):
         """Get the methylation dataframe."""
-        return self._get_dataframe("methylation")
+        return self._get_dataframe("methylation", tissue_type)
 
-    def get_miRNA(self):
+    def get_miRNA(self, tissue_type = "both"):
         """Get the miRNA dataframe."""
-        return self._get_dataframe("miRNA")
+        return self._get_dataframe("miRNA",tissue_type)
 
-    def get_phosphoproteomics(self):
+    def get_phosphoproteomics(self, tissue_type = "both"):
         """Get the phosphoproteomics dataframe."""
-        return self._get_dataframe("phosphoproteomics")
+        return self._get_dataframe("phosphoproteomics",tissue_type)
 
-    def get_phosphoproteomics_gene(self):
+    def get_phosphoproteomics_gene(self, tissue_type = "both"):
         """Get the phosphoproteomics_gene dataframe. The gene level phosphorylation measurement is an aggregate metric which potentially averages together individual measurements of different sites. Use get_phosphoproteomics() to view the data for individual sites."""
-        return self._get_dataframe("phosphoproteomics_gene")
+        return self._get_dataframe("phosphoproteomics_gene",tissue_type)
 
     def get_phosphosites(self, genes):
         """Returns dataframe with all phosphosites of specified gene or list of genes.
@@ -154,13 +155,13 @@ class DataSet:
         """
         return self._get_omics_cols("phosphoproteomics", genes)
 
-    def get_proteomics(self):
+    def get_proteomics(self, tissue_type = "both"):
         """Get the proteomics dataframe."""
-        return self._get_dataframe("proteomics")
+        return self._get_dataframe("proteomics",tissue_type)
 
-    def get_transcriptomics(self):
+    def get_transcriptomics(self, tissue_type = "both"):
         """Get the transcriptomics dataframe."""
-        return self._get_dataframe("transcriptomics")
+        return self._get_dataframe("transcriptomics", tissue_type)
 
     # Methods to get mutations dataframes
     def get_gene_fusion(self):
@@ -505,7 +506,7 @@ class DataSet:
 
 
     # Join functions
-    def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None):
+    def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None, how = "outer", quiet = False):
         """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -513,6 +514,8 @@ class DataSet:
         df2_name (str): Name of second omics dataframe to select columns from.
         genes1 (str, or list or array-like of str, optional): Gene(s) for column(s) to select from df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
         genes2 (str, or list or array-like of str, optional): Gene(s) for Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
+        how (str, optional): How to perform the join. Defaults to outer.
+        quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
         pandas DataFrame: The selected columns from the two omics dataframes, joined into one dataframe.
@@ -526,10 +529,11 @@ class DataSet:
             selected1.columns = add_index_levels(to=selected1.columns, source=selected2.columns)
             selected2.columns = add_index_levels(to=selected2.columns, source=selected1.columns)
 
-        joined = selected1.join(selected2, how='outer')
+        joined = selected1.join(selected2, how= how)
 
         # Warn them about any NaNs that were inserted in the outer join
-        self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
+        if not quiet and how != "inner":
+            self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
 
         # Sort the dataframe so all the tumor samples are first, then all the normal samples
         sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
@@ -537,7 +541,7 @@ class DataSet:
 
         return joined
 
-    def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True):
+    def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True, how = "outer", quiet = False):
         """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
@@ -546,6 +550,8 @@ class DataSet:
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
         mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in filter_prefer, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
+        how (str, optional): How to perform the join. Defaults to outer.
+        quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
         pandas DataFrame: The mutations for the specified gene, joined to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
@@ -555,10 +561,11 @@ class DataSet:
         mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
 
         mutations_were_filtered = mutations_filter is not None
-        joined = self._join_other_to_mutations(omics, mutations, mutations_were_filtered, show_location)
+        joined = self._join_other_to_mutations(omics, mutations, mutations_were_filtered, show_location, how=how, quiet=quiet)
 
         # Warn them about any NaNs that were inserted in the outer join
-        self._warn_inserted_nans(omics_df_name, "somatic_mutation", omics.index, mutations.index)
+        if not quiet and how != "inner":
+            self._warn_inserted_nans(omics_df_name, "somatic_mutation", omics.index, mutations.index)
 
         # Sort the dataframe so all the tumor samples are first, then all the normal samples
         sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
@@ -566,7 +573,7 @@ class DataSet:
 
         return joined
 
-    def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None):
+    def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None, how = "outer", quiet = False):
         """Take specified column(s) from one metadata dataframe, and join to specified columns(s) from another metadata dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -574,6 +581,8 @@ class DataSet:
         df2_name (str): Name of second metadata dataframe to select columns from.
         cols1 (str, or list or array-like of str, optional): Column(s) to select from df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
         cols2 (str, or list or array-like of str, optional): Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
+        how (str, optional): How to perform the join. Defaults to outer.
+        quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
         pandas DataFrame: The selected columns from the two metadata dataframes, joined into one dataframe.
@@ -582,10 +591,11 @@ class DataSet:
         selected1 = self._get_metadata_cols(df1_name, cols1)
         selected2 = self._get_metadata_cols(df2_name, cols2)
 
-        joined = selected1.join(selected2, how='outer', rsuffix='_from_' + df2_name) # Use suffix in case both dataframes have a particular column, such as Patient_ID
+        joined = selected1.join(selected2, how=how, rsuffix='_from_' + df2_name) # Use suffix in case both dataframes have a particular column, such as Patient_ID
 
         # Warn them about any NaNs that were inserted in the outer join
-        self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
+        if not quiet and how != "inner":
+            self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
 
         # Sort the dataframe so all the tumor samples are first, then all the normal samples
         sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
@@ -593,7 +603,7 @@ class DataSet:
 
         return joined
 
-    def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None):
+    def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None, how = "outer", quiet = False):
         """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_design) to part or all of an omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -601,6 +611,8 @@ class DataSet:
         omics_df_name (str): Name of omics dataframe to join the metadata columns to.
         metadata_cols (str, or list or array-like of str, optional): Column(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select the entire metadata dataframe.
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select data for from the omics dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select entire dataframe.
+        how (str, optional): How to perform the join. Defaults to outer.
+        quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
         pandas DataFrame: The selected metadata columns, joined with all or part of the omics dataframe.
@@ -613,10 +625,11 @@ class DataSet:
         if metadata_selected.columns.names != omics_selected.columns.names:
             metadata_selected.columns = add_index_levels(to=metadata_selected.columns, source=omics_selected.columns)
 
-        joined = metadata_selected.join(omics_selected, how='outer')
+        joined = metadata_selected.join(omics_selected, how=how)
 
         # Warn them about any NaNs that were inserted in the outer join
-        self._warn_inserted_nans(metadata_df_name, omics_df_name, metadata_selected.index, omics_selected.index)
+        if not quiet and how != "inner":
+            self._warn_inserted_nans(metadata_df_name, omics_df_name, metadata_selected.index, omics_selected.index)
 
         # Sort the dataframe so all the tumor samples are first, then all the normal samples
         sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
@@ -624,7 +637,7 @@ class DataSet:
 
         return joined
 
-    def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, mutations_filter=None, show_location=True):
+    def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, mutations_filter=None, show_location=True, how = "outer", quiet = False):
         """Select all mutations for specified gene(s), and joins them to all or part of the given metadata dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
@@ -633,6 +646,8 @@ class DataSet:
         metadata_cols (str, or list or array-like of str, optional): Gene(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
         mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in filter_prefer, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
+        how (str, optional): How to perform the join. Defaults to outer.
+        quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
         pandas DataFrame: The mutations for the specified gene, joined to all or part of the metadata dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
@@ -642,10 +657,11 @@ class DataSet:
         mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
 
         mutations_were_filtered = mutations_filter is not None
-        joined = self._join_other_to_mutations(metadata, mutations, mutations_were_filtered, show_location)
+        joined = self._join_other_to_mutations(metadata, mutations, mutations_were_filtered, show_location,how=how, quiet=quiet)
 
         # Warn them about any NaNs that were inserted in the outer join
-        self._warn_inserted_nans(metadata_df_name, "somatic_mutation", metadata.index, mutations.index)
+        if not quiet and how != "inner":
+            self._warn_inserted_nans(metadata_df_name, "somatic_mutation", metadata.index, mutations.index)
 
         # Sort the dataframe so all the tumor samples are first, then all the normal samples
         sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
@@ -654,7 +670,7 @@ class DataSet:
         return joined
 
     # "Private" methods
-    def _get_dataframe(self, name):
+    def _get_dataframe(self, name, tissue_type = "both"):
         """Check if a dataframe with the given name exists, and return a copy of it if it does.
 
         Parameters:
@@ -666,6 +682,10 @@ class DataSet:
         if name in self._data.keys():
             df = self._data[name]
             return_df = df.copy(deep=True) # We copy it, with deep=True, so edits on their copy don't affect the master for this instance
+            if tissue_type == "tumor":
+                return self._tumor_only(return_df)
+            elif tissue_type == "normal":
+                return self._normal_only(return_df)
             return return_df
         else:
             raise DataframeNotIncludedError(f"{name} dataframe not included in the {self.get_cancer_type()} dataset.")
@@ -929,7 +949,7 @@ class DataSet:
 
         return df
 
-    def _join_other_to_mutations(self, other, mutations, mutations_were_filtered, show_location):
+    def _join_other_to_mutations(self, other, mutations, mutations_were_filtered, show_location, how, quiet):
         """Join selected mutations data to selected other omics or metadata, add a Sample_Status column, fill in NaNs with Wildtype_Normal or Wildtype_Tumor, and name the dataframe.
 
         Parameters:
@@ -944,7 +964,7 @@ class DataSet:
         # Make the indices the same
         if mutations.columns.nlevels != other.columns.nlevels:
             mutations.columns = add_index_levels(to=mutations.columns, source=other.columns)
-        joined = other.join(mutations, how="outer")
+        joined = other.join(mutations, how=how)
 
         # Add Sample_Status column by joining the sample_status_map to the joined mutation dataframe.
         sample_status_map = self._get_sample_status_map()
@@ -985,7 +1005,7 @@ class DataSet:
             joined.loc[(sample_status_map == "Normal") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_normal_fill # Change all NaN mutation values for Normal samples to Wildtype_Normal.
             joined.loc[(sample_status_map == "Tumor") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_tumor_fill # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
 
-        if len(fill_log) > 0:
+        if len(fill_log) > 0 and not quiet:
             warnings.warn(f"In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: {', '.join(fill_log)}", FilledMutationDataWarning, stacklevel=3)
 
         # Depending on show_location, either fill NaN values in the joined dataframe location columns with "No_mutation", or just drop the location columns altogether
@@ -1105,3 +1125,15 @@ class DataSet:
                 if found_digits: # We only want the first block of numbers
                     return int(num)
         return int(num) # We get here if the location ended with a digit
+    def _tumor_only(self, df):
+        clinical = self._get_dataframe("clinical")
+        clinical_tumor = clinical[clinical.Sample_Tumor_Normal == "Tumor"]
+        tumor_list = list(clinical_tumor.index.values)
+        tumor_df = df.loc[df.index & tumor_list]
+        return tumor_df
+    def _normal_only(self, df):
+        clinical = self._get_dataframe("clinical")
+        clinical_normal = clinical[clinical.Sample_Tumor_Normal == "Normal"]
+        normal_list = list(clinical_normal.index.values)
+        normal_df = df.loc[df.index & normal_list]
+        return normal_df

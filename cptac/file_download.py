@@ -20,13 +20,34 @@ def download(dataset, version="latest", redownload=False):
     """Download data files for the specified datasets. Defaults to downloading latest version on server.
 
     Parameters:
-    dataset (str): The name of the dataset to download data for
+    dataset (str): The name of the dataset to download data for, or "all" to download data for all datasets
     version (str, optional): Which version of the data files to download. Defaults to latest on server.
     redownload (bool, optional): Whether to redownload the data files, even if that version of the data is already downloaded. Default False.
 
     Returns:
     bool: Indicates whether download was successful.
     """
+    # Process the optional "all" parameter
+    if dataset == "all":
+        datasets = [
+            "brca",
+            "ccrcc",
+            "colon",
+            "endometrial",
+            "gbm",
+            "hnscc",
+            "lscc",
+            "luad",
+            "ovarian",
+        ]
+
+        overall_result = True
+        for dataset in datasets:
+            if not download(dataset, redownload=redownload):
+                overall_result = False
+
+        return overall_result
+
     # Get our dataset path
     dataset = dataset.lower()
     dataset_path = get_dataset_path(dataset)
@@ -78,7 +99,7 @@ def download(dataset, version="latest", redownload=False):
     for data_file in files_to_download:
 
         if (dataset in password_protected_datasets) and (password is None):
-            password = getpass.getpass(prompt='Password: ') # We manually specify the prompt parameter so it shows up in Jupyter Notebooks
+            password = getpass.getpass(prompt=f'Password for {dataset} dataset: ') # We manually specify the prompt parameter so it shows up in Jupyter Notebooks
             print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
             print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
 
@@ -89,14 +110,14 @@ def download(dataset, version="latest", redownload=False):
         file_path = os.path.join(version_path, data_file)
         file_number = files_to_download.index(data_file) + 1
 
-        downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_message="data files", file_number=file_number, total_files=total_files)
+        downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_message=f"{dataset} data files", file_number=file_number, total_files=total_files)
 
         while downloaded_path == "wrong_password":
             password = getpass.getpass(prompt="Wrong password. Try again: ")
             print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
             print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
 
-            downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_message="data files", file_number=file_number, total_files=total_files)
+            downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_message=f"{dataset} data files", file_number=file_number, total_files=total_files)
     return True
 
 def update_index(dataset):
@@ -121,7 +142,7 @@ def update_index(dataset):
     urls_dict = parse_tsv_dict(index_urls_path)
     index_hash_url = urls_dict.get(index_hash_file)
 
-    checking_msg = "Checking that index is up-to-date..."
+    checking_msg = f"Checking that {dataset} index is up-to-date..."
     print(checking_msg, end='\r')
     try:
         server_index_hash = download_text(index_hash_url)
@@ -136,7 +157,7 @@ def update_index(dataset):
             return True
 
     index_url = urls_dict.get(index_file)
-    download_file(index_url, index_path, server_index_hash, file_message="index")
+    download_file(index_url, index_path, server_index_hash, file_message=f"{dataset} index")
 
     if os.path.isfile(index_path):
         local_index_hash = hash_file(index_path)
