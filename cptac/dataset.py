@@ -682,6 +682,10 @@ class DataSet:
         if name in self._data.keys():
             df = self._data[name]
             return_df = df.copy(deep=True) # We copy it, with deep=True, so edits on their copy don't affect the master for this instance
+            if tissue_type == "tumor":
+                return self._tumor_only(return_df)
+            elif tissue_type == "normal":
+                return self._normal_only(return_df)
             return return_df
         else:
             raise DataframeNotIncludedError(f"{name} dataframe not included in the {self.get_cancer_type()} dataset.")
