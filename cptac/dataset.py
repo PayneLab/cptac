@@ -112,9 +112,9 @@ class DataSet:
         """Get the circular_RNA dataframe."""
         return self._get_dataframe("circular_RNA", tissue_type)
 
-    def get_CNV(self, tissue_type = "both"):
+    def get_CNV(self):
         """Get the CNV dataframe."""
-        return self._get_dataframe("CNV", tissue_type)
+        return self._get_dataframe("CNV")
 
     def get_lincRNA(self, tissue_type = "both"):
         """Get the lincRNA dataframe."""
@@ -159,13 +159,9 @@ class DataSet:
         """Get the proteomics dataframe."""
         return self._get_dataframe("proteomics",tissue_type)
 
-    def get_transcriptomics(self):
-        # if tissue_type == "tumor":
-        #     return self._tumor_only(self._get_dataframe("transcriptomics"))
-        # elif tissue_type == "normal":
-        #     return self._normal_only(self._get_dataframe("transcriptomics"))
+    def get_transcriptomics(self, tissue_type = "both"):
         """Get the transcriptomics dataframe."""
-        return self._get_dataframe("transcriptomics")
+        return self._get_dataframe("transcriptomics", tissue_type)
 
     # Methods to get mutations dataframes
     def get_gene_fusion(self):
