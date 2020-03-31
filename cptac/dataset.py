@@ -514,7 +514,7 @@ class DataSet:
         df2_name (str): Name of second omics dataframe to select columns from.
         genes1 (str, or list or array-like of str, optional): Gene(s) for column(s) to select from df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
         genes2 (str, or list or array-like of str, optional): Gene(s) for Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
-        how (str, optional): How to perform the join. Defaults to outer.
+        how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
@@ -550,7 +550,7 @@ class DataSet:
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
         mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in filter_prefer, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
-        how (str, optional): How to perform the join. Defaults to outer.
+        how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
@@ -581,7 +581,7 @@ class DataSet:
         df2_name (str): Name of second metadata dataframe to select columns from.
         cols1 (str, or list or array-like of str, optional): Column(s) to select from df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
         cols2 (str, or list or array-like of str, optional): Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
-        how (str, optional): How to perform the join. Defaults to outer.
+        how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
@@ -611,7 +611,7 @@ class DataSet:
         omics_df_name (str): Name of omics dataframe to join the metadata columns to.
         metadata_cols (str, or list or array-like of str, optional): Column(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select the entire metadata dataframe.
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select data for from the omics dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select entire dataframe.
-        how (str, optional): How to perform the join. Defaults to outer.
+        how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
@@ -646,7 +646,7 @@ class DataSet:
         metadata_cols (str, or list or array-like of str, optional): Gene(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
         mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in filter_prefer, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
-        how (str, optional): How to perform the join. Defaults to outer.
+        how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
