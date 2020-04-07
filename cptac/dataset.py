@@ -520,6 +520,9 @@ class DataSet:
         Returns:
         pandas DataFrame: The selected columns from the two omics dataframes, joined into one dataframe.
         """
+        # Check to make sure that the "how" parameter is valid
+        self._check_how_parameter(how)
+
         # Select the columns from each dataframe
         selected1 = self._get_omics_cols(df1_name, genes1)
         selected2 = self._get_omics_cols(df2_name, genes2)
@@ -556,6 +559,9 @@ class DataSet:
         Returns:
         pandas DataFrame: The mutations for the specified gene, joined to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
         """
+        # Check to make sure that the "how" parameter is valid
+        self._check_how_parameter(how)
+
         # Select the data from each dataframe
         omics = self._get_omics_cols(omics_df_name, omics_genes)
         mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
@@ -587,6 +593,9 @@ class DataSet:
         Returns:
         pandas DataFrame: The selected columns from the two metadata dataframes, joined into one dataframe.
         """
+        # Check to make sure that the "how" parameter is valid
+        self._check_how_parameter(how)
+
         # Select the columns from each dataframe
         selected1 = self._get_metadata_cols(df1_name, cols1)
         selected2 = self._get_metadata_cols(df2_name, cols2)
@@ -617,6 +626,9 @@ class DataSet:
         Returns:
         pandas DataFrame: The selected metadata columns, joined with all or part of the omics dataframe.
         """
+        # Check to make sure that the "how" parameter is valid
+        self._check_how_parameter(how)
+
         # Select the columns from each dataframe
         metadata_selected = self._get_metadata_cols(metadata_df_name, metadata_cols)
         omics_selected = self._get_omics_cols(omics_df_name, omics_genes)
@@ -652,6 +664,9 @@ class DataSet:
         Returns:
         pandas DataFrame: The mutations for the specified gene, joined to all or part of the metadata dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
         """
+        # Check to make sure that the "how" parameter is valid
+        self._check_how_parameter(how)
+
         # Select the data from each dataframe
         metadata = self._get_metadata_cols(metadata_df_name, metadata_cols)
         mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
@@ -1137,3 +1152,7 @@ class DataSet:
         normal_list = list(clinical_normal.index.values)
         normal_df = df.loc[df.index & normal_list]
         return normal_df
+    def _check_how_parameter(self, given_how):
+        possible_values = ['outer', 'inner', 'left', 'right']
+        if given_how not in possible_values:
+            raise InvalidParameterError("'{}' is not a valid value for 'how'. Possible values are 'outer', 'inner', 'left', 'right'.".format(given_how))
