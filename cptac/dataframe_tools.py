@@ -18,11 +18,11 @@ def unionize_indices(dataset, exclude=[]):
     """Return a union of all indices in a dataset, without duplicates.
 
     Parameters:
-    dataset (dict of str: pandas DataFrame): The data dictionary containing the dataset.
+    dataset (dict of str: pandas.DataFrame): The data dictionary containing the dataset.
     exclude (str or list of str, optional): A list of dataframes to exclude when unionizing indices.
 
     Returns:
-    pandas Index: Union of all indices in the dataset, without duplicates.
+    pandas.Index: Union of all indices in the dataset, without duplicates.
     """
     if isinstance(exclude, str): # If it's a single dataframe name, make it a list so we can treat everything the same
         exclude = [exclude]
@@ -38,7 +38,7 @@ def generate_sample_status_col(df, normal_test):
     """Create a sample status column, called Sample_Tumor_Normal, for a dataframe.
 
     Parameters:
-    df (pandas DataFrame): The dataframe to create a Sample_Status column for, indexed with Patient_IDs.
+    df (pandas.DataFrame): The dataframe to create a Sample_Status column for, indexed with Patient_IDs.
     normal_test (function): A function that takes a given Patient_ID and returns a bool indicating whether it corresponds to a normal sample.
 
     Returns:
@@ -77,13 +77,13 @@ def reindex_dataframe(df, reindex_map, new_index_name, keep_old):
     """Reindex a dataframe based on a mapping of the old index values to new ones.
 
     Parameters:
-    df (pandas DataFrame): The dataframe to reindex.
+    df (pandas.DataFrame): The dataframe to reindex.
     reindex_map (dict or pandas Series): A dictionary or pandas Series with the old index values as the keys or index, and the new ones as the values.
     new_index_name (str): The desired name for the new index.
     keep_old (bool): Whether to retain the old index in the dataframe as a column.
 
     Returns:
-    pandas DataFrame: A copy of the given dataframe, with the new index.
+    pandas.DataFrame: A copy of the given dataframe, with the new index.
     """
     if not df.index.isin(reindex_map.keys()).all(): # This works for a dict or a pandas Series, because Series have a .keys() attribute that's an alias for the index
         not_in = df.index[~(df.index.isin(reindex_map.keys()))]
@@ -102,7 +102,7 @@ def reindex_all_sample_id_to_patient_id(data_dict, reindex_map, additional_to_ke
     """Reindex all the dataframes with Patient_IDs instead of Sample_IDs
 
     Parameters:
-    data_dict (keys are str, values are pandas DataFrames): The data dictionary to reindex
+    data_dict (keys are str, values are pandas.DataFrame): The data dictionary to reindex
     reindex_map (dict or pandas Series): A dictionary or pandas Series with the old index values (Sample_IDs) as the keys or index, and the new ones (Patient_IDs) as the values. Must map for all existing index values in the entire dataset.
     additional_to_keep_col (list of str, optional): The function will already keep the old index as a column in the clinical dataframe. If you want it to do this for any other dataframes, put their names in this list.
     skip (str or list of str, optional): A list of dataframes to skip when reindexing.
@@ -214,11 +214,11 @@ def join_col_to_dataframe(df, col):
     """Join a sample status column into a dataframe, automatically accounting for whether the dataframe has a column multiindex or not.
 
     Parameters:
-    df (pandas DataFrame): The dataframe to join the column into
+    df (pandas.DataFrame): The dataframe to join the column into
     col (pandas Series): The column to join into the dataframe, with a matching index.
 
     Returns:
-    pandas DataFrame: The dataframe with the column joined in.
+    pandas.DataFrame: The dataframe with the column joined in.
     """
     col_df = col.to_frame().copy(deep=True)
 
@@ -244,7 +244,7 @@ def standardize_axes_names(data_dict):
     data_dict (dict): The dataframe dictionary of the dataset.
 
     Returns:
-    dict: The dataframe dictionary, with the dataframe axes' names standardized. Keys are str of dataframe names, values are pandas DataFrames
+    dict: The dataframe dictionary, with the dataframe axes' names standardized. Keys are str of dataframe names, values are pandas.DataFrame
     """
     for name in data_dict.keys(): # Loop over the keys so we can alter the values without any issues
         df = data_dict[name]
@@ -261,7 +261,7 @@ def sort_all_rows(data_dict):
     data_dict (dict): The dataframe dictionary of the dataset.
 
     Returns:
-    dict: The dataframe dictionary, with the dataframes sorted by their indices. Keys are str of dataframe names, values are pandas DataFrames
+    dict: The dataframe dictionary, with the dataframes sorted by their indices. Keys are str of dataframe names, values are pandas.DataFrame
     """
     # Get the Sample_Tumor_Normal column as a single-column dataframe
     sample_status_col = data_dict["clinical"]["Sample_Tumor_Normal"].copy(deep=True) # We'll need this every time
@@ -276,11 +276,11 @@ def sort_all_rows(data_dict):
 def sort_df_by_sample_status(df, sample_status_col):
     """Sort a dataframe first by sample status, with tumor first, and then by Patient_ID.
 
-    df (pandas DataFrame): The dataframe to sort.
+    df (pandas.DataFrame): The dataframe to sort.
     sample_status_col (pandas Series): The Sample_Tumor_Normal column for the dataset.
 
     Returns:
-    pandas DataFrame: The dataframe, sorted.
+    pandas.DataFrame: The dataframe, sorted.
     """
     # Add in the tumor/normal statuses for these samples, if they aren't already in the table
     added_sample_statuses = False # So we can keep track of whether to drop the column when we're done
@@ -306,12 +306,12 @@ def add_index_levels(to, source, fill=""):
     """Add levels to the "to" index so it has all levels in the "source" index. The possible levels are, in this order: "Name", "Site", "Peptide", "Database_ID"
 
     Parameters:
-    to (pandas Index or MultiIndex): The index to add levels to.
-    source (pandas Index or MultiIndex): The index to match the levels of.
+    to (pandas.Index or pandas.MultiIndex): The index to add levels to.
+    source (pandas.Index or pandas.MultiIndex): The index to match the levels of.
     fill (optional): Value to fill empty levels with. Default is an empty string, which allows us to select a column with just the first level. This is useful for boolean filters.
 
     Returns:
-    pandas MultiIndex: The levels of "to", with any levels from "source" that "to" didn't have originally.
+    pandas.MultiIndex: The levels of "to", with any levels from "source" that "to" didn't have originally.
     """
     to_set = set(to.names)
     source_set = set(source.names)

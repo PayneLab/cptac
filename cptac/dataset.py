@@ -151,7 +151,7 @@ class DataSet:
         genes (str, or list or array-like of str): gene or list of genes to use to select phosphosites. str if single, list or array-like of str if multiple.
 
         Returns:
-        pandas DataFrame: The phosphoproteomics for the specified gene(s).
+        pandas.DataFrame: The phosphoproteomics for the specified gene(s).
         """
         return self._get_omics_cols("phosphoproteomics", genes)
 
@@ -237,13 +237,13 @@ class DataSet:
         """Drop levels from and/or flatten the column axis of a dataframe with a column multiindex.
 
         Parameters:
-        df (pandas DataFrame): The dataframe to make the changes to.
+        df (pandas.DataFrame): The dataframe to make the changes to.
         levels_to_drop (str, int, or list or array-like of str or int, optional): Levels, or indices of levels, to drop from the dataframe's column multiindex. These must match the names or indices of actual levels of the multiindex. Must be either all strings, or all ints. Default of None will drop no levels.
         flatten (bool, optional): Whether or not to flatten the multiindex. Default of False will not flatten.
         sep (str, optional): String to use to separate index levels when flattening. Default is underscore.
 
         Returns:
-        pandas DataFrame: The dataframe, with the desired column index changes made.
+        pandas.DataFrame: The dataframe, with the desired column index changes made.
         """
         # Make a copy, so the original dataframe is preserved
         df = df.copy(deep=True)
@@ -518,7 +518,7 @@ class DataSet:
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
-        pandas DataFrame: The selected columns from the two omics dataframes, joined into one dataframe.
+        pandas.DataFrame: The selected columns from the two omics dataframes, joined into one dataframe.
         """
         # Select the columns from each dataframe
         selected1 = self._get_omics_cols(df1_name, genes1)
@@ -554,7 +554,7 @@ class DataSet:
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
-        pandas DataFrame: The mutations for the specified gene, joined to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
+        pandas.DataFrame: The mutations for the specified gene, joined to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
         """
         # Select the data from each dataframe
         omics = self._get_omics_cols(omics_df_name, omics_genes)
@@ -585,7 +585,7 @@ class DataSet:
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
-        pandas DataFrame: The selected columns from the two metadata dataframes, joined into one dataframe.
+        pandas.DataFrame: The selected columns from the two metadata dataframes, joined into one dataframe.
         """
         # Select the columns from each dataframe
         selected1 = self._get_metadata_cols(df1_name, cols1)
@@ -615,7 +615,7 @@ class DataSet:
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
-        pandas DataFrame: The selected metadata columns, joined with all or part of the omics dataframe.
+        pandas.DataFrame: The selected metadata columns, joined with all or part of the omics dataframe.
         """
         # Select the columns from each dataframe
         metadata_selected = self._get_metadata_cols(metadata_df_name, metadata_cols)
@@ -650,7 +650,7 @@ class DataSet:
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
 
         Returns:
-        pandas DataFrame: The mutations for the specified gene, joined to all or part of the metadata dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
+        pandas.DataFrame: The mutations for the specified gene, joined to all or part of the metadata dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
         """
         # Select the data from each dataframe
         metadata = self._get_metadata_cols(metadata_df_name, metadata_cols)
@@ -677,7 +677,7 @@ class DataSet:
         name (str): The name of the dataframe to get.
 
         Returns:
-        pandas DataFrame: A copy of the desired dataframe, if it exists in this dataset.
+        pandas.DataFrame: A copy of the desired dataframe, if it exists in this dataset.
         """
         if name in self._data.keys():
             df = self._data[name]
@@ -731,8 +731,8 @@ class DataSet:
         Parameters:
         name1 (str): Name of the dataframe the first index came from
         name2 (str): Name of the dataframe the second index came from
-        index1 (pandas Index): First index to compare
-        index2 (pandas Index): Second index to compare
+        index1 (pandas.Index): First index to compare
+        index2 (pandas.Index): Second index to compare
 
         Returns: None
         """
@@ -764,7 +764,7 @@ class DataSet:
         genes (str, or list or array-like of str): Gene(s) to use to select columns from omics_df. str if one gene, list or array-like if multiple. Passing None will select the entire omics dataframe.
 
         Returns:
-        pandas DataFrame: The selected columns from the dataframe.
+        pandas.DataFrame: The selected columns from the dataframe.
         """
         # Check that they passed a valid omics df
         self._check_df_valid(omics_df_name, "omics")
@@ -824,7 +824,7 @@ class DataSet:
         cols (str, or list or array-like of str): The column(s) to select from the dataframe. str if single, list or array-like of str if multiple. Passing None will select the entire dataframe.
 
         Returns:
-        pandas DataFrame: The specified columns from the given dataframe.
+        pandas.DataFrame: The specified columns from the given dataframe.
         """
         # Check that they passed a valid metadata df
         self._check_df_valid(df_name, "metadata")
@@ -860,7 +860,7 @@ class DataSet:
         mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in filter_prefer, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Passing None will cause no filtering to be done, and all mutation data will be included, in a list.
 
         Returns:
-        pandas DataFrame: The mutations in each patient for the specified gene(s).
+        pandas.DataFrame: The mutations in each patient for the specified gene(s).
         """
         somatic_mutation = self.get_somatic_mutation()
 
@@ -953,13 +953,13 @@ class DataSet:
         """Join selected mutations data to selected other omics or metadata, add a Sample_Status column, fill in NaNs with Wildtype_Normal or Wildtype_Tumor, and name the dataframe.
 
         Parameters:
-        other (pandas DataFrame): The selected data from the other type of dataframe (omics or metadata) to join with the selected mutations.
-        mutations (pandas DataFrame): The selected mutations data to join with.
+        other (pandas.DataFrame): The selected data from the other type of dataframe (omics or metadata) to join with the selected mutations.
+        mutations (pandas.DataFrame): The selected mutations data to join with.
         mutations_were_filtered (bool): Whether multiple mutations in the mutations data were filtered down to just one, or not. Determines whether fill values are in lists or not.
         show_location (bool): Whether to include the Location column from the mutation dataframe.
 
         Returns:
-        pandas DataFrame: The joined dataframe, with a Sample_Status column added and NaNs filled.
+        pandas.DataFrame: The joined dataframe, with a Sample_Status column added and NaNs filled.
         """
         # Make the indices the same
         if mutations.columns.nlevels != other.columns.nlevels:
