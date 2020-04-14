@@ -7,7 +7,10 @@ from xml.dom import minidom
 #### FORMAT GENES PER PATHWAY DICTIONARY SO IT IS A COMPLETE TABLE AND CAN BE CONVERTED DIRECTLY
 #### INTO A DATAFRAME (df = pd.DataFrame.from_dict(dictionary))
 
-
+# Expects three command line arguments:
+# pathToUniprot = sys.argv[1]
+# pathToWikiPathwaysRelease = sys.argv[2]
+# pathToDataframeFile = sys.argv[3]
 
 def fixNewLines(s):
 	"""
