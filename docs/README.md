@@ -22,4 +22,6 @@ Both tutorials and use cases are written in Python using the interactive Jupyter
   <li>Use Case 5: Gene Set Enrichment Analysis</li>
   <li>Use Case 6: Comparing Derived Molecular Data with Proteomics</li>
   <li>Use Case 7: Trans Genetics Effects</li>
+  <li>Use Case 8: Outliers</li>
+  <li>Use Case 9: Clinical Outcomes</li>
 <ul>
