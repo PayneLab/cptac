@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 import os
 import warnings
+import datetime
 from .dataset import DataSet
 from .dataframe_tools import *
 from .exceptions import FailedReindexWarning, ReindexMapError
@@ -230,3 +231,6 @@ class Lscc(DataSet):
         self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
+
+        # Print data embargo warning
+        warnings.warn("The LSCC data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)
