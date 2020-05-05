@@ -16,7 +16,7 @@ import warnings
 import datetime
 from .dataset import DataSet
 from .dataframe_tools import *
-from .exceptions import FailedReindexWarning, ReindexMapError
+from .exceptions import FailedReindexWarning, ReindexMapError, PublicationEmbargoWarning
 
 class Hnscc(DataSet):
 
