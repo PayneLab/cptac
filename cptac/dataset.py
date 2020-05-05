@@ -287,7 +287,7 @@ class DataSet:
 
         if flatten:
             if df.columns.nlevels < 2:
-                warnings.warn("You tried to flatten an index that didn't have multiple levels, so we didn't actually change anything.", FlattenSingleIndexWarning, stacklevel=2)
+                warnings.warn("You tried to flatten a column index that didn't have multiple levels, so we didn't actually change anything.", FlattenSingleIndexWarning, stacklevel=2)
                 return df
 
             tuples = df.columns.to_flat_index() # Converts multiindex to an index of tuples
@@ -296,6 +296,10 @@ class DataSet:
             df.columns = joined
             df.columns.name = "Name" # For consistency
         elif tuples:
+            if df.columns.nlevels < 2:
+                warnings.warn("You tried to turn a column index into tuples, but it didn't have multiple levels so we didn't actually change anything.", FlattenSingleIndexWarning, stacklevel=2)
+                return df
+
             df.columns = df.columns.to_flat_index()
 
         return df
