@@ -233,18 +233,23 @@ class DataSet:
         webbrowser.open(url)
         print(" " * len(message), end='\r') # Erase the message
 
-    def reduce_multiindex(self, df, levels_to_drop=None, flatten=False, sep='_'):
+    def reduce_multiindex(self, df, levels_to_drop=None, flatten=False, sep='_', tuples=False):
         """Drop levels from and/or flatten the column axis of a dataframe with a column multiindex.
 
         Parameters:
         df (pandas DataFrame): The dataframe to make the changes to.
         levels_to_drop (str, int, or list or array-like of str or int, optional): Levels, or indices of levels, to drop from the dataframe's column multiindex. These must match the names or indices of actual levels of the multiindex. Must be either all strings, or all ints. Default of None will drop no levels.
-        flatten (bool, optional): Whether or not to flatten the multiindex. Default of False will not flatten.
-        sep (str, optional): String to use to separate index levels when flattening. Default is underscore.
+        flatten (bool, optional): Whether or not to flatten the multiindex. Default of False will not flatten. Cannot be used if tuples=True.
+        sep (str, optional): String to use to separate index levels when flattening. Default is underscore. Only relevant if flatten=True.
+        tuples (bool, optional): Whether to return the multiindex as a single-level index of tuples. Cannot be used if flatten=True. Default False.
 
         Returns:
         pandas DataFrame: The dataframe, with the desired column index changes made.
         """
+        # Parameter check
+        if flatten and tuples:
+            raise InvalidParameterError("You passed 'True' for both 'flatten' and 'tuples'. This is an invalid combination of arguments. Either pass 'True' to 'flatten' to combine index levels and make a single-level index of strings, or pass 'True' to 'tuples' to return a single-level index of tuples; but just pick one or the other.")
+
         # Make a copy, so the original dataframe is preserved
         df = df.copy(deep=True)
 
@@ -290,6 +295,8 @@ class DataSet:
             joined = no_nan.map(lambda x: sep.join(x)) # Join each tuple
             df.columns = joined
             df.columns.name = "Name" # For consistency
+        elif tuples:
+            df.columns = df.columns.to_flat_index()
 
         return df
 
