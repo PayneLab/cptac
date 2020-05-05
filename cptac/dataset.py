@@ -517,7 +517,7 @@ class DataSet:
 
 
     # Join functions
-    def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None, how = "outer", quiet = False):
+    def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None, how = "outer", quiet = False, tissue_type = "both"):
         """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -527,6 +527,7 @@ class DataSet:
         genes2 (str, or list or array-like of str, optional): Gene(s) for Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
 
         Returns:
         pandas DataFrame: The selected columns from the two omics dataframes, joined into one dataframe.
@@ -535,8 +536,8 @@ class DataSet:
         self._check_how_parameter(how)
 
         # Select the columns from each dataframe
-        selected1 = self._get_omics_cols(df1_name, genes1)
-        selected2 = self._get_omics_cols(df2_name, genes2)
+        selected1 = self._get_omics_cols(df1_name, genes1, tissue_type)
+        selected2 = self._get_omics_cols(df2_name, genes2, tissue_type)
 
         # Make the multiindices the same
         if selected1.columns.names != selected2.columns.names:
@@ -555,7 +556,7 @@ class DataSet:
 
         return joined
 
-    def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True, how = "outer", quiet = False):
+    def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True, how = "outer", quiet = False, tissue_type = "both"):
         """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
@@ -566,6 +567,7 @@ class DataSet:
         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
 
         Returns:
         pandas DataFrame: The mutations for the specified gene, joined to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
@@ -574,7 +576,7 @@ class DataSet:
         self._check_how_parameter(how)
 
         # Select the data from each dataframe
-        omics = self._get_omics_cols(omics_df_name, omics_genes)
+        omics = self._get_omics_cols(omics_df_name, omics_genes, tissue_type)
         mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
 
         mutations_were_filtered = mutations_filter is not None
@@ -590,7 +592,7 @@ class DataSet:
 
         return joined
 
-    def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None, how = "outer", quiet = False):
+    def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None, how = "outer", quiet = False, tissue_type = "both"):
         """Take specified column(s) from one metadata dataframe, and join to specified columns(s) from another metadata dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -600,6 +602,7 @@ class DataSet:
         cols2 (str, or list or array-like of str, optional): Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
 
         Returns:
         pandas DataFrame: The selected columns from the two metadata dataframes, joined into one dataframe.
@@ -608,8 +611,8 @@ class DataSet:
         self._check_how_parameter(how)
 
         # Select the columns from each dataframe
-        selected1 = self._get_metadata_cols(df1_name, cols1)
-        selected2 = self._get_metadata_cols(df2_name, cols2)
+        selected1 = self._get_metadata_cols(df1_name, cols1, tissue_type)
+        selected2 = self._get_metadata_cols(df2_name, cols2, tissue_type)
 
         joined = selected1.join(selected2, how=how, rsuffix='_from_' + df2_name) # Use suffix in case both dataframes have a particular column, such as Patient_ID
 
@@ -623,7 +626,7 @@ class DataSet:
 
         return joined
 
-    def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None, how = "outer", quiet = False):
+    def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None, how = "outer", quiet = False, tissue_type = "both"):
         """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_design) to part or all of an omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -633,6 +636,7 @@ class DataSet:
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select data for from the omics dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select entire dataframe.
         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
 
         Returns:
         pandas DataFrame: The selected metadata columns, joined with all or part of the omics dataframe.
@@ -641,8 +645,8 @@ class DataSet:
         self._check_how_parameter(how)
 
         # Select the columns from each dataframe
-        metadata_selected = self._get_metadata_cols(metadata_df_name, metadata_cols)
-        omics_selected = self._get_omics_cols(omics_df_name, omics_genes)
+        metadata_selected = self._get_metadata_cols(metadata_df_name, metadata_cols, tissue_type)
+        omics_selected = self._get_omics_cols(omics_df_name, omics_genes,tissue_type)
 
         # Make the indices the same
         if metadata_selected.columns.names != omics_selected.columns.names:
@@ -660,7 +664,7 @@ class DataSet:
 
         return joined
 
-    def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, mutations_filter=None, show_location=True, how = "outer", quiet = False):
+    def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, mutations_filter=None, show_location=True, how = "outer", quiet = False, tissue_type = "both"):
         """Select all mutations for specified gene(s), and joins them to all or part of the given metadata dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
@@ -671,6 +675,7 @@ class DataSet:
         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
 
         Returns:
         pandas DataFrame: The mutations for the specified gene, joined to all or part of the metadata dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
@@ -679,7 +684,7 @@ class DataSet:
         self._check_how_parameter(how)
 
         # Select the data from each dataframe
-        metadata = self._get_metadata_cols(metadata_df_name, metadata_cols)
+        metadata = self._get_metadata_cols(metadata_df_name, metadata_cols, tissue_type)
         mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
 
         mutations_were_filtered = mutations_filter is not None
@@ -701,6 +706,7 @@ class DataSet:
 
         Parameters:
         name (str): The name of the dataframe to get.
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
 
         Returns:
         pandas DataFrame: A copy of the desired dataframe, if it exists in this dataset.
@@ -782,12 +788,13 @@ class DataSet:
         elif len(unique) > 0:
             warnings.warn(f"{other_name} data was not found for the following samples, so {other_name} data columns were filled with NaN for these samples: {', '.join(unique)}", InsertedNanWarning, stacklevel=4)
 
-    def _get_omics_cols(self, omics_df_name, genes):
+    def _get_omics_cols(self, omics_df_name, genes, tissue_type = "both"):
         """Based on a single gene, or a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
 
         Parameters:
         omics_df_name (str): Name of omics dataframe to select column(s) from.
         genes (str, or list or array-like of str): Gene(s) to use to select columns from omics_df. str if one gene, list or array-like if multiple. Passing None will select the entire omics dataframe.
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
 
         Returns:
         pandas DataFrame: The selected columns from the dataframe.
@@ -796,7 +803,7 @@ class DataSet:
         self._check_df_valid(omics_df_name, "omics")
 
         # Get our omics df, using _get_dataframe to catch invalid requests
-        omics_df = self._get_dataframe(omics_df_name)
+        omics_df = self._get_dataframe(omics_df_name, tissue_type)
 
         # Process genes parameter
         if isinstance(genes, str): # If it's a single gene, make it a list so we can treat everything the same
@@ -842,12 +849,13 @@ class DataSet:
             selected = selected.add_suffix('_' + omics_df_name)
         return selected
 
-    def _get_metadata_cols(self, df_name, cols):
+    def _get_metadata_cols(self, df_name, cols, tissue_type = "both"):
         """Select a single column or several columns from a metadata dataframe.
 
         Parameters:
         df_name (str): The name of the metadata dataframe to select the column(s) from.
         cols (str, or list or array-like of str): The column(s) to select from the dataframe. str if single, list or array-like of str if multiple. Passing None will select the entire dataframe.
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
 
         Returns:
         pandas DataFrame: The specified columns from the given dataframe.
@@ -856,7 +864,7 @@ class DataSet:
         self._check_df_valid(df_name, "metadata")
 
         # Get our dataframe, using _get_dataframe to catch invalid requests
-        df = self._get_dataframe(df_name)
+        df = self._get_dataframe(df_name, tissue_type)
 
         # Process genes parameter
         if isinstance(cols, str): # If it's a single column, make it a list so we can treat everything the same
@@ -974,7 +982,6 @@ class DataSet:
             df.columns.name = "Name"
 
         return df
-
     def _join_other_to_mutations(self, other, mutations, mutations_were_filtered, show_location, how, quiet):
         """Join selected mutations data to selected other omics or metadata, add a Sample_Status column, fill in NaNs with Wildtype_Normal or Wildtype_Tumor, and name the dataframe.
 
