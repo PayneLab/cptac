@@ -180,6 +180,50 @@ class Lscc(DataSet):
                 self._data['experimental_design'] = experimental_design_df
                 self._data['derived_molecular'] = derived_molecular_df
 
+            elif file_name = "lscc-v2.0-sample-annotation.csv":
+                df = pd.read_csv(file_path, sep=",", dtype=object)
+                filter = df['QC.status'] == "QC.pass" #There are some samples that are internal references. IRs are used for scaling purposes, and don't belong to a single patient, so we want to drop them.
+                df = df[filter]
+                df = df.drop(columns="Participant") #Get rid of the "Participant" column becuase the same information is stored in Sample.ID  which is formatted the way we want.
+                df = df.set_index("Sample.ID")
+                df = df.drop(columns="Sample.IDs")
+                df.index.name="Patient_ID"
+                df = df.rename(columns={"Type":"Sample_Tumor_Normal"})
+                df["Sample_Tumor_Normal"] = df["Sample_Tumor_Normal"].replace("NAT","Normal")
+
+                #Split the metadata into multiple dataframes
+                #Make experiemntal_set up dataframe
+                experimental_design_cols = ['Experiment', 'Channel', 'QC.status'] #These are the columns for the experimental_design dataframe
+                experimental_design_df = df[experimental_design_cols]
+                df = df.drop(columns=experimental_design_cols)
+
+                #Make a derived_molecular dataframe
+                derived_molecular_cols = ['TP53.mutation', 'CDKN2A.mutation', 'PTEN.mutation', 'KMT2D.mutation',
+                       'NFE2L2.mutation', 'ARID1A.mutation', 'NOTCH1.mutation', 'NF1.mutation',
+                       'CUL3.mutation', 'KEAP1.mutation', 'KRAS.mutation', 'KDM6A.mutation',
+                       'RANBP2.mutation', 'TP53.mutation.status', 'CDKN2A.mutation.status',
+                       'PTEN.mutation.status', 'KMT2D.mutation.status',
+                       'NFE2L2.mutation.status', 'ARID1A.mutation.status',
+                       'NOTCH1.mutation.status', 'NF1.mutation.status', 'CUL3.mutation.status',
+                       'KEAP1.mutation.status', 'KRAS.mutation.status',
+                       'KDM6A.mutation.status', 'RANBP2.mutation.status', 'CIN.wxs',
+                       'Subtype.TCGA.rna', 'NMF.cluster', 'NMF.cluster.membership.score',
+                       'Smoking.Signature.Fraction.wxs', 'Smoking.Signature.Count.wxs',
+                       'Total.Mutation.Count.wxs', 'Mutation.Count.ExcludingINDELs.wxs',
+                       'DNP.Count.wxs', 'DNP.Count.GG.to.TT.or.CC.to.AA.wxs',
+                       'Smoking.score.wxs', 'Smoking.Score.Category.wxs',
+                       'Mutation.Count.Excluding.Silent.wxs',
+                       'Total.Mutation.Count.per.Mb.wxs', 'ESTIMATE.StromalScore.rna',
+                       'ESTIMATE.ImmuneScore.rna', 'ESTIMATE.TumorPurity.rna',
+                       'TSNet.Purity.rna', 'Immune.Cluster.rna', 'xCell.ImmuneScore.rna',
+                       'xCell.StromaScore.rna', 'xCell.MicroenvironmentScore.rna',
+                       'CIBERSORT.AbsoluteScore.rna']
+                derived_molecular_df = df[derived_molecular_cols]
+                df = df.drop(columns = derived_molecular_cols)
+                self._data["clinical"]= df
+                self._data['experimental_design'] = experimental_design_df
+                self._data['derived_molecular'] = derived_molecular_df
+                
             elif file_name == "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz":
                 df = pd.read_csv(file_path, sep="\t", dtype=object)
                 df = df[["Sample.ID", "Hugo_Symbol", "Variant_Classification", "HGVSp_Short"]] # We don't need any of the other columns
@@ -216,7 +260,7 @@ class Lscc(DataSet):
                 df = df.transpose()
                 df.sort_index()
                 df.index.name="Patient_ID"
-                #TODO: What should I save this to?
+                self._data["transcriptomics"] = df
 
             elif file_name == "lscc-v2.0-acetylome-ratio-norm-NArm.gct.gz":
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
