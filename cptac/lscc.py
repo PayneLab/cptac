@@ -30,18 +30,28 @@ class Lscc(DataSet):
 
         # Set some needed variables, and pass them to the parent DataSet class __init__ function
 
-        valid_versions = ["1.0"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["1.0","2.0"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "1.0": [
-                "lscc-v1.0-cnv-gene-level-log2.gct.gz", 
-                "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz", 
-                "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz",
+                "lscc-v1.0-cnv-gene-level-log2.gct.gz",
+                "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
+                "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz", #missing for version 2.0
                 "lscc-v1.0-mirna-mature-tpm-log2.gct.gz",
-                "lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz", 
-                "lscc-v1.0-proteome-ratio-norm-NArm.gct.gz", 
+                "lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "lscc-v1.0-proteome-ratio-norm-NArm.gct.gz",
                 "lscc-v1.0-rnaseq-uq-fpkm-log2-NArm.gct.gz",
-                "lscc-v1.0-sample-annotation.csv.gz"] 
+                "lscc-v1.0-sample-annotation.csv.gz"],
+            "2.0": [
+                "lscc-v2.0-mirna-mature-tpm-log2.gct.gz",
+                "lscc-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "lscc-v2.0-proteome-ratio-norm-NArm.gct.gz",
+                "lscc-v2.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
+                "lscc-v2.0-mirna-mature-tpm-log2.gct.gz",
+                "lscc-v2.0-rnaseq-uq-fpkm-log2-NArm.gct.gz",
+                "lscc-v2.0-acetylome-ratio-norm-NArm.gct.gz",
+                "lscc-v2.0-sample-annotation.csv.gz",
+                "lscc-v2.0-gene-level-cnv-gistic2-all_data_by_genes.gct.gz"]
         }
 
         super().__init__(cancer_type="lscc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
@@ -57,7 +67,7 @@ class Lscc(DataSet):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
 
-            if file_name == "lscc-v1.0-cnv-gene-level-log2.gct.gz": 
+            if file_name == "lscc-v1.0-cnv-gene-level-log2.gct.gz":
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
@@ -71,7 +81,7 @@ class Lscc(DataSet):
                 df.index.name="Patient_ID"
                 self._data["CNV"] = df
 
-            elif file_name == "lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz": 
+            elif file_name in ["lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz", "lscc-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz"]:
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Drop rows of metadata
                 df = df[gene_filter]
@@ -96,6 +106,9 @@ class Lscc(DataSet):
                 'Best_scoreVML', 'Best_numActualVMSites_sty', 'Best_numLocalizedVMsites_sty', 'sequenceVML',
                 'accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA', 'protein_mw', 'species',
                 'speciesMulti', 'orfCategory', 'accession_number', 'protein_group_num', 'entry_name', 'GeneSymbol']
+
+                if file_name == "lscc-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz":
+                    cols_to_drop.extend(['VMsiteFlanks','Best_numAmbiguousVMsites_sty', 'StartAA'])
                 df = df.drop(columns=cols_to_drop)
                 df = df.apply(pd.to_numeric)
                 df = df.sort_index()
@@ -104,7 +117,7 @@ class Lscc(DataSet):
                 df.index.name="Patient_ID"
                 self._data["phosphoproteomics"] = df
 
-            elif file_name == "lscc-v1.0-proteome-ratio-norm-NArm.gct.gz": 
+            elif file_name in ["lscc-v1.0-proteome-ratio-norm-NArm.gct.gz", "lscc-v2.0-proteome-ratio-norm-NArm.gct.gz"]:
                 df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
@@ -115,6 +128,8 @@ class Lscc(DataSet):
                 'numSpectraProteinObserved', 'protein_mw', 'percentCoverage', 'numPepsUnique',
                 'scoreUnique', 'species', 'orfCategory', 'accession_number',
                 'subgroupNum', 'entry_name']
+                if file_name == "lscc-v2.0-proteome-ratio-norm-NArm.gct.gz":
+                    cols_to_drop.extend(['numPepsUniqueSubgroupSpecificCI', 'scoreUniqueSubgroupSpecificCI'])
                 df = df.drop(columns=cols_to_drop)
                 df = df.apply(pd.to_numeric)
                 df = df.sort_index()
@@ -125,14 +140,14 @@ class Lscc(DataSet):
                 self._data["proteomics"] = df
 
 
-            elif file_name == "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz": 
+            elif file_name in ["lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz", "lscc-v2.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz"]:
                  df = pd.read_csv(file_path, sep="\t", dtype=object)
                  df = df.rename(columns={"Sample.ID": "Patient_ID"})
                  df = df.set_index("Patient_ID")
 
                  self._data['gene_fusion'] = df
 
-            elif file_name == "lscc-v1.0-sample-annotation.csv.gz": 
+            elif file_name == "lscc-v1.0-sample-annotation.csv.gz":
                 df = pd.read_csv(file_path, sep=",", dtype=object)
                 filter = df['QC.status'] == "QC.pass" #There are some samples that are internal references. IRs are used for scaling purposes, and don't belong to a single patient, so we want to drop them.
                 df = df[filter]
@@ -173,7 +188,7 @@ class Lscc(DataSet):
                 df = df.sort_values(by=["Patient_ID","Gene"])
                 self._data['somatic_mutation'] = df
 
-            elif file_name == "lscc-v1.0-mirna-mature-tpm-log2.gct.gz": 
+            elif file_name in ["lscc-v1.0-mirna-mature-tpm-log2.gct.gz","lscc-v2.0-mirna-mature-tpm-log2.gct.gz"]:
                 df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
                 gene_filter = df['Name'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
@@ -188,6 +203,86 @@ class Lscc(DataSet):
                 df.index.name="Patient_ID"
                 df.columns.name=None
                 self._data["miRNA"] = df
+
+            elif file_name in ["lscc-v1.0-rnaseq-uq-fpkm-log2-NArm.gct.gz","lscc-v2.0-rnaseq-uq-fpkm-log2-NArm.gct.gz"]:
+                df = pd.read_csv(file_path, sep="\t", dtype=object,skiprows=2)
+                gene_filter = df['gene_id'] != 'na' #Filter out rows of metadata
+                df = df[gene_filter]
+                df = df.set_index("id")
+                cols_to_drop = ["ENSEMBL","geneSymbol","GENENAME","gene_id"]
+                df = df.drop(columns = cols_to_drop)
+                df = df.apply(pd.to_numeric)
+                df = df.sort_index()
+                df = df.transpose()
+                df.sort_index()
+                df.index.name="Patient_ID"
+                #TODO: What should I save this to?
+
+            elif file_name == "lscc-v2.0-acetylome-ratio-norm-NArm.gct.gz":
+                df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
+                gene_filter = df['geneSymbol'] != 'na' #Drop rows of metadata
+                df = df[gene_filter]
+
+                # Prepare some columns we'll need later for the multiindex
+                df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "") # Get rid of all lowercase delimeters and whitespace in the sites
+                df = df.rename(columns={
+                    "geneSymbol": "Name",
+                    "variableSites": "Site",
+                    "sequence": "Peptide", # We take this instead of sequenceVML, to match the other datasets' format
+                    "accession_numbers": "Database_ID" # We take all accession numbers they have, instead of the singular accession_number column
+                    })
+
+
+                # Some rows have at least one localized acetylation site, but also have other acetylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
+                localization = df["accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA"].str.split("_", expand=True)
+                unlocalized_to_drop = localization.index[~localization[3].eq(localization[4]) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split localization data column is number of acetylation sites detected, and column 4 is number of acetylation sites localized, so if the two values aren't equal, the row has at least one unlocalized site
+                df = df.drop(index=unlocalized_to_drop)
+
+                # Give it a multiindex
+                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])
+
+                cols_to_drop = [
+                    "id",
+                    "id.description",
+                    "numColumnsVMsiteObserved",
+                    "bestScore",
+                    "bestDeltaForwardReverseScore",
+                    "Best_scoreVML",
+                    "sequenceVML",
+                    "accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA",
+                    "protein_mw",
+                    "species",
+                    "speciesMulti",
+                    "orfCategory",
+                    "accession_number",
+                    "protein_group_num",
+                    "entry_name",
+                    "GeneSymbol",
+                    "VMsiteFlanks"
+                    ]
+                df = df.drop(columns=cols_to_drop)
+
+                df = df.apply(pd.to_numeric)
+                df = df.sort_index()
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name="Patient_ID"
+
+                self._data["acetylproteomics"] = df
+
+            elif file_name == "lscc-v2.0-gene-level-cnv-gistic2-all_data_by_genes.gct.gz":
+                df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
+                gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
+                df = df[gene_filter]
+                df = df.set_index("id")
+                cols_to_drop = ["Cytoband","Gene.ID","geneSymbol"]
+                df = df.drop(columns = cols_to_drop)
+                df = df.apply(pd.to_numeric)
+                df = df.sort_index()
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name="Patient_ID"
+                self._data["CNV"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
