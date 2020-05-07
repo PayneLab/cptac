@@ -180,7 +180,7 @@ class Lscc(DataSet):
                 self._data['experimental_design'] = experimental_design_df
                 self._data['derived_molecular'] = derived_molecular_df
 
-            elif file_name = "lscc-v2.0-sample-annotation.csv":
+            elif file_name == "lscc-v2.0-sample-annotation.csv":
                 df = pd.read_csv(file_path, sep=",", dtype=object)
                 filter = df['QC.status'] == "QC.pass" #There are some samples that are internal references. IRs are used for scaling purposes, and don't belong to a single patient, so we want to drop them.
                 df = df[filter]
@@ -223,7 +223,7 @@ class Lscc(DataSet):
                 self._data["clinical"]= df
                 self._data['experimental_design'] = experimental_design_df
                 self._data['derived_molecular'] = derived_molecular_df
-                
+
             elif file_name == "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz":
                 df = pd.read_csv(file_path, sep="\t", dtype=object)
                 df = df[["Sample.ID", "Hugo_Symbol", "Variant_Classification", "HGVSp_Short"]] # We don't need any of the other columns
