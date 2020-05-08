@@ -378,7 +378,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
 
     v = tumors.value_counts()
     total_tumors = v['Tumor']
-    total_tumor_count = int(total_tumors)
+    total_tumor_count = float(total_tumors)
     
     # Get mutations data frame
     somatic_mutations = cancer_object.get_somatic_mutation() 
