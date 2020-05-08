@@ -392,7 +392,14 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
         origin_df = somatic_mutations.reset_index() #prepare to count unique samples
         
     # Create two categories in Mutation column - 'M': Missense, 'T': Truncation
-    if cancer_object.get_cancer_type() in ('colon'):
+    if cancer_object.get_cancer_type() in ('hnscc') and cancer_object.version() == '0.1':
+        dif_mut_names = True
+    elif cancer_object.get_cancer_type() in ('colon'):
+        dif_mut_names = True
+    else: 
+        dif_mut_names = False
+        
+    if dif_mut_names == True:
         missense_truncation_groups = {'frameshift substitution': 'T', 
             'frameshift deletion': 'T', 'frameshift insertion': 'T', 
             'stopgain': 'T', 'stoploss': 'T', 'nonsynonymous SNV': 'M',
