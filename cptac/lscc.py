@@ -43,7 +43,6 @@ class Lscc(DataSet):
                 "lscc-v1.0-rnaseq-uq-fpkm-log2-NArm.gct.gz",
                 "lscc-v1.0-sample-annotation.csv.gz"],
             "2.0": [
-                "lscc-v2.0-mirna-mature-tpm-log2.gct.gz",
                 "lscc-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz",
                 "lscc-v2.0-proteome-ratio-norm-NArm.gct.gz",
                 "lscc-v2.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
@@ -181,7 +180,7 @@ class Lscc(DataSet):
                 self._data['experimental_design'] = experimental_design_df
                 self._data['derived_molecular'] = derived_molecular_df
 
-            elif file_name == "lscc-v2.0-sample-annotation.csv":
+            elif file_name == "lscc-v2.0-sample-annotation.csv.gz":
                 df = pd.read_csv(file_path, sep=",", dtype=object)
                 filter = df['QC.status'] == "QC.pass" #There are some samples that are internal references. IRs are used for scaling purposes, and don't belong to a single patient, so we want to drop them.
                 df = df[filter]
