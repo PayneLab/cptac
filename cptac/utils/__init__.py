@@ -336,32 +336,36 @@ def get_interacting_proteins_bioplex(protein, secondary_interactions=False):
     else:
         return None
     
+    
+"""
+Takes a cancer object and find the frequently 
+mutated genes (in the tumor samples) compared to the cutoff.
+
+@Param cancer_object:
+    Cancer dataset object from the cptac module. 
+    
+@Param cutoff:
+    Float. Used as a comparison to determine the status of 
+    gene mutation frequency.
+    
+@Return:
+    DataFrame of frequently mutated genes passing the cutoff. 
+    Columns contain the fractions of total unique mutations,
+    missense type mutations, and truncation type mutations per gene.
+
+The Missense_Mut column includes: 
+    In_Frame_Del, In_Frame_Ins, Missense_Mutation
+
+The Truncation_Mut column includes: 
+    Frame_Shift_Del, Frame_Shift_Ins, Splice_Site, 
+    Nonsense_Mutation, Nonstop_Mutation
+
+These columns count multiple mutations of one gene in the 
+same sample, so fractions in the last two columns may 
+exceed the Unique_Samples_Mut column which only counts if 
+the gene was mutated once per sample.""" 
+    
 def get_frequently_mutated(cancer_object, cutoff = 0.1):  
-    """
-    Takes a cancer object and find the frequently 
-    mutated genes (in the tumor samples) compared to the cutoff.
-    
-    Parameters:
-    cancer_object (object): cancer type from cptac module 
-    cutoff (float): used as a comparison to determine the 
-                    status of gene mutation frequency
-    Returns:
-    freq_mutated_df (pd.DataFrame): DataFrame of frequently 
-        mutated genes passing the cutoff. Columns contain the 
-        fractions of total unique mutations, missense type 
-        mutations, and truncation type mutations per gene.
-    
-    The Missense_Mut column includes: 
-        In_Frame_Del, In_Frame_Ins, Missense_Mutation
-   
-    The Truncation_Mut column includes: 
-        Frame_Shift_Del, Frame_Shift_Ins, Splice_Site, 
-        Nonsense_Mutation, Nonstop_Mutation
-        
-    These columns count multiple mutations of one gene in the 
-    same sample, so fractions in the last two columns may 
-    exceed the Unique_Samples_Mut column which only counts if 
-    the gene was mutated once per sample.""" 
    
     # Get total tumors/patients
     omics_and_mutations = cancer_object.join_omics_to_mutations(
@@ -388,7 +392,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
         origin_df = somatic_mutations.reset_index() #prepare to count unique samples
         
     # Create two categories in Mutation column - 'M': Missense, 'T': Truncation
-    if cancer_object.get_cancer_type() in ('colon', 'hnscc'):
+    if cancer_object.get_cancer_type() in ('colon'):
         missense_truncation_groups = {'frameshift substitution': 'T', 
             'frameshift deletion': 'T', 'frameshift insertion': 'T', 
             'stopgain': 'T', 'stoploss': 'T', 'nonsynonymous SNV': 'M',
@@ -455,6 +459,8 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     freq_mutated_df = freq_mutated_df.reset_index() #move genes to their own column
     
     return freq_mutated_df
+
+
 
 def parse_hotspot(path, mut_df):
     '''
