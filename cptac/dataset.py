@@ -578,6 +578,8 @@ class DataSet:
         # Select the data from each dataframe
         omics = self._get_omics_cols(omics_df_name, omics_genes, tissue_type)
         mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
+        if tissue_type == "normal":
+            mutations = mutations.iloc[0:0] #If tissue type is normal, we drop all of the mutations rows and join only with the columns.
 
         mutations_were_filtered = mutations_filter is not None
         joined = self._join_other_to_mutations(omics, mutations, mutations_were_filtered, show_location, how=how, quiet=quiet)
@@ -686,6 +688,9 @@ class DataSet:
         # Select the data from each dataframe
         metadata = self._get_metadata_cols(metadata_df_name, metadata_cols, tissue_type)
         mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
+        
+        if tissue_type == "normal":
+            mutations = mutations.iloc[0:0] #If tissue type is normal, we drop all of the mutations rows and join only with the columns.
 
         mutations_were_filtered = mutations_filter is not None
         joined = self._join_other_to_mutations(metadata, mutations, mutations_were_filtered, show_location,how=how, quiet=quiet)
@@ -990,6 +995,7 @@ class DataSet:
         mutations (pandas DataFrame): The selected mutations data to join with.
         mutations_were_filtered (bool): Whether multiple mutations in the mutations data were filtered down to just one, or not. Determines whether fill values are in lists or not.
         show_location (bool): Whether to include the Location column from the mutation dataframe.
+        quiet (bool): Whether to show warning when filling in rows with no mutation data with "Wildtype_Tumor" or "Wildtype_Normal"
 
         Returns:
         pandas DataFrame: The joined dataframe, with a Sample_Status column added and NaNs filled.

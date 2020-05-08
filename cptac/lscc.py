@@ -36,7 +36,7 @@ class Lscc(DataSet):
             "1.0": [
                 "lscc-v1.0-cnv-gene-level-log2.gct.gz",
                 "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
-                "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz", #missing for version 2.0
+                "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz",
                 "lscc-v1.0-mirna-mature-tpm-log2.gct.gz",
                 "lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz",
                 "lscc-v1.0-proteome-ratio-norm-NArm.gct.gz",
@@ -51,7 +51,8 @@ class Lscc(DataSet):
                 "lscc-v2.0-rnaseq-uq-fpkm-log2-NArm.gct.gz",
                 "lscc-v2.0-acetylome-ratio-norm-NArm.gct.gz",
                 "lscc-v2.0-sample-annotation.csv.gz",
-                "lscc-v2.0-gene-level-cnv-gistic2-all_data_by_genes.gct.gz"]
+                "lscc-v2.0-gene-level-cnv-gistic2-all_data_by_genes.gct.gz",
+                "lscc-v2.0-cptac3-lscc-wxs-somatic-v2.1-lscc.20191228-20200107-maf-like.txt.gz"]
         }
 
         super().__init__(cancer_type="lscc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
@@ -228,6 +229,14 @@ class Lscc(DataSet):
                 df = pd.read_csv(file_path, sep="\t", dtype=object)
                 df = df[["Sample.ID", "Hugo_Symbol", "Variant_Classification", "HGVSp_Short"]] # We don't need any of the other columns
                 df = df.rename(columns={"Sample.ID": "Patient_ID", 'Hugo_Symbol': "Gene", "Variant_Classification": "Mutation", "HGVSp_Short": "Location"})
+                df = df.set_index("Patient_ID")
+                df = df.sort_values(by=["Patient_ID","Gene"])
+                self._data['somatic_mutation'] = df
+
+            elif file_name == "lscc-v2.0-cptac3-lscc-wxs-somatic-v2.1-lscc.20191228-20200107-maf-like.txt.gz":
+                df = pd.read_csv(file_path, sep="\t", dtype=object)
+                df = df[["Sample.ID", "Hugo_Symbol", "Variant_Classification", "POS"]] # We don't need any of the other columns
+                df = df.rename(columns={"Sample.ID": "Patient_ID", 'Hugo_Symbol': "Gene", "Variant_Classification": "Mutation", "POS": "Location"})
                 df = df.set_index("Patient_ID")
                 df = df.sort_values(by=["Patient_ID","Gene"])
                 self._data['somatic_mutation'] = df
