@@ -193,7 +193,7 @@ class Lscc(DataSet):
 
                 #Split the metadata into multiple dataframes
                 #Make experiemntal_set up dataframe
-                experimental_design_cols = ['Experiment', 'Channel', 'QC.status'] #These are the columns for the experimental_design dataframe
+                experimental_design_cols = ['Experiment', 'Channel', 'QC.status','Aliquot'] #These are the columns for the experimental_design dataframe
                 experimental_design_df = df[experimental_design_cols]
                 df = df.drop(columns=experimental_design_cols)
 
