@@ -310,8 +310,12 @@ class Lscc(DataSet):
                     "protein_group_num",
                     "entry_name",
                     "GeneSymbol",
-                    "VMsiteFlanks"
-                    ]
+                    "VMsiteFlanks",
+                    "Best_numActualVMSites_k",
+                    "Best_numAmbiguousVMsites_k",
+                    "Best_numLocalizedVMsites_k",
+                    "StartAA"]
+
                 df = df.drop(columns=cols_to_drop)
 
                 df = df.apply(pd.to_numeric)
