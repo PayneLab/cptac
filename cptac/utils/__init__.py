@@ -645,7 +645,7 @@ def list_pathways():
 Uses the WikiPathwaysDataFrame to find all the genes involved in the given pathway.
 '''
 def get_proteins_in_pathway(pathway):
-	WikiPathwaysDataframePath = "WikiPathwaysDataFrame.tsv"
+	WikiPathwaysDataframePath = "../WikiPathwaysDataFrame.tsv/"
 	df =pd.read_csv(WikiPathwaysDataframePath, sep="\t", index_col=False)
 	df.set_index("Unnamed: 0", inplace=True)
 	if (pathway in df.columns):
