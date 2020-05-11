@@ -618,18 +618,18 @@ def get_interacting_proteins_wikipathways(protein):
 Uses the WikiPathwaysDataframe to find the pathways the given protein is involved in.
 '''
 def get_protein_pathways(protein):
-	path_here = os.path.abspath(os.path.dirname(__file__))
+    path_here = os.path.abspath(os.path.dirname(__file__))
     file_name = "WikiPathwaysDataframe.tsv"
     file_path = os.path.join(path_here, file_name)
 
-	proteinName = protein
-	df =pd.read_csv(file_path, sep="\t", index_col=False)
-	df.set_index("Unnamed: 0", inplace=True)
-	if (proteinName in df.index):
-		row = df.loc[proteinName]
-		filtered_df = df.loc[:, row.values.tolist()]
-		return list(filtered_df.columns)
-	return list()  # The protein was not found.
+    proteinName = protein
+    df =pd.read_csv(file_path, sep="\t", index_col=False)
+    df.set_index("Unnamed: 0", inplace=True)
+    if (proteinName in df.index):
+    	row = df.loc[proteinName]
+    	filtered_df = df.loc[:, row.values.tolist()]
+    	return list(filtered_df.columns)
+    return list()  # The protein was not found.
 
 
 '''
@@ -638,13 +638,13 @@ def get_protein_pathways(protein):
 Uses the WikipathwaysDataFrame to return a list of all the possible pathways found.
 '''
 def list_pathways():
-	path_here = os.path.abspath(os.path.dirname(__file__))
+    path_here = os.path.abspath(os.path.dirname(__file__))
     file_name = "WikiPathwaysDataframe.tsv"
     file_path = os.path.join(path_here, file_name)
 
-	df =pd.read_csv(file_path, sep="\t", index_col=False)
-	df.set_index("Unnamed: 0", inplace=True)
-	return list(df.columns)
+    df =pd.read_csv(file_path, sep="\t", index_col=False)
+    df.set_index("Unnamed: 0", inplace=True)
+    return list(df.columns)
 
 '''
 @ Param pathway:
@@ -654,17 +654,17 @@ def list_pathways():
 Uses the WikiPathwaysDataFrame to find all the genes involved in the given pathway.
 '''
 def get_proteins_in_pathway(pathway):
-	path_here = os.path.abspath(os.path.dirname(__file__))
+    path_here = os.path.abspath(os.path.dirname(__file__))
     file_name = "WikiPathwaysDataframe.tsv"
     file_path = os.path.join(path_here, file_name)
 
-	df =pd.read_csv(file_path, sep="\t", index_col=False)
-	df.set_index("Unnamed: 0", inplace=True)
-	if (pathway in df.columns):
-		col = df[pathway]
-		filtered_df = df.loc[col, :]
-		return list(filtered_df.index)
-	return list()  # The protein was not found.
+    df =pd.read_csv(file_path, sep="\t", index_col=False)
+    df.set_index("Unnamed: 0", inplace=True)
+    if (pathway in df.columns):
+    	col = df[pathway]
+    	filtered_df = df.loc[col, :]
+    	return list(filtered_df.index)
+    return list()  # The protein was not found.
 
 '''
 @Param df: Dataframe.Each column is a different gene/ comparison. Rows contains numeric values (such as proteomics) for correlation test
