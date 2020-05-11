@@ -590,7 +590,7 @@ This function loads the WikiPathways dataframe, and iterates through the row lab
 """
 
 def get_interacting_proteins_wikipathways(protein):
-	WikiPathwaysDataframePath = "WikipathwaysDataframe.tsv"
+	WikiPathwaysDataframePath = "../WikiPathwaysDataFrame.tsv/"
 	proteinName = protein
 	df =pd.read_csv(WikiPathwaysDataframePath, sep="\t", index_col=False)
 	df.set_index("Unnamed: 0", inplace=True)
