@@ -580,7 +580,7 @@ def parse_hotspot(path, mut_df):
 
 """
 @param protein:
-	String. The name of a protein name
+	String. The name of the protein
 @Return:
 	A list of proteins known by the most recent WikiPathways download to be interacting parters with the specified protein.
 	Returns None if specified protein is not found in the WikiPathways dataframe (which was intersected with Uniprot).
@@ -588,14 +588,14 @@ def parse_hotspot(path, mut_df):
 This function takes a path to WikiPathways Dataframe file and protein name and returns a list of all the proteins that interact with it, using the pathways from the WikiPathways relsease file.
 This function loads the WikiPathways dataframe, and iterates through the row labelled with that protein name, return every protein in a pathway that also contains that protein.
 """
+
 def get_interacting_proteins_wikipathways(protein):
-
-	WikiPathwaysDataframePath = "BioPlex_interactionList_v4a.tsv"
-
-	df = pd.read_csv(WikiPathwaysDataframePath, index_col=0)
-
-	if (protein in df.columns):
-		row = df.loc[protein]
+	WikiPathwaysDataframePath = "WikipathwaysDataframe.tsv"
+	proteinName = protein
+	df =pd.read_csv(WikiPathwaysDataframePath, sep="\t", index_col=False)
+	df.set_index("Unnamed: 0", inplace=True)
+	if (proteinName in df.index):
+		row = df.loc[proteinName]
 		filtered_df = df.loc[:, row.values.tolist()]
 		def has_true(values):
 			for val in values:
@@ -604,7 +604,55 @@ def get_interacting_proteins_wikipathways(protein):
 			return False
 		filtered_df_final = filtered_df.loc[filtered_df.apply(lambda row: has_true(row.values.tolist()), axis=1), :]
 		return filtered_df_final.index.tolist()
-	return None # The protein was not found.
+	return list()  # The protein was not found.
+
+'''
+@ Param: protein:
+	The name of the protein that you want to generate the list of pathways for
+@ Return:
+	A list of pathways the given protein is involved in.
+
+Uses the WikiPathwaysDataframe to find the pathways the given protein is involved in.
+'''
+def get_protein_pathways(protein):
+	WikiPathwaysDataframePath = "WikipathwaysDataframe.tsv"
+	proteinName = protein
+	df =pd.read_csv(WikiPathwaysDataframePath, sep="\t", index_col=False)
+	df.set_index("Unnamed: 0", inplace=True)
+	if (proteinName in df.index):
+		row = df.loc[proteinName]
+		filtered_df = df.loc[:, row.values.tolist()]
+		return list(filtered_df.columns)
+	return list()  # The protein was not found.
+
+
+'''
+@ Return:
+	A list of all the possible pathways
+Uses the WikipathwaysDataFrame to return a list of all the possible pathways found.
+'''
+def list_pathways():
+	WikiPathwaysDataframePath = "WikiPathwaysDataframe.tsv"
+	df =pd.read_csv(WikiPathwaysDataframePath, sep="\t", index_col=False)
+	df.set_index("Unnamed: 0", inplace=True)
+	return list(df.columns)
+
+'''
+@ Param pathway:
+	String. The name of a pathway
+@ Return:
+	A list of all the proteins involved in the given pathway
+Uses the WikiPathwaysDataFrame to find all the genes involved in the given pathway.
+'''
+def get_proteins_in_pathway(pathway):
+	WikiPathwaysDataframePath = "WikiPathwaysDataFrame.tsv"
+	df =pd.read_csv(WikiPathwaysDataframePath, sep="\t", index_col=False)
+	df.set_index("Unnamed: 0", inplace=True)
+	if (pathway in df.columns):
+		col = df[pathway]
+		filtered_df = df.loc[col, :]
+		return list(filtered_df.index)
+	return list()  # The protein was not found.
 
 '''
 @Param df: Dataframe.Each column is a different gene/ comparison. Rows contains numeric values (such as proteomics) for correlation test
