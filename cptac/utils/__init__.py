@@ -590,9 +590,12 @@ This function loads the WikiPathways dataframe, and iterates through the row lab
 """
 
 def get_interacting_proteins_wikipathways(protein):
-	WikiPathwaysDataframePath = "WikiPathwaysDataframe.tsv"
+    path_here = os.path.abspath(os.path.dirname(__file__))
+    file_name = "WikiPathwaysDataframe.tsv"
+    file_path = os.path.join(path_here, file_name)
+
 	proteinName = protein
-	df =pd.read_csv(WikiPathwaysDataframePath, sep="\t", index_col=False)
+	df =pd.read_csv(file_path, sep="\t", index_col=False)
 	df.set_index("Unnamed: 0", inplace=True)
 	if (proteinName in df.index):
 		row = df.loc[proteinName]
@@ -615,9 +618,12 @@ def get_interacting_proteins_wikipathways(protein):
 Uses the WikiPathwaysDataframe to find the pathways the given protein is involved in.
 '''
 def get_protein_pathways(protein):
-	WikiPathwaysDataframePath = "WikiPathwaysDataframe.tsv"
+	path_here = os.path.abspath(os.path.dirname(__file__))
+    file_name = "WikiPathwaysDataframe.tsv"
+    file_path = os.path.join(path_here, file_name)
+
 	proteinName = protein
-	df =pd.read_csv(WikiPathwaysDataframePath, sep="\t", index_col=False)
+	df =pd.read_csv(file_path, sep="\t", index_col=False)
 	df.set_index("Unnamed: 0", inplace=True)
 	if (proteinName in df.index):
 		row = df.loc[proteinName]
@@ -632,8 +638,11 @@ def get_protein_pathways(protein):
 Uses the WikipathwaysDataFrame to return a list of all the possible pathways found.
 '''
 def list_pathways():
-	WikiPathwaysDataframePath = "WikiPathwaysDataframe.tsv"
-	df =pd.read_csv(WikiPathwaysDataframePath, sep="\t", index_col=False)
+	path_here = os.path.abspath(os.path.dirname(__file__))
+    file_name = "WikiPathwaysDataframe.tsv"
+    file_path = os.path.join(path_here, file_name)
+
+	df =pd.read_csv(file_path, sep="\t", index_col=False)
 	df.set_index("Unnamed: 0", inplace=True)
 	return list(df.columns)
 
@@ -645,8 +654,11 @@ def list_pathways():
 Uses the WikiPathwaysDataFrame to find all the genes involved in the given pathway.
 '''
 def get_proteins_in_pathway(pathway):
-	WikiPathwaysDataframePath = "WikiPathwaysDataframe.tsv"
-	df =pd.read_csv(WikiPathwaysDataframePath, sep="\t", index_col=False)
+	path_here = os.path.abspath(os.path.dirname(__file__))
+    file_name = "WikiPathwaysDataframe.tsv"
+    file_path = os.path.join(path_here, file_name)
+
+	df =pd.read_csv(file_path, sep="\t", index_col=False)
 	df.set_index("Unnamed: 0", inplace=True)
 	if (pathway in df.columns):
 		col = df[pathway]
