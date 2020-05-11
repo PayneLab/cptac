@@ -590,7 +590,7 @@ This function loads the WikiPathways dataframe, and iterates through the row lab
 """
 
 def get_interacting_proteins_wikipathways(protein):
-	WikiPathwaysDataframePath = "../WikiPathwaysDataFrame.tsv/"
+	WikiPathwaysDataframePath = "../WikiPathwaysDataframe.tsv"
 	proteinName = protein
 	df =pd.read_csv(WikiPathwaysDataframePath, sep="\t", index_col=False)
 	df.set_index("Unnamed: 0", inplace=True)
@@ -615,7 +615,7 @@ def get_interacting_proteins_wikipathways(protein):
 Uses the WikiPathwaysDataframe to find the pathways the given protein is involved in.
 '''
 def get_protein_pathways(protein):
-	WikiPathwaysDataframePath = "WikipathwaysDataframe.tsv"
+	WikiPathwaysDataframePath = "WikiPathwaysDataframe.tsv"
 	proteinName = protein
 	df =pd.read_csv(WikiPathwaysDataframePath, sep="\t", index_col=False)
 	df.set_index("Unnamed: 0", inplace=True)
@@ -645,7 +645,7 @@ def list_pathways():
 Uses the WikiPathwaysDataFrame to find all the genes involved in the given pathway.
 '''
 def get_proteins_in_pathway(pathway):
-	WikiPathwaysDataframePath = "../WikiPathwaysDataFrame.tsv/"
+	WikiPathwaysDataframePath = "WikiPathwaysDataframe.tsv"
 	df =pd.read_csv(WikiPathwaysDataframePath, sep="\t", index_col=False)
 	df.set_index("Unnamed: 0", inplace=True)
 	if (pathway in df.columns):
