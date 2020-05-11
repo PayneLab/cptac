@@ -593,8 +593,8 @@ def get_interacting_proteins_wikipathways(protein):
     path_here = os.path.abspath(os.path.dirname(__file__))
     file_name = "WikiPathwaysDataframe.tsv"
     file_path = os.path.join(path_here, file_name)
+    proteinName = protein
 
-	proteinName = protein
 	df =pd.read_csv(file_path, sep="\t", index_col=False)
 	df.set_index("Unnamed: 0", inplace=True)
 	if (proteinName in df.index):
