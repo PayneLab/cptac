@@ -20,6 +20,8 @@ import json
 import operator
 import collections
 import os
+import requests
+import webbrowser
 
 
 '''
@@ -745,3 +747,37 @@ def wrap_pearson_corr(df,label_column, alpha=.05,comparison_columns=None,correct
     newdf = newdf.sort_values(by='P_value', ascending=True)
     '''If results df is not empty, return it, else return None'''
     return newdf
+
+def pathway_overlay(df, pathway, open_browser=True):
+    """Visualize numerical data (e.g. protein expression) on a Reactome pathway diagram, with a color gradient that follows the range of possible values.
+
+    Parameters:
+    df (pandas.DataFrame): The data you want to overlay. Each row corresponds to a particular gene/protein/etc. Index must be unique identifiers. Multiple data columns allowed.
+    pathway (str): The Reactome ID for the pathway you want to overlay the data on, e.g. "R-HSA-73929".
+    open_browser (bool, optional): Whether to automatically open the diagram in a new web browser tab. Default True.
+
+    Returns:
+    str: URL to the Reactome pathway browser, with the specified diagram loaded and data overlaid. From there you can explore the diagram and export images.
+    """
+    # The identifier series (the index) needs to have a name starting with "#"
+    if df.index.name is None:
+        df.index.name = "#identifier"
+    elif not df.index.name.startswith("#"):
+        df.index.name = "#" + df.index.name
+
+    # Get the df as a string
+    df_str = df.to_csv(sep='\t')
+
+    # Post the data to the Reactome analysis service, and get the token for retrieving it
+    analysis_url = "https://reactome.org/AnalysisService/identifiers/projection"
+    headers = {"Content-Type": "text/plain"}
+
+    resp = requests.post(analysis_url, headers=headers, data=df_str)
+    token = resp.json()["summary"]["token"]
+
+    # Use the token and the pathway ID to open the pathway diagram with the data overlaid in the Reactome Pathway Browser
+    viewer_url = f"https://reactome.org/PathwayBrowser/#/{pathway}&DTAB=AN&ANALYSIS={token}"
+    if open_browser:
+        webbrowser.open(viewer_url)
+
+    return viewer_url
