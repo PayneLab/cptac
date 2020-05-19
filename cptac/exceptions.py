@@ -18,6 +18,10 @@ class NoInternetError(CptacError):
     """No internet."""
     pass
 
+class HttpResponseError(CptacError):
+    """There was a problem with an HTTP response."""
+    pass
+
 class InvalidParameterError(CptacError):
     """Invalid parameter."""
     pass

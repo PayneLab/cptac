@@ -22,6 +22,7 @@ import collections
 import os
 import requests
 import webbrowser
+from cptac.exceptions import HttpResponseError, InvalidParameterError
 
 
 '''
@@ -752,27 +753,41 @@ def pathway_overlay(df, pathway, open_browser=True):
     """Visualize numerical data (e.g. protein expression) on a Reactome pathway diagram, with a color gradient that follows the range of possible values.
 
     Parameters:
-    df (pandas.DataFrame): The data you want to overlay. Each row corresponds to a particular gene/protein/etc. Index must be unique identifiers. Multiple data columns allowed.
+    df (pandas.DataFrame or pandas.Series): The data you want to overlay. Each row corresponds to a particular gene/protein/etc. Index must be unique identifiers. Multiple data columns allowed. All dtypes must be numeric. No NaNs allowed--we want the user to decide how to handle missing values, depending on the context of their analysis.
     pathway (str): The Reactome ID for the pathway you want to overlay the data on, e.g. "R-HSA-73929".
     open_browser (bool, optional): Whether to automatically open the diagram in a new web browser tab. Default True.
 
     Returns:
     str: URL to the Reactome pathway browser, with the specified diagram loaded and data overlaid. From there you can explore the diagram and export images.
     """
+    # If they gave us a series, make it a dataframe
+    if isinstance(df, pd.Series):
+        if df.name is None:
+            df.name = "data"
+        df = pd.DataFrame(df)
+
     # The identifier series (the index) needs to have a name starting with "#"
     if df.index.name is None:
         df.index.name = "#identifier"
     elif not df.index.name.startswith("#"):
         df.index.name = "#" + df.index.name
 
-    # Get the df as a string
+    # Take care of NaNs
+    df = df.astype(str) # Represent NaNs as 'nan', which Reactome is OK with
+
+    # Get the df as a tab-separated string
     df_str = df.to_csv(sep='\t')
 
-    # Post the data to the Reactome analysis service, and get the token for retrieving it
+    # Post the data to the Reactome analysis service
     analysis_url = "https://reactome.org/AnalysisService/identifiers/projection"
     headers = {"Content-Type": "text/plain"}
-
     resp = requests.post(analysis_url, headers=headers, data=df_str)
+
+    # Check that the response came back good
+    if resp.status_code != requests.codes.ok:
+        raise HttpResponseError(f"Submitting your data for analysis returned an HTTP status {resp.status_code}. The content returned from the request may be helpful:\n{resp.content.decode('utf-8')}")    
+
+    # Get the token for accessing the analysis results
     token = resp.json()["summary"]["token"]
 
     # Use the token and the pathway ID to open the pathway diagram with the data overlaid in the Reactome Pathway Browser
