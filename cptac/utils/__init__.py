@@ -443,7 +443,6 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     miss = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'M']
     count_miss = miss.groupby(['Gene']).nunique()
     missense_df = count_miss.rename(columns={"Patient_ID": "Missense_Mut"})
-    #test#print(missense_df)
     missense_df = missense_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
     fraction_missense = missense_df.apply(lambda x: x / total_tumor_count)
     freq_mutated_df = filtered_gene_df.join(fraction_missense, how='left').fillna(0)
