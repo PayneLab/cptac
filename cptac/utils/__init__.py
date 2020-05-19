@@ -756,8 +756,8 @@ def pathway_overlay(df, pathway, open_browser=True, export_path=None, image_form
     pathway (str): The Reactome ID for the pathway you want to overlay the data on, e.g. "R-HSA-73929".
     open_browser (bool, optional): Whether to automatically open the diagram in a new web browser tab. Default True.
     export_path (str, optional): A string providing a path to export the diagram to. Must end in a file name with the same extension as the "image_format" parameter. Default None causes no figure to be exported.
-    image_format (str, optional): If export_path is not none, this specifies the format to export the diagram to. Options are "png", "svg", "jpg", "jpeg", or "pptx". Must match the file extension in the export path. Default "png".
-    display_col_idx (int, optional): If export_path is not none, this specifies which column in the dataframe to overlay expression data from. Must be a valid column index for the given table. Default 0.
+    image_format (str, optional): If export_path is not none, this specifies the format to export the diagram to. Options are "png", "gif", "svg", "jpg", "jpeg", or "pptx". Must match the file extension in the export path. If you're creating a gif and you want more than one column's data to be included in the image, make sure to pass None to the display_col_idx parameter. Default "png".
+    display_col_idx (int, optional): If export_path is not none, this specifies which column in the dataframe to overlay expression data from. Must be a valid column index for the given table, or None. None will cause the first column to be displayed, unless you're creating a gif, in which case it will cause all columns to be included in the gif. Default None.
     diagram_colors (str, optional): If export_path is not none, this specifies the Reactome color scheme to use for the underlying diagram. Options are "Modern" or "Standard". Default "Modern".
     overlay_colors (str, optional): If export_path is not none, this specifies the Reactome color scheme to use for the data overlay. Options are "Standard", "Strosobar", or "Copper Plus". Default "Standard".
     quality (int, optional): If export_path is not none, this specifies what relative quality to export the image at. Must be between 1 and 10 inclusive. Default 7.
@@ -774,11 +774,13 @@ def pathway_overlay(df, pathway, open_browser=True, export_path=None, image_form
     # Parameter checking
     if export_path is not None:
 
-        if image_format not in ("png", "svg", "jpg", "jpeg", "pptx"):
-            raise InvalidParameterError(f"Invalid value for 'image_format' parameter. Valid options are 'png', 'svg', 'jpg', 'jpeg', or 'pptx'. You passed '{image_format}'.")
+        if image_format not in ("png", "gif", "svg", "jpg", "jpeg", "pptx"):
+            raise InvalidParameterError(f"Invalid value for 'image_format' parameter. Valid options are 'png', 'gif', 'svg', 'jpg', 'jpeg', or 'pptx'. You passed '{image_format}'.")
 
-        if display_col_idx not in range(0, df.shape[1]):
-            raise InvalidParameterError(f"Invalid value for 'display_col_idx' parameter. Must be an int between 0 and one less than the number of columns in df (which is {df.shape[1] - 1} for this df), inclusive. You passed {display_col_idx}.")
+        if display_col_idx is None:
+            display_col_idx = ""        
+        elif display_col_idx not in range(0, df.shape[1]):
+            raise InvalidParameterError(f"Invalid value for 'display_col_idx' parameter. Must be either None, or an int between 0 and one less than the number of columns in df (which is {df.shape[1] - 1} for this df), inclusive. You passed {display_col_idx}.")
 
         if diagram_colors not in ("Modern", "Standard"):
             raise InvalidParameterError(f"Invalid value for 'diagram_colors' parameter. Valid options are 'Modern' or 'Standard'. You passed '{diagram_colors}'.")
