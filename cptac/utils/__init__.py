@@ -365,8 +365,7 @@ same sample, so fractions in the last two columns may
 exceed the Unique_Samples_Mut column which only counts if
 the gene was mutated once per sample."""
 
-def get_frequently_mutated(cancer_object, cutoff = 0.1):
-
+def get_frequently_mutated(cancer_object, cutoff = 0.1):  
     # Get total tumors/patients
     omics_and_mutations = cancer_object.join_omics_to_mutations(
         mutations_genes = 'TP53', omics_df_name = 'proteomics', omics_genes = 'TP53')
@@ -378,66 +377,74 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
 
     v = tumors.value_counts()
     total_tumors = v['Tumor']
-    total_tumor_count = int(total_tumors)
-
+    total_tumor_count = float(total_tumors)
+    
     # Get mutations data frame
-    somatic_mutations = cancer_object.get_somatic_mutation()
+    somatic_mutations = cancer_object.get_somatic_mutation() 
 
-    # Drop silent mutations for Ovarian and RenalCcrcc dataset, and synonymous SNV (i.e. silent) mutations in HNSCC
+    # Drop silent mutations for Hnscc, Ovarian, and Ccrcc dataset, and synonymous SNV (i.e. silent) mutations in HNSCC
     if 'Silent' in somatic_mutations['Mutation'].unique():
         origin_df = somatic_mutations.loc[somatic_mutations['Mutation'] != 'Silent'].reset_index()
     elif 'synonymous SNV' in somatic_mutations['Mutation'].unique():
         origin_df = somatic_mutations.loc[somatic_mutations['Mutation'] != 'synonymous SNV'].reset_index()
     else:
         origin_df = somatic_mutations.reset_index() #prepare to count unique samples
-
+        
     # Create two categories in Mutation column - 'M': Missense, 'T': Truncation
-    if cancer_object.get_cancer_type() in ('colon', 'hnscc'):
-        missense_truncation_groups = {'frameshift substitution': 'T',
-            'frameshift deletion': 'T', 'frameshift insertion': 'T',
+    if cancer_object.get_cancer_type() in ('hnscc') and cancer_object.version() == '0.1':
+        dif_mut_names = True
+    elif cancer_object.get_cancer_type() in ('colon'):
+        dif_mut_names = True
+    else: 
+        dif_mut_names = False
+        
+    if dif_mut_names == True:
+        missense_truncation_groups = {'frameshift substitution': 'T', 
+            'frameshift deletion': 'T', 'frameshift insertion': 'T', 
             'stopgain': 'T', 'stoploss': 'T', 'nonsynonymous SNV': 'M',
-            'nonframeshift insertion': 'M','nonframeshift deletion': 'M',
+            'nonframeshift insertion': 'M','nonframeshift deletion': 'M', 
             'nonframeshift substitution': 'M'}
-    else:
+    else: 
         missense_truncation_groups = {'In_Frame_Del': 'M', 'In_Frame_Ins': 'M',
-            'Missense_Mutation': 'M', 'Frame_Shift_Del': 'T','Nonsense_Mutation': 'T',
+            'Missense_Mutation': 'M', 'Frame_Shift_Del': 'T','Nonsense_Mutation': 'T', 
             'Splice_Site': 'T', 'Frame_Shift_Ins': 'T','Nonstop_Mutation':'T'}
-
+    
     mutations_replaced_M_T = origin_df.replace(missense_truncation_groups)
-
+    
     # replace non_coding mutations for Gbm
     unique_mutations = len(mutations_replaced_M_T['Mutation'].unique())
     gbm = False
     if cancer_object.get_cancer_type() == 'gbm':
         gbm = True
-        non_coding = {'Intron': 'NC', 'RNA': 'NC', "5'Flank": 'NC', "3'Flank": 'NC',
+        non_coding = {'Intron': 'NC', 'RNA': 'NC', "5'Flank": 'NC', "3'Flank": 'NC', 
             "5'UTR": 'NC', "3'UTR": 'NC', 'Splice_Region' : 'NC'}
         mutations_replaced_M_T = mutations_replaced_M_T.replace(non_coding)
         unique_mutations_2 = len(mutations_replaced_M_T['Mutation'].unique())
-
+        
     elif unique_mutations != 2: # Check that all mutation names are catagorized
         print('Warning: New mutation name not classified. Counts will be affected.')
-
+    
     # Find frequently mutated genes (total fraction > cutoff)
     # Same steps will be repeated for finding the missense and truncation mutation frequencies
     # Step 1 - group by gene and count unique samples
     # Step 2 - format
-    # Step 3 - filter using the cutoff and create fraction
+    # Step 3 - filter using the cutoff and create fraction 
     count_mutations = origin_df.groupby(['Gene']).nunique()
-    count_mutations = count_mutations.rename(columns={"Patient_ID": "Unique_Samples_Mut"}) # Step 2
+    count_mutations = count_mutations.rename(columns={"Patient_ID": "Unique_Samples_Mut"}) # Step 2 
     count_mutations = count_mutations.drop(['Gene', 'Mutation', 'Location'], axis = 1)
-    fraction_mutated = count_mutations.apply(lambda x: x / total_tumor_count) # Step 3
+    fraction_mutated = count_mutations.apply(lambda x: x / total_tumor_count) # Step 3 
     fraction_greater_than_cutoff = fraction_mutated.where(lambda x: x > cutoff) #na used when not > cutoff
     filtered_gene_df = fraction_greater_than_cutoff.dropna() # drop genes below cutoff
-
-    # Create and join Missense column (following similar steps as seen above)
+    
+    # Create and join Missense column (following similar steps as seen above) *Counts missense once in sample
     miss = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'M']
     count_miss = miss.groupby(['Gene']).nunique()
     missense_df = count_miss.rename(columns={"Patient_ID": "Missense_Mut"})
+    #test#print(missense_df)
     missense_df = missense_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
     fraction_missense = missense_df.apply(lambda x: x / total_tumor_count)
     freq_mutated_df = filtered_gene_df.join(fraction_missense, how='left').fillna(0)
-
+    
     # Create and join Truncation column (following similar steps as seen above)
     trunc = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'T']
     count_trunc = trunc.groupby(['Gene']).nunique()
@@ -445,8 +452,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     truncation_df = truncation_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
     fraction_truncation = truncation_df.apply(lambda x: x / total_tumor_count)
     freq_mutated_df = freq_mutated_df.join(fraction_truncation, how='left').fillna(0)
-
-
+    
     if gbm == True:
         # Create and join non-coding column (following similar steps as seen above)
         nc = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'NC']
@@ -455,10 +461,12 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
         nc_df = nc_df.drop(['Gene', 'Mutation', 'Location'], axis = 1)
         fraction_nc = nc_df.apply(lambda x: x / total_tumor_count)
         freq_mutated_df = freq_mutated_df.join(fraction_nc, how='left').fillna(0)
-
+        
     freq_mutated_df = freq_mutated_df.reset_index() #move genes to their own column
-
+    
     return freq_mutated_df
+
+
 
 
 
