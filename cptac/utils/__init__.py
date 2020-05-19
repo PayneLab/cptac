@@ -748,22 +748,52 @@ def wrap_pearson_corr(df,label_column, alpha=.05,comparison_columns=None,correct
     '''If results df is not empty, return it, else return None'''
     return newdf
 
-def pathway_overlay(df, pathway, open_browser=True):
-    """Visualize numerical data (e.g. protein expression) on a Reactome pathway diagram, with a color gradient that follows the range of possible values.
+def pathway_overlay(df, pathway, open_browser=True, export_path=None, image_format="png", display_col_idx=0, diagram_colors="Modern", overlay_colors="Standard", quality=7):
+    """Visualize numerical data (e.g. protein expression) on a Reactome pathway diagram, with each node's color corresponding to the expression value provided for that molecule.
 
     Parameters:
-    df (pandas.DataFrame or pandas.Series): The data you want to overlay. Each row corresponds to a particular gene/protein/etc. Index must be unique identifiers. Multiple data columns allowed. All dtypes must be numeric. No NaNs allowed--we want the user to decide how to handle missing values, depending on the context of their analysis.
+    df (pandas.DataFrame or pandas.Series): The data you want to overlay. Each row corresponds to a particular gene/protein/etc, and each column is expression or other data for a sample or aggregate. Index must be unique identifiers. Multiple data columns allowed. All dtypes must be numeric. No NaNs allowed--we want the user to decide how to handle missing values, depending on the context of their analysis.
     pathway (str): The Reactome ID for the pathway you want to overlay the data on, e.g. "R-HSA-73929".
     open_browser (bool, optional): Whether to automatically open the diagram in a new web browser tab. Default True.
+    export_path (str, optional): A string providing a path to export the diagram to. Must end in a file name with the same extension as the "image_format" parameter. Default None causes no figure to be exported.
+    image_format (str, optional): If export_path is not none, this specifies the format to export the diagram to. Options are "png", "svg", "jpg", "jpeg", or "pptx". Must match the file extension in the export path. Default "png".
+    display_col_idx (int, optional): If export_path is not none, this specifies which column in the dataframe to overlay expression data from. Must be a valid column index for the given table. Default 0.
+    diagram_colors (str, optional): If export_path is not none, this specifies the Reactome color scheme to use for the underlying diagram. Options are "Modern" or "Standard". Default "Modern".
+    overlay_colors (str, optional): If export_path is not none, this specifies the Reactome color scheme to use for the data overlay. Options are "Standard", "Strosobar", or "Copper Plus". Default "Standard".
+    quality (int, optional): If export_path is not none, this specifies what relative quality to export the image at. Must be between 1 and 10 inclusive. Default 7.
 
     Returns:
-    str: URL to the Reactome pathway browser, with the specified diagram loaded and data overlaid. From there you can explore the diagram and export images.
+    str: If export_path is None, returns URL to diagram with data overlaid in Reactome Pathway Browser. Otherwise returns the path the image was exported to.
     """
     # If they gave us a series, make it a dataframe
     if isinstance(df, pd.Series):
         if df.name is None:
             df.name = "data"
         df = pd.DataFrame(df)
+
+    # Parameter checking
+    if export_path is not None:
+
+        if image_format not in ("png", "svg", "jpg", "jpeg", "pptx"):
+            raise InvalidParameterError(f"Invalid value for 'image_format' parameter. Valid options are 'png', 'svg', 'jpg', 'jpeg', or 'pptx'. You passed '{image_format}'.")
+
+        if display_col_idx not in range(0, df.shape[1]):
+            raise InvalidParameterError(f"Invalid value for 'display_col_idx' parameter. Must be an int between 0 and one less than the number of columns in df (which is {df.shape[1] - 1} for this df), inclusive. You passed {display_col_idx}.")
+
+        if diagram_colors not in ("Modern", "Standard"):
+            raise InvalidParameterError(f"Invalid value for 'diagram_colors' parameter. Valid options are 'Modern' or 'Standard'. You passed '{diagram_colors}'.")
+
+        if overlay_colors not in ("Standard", "Strosobar", "Copper Plus"):
+            raise InvalidParameterError(f"Invalid value for 'overlay_colors' parameter. Valid options are 'Standard', 'Strosobar', or 'Copper Plus'. You passed '{overlay_colors}'.")
+
+        if quality not in range(1, 11):
+            raise InvalidParameterError(f"Invalid value for 'quality' parameter. Must be an int between 1 and 10 inclusive. You passed {quality}.")
+
+        if image_format != export_path.split('.')[-1]:
+            raise InvalidParameterError(f"The file extension in the 'export_path' parameter must match the 'image_format' parameter. For the image_format parameter, you passed '{image_format}'. The extension at the end of your export path was '{export_path.split('.')[-1]}'.")
+
+        if export_path[:2] == "~/":
+            raise InvalidParameterError("The export path you provided appeared to start with a reference to the user home directory. To avoid confusion, this function cannot expand that reference. Please provide a full path instead.")
 
     # The identifier series (the index) needs to have a name starting with "#"
     if df.index.name is None:
@@ -772,7 +802,7 @@ def pathway_overlay(df, pathway, open_browser=True):
         df.index.name = "#" + df.index.name
 
     # Take care of NaNs
-    df = df.astype(str) # Represent NaNs as 'nan', which Reactome is OK with
+    df = df.astype(str) # This represents NaNs as 'nan', which Reactome is OK with
 
     # Get the df as a tab-separated string
     df_str = df.to_csv(sep='\t')
@@ -780,18 +810,35 @@ def pathway_overlay(df, pathway, open_browser=True):
     # Post the data to the Reactome analysis service
     analysis_url = "https://reactome.org/AnalysisService/identifiers/projection"
     headers = {"Content-Type": "text/plain"}
-    resp = requests.post(analysis_url, headers=headers, data=df_str)
+    view_resp = requests.post(analysis_url, headers=headers, data=df_str)
 
     # Check that the response came back good
-    if resp.status_code != requests.codes.ok:
-        raise HttpResponseError(f"Submitting your data for analysis returned an HTTP status {resp.status_code}. The content returned from the request may be helpful:\n{resp.content.decode('utf-8')}")    
+    if view_resp.status_code != requests.codes.ok:
+        raise HttpResponseError(f"Submitting your data for analysis returned an HTTP status {view_resp.status_code}. The content returned from the request may be helpful:\n{view_resp.content.decode('utf-8')}")    
 
     # Get the token for accessing the analysis results
-    token = resp.json()["summary"]["token"]
+    token = view_resp.json()["summary"]["token"]
 
     # Use the token and the pathway ID to open the pathway diagram with the data overlaid in the Reactome Pathway Browser
     viewer_url = f"https://reactome.org/PathwayBrowser/#/{pathway}&DTAB=AN&ANALYSIS={token}"
     if open_browser:
         webbrowser.open(viewer_url)
 
-    return viewer_url
+    if export_path is not None:
+
+        # Get the diagram
+        export_url = f"https://reactome.org/ContentService/exporter/diagram/{pathway}.{image_format}?token={token}&resource=TOTAL&diagramProfile={diagram_colors}&analysisProfile={overlay_colors}&expColumn={display_col_idx}&quality={quality}"
+        export_resp = requests.get(export_url)
+
+        # Check that the response came back good
+        if export_resp.status_code != requests.codes.ok:
+            raise HttpResponseError(f"Submitting your data for analysis returned an HTTP status {export_resp.status_code}. The content returned from the request may be helpful:\n{export_resp.content.decode('utf-8')}")    
+
+        # Save the image
+        with open(export_path, 'wb') as dest:
+            dest.write(export_resp.content)
+
+    if export_path is None:
+        return viewer_url
+    else:
+        return export_path
