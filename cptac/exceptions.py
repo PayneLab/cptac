@@ -115,6 +115,10 @@ class DownloadingNewLatestWarning(CptacWarning):
     """Downloading a new latest data version. If they want to use an old version, they'll have to manually specify it."""
     pass
 
+class FileNotUpdatedWarning(CptacWarning):
+    """A file they wanted to update wasn't updated."""
+    pass
+
 # Developer-directed exceptions
 class CptacDevError(Exception):
     """For exceptions that are probably the developer's fault."""

@@ -20,9 +20,11 @@ import json
 import operator
 import collections
 import os
+
 import requests
 import webbrowser
-from cptac.exceptions import HttpResponseError, InvalidParameterError
+from cptac.exceptions import HttpResponseError, InvalidParameterError, MissingFileError, NoInternetError, FileNotUpdatedWarning
+import warnings
 
 
 '''
@@ -795,7 +797,7 @@ def pathway_overlay(df, pathway, open_browser=True, export_path=None, image_form
             raise InvalidParameterError(f"The file extension in the 'export_path' parameter must match the 'image_format' parameter. For the image_format parameter, you passed '{image_format}'. The extension at the end of your export path was '{export_path.split('.')[-1]}'.")
 
         if export_path[:2] == "~/":
-            raise InvalidParameterError("The export path you provided appeared to start with a reference to the user home directory. To avoid confusion, this function cannot expand that reference. Please provide a full path instead.")
+            raise InvalidParameterError("The export path you provided appeared to start with a reference to the user home directory. To avoid confusion, this function will not expand that reference. Please provide a full path instead.")
 
     # The identifier series (the index) needs to have a name starting with "#"
     if df.index.name is None:
@@ -844,3 +846,217 @@ def pathway_overlay(df, pathway, open_browser=True, export_path=None, image_form
         return viewer_url
     else:
         return export_path
+
+def permutation_test_means(data, num_permutations, paired=False):
+    """Use permutation testing to calculate a P value for the difference between the means of two groups.
+
+    Parameters:
+    data (pandas.Series or pandas.Dataframe): A series or single column dataframe containing all the data values, with a patient ID index (which indicates the tumor/normal grouping).
+    num_permutations (int): The number of permutations to perform
+    paired (bool, optional): Whether to do a paired test. Default is False.
+
+    Returns:
+    float: The difference between the means
+    float: The P value for the null hypothesis that the two groups have the same mean
+    list of float: The generated null distribution for the difference between the means
+    """
+    # If input was a dataframe, check the shape
+    if isinstance(data, pd.DataFrame):
+        if data.shape[1] != 1:
+            raise ValueError(f"Input was a dataframe, so expected 1 column. Found {data.shape[1]}:\n{data}.")
+
+    # If the input was a series, make it a dataframe
+    if isinstance(data, pd.Series):
+        data = data.to_frame()
+
+    # Drop NaN values
+    data = data.dropna()
+
+    # Split into tumor/normal and extract values
+    tumor_selector = ~data.index.str.endswith(".N")
+    normal_selector = data.index.str.endswith(".N")
+    tumor = data[tumor_selector].iloc[:, 0]
+    normal = data[normal_selector].iloc[:, 0]
+
+    # Create an independent pseudo-random number generator
+    generator = np.random.RandomState(0)
+
+    # Calculate the actual correlation coefficient
+    actual_diff = np.mean(tumor) - np.mean(normal)
+    abs_actual_diff = abs(actual_diff)
+
+    null_dist = []
+    extreme_count = 0
+
+    for i in range(num_permutations):
+        # Permute values
+        perm_array = generator.permutation(data.iloc[:, 0])
+
+        # Split into tumor/normal and extract values
+        perm_tumor = perm_array[tumor_selector]
+        perm_normal = perm_array[normal_selector]
+
+        # Calculate the actual correlation coefficient
+        perm_diff = abs(np.mean(perm_tumor) - np.mean(perm_normal))
+
+        # Add it to our null distribution
+        null_dist.append(perm_diff)
+
+        # Keep count of how many are as or more extreme than our coefficient
+        if perm_diff >= abs_actual_diff: # We compare the absolute values for a two-tailed test
+            extreme_count += 1
+
+    # Calculate the P value
+    P_val = extreme_count / num_permutations # Don't need to multiply by 2 because we compared the absolute values of difference between means.
+
+    return actual_diff, P_val, null_dist
+
+def permutation_test_corr(data, num_permutations):
+    """Use permutation testing to calculate a P value for the linear correlation coefficient between two variables in several samples.
+
+    Parameters:
+    data (pandas.DataFrame): A dataframe where the rows are samples, and the columns are the two variables we're testing correlation between.
+
+    Returns:        
+    float: The linear correlation coefficient for the two variables.
+    float: The P value for the null hypothesis that the correlation coefficient is zero.
+    """
+
+    # Check the table dimensions
+    if data.shape[1] != 2:
+        raise ValueError(f"Expected 2 columns in dataframe. Found {data.shape[1]}.")
+
+    # Drop NaN values
+    data = data.dropna()
+
+    # Extract the values
+    var1 = data.iloc[:, 0].values
+    var2 = data.iloc[:, 1].values
+
+    # Create an independent pseudo-random number generator
+    generator = np.random.RandomState(0)
+
+    # Calculate the actual correlation coefficient
+    actual_coef = np.corrcoef(var1, var2)[0, 1]
+
+    null_dist = []
+    extreme_count = 0
+
+    for i in range(num_permutations):
+        var1_perm = generator.permutation(var1)
+        perm_coef = np.corrcoef(var1_perm, var2)[0, 1]
+
+        # Add it to our null distribution
+        null_dist.append(perm_coef)
+
+        # Keep count of how many are as or more extreme than our coefficient
+        if abs(perm_coef) >= abs(actual_coef): # We compare the absolute values for a two-tailed test
+            extreme_count += 1
+
+    # Calculate the P value
+    P_val = extreme_count / num_permutations # Don't need to multiply by 2 because we compared the absolute values of coefficients.
+
+    return actual_coef, P_val, null_dist
+
+def get_corum_protein_lists(update=True):
+    """Reads file from CORUM and returns a dictionary where the keys are protein complex names, and the values are lists of proteins that are members of those complexes. Data is downloaded from the CORUM website (https://mips.helmholtz-muenchen.de/corum/#). We also provide get_hgnc_protein_lists to get similar data from HGNC. The CORUM data has more specific subgroups than the HGNC data, but the HGNC data is more comprehensive than the CORUM data--it contains proteins that aren't included in the CORUM data.
+    Parameters:
+    update (bool, optional): Whether to download the latest version of the file from CORUM. Default True. Otherwise, uses a previously downloaded copy (if one exists).
+
+    Returns:
+    dict: Keys are complex names; values are lists of proteins in each complex.
+    """
+
+    # Set the paths we need
+    path_here = os.path.abspath(os.path.dirname(__file__))
+    data_files_path = os.path.join(path_here, "data")
+    corum_file_path = os.path.join(data_files_path, 'corum_protein_complexes.tsv.zip')
+
+    if update:
+
+        corum_url = "https://mips.helmholtz-muenchen.de/corum/download/allComplexes.txt.zip"
+
+        try:
+            response = requests.get(corum_url)
+            response.raise_for_status() # Raises a requests.HTTPError if the response code was unsuccessful
+
+        except requests.RequestException: # Parent class for all exceptions in the requests module
+            warnings.warn("Insufficient internet to update data file. Data from most recent download will be used.", FileNotUpdatedWarning, stacklevel=2)
+
+        else:
+            # Check that the data directory exists, create if it doesn't
+            if not os.path.isdir(data_files_path):
+                os.mkdir(data_files_path)
+
+            # Save the file
+            with open(corum_file_path, 'wb') as dest:
+                dest.write(response.content)
+
+    # Make sure the file exists
+    if not os.path.isfile(corum_file_path):
+        raise MissingFileError("CORUM data file has not been downloaded previously, and either you passed False to the 'update' parameter, or there wasn't sufficient internet to update the file (in which case a warning has been issued telling you that). Depending on which of these situations is currently yours, either pass True to the 'update' parameter, or try again when you have a better internet connection.")
+
+    member_proteins = pd.read_csv(corum_file_path, sep='\t')
+    member_proteins = member_proteins.loc[member_proteins['Organism'] == 'Human']
+    member_proteins = member_proteins.set_index("ComplexName")
+
+    # Select the member proteins column and split the proteins in each complex into values of a list
+    member_proteins = member_proteins['subunits(Gene name)'].str.split(';')
+
+    # For complexes with multiple entries (due to different samples), combine the lists
+    member_proteins = member_proteins.groupby(member_proteins.index).agg(sum) # Sum will concatenate lists
+    member_proteins = member_proteins.apply(set).apply(sorted) # Get rid of duplicates by converting to set. Then go back to list.
+    member_proteins = member_proteins.to_dict()
+
+    return member_proteins
+
+def get_hgnc_protein_lists(update=True):
+    """Reads file from the HGNC gene family dataset and returns a dictionary where the keys are protein complex names, and the values are lists of proteins that are members of those complexes. Data downloaded from the HGNC BioMart server (https://biomart.genenames.org/). We also provide get_corum_protein_lists to get similar data from CORUM. The HGNC data is more comprehensive than the CORUM data--it contains proteins that aren't included in the CORUM data. Additionally, the CORUM data has more specific subgroups than HGNC, so the HGNC data is easier to query when we just want all proteins associated with a particular structure.
+
+    Parameters:
+    update (bool, optional): Whether to download the latest version of the file from HGNC. Default True. Otherwise, uses a previously downloaded copy (if one exists).
+
+    Returns:
+    dict: Keys are complex names; values are lists of proteins in each complex.
+    """
+    # Set the paths we need
+    path_here = os.path.abspath(os.path.dirname(__file__))
+    data_files_path = os.path.join(path_here, "data")
+    hgnc_file_path = os.path.join(data_files_path, 'hgnc_protein_families.tsv')
+
+    if update:
+
+        xml_query = '<!DOCTYPE Query><Query client="biomartclient" processor="TSV" limit="-1" header="1"><Dataset name="hgnc_family_mart" config="family_config"><Attribute name="family__name_103"/><Attribute name="family__gene__symbol_104"/></Dataset></Query>'
+        hgnc_biomart_url = "https://biomart.genenames.org/martservice/results"
+
+        try:
+            response = requests.post(hgnc_biomart_url, data={"query": xml_query})
+            response.raise_for_status() # Raises a requests.HTTPError if the response code was unsuccessful
+
+        except requests.RequestException: # Parent class for all exceptions in the requests module
+            warnings.warn("Insufficient internet to update data file. Data from most recent download will be used.", FileNotUpdatedWarning, stacklevel=2)
+
+        else:
+            # Check that the data directory exists, create if it doesn't
+            if not os.path.isdir(data_files_path):
+                os.mkdir(data_files_path)
+
+            # Save the file
+            with open(hgnc_file_path, 'wb') as dest:
+                dest.write(response.content)
+
+    # Make sure the file exists
+    if not os.path.isfile(hgnc_file_path):
+        raise MissingFileError("HGNC data file has not been downloaded previously, and either you passed False to the 'update' parameter, or there wasn't sufficient internet to update the file (in which case a warning has been issued telling you that). Depending on which of these situations is currently yours, either pass True to the 'update' parameter, or try again when you have a better internet connection.")
+
+    # Read the file
+    member_proteins = pd.read_csv(hgnc_file_path, sep='\t')
+    member_proteins = member_proteins.set_index("Family name")
+    member_proteins = member_proteins["Approved symbol"]
+
+    # Combine multiple rows per family into one row with a list
+    member_proteins = member_proteins.groupby(member_proteins.index).agg(list)
+    member_proteins = member_proteins.apply(set).apply(sorted) # Get rid of duplicates by converting to set. Then go back to list.
+    member_proteins = member_proteins.to_dict()
+
+    return member_proteins
