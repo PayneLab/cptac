@@ -17,6 +17,9 @@ cptac/data_lscc/*
 cptac/data_luad/*
 cptac/data_ovarian/*
 
+# Exclude files that are downloaded by utils functions
+cptac/utils/data/*
+
 # Include index url files
 !cptac/data_brca/index_urls.tsv
 !cptac/data_ccrcc/index_urls.tsv

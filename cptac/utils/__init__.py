@@ -23,6 +23,8 @@ import os
 
 import requests
 import webbrowser
+import operator
+
 from cptac.exceptions import HttpResponseError, InvalidParameterError, MissingFileError, NoInternetError, FileNotUpdatedWarning
 import warnings
 
@@ -847,11 +849,12 @@ def pathway_overlay(df, pathway, open_browser=True, export_path=None, image_form
     else:
         return export_path
 
-def permutation_test_means(data, num_permutations, paired=False):
-    """Use permutation testing to calculate a P value for the difference between the means of two groups.
+def permutation_test_means(group1, group2, num_permutations, paired=False):
+    """Use permutation testing to calculate a P value for the difference between the means of two groups. You would use this instead of a Student's t-test if your data do not follow a normal distribution. Note that permutation tests are still subject to the assumption of the Student's t-test that if you want to see if the means of the two groups are different, they need to have the same variance.
 
     Parameters:
-    data (pandas.Series or pandas.Dataframe): A series or single column dataframe containing all the data values, with a patient ID index (which indicates the tumor/normal grouping).
+    group1 (pandas.Series): The first group of samples. NaNs will be dropped before any analysis. If doing a paired test, samples from the same subject must have the same index value in both group1 and group2.
+    group2 (pandas.Series): The second group of samples. NaNs will be dropped before any analysis. If doing a paired test, samples from the same subject must have the same index value in both group1 and group2.
     num_permutations (int): The number of permutations to perform
     paired (bool, optional): Whether to do a paired test. Default is False.
 
@@ -860,51 +863,64 @@ def permutation_test_means(data, num_permutations, paired=False):
     float: The P value for the null hypothesis that the two groups have the same mean
     list of float: The generated null distribution for the difference between the means
     """
-    # If input was a dataframe, check the shape
-    if isinstance(data, pd.DataFrame):
-        if data.shape[1] != 1:
-            raise ValueError(f"Input was a dataframe, so expected 1 column. Found {data.shape[1]}:\n{data}.")
-
-    # If the input was a series, make it a dataframe
-    if isinstance(data, pd.Series):
-        data = data.to_frame()
-
     # Drop NaN values
-    data = data.dropna()
-
-    # Split into tumor/normal and extract values
-    tumor_selector = ~data.index.str.endswith(".N")
-    normal_selector = data.index.str.endswith(".N")
-    tumor = data[tumor_selector].iloc[:, 0]
-    normal = data[normal_selector].iloc[:, 0]
-
-    # Create an independent pseudo-random number generator
-    generator = np.random.RandomState(0)
-
-    # Calculate the actual correlation coefficient
-    actual_diff = np.mean(tumor) - np.mean(normal)
-    abs_actual_diff = abs(actual_diff)
+    group1 = group1.dropna()
+    group2 = group2.dropna()
 
     null_dist = []
     extreme_count = 0
 
-    for i in range(num_permutations):
-        # Permute values
-        perm_array = generator.permutation(data.iloc[:, 0])
+    # Create an independent pseudo-random number generator
+    generator = np.random.RandomState(0)
 
-        # Split into tumor/normal and extract values
-        perm_tumor = perm_array[tumor_selector]
-        perm_normal = perm_array[normal_selector]
+    if paired:
 
-        # Calculate the actual correlation coefficient
-        perm_diff = abs(np.mean(perm_tumor) - np.mean(perm_normal))
+        # Calculate the paired differences, and the paired difference in the means
+        paired_diffs = group1.combine(group2, operator.sub).dropna().values
+        actual_diff = np.mean(paired_diffs)
+        abs_actual_diff = abs(actual_diff)
 
-        # Add it to our null distribution
-        null_dist.append(perm_diff)
+        for i in range(num_permutations):
 
-        # Keep count of how many are as or more extreme than our coefficient
-        if perm_diff >= abs_actual_diff: # We compare the absolute values for a two-tailed test
-            extreme_count += 1
+            # Randomly flip the signs of the differences and recalculate the mean
+            random_signs = generator.choice([1, -1], size=paired_diffs.size)
+            diffs_signs_perm = random_signs * paired_diffs
+            perm_diff = np.mean(diffs_signs_perm)
+
+            # Add the permuted paired difference in the means to our null distribution
+            null_dist.append(perm_diff)
+
+            # Keep count of how many are as or more extreme than the actual difference
+            if abs(perm_diff) >= abs_actual_diff: # We compare the absolute values for a two-tailed test
+                extreme_count += 1
+
+    else:
+
+        # Concatenate the series
+        both = group1.append(group2)
+
+        # Calculate the actual difference in the means
+        actual_diff = np.mean(group1) - np.mean(group2)
+        abs_actual_diff = abs(actual_diff)
+
+        for i in range(num_permutations):
+
+            # Permute values
+            perm_array = generator.permutation(both.values)
+
+            # Split out permuted groups
+            perm_group1 = perm_array[:group1.size]
+            perm_group2 = perm_array[group1.size:]
+
+            # Calculate the permutation's difference in the means
+            perm_diff = np.mean(perm_group1) - np.mean(perm_group2)
+
+            # Add it to our null distribution
+            null_dist.append(perm_diff)
+
+            # Keep count of how many are as or more extreme than the actual difference
+            if abs(perm_diff) >= abs_actual_diff: # We compare the absolute values for a two-tailed test
+                extreme_count += 1
 
     # Calculate the P value
     P_val = extreme_count / num_permutations # Don't need to multiply by 2 because we compared the absolute values of difference between means.
@@ -912,7 +928,7 @@ def permutation_test_means(data, num_permutations, paired=False):
     return actual_diff, P_val, null_dist
 
 def permutation_test_corr(data, num_permutations):
-    """Use permutation testing to calculate a P value for the linear correlation coefficient between two variables in several samples.
+    """Use permutation testing to calculate a P value for the linear correlation coefficient between two variables in several samples. You would use this if your distribution didn't follow the Pearson correlation test's assumption of being bivariate normal.
 
     Parameters:
     data (pandas.DataFrame): A dataframe where the rows are samples, and the columns are the two variables we're testing correlation between.
