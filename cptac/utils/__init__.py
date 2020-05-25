@@ -25,7 +25,7 @@ import requests
 import webbrowser
 import operator
 
-from cptac.exceptions import HttpResponseError, InvalidParameterError, MissingFileError, NoInternetError, FileNotUpdatedWarning
+from cptac.exceptions import HttpResponseError, InvalidParameterError, MissingFileError, NoInternetError, FileNotUpdatedWarning, ParameterWarning
 import warnings
 
 
@@ -848,6 +848,58 @@ def pathway_overlay(df, pathway, open_browser=True, export_path=None, image_form
         return viewer_url
     else:
         return export_path
+
+def search_reactome_pathways(ids, resource="UniProt", quiet=False):
+    """Query the Reactome REST API to find Reactome pathways containing a particular gene or protein.
+
+    Parameters:
+    ids (str or list of str): The id(s) to look for matches to.
+    resource (str, optional): The database the identifier(s) come from. Default is UniProt. Other options include HGNC, Ensembl, and GO. For more options, consult <https://reactome.org/content/schema/objects/ReferenceDatabase>.
+    quiet (bool, optional): Whether to suppress warnings issued when identifiers are not found. Default False.
+
+    Returns:
+    pandas.DataFrame: A table of pathways containing the given genes or proteins, with pathway names and their Reactome identifiers (the latter are needed for the pathway_overlay function).
+    """
+    # Process string input
+    if isinstance(ids, str):
+        ids = [ids]
+
+    # Set headers and params
+    headers = {"accept": "application/json"}
+    params = {"species": "Homo sapiens"}
+
+    # Loop over ids and get the interacting pathways
+    all_pathway_df = pd.DataFrame()
+    for id in ids:
+        url = f"https://reactome.org/ContentService/data/mapping/{resource}/{id}/pathways"
+        resp = requests.get(url, headers=headers, params=params)
+
+        # Check that the response came back good
+        if resp.status_code == 404:
+            try:
+                msg = resp.json()["messages"]
+            except (json.JSONDecodeError, KeyError):
+                raise HttpResponseError(f"Your query returned an HTTP status {resp.status_code}. The content returned from the request may be helpful:\n{resp.content.decode('utf-8')}") from None
+            else:
+                if not quiet:
+                    warnings.warn(f"The query for '{id}' returned HTTP 404 (not found). You may have mistyped the gene/protein ID or the resource name. The server gave the following message: {msg}", ParameterWarning, stacklevel=2)
+                continue
+        elif resp.status_code != requests.codes.ok:
+            raise HttpResponseError(f"Your query returned an HTTP status {resp.status_code}. The content returned from the request may be helpful:\n{resp.content.decode('utf-8')}")
+
+        # Parse out pathway IDs and names
+        pathway_dict = resp.json()
+        names = []
+        ids = []
+        for pathway in pathway_dict:
+            names.append(pathway["displayName"])
+            ids.append(pathway["stId"])
+
+        pathway_df = pd.DataFrame({"id": id, "pathway": names, "pathway_id": ids})
+        all_pathway_df = all_pathway_df.append(pathway_df)
+
+    all_pathway_df = all_pathway_df.reset_index(drop=True)
+    return all_pathway_df
 
 def permutation_test_means(group1, group2, num_permutations, paired=False):
     """Use permutation testing to calculate a P value for the difference between the means of two groups. You would use this instead of a Student's t-test if your data do not follow a normal distribution. Note that permutation tests are still subject to the assumption of the Student's t-test that if you want to see if the means of the two groups are different, they need to have the same variance.
