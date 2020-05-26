@@ -1,3 +1,4 @@
+#   Copyright 2018 Samuel Payne sam_payne@byu.edu
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -719,6 +720,9 @@ class DataSet:
         if name in self._data.keys():
             df = self._data[name]
             return_df = df.copy(deep=True) # We copy it, with deep=True, so edits on their copy don't affect the master for this instance
+            return_df.index.name = df.index.name
+            return_df.columns.name = df.columns.name
+
             if tissue_type == "tumor":
                 return self._tumor_only(return_df)
             elif tissue_type == "normal":
@@ -1170,12 +1174,14 @@ class DataSet:
         tumor_list = list(clinical_tumor.index.values)
         tumor_df = df.loc[df.index & tumor_list]
         return tumor_df
+
     def _normal_only(self, df):
         clinical = self._get_dataframe("clinical")
         clinical_normal = clinical[clinical.Sample_Tumor_Normal == "Normal"]
         normal_list = list(clinical_normal.index.values)
         normal_df = df.loc[df.index & normal_list]
         return normal_df
+
     def _check_how_parameter(self, given_how):
         possible_values = ['outer', 'inner', 'left', 'right']
         if given_how not in possible_values:
