@@ -292,7 +292,7 @@ class DataSet:
                 return df
 
             tuples = df.columns.to_flat_index() # Converts multiindex to an index of tuples
-            no_nan = tuples.map(lambda x: [item for item in x if pd.notnull(item)]) # Cut any NaNs out of tuples
+            no_nan = tuples.map(lambda x: [item for item in x if pd.notnull(item) and item != ""]) # Cut any NaNs and empty strings out of tuples
             joined = no_nan.map(lambda x: sep.join(x)) # Join each tuple
             df.columns = joined
             df.columns.name = "Name" # For consistency
