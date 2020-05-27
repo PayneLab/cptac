@@ -135,7 +135,7 @@ def search(term):
     webbrowser.open(url)
     print(" " * len(message), end='\r') # Erase the message
 
-def reduce_multiindex(df, levels_to_drop=None, flatten=False, sep='_', tuples=False):
+def reduce_multiindex(df, levels_to_drop=None, flatten=False, sep='_', tuples=False, quiet=False):
     """Drop levels from and/or flatten the column axis of a dataframe with a column multiindex.
 
     Parameters:
@@ -144,6 +144,7 @@ def reduce_multiindex(df, levels_to_drop=None, flatten=False, sep='_', tuples=Fa
     flatten (bool, optional): Whether or not to flatten the multiindex. Default of False will not flatten. Cannot be used if tuples=True.
     sep (str, optional): String to use to separate index levels when flattening. Default is underscore. Only relevant if flatten=True.
     tuples (bool, optional): Whether to return the multiindex as a single-level index of tuples. Cannot be used if flatten=True. Default False.
+    quiet (bool, optional): Whether to suppress warnings if duplicate column headers being created when column index levels are dropped, or if you tried to flatten or tuple-ify an index with only one level. Default False.
 
     Returns:
     pandas.DataFrame: The dataframe, with the desired column index changes made.
@@ -184,11 +185,11 @@ def reduce_multiindex(df, levels_to_drop=None, flatten=False, sep='_', tuples=Fa
         df.columns = df.columns.droplevel(levels_to_drop)
 
         num_dups = df.columns.duplicated(keep=False).sum()
-        if num_dups > 0:
+        if num_dups > 0 and not quiet:
             warnings.warn(f"Due to dropping the specified levels, dataframe now has {num_dups} duplicated column headers.", DuplicateColumnHeaderWarning, stacklevel=2)
 
     if flatten:
-        if df.columns.nlevels < 2:
+        if df.columns.nlevels < 2 and not quiet:
             warnings.warn("You tried to flatten a column index that didn't have multiple levels, so we didn't actually change anything.", FlattenSingleIndexWarning, stacklevel=2)
             return df
 
@@ -198,7 +199,7 @@ def reduce_multiindex(df, levels_to_drop=None, flatten=False, sep='_', tuples=Fa
         df.columns = joined
         df.columns.name = "Name" # For consistency
     elif tuples:
-        if df.columns.nlevels < 2:
+        if df.columns.nlevels < 2 and not quiet:
             warnings.warn("You tried to turn a column index into tuples, but it didn't have multiple levels so we didn't actually change anything.", FlattenSingleIndexWarning, stacklevel=2)
             return df
 

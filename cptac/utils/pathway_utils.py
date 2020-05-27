@@ -62,7 +62,7 @@ def get_interacting_proteins_string(protein, number=25):
         http = urllib3.PoolManager()
         response = http.request('GET',request_url)
         '''Catch exception if it fails while accessing the api'''
-    except urllib3.HTTPError as err:
+    except urllib3.exceptions.HTTPError as err:
         error_message = err.read()
         print("Error accessing STRING api, " , error_message)
         sys.exit()

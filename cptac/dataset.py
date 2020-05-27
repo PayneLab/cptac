@@ -17,6 +17,8 @@ from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import add_index_levels, join_col_to_dataframe, sort_df_by_sample_status
 from .exceptions import *
 
+import cptac.utils as ut
+
 class DataSet:
     """
     Note that all cancer datasets are class objects that inherit from cptac.dataset. Therefore
@@ -190,7 +192,7 @@ class DataSet:
         elif term in self._definitions.keys():
             print(self._definitions[term])
         else:
-            raise InvalidParameterError("{} not found in definitions. Check capitalization. Alternatively, the dataset's 'search(<your term>)' method can be used to perform a web search of the term provided.".format(term))
+            raise InvalidParameterError("{} not found in definitions. Check capitalization. Alternatively, the 'search(<your term>)' function, available for import from the cptac.utils sub-module, can be used to perform a web search of the term provided.".format(term))
 
     def get_cancer_type(self):
         """Return the cancer type for this dataset, as a string."""
@@ -313,7 +315,7 @@ class DataSet:
         if self.get_cancer_type() == "ccrcc" or self.get_cancer_type() == "brca":
              cc = self.get_CNV()
              drop = ['Database_ID']
-             combined = self.reduce_multiindex(df=combined, levels_to_drop=drop)
+             combined = ut.reduce_multiindex(df=combined, levels_to_drop=drop)
 
 
         #If there are hotspot mutations, append 'hotspot' to the mutation type so that it's prioritized correctly
