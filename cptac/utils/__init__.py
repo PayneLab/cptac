@@ -752,7 +752,7 @@ def wrap_pearson_corr(df,label_column, alpha=.05,comparison_columns=None,correct
     '''If results df is not empty, return it, else return None'''
     return newdf
 
-def pathway_overlay(df, pathway, open_browser=True, export_path=None, image_format="png", display_col_idx=0, diagram_colors="Modern", overlay_colors="Standard", quality=7):
+def reactome_pathway_overlay(df, pathway, open_browser=True, export_path=None, image_format="png", display_col_idx=0, diagram_colors="Modern", overlay_colors="Standard", quality=7):
     """Visualize numerical data (e.g. protein expression) on a Reactome pathway diagram, with each node's color corresponding to the expression value provided for that molecule.
 
     Parameters:
@@ -849,7 +849,7 @@ def pathway_overlay(df, pathway, open_browser=True, export_path=None, image_form
     else:
         return export_path
 
-def search_reactome_pathways(ids, resource="UniProt", quiet=False):
+def search_reactome_pathways_with_proteins(ids, resource="UniProt", quiet=False):
     """Query the Reactome REST API to find Reactome pathways containing a particular gene or protein.
 
     Parameters:
@@ -896,8 +896,52 @@ def search_reactome_pathways(ids, resource="UniProt", quiet=False):
             ids.append(pathway["stId"])
 
         pathway_df = pd.DataFrame({"id": id, "pathway": names, "pathway_id": ids})
+        pathway_df = pathway_df.sort_values(by="pathway_id")
         all_pathway_df = all_pathway_df.append(pathway_df)
 
+    all_pathway_df = all_pathway_df.reset_index(drop=True)
+    return all_pathway_df
+
+def search_reactome_proteins_in_pathways(pathway_ids, quiet=False):
+    """Query the Reactome REST API to get a list of proteins contained in a particular pathway.
+
+    Parameters:
+    pathway_id (str): The pathway to get the contained proteins for.
+
+    Returns:
+    list: The proteins contained in the pathway.
+    """
+    # Process string input
+    if isinstance(pathway_ids, str):
+        pathway_ids = [pathway_ids]
+
+    # Set headers and url
+    headers = {"accept": "application/json"}
+
+    # Loop over ids and get the interacting pathways
+    all_pathway_df = pd.DataFrame()
+    for pathway_id in pathway_ids:
+
+        # Send the request
+        url = f"https://reactome.org/ContentService/data/participants/{pathway_id}"
+        resp = requests.get(url, headers=headers)
+
+        if resp.status_code == 404 or (resp.status_code == requests.codes.ok and (len(resp.content.decode("utf-8")) == 0 or len(resp.json()) == 0)):
+            if not quiet:
+                warnings.warn(f"The query for '{pathway_id}' found no results. You may have mistyped the pathway ID.", ParameterWarning, stacklevel=2)
+            continue
+        elif resp.status_code != requests.codes.ok:
+            raise HttpResponseError(f"Your query returned an HTTP status {resp.status_code}. The content returned from the request may be helpful:\n{resp.content.decode('utf-8')}")
+
+        # Parse all the proteins/genes out of the response
+        all_members = resp.content.decode("utf-8").split('"')
+        member_proteins = [member.split(" ")[1] for member in all_members if member.startswith("UniProt")]
+
+        pathway_df = pd.DataFrame({"pathway_id": pathway_id, "member": member_proteins})
+        pathway_df = pathway_df.sort_values(by="member")
+        all_pathway_df = all_pathway_df.append(pathway_df)
+
+    all_pathway_df = all_pathway_df.drop_duplicates(keep="first")
     all_pathway_df = all_pathway_df.reset_index(drop=True)
     return all_pathway_df
 
