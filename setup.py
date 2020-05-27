@@ -35,6 +35,7 @@ setup(name='cptac',
 		'urllib3>=1.24.2',
 		'packaging>=19.2',
 		'xlrd>=1.2.0',
+		'statsmodels>=0.10.0',
 	],
     data_files=[
          ('bioplex_interactions',['cptac/utils/BioPlex_interactionList_v4a.tsv'])
