@@ -13,11 +13,11 @@ import pandas as pd
 import numpy as np
 import os
 import warnings
-from .dataset import DataSet
+from .dataset import Dataset
 from .dataframe_tools import *
 from .exceptions import FailedReindexWarning, ReindexMapError
 
-class Colon(DataSet):
+class Colon(Dataset):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the colon dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -27,7 +27,7 @@ class Colon(DataSet):
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
 
-        # Set some needed variables, and pass them to the parent DataSet class __init__ function
+        # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         valid_versions = ["0.0", "0.0.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 

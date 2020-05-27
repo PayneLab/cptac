@@ -19,14 +19,14 @@ from .exceptions import *
 
 import cptac.utils as ut
 
-class DataSet:
+class Dataset:
     """
     Note that all cancer datasets are class objects that inherit from cptac.dataset. Therefore
     the same function calls exist for cptac.Endometrial, cptac.Colon, etc.
     """
 
     def __init__(self, cancer_type, version, valid_versions, data_files, no_internet):
-        """Initialize variables for a DataSet object.
+        """Initialize variables for a Dataset object.
 
         Parameters:
         cancer_type (str): The cancer type requested for this dataset
@@ -671,7 +671,7 @@ class DataSet:
         elif df_type == "metadata":
             valid_dfs = self._valid_metadata_dfs
         else:
-            raise CptacDevError(f"Invalid df_type of {df_type} passed to cptac.DataSet._check_df_valid.")
+            raise CptacDevError(f"Invalid df_type of {df_type} passed to cptac.Dataset._check_df_valid.")
 
         if df_name not in self._data.keys():
             raise DataframeNotIncludedError(f"{df_name} dataframe not included in the {self.get_cancer_type()} dataset.")

@@ -19,7 +19,7 @@ class TestGetters:
     def test_all_getters(self):
         """Test all getters for a dataset."""
 
-        getter_names = [name for name in dir(cptac.dataset.DataSet)
+        getter_names = [name for name in dir(cptac.dataset.Dataset)
             if name.startswith("get_")
             and name not in ("get_cancer_type", "get_genotype_all_vars")]
 
@@ -65,38 +65,38 @@ class TestGetters:
     def _get_dataset_tuples(self):
         """Load the datasets and return a list of them."""
 
-        DataSetTuple = namedtuple("DataSetTuple", ["name", "version", "function"])
+        DatasetTuple = namedtuple("DatasetTuple", ["name", "version", "function"])
 
         dss = [
-            DataSetTuple("brca", "3.1", cptac.Brca),
-            DataSetTuple("brca", "3.1.1", cptac.Brca),
+            DatasetTuple("brca", "3.1", cptac.Brca),
+            DatasetTuple("brca", "3.1.1", cptac.Brca),
 
-            DataSetTuple("ccrcc", "0.0", cptac.Ccrcc),
-            DataSetTuple("ccrcc", "0.1", cptac.Ccrcc),
+            DatasetTuple("ccrcc", "0.0", cptac.Ccrcc),
+            DatasetTuple("ccrcc", "0.1", cptac.Ccrcc),
 
-            DataSetTuple("ccrcc", "0.1.1", cptac.Ccrcc),
-            DataSetTuple("colon", "0.0", cptac.Colon),
-            DataSetTuple("colon", "0.0.1", cptac.Colon),
+            DatasetTuple("ccrcc", "0.1.1", cptac.Ccrcc),
+            DatasetTuple("colon", "0.0", cptac.Colon),
+            DatasetTuple("colon", "0.0.1", cptac.Colon),
 
-            DataSetTuple("endometrial", "2.1", cptac.Endometrial),
-            DataSetTuple("endometrial", "2.1.1", cptac.Endometrial),
+            DatasetTuple("endometrial", "2.1", cptac.Endometrial),
+            DatasetTuple("endometrial", "2.1.1", cptac.Endometrial),
 
-            DataSetTuple("gbm", "1.0", cptac.Gbm),
-            DataSetTuple("gbm", "2.0", cptac.Gbm),
-            DataSetTuple("gbm", "2.1", cptac.Gbm),
-            DataSetTuple("gbm", "3.0", cptac.Gbm),
+            DatasetTuple("gbm", "1.0", cptac.Gbm),
+            DatasetTuple("gbm", "2.0", cptac.Gbm),
+            DatasetTuple("gbm", "2.1", cptac.Gbm),
+            DatasetTuple("gbm", "3.0", cptac.Gbm),
 
-            DataSetTuple("hnscc", "0.1", cptac.Hnscc),
-            DataSetTuple("hnscc", "2.0", cptac.Hnscc),
+            DatasetTuple("hnscc", "0.1", cptac.Hnscc),
+            DatasetTuple("hnscc", "2.0", cptac.Hnscc),
 
-            DataSetTuple("lscc", "1.0", cptac.Lscc),
+            DatasetTuple("lscc", "1.0", cptac.Lscc),
 
-            DataSetTuple("luad", "2.0", cptac.Luad),
-            DataSetTuple("luad", "3.1", cptac.Luad),
-            DataSetTuple("luad", "3.1.1", cptac.Luad),
+            DatasetTuple("luad", "2.0", cptac.Luad),
+            DatasetTuple("luad", "3.1", cptac.Luad),
+            DatasetTuple("luad", "3.1.1", cptac.Luad),
 
-            DataSetTuple("ovarian", "0.0", cptac.Ovarian),
-            DataSetTuple("ovarian", "0.0.1", cptac.Ovarian),
+            DatasetTuple("ovarian", "0.0", cptac.Ovarian),
+            DatasetTuple("ovarian", "0.0.1", cptac.Ovarian),
         ]
 
         return dss
