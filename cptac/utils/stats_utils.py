@@ -219,22 +219,27 @@ def permutation_test_means(group1, group2, num_permutations, paired=False):
         actual_diff = np.mean(paired_diffs)
         abs_actual_diff = abs(actual_diff)
 
+        # Set some local references to speed up lookups in the loop
+        generator_choice = generator.choice
+        paired_diffs_size = paired_diffs.size
+        np_mean = np.mean
+        null_dist_append = null_dist.append
+
         for i in range(num_permutations):
 
             # Randomly flip the signs of the differences and recalculate the mean
-            random_signs = generator.choice([1, -1], size=paired_diffs.size)
+            random_signs = generator_choice([1, -1], size=paired_diffs_size)
             diffs_signs_perm = random_signs * paired_diffs
-            perm_diff = np.mean(diffs_signs_perm)
+            perm_diff = np_mean(diffs_signs_perm)
 
             # Add the permuted paired difference in the means to our null distribution
-            null_dist.append(perm_diff)
+            null_dist_append(perm_diff)
 
             # Keep count of how many are as or more extreme than the actual difference
             if abs(perm_diff) >= abs_actual_diff: # We compare the absolute values for a two-tailed test
                 extreme_count += 1
 
     else:
-
         # Concatenate the series
         both = group1.append(group2)
 
@@ -242,20 +247,27 @@ def permutation_test_means(group1, group2, num_permutations, paired=False):
         actual_diff = np.mean(group1) - np.mean(group2)
         abs_actual_diff = abs(actual_diff)
 
+        # Set some local references to speed up lookups in the loop
+        generator_permutation = generator.permutation
+        np_mean = np.mean
+        both_values = both.values
+        group1_size = group1.size
+        null_dist_append = null_dist.append
+
         for i in range(num_permutations):
 
             # Permute values
-            perm_array = generator.permutation(both.values)
+            perm_array = generator_permutation(both_values)
 
             # Split out permuted groups
-            perm_group1 = perm_array[:group1.size]
-            perm_group2 = perm_array[group1.size:]
+            perm_group1 = perm_array[:group1_size]
+            perm_group2 = perm_array[group1_size:]
 
             # Calculate the permutation's difference in the means
-            perm_diff = np.mean(perm_group1) - np.mean(perm_group2)
+            perm_diff = np_mean(perm_group1) - np_mean(perm_group2)
 
             # Add it to our null distribution
-            null_dist.append(perm_diff)
+            null_dist_append(perm_diff)
 
             # Keep count of how many are as or more extreme than the actual difference
             if abs(perm_diff) >= abs_actual_diff: # We compare the absolute values for a two-tailed test
@@ -265,6 +277,7 @@ def permutation_test_means(group1, group2, num_permutations, paired=False):
     P_val = extreme_count / num_permutations # Don't need to multiply by 2 because we compared the absolute values of difference between means.
 
     return actual_diff, P_val, null_dist
+
 
 def permutation_test_corr(data, num_permutations):
     """Use permutation testing to calculate a P value for the linear correlation coefficient between two variables in several samples. You would use this if your distribution didn't follow the Pearson correlation test's assumption of being bivariate normal.
