@@ -219,21 +219,15 @@ def permutation_test_means(group1, group2, num_permutations, paired=False):
         actual_diff = np.mean(paired_diffs)
         abs_actual_diff = abs(actual_diff)
 
-        # Set some local references to speed up lookups in the loop
-        generator_choice = generator.choice
-        paired_diffs_size = paired_diffs.size
-        np_mean = np.mean
-        null_dist_append = null_dist.append
-
         for i in range(num_permutations):
 
             # Randomly flip the signs of the differences and recalculate the mean
-            random_signs = generator_choice([1, -1], size=paired_diffs_size)
+            random_signs = generator.choice([1, -1], size=paired_diffs.size)
             diffs_signs_perm = random_signs * paired_diffs
-            perm_diff = np_mean(diffs_signs_perm)
+            perm_diff = np.mean(diffs_signs_perm)
 
             # Add the permuted paired difference in the means to our null distribution
-            null_dist_append(perm_diff)
+            null_dist.append(perm_diff)
 
             # Keep count of how many are as or more extreme than the actual difference
             if abs(perm_diff) >= abs_actual_diff: # We compare the absolute values for a two-tailed test
@@ -248,6 +242,7 @@ def permutation_test_means(group1, group2, num_permutations, paired=False):
         abs_actual_diff = abs(actual_diff)
 
         # Set some local references to speed up lookups in the loop
+        # We tried this optimization for other loops, but this is the only one where it made a difference
         generator_permutation = generator.permutation
         np_mean = np.mean
         both_values = both.values
@@ -325,4 +320,3 @@ def permutation_test_corr(data, num_permutations):
     P_val = extreme_count / num_permutations # Don't need to multiply by 2 because we compared the absolute values of coefficients.
 
     return actual_coef, P_val, null_dist
-
