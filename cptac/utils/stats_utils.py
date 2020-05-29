@@ -198,15 +198,13 @@ def permutation_test_means(group1, group2, num_permutations, paired=False):
     paired (bool, optional): Whether to do a paired test. Default is False.
 
     Returns:
-    float: The difference between the means
-    float: The P value for the null hypothesis that the two groups have the same mean
-    list of float: The generated null distribution for the difference between the means
+    float: The difference between the means.
+    float: The P value for the null hypothesis that the two groups have the same mean.
     """
     # Drop NaN values
     group1 = group1.dropna()
     group2 = group2.dropna()
 
-    null_dist = []
     extreme_count = 0
 
     # Create an independent pseudo-random number generator
@@ -226,9 +224,6 @@ def permutation_test_means(group1, group2, num_permutations, paired=False):
             diffs_signs_perm = random_signs * paired_diffs
             perm_diff = np.mean(diffs_signs_perm)
 
-            # Add the permuted paired difference in the means to our null distribution
-            null_dist.append(perm_diff)
-
             # Keep count of how many are as or more extreme than the actual difference
             if abs(perm_diff) >= abs_actual_diff: # We compare the absolute values for a two-tailed test
                 extreme_count += 1
@@ -247,7 +242,6 @@ def permutation_test_means(group1, group2, num_permutations, paired=False):
         np_mean = np.mean
         both_values = both.values
         group1_size = group1.size
-        null_dist_append = null_dist.append
 
         for i in range(num_permutations):
 
@@ -261,9 +255,6 @@ def permutation_test_means(group1, group2, num_permutations, paired=False):
             # Calculate the permutation's difference in the means
             perm_diff = np_mean(perm_group1) - np_mean(perm_group2)
 
-            # Add it to our null distribution
-            null_dist_append(perm_diff)
-
             # Keep count of how many are as or more extreme than the actual difference
             if abs(perm_diff) >= abs_actual_diff: # We compare the absolute values for a two-tailed test
                 extreme_count += 1
@@ -271,7 +262,7 @@ def permutation_test_means(group1, group2, num_permutations, paired=False):
     # Calculate the P value
     P_val = extreme_count / num_permutations # Don't need to multiply by 2 because we compared the absolute values of difference between means.
 
-    return actual_diff, P_val, null_dist
+    return actual_diff, P_val
 
 
 def permutation_test_corr(data, num_permutations):
@@ -302,15 +293,11 @@ def permutation_test_corr(data, num_permutations):
     # Calculate the actual correlation coefficient
     actual_coef = np.corrcoef(var1, var2)[0, 1]
 
-    null_dist = []
     extreme_count = 0
 
     for i in range(num_permutations):
         var1_perm = generator.permutation(var1)
         perm_coef = np.corrcoef(var1_perm, var2)[0, 1]
-
-        # Add it to our null distribution
-        null_dist.append(perm_coef)
 
         # Keep count of how many are as or more extreme than our coefficient
         if abs(perm_coef) >= abs(actual_coef): # We compare the absolute values for a two-tailed test
@@ -319,4 +306,4 @@ def permutation_test_corr(data, num_permutations):
     # Calculate the P value
     P_val = extreme_count / num_permutations # Don't need to multiply by 2 because we compared the absolute values of coefficients.
 
-    return actual_coef, P_val, null_dist
+    return actual_coef, P_val
