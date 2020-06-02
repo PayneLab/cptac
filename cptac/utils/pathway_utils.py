@@ -316,12 +316,13 @@ def get_proteins_in_pathway(pathway):
     	return list(filtered_df.index)
     return list()  # The protein was not found.
 
-def reactome_pathway_overlay(df, pathway, open_browser=True, export_path=None, image_format="png", display_col_idx=0, diagram_colors="Modern", overlay_colors="Standard", quality=7):
+def reactome_pathway_overlay(pathway, df=None, analysis_token=None, open_browser=True, export_path=None, image_format="png", display_col_idx=0, diagram_colors="Modern", overlay_colors="Standard", quality=7):
     """Visualize numerical data (e.g. protein expression) on a Reactome pathway diagram, with each node's color corresponding to the expression value provided for that molecule.
 
     Parameters:
-    df (pandas.DataFrame or pandas.Series): The data you want to overlay. Each row corresponds to a particular gene/protein/etc, and each column is expression or other data for a sample or aggregate. Index must be unique identifiers. Multiple data columns allowed. All dtypes must be numeric. No NaNs allowed--we want the user to decide how to handle missing values, depending on the context of their analysis.
     pathway (str): The Reactome ID for the pathway you want to overlay the data on, e.g. "R-HSA-73929".
+    df (pandas.DataFrame or pandas.Series, optional): If you haven't previously analyzed your data with Reactome, give this parameter the data you want to overlay. Each row corresponds to a particular gene/protein/etc, and each column is expression or other data for a sample or aggregate. Index must be unique identifiers. Multiple data columns allowed. All dtypes must be numeric. No NaNs allowed--we want the user to decide how to handle missing values, depending on the context of their analysis. Default None assumes you are instead passing a token for previously analyzed data to the "analysis_token" parameter.
+    analysis_token (str, optional): If the data you want to visualize has been recently analyzed in Reactome already, pass the token for that analysis to this parameter to overlay it on the specified pathway. This will allow this function to reaccess the archived results, thus avoiding wasting time by repeating the work of submitting and analyzing the data. Default of None assumes you are instead passing data to the "df" parameter.
     open_browser (bool, optional): Whether to automatically open the diagram in a new web browser tab. Default True.
     export_path (str, optional): A string providing a path to export the diagram to. Must end in a file name with the same extension as the "image_format" parameter. Default None causes no figure to be exported.
     image_format (str, optional): If export_path is not none, this specifies the format to export the diagram to. Options are "png", "gif", "svg", "jpg", "jpeg", or "pptx". Must match the file extension in the export path. If you're creating a gif and you want more than one column's data to be included in the image, make sure to pass None to the display_col_idx parameter. Default "png".
@@ -333,13 +334,13 @@ def reactome_pathway_overlay(df, pathway, open_browser=True, export_path=None, i
     Returns:
     str: If export_path is None, returns URL to diagram with data overlaid in Reactome Pathway Browser. Otherwise returns the path the image was exported to.
     """
-    # If they gave us a series, make it a dataframe
-    if isinstance(df, pd.Series):
-        if df.name is None:
-            df.name = "data"
-        df = pd.DataFrame(df)
-
     # Parameter checking
+    if df is None and analysis_token is None:
+        raise InvalidParameterError("You passed None to both the 'df' and 'analysis_token' parameters. You must pass a value to one of them.")
+
+    if df is not None and analysis_token is not None:
+        raise InvalidParameterError("You passed values to both the 'df' and 'analysis_token' parameters. You may only pass a value to one of them.")
+
     if export_path is not None:
 
         if image_format not in ("png", "gif", "svg", "jpg", "jpeg", "pptx"):
@@ -365,29 +366,44 @@ def reactome_pathway_overlay(df, pathway, open_browser=True, export_path=None, i
         if export_path[:2] == "~/":
             raise InvalidParameterError("The export path you provided appeared to start with a reference to the user home directory. To avoid confusion, this function will not expand that reference. Please provide a full path instead.")
 
-    # The identifier series (the index) needs to have a name starting with "#"
-    if df.index.name is None:
-        df.index.name = "#identifier"
-    elif not df.index.name.startswith("#"):
-        df.index.name = "#" + df.index.name
+    if df is not None:
 
-    # Take care of NaNs
-    df = df.astype(str) # This represents NaNs as 'nan', which Reactome is OK with
+        df = df.copy(deep=True)
 
-    # Get the df as a tab-separated string
-    df_str = df.to_csv(sep='\t')
+        # If they gave us a series, make it a dataframe
+        if isinstance(df, pd.Series):
+            if df.name is None:
+                df.name = "data"
+            df = pd.DataFrame(df)
 
-    # Post the data to the Reactome analysis service
-    analysis_url = "https://reactome.org/AnalysisService/identifiers/projection"
-    headers = {"Content-Type": "text/plain"}
-    view_resp = requests.post(analysis_url, headers=headers, data=df_str)
+        # The identifier series (the index) needs to have a name starting with "#"
+        if df.index.name is None:
+            df.index.name = "#identifier"
+        elif not df.index.name.startswith("#"):
+            df.index.name = "#" + df.index.name
 
-    # Check that the response came back good
-    if view_resp.status_code != requests.codes.ok:
-        raise HttpResponseError(f"Submitting your data for analysis returned an HTTP status {view_resp.status_code}. The content returned from the request may be helpful:\n{view_resp.content.decode('utf-8')}")    
+        # Take care of NaNs
+        df = df.astype(str) # This represents NaNs as 'nan', which Reactome is OK with
 
-    # Get the token for accessing the analysis results
-    token = view_resp.json()["summary"]["token"]
+        # Get the df as a tab-separated string
+        df_str = df.to_csv(sep='\t')
+
+        # Post the data to the Reactome analysis service
+        analysis_url = "https://reactome.org/AnalysisService/identifiers/projection"
+        headers = {"Content-Type": "text/plain"}
+        params = {"pageSize": "0", "page": "1"} # We only need the analysis token, so set pageSize to 0 so we don't worry about getting any of the data for individual pathways.
+
+        view_resp = requests.post(analysis_url, headers=headers, params=params, data=df_str)
+
+        # Check that the response came back good
+        if view_resp.status_code != requests.codes.ok:
+            raise HttpResponseError(f"Submitting your data for analysis returned an HTTP status {view_resp.status_code}. The content returned from the request may be helpful:\n{view_resp.content.decode('utf-8')}")    
+
+        # Get the token for accessing the analysis results
+        token = view_resp.json()["summary"]["token"]
+
+    else:
+        token = analysis_token
 
     # Use the token and the pathway ID to open the pathway diagram with the data overlaid in the Reactome Pathway Browser
     viewer_url = f"https://reactome.org/PathwayBrowser/#/{pathway}&DTAB=AN&ANALYSIS={token}"
@@ -499,14 +515,17 @@ def search_reactome_proteins_in_pathways(pathway_ids, quiet=False):
             raise HttpResponseError(f"Your query returned an HTTP status {resp.status_code}. The content returned from the request may be helpful:\n{resp.content.decode('utf-8')}")
 
         # Parse all the proteins/genes out of the response
-        all_members = resp.content.decode("utf-8").split('"')
-        member_proteins = [member.split(" ")[1] for member in all_members if member.startswith("UniProt")]
-
-        pathway_df = pd.DataFrame({"pathway_id": pathway_id, "member": member_proteins})
-        pathway_df = pathway_df.sort_values(by="member")
+        members_df = pd.json_normalize(resp.json(), record_path=["refEntities"])
+        prot_df = members_df[members_df["displayName"].str.startswith("UniProt:")]
+        
+        prot_names = prot_df["displayName"].str.rsplit(" ", n=1, expand=True)[1].\
+            drop_duplicates(keep="first").\
+            sort_values().\
+            reset_index(drop=True)
+        
+        pathway_df = pd.DataFrame({"pathway_id": pathway_id, "member": prot_names})
         all_pathway_df = all_pathway_df.append(pathway_df)
 
     all_pathway_df = all_pathway_df.drop_duplicates(keep="first")
     all_pathway_df = all_pathway_df.reset_index(drop=True)
     return all_pathway_df
-
