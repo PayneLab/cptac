@@ -530,11 +530,18 @@ def search_reactome_proteins_in_pathways(pathway_ids, quiet=False):
     all_pathway_df = all_pathway_df.reset_index(drop=True)
     return all_pathway_df
 
-def reactome_enrichment_analysis(df, sort_by, ascending, num_results=25):
+def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, num_results=25):
     """Use the Reactome Analysis Service API to do a gene set enrichment analysis.
 
     Parameters:
-    df (pandas.DataFrame or pandas.Series): The data you want to overlay. Each row corresponds to a particular gene/protein/etc, and each column is expression or other data for a sample or aggregate. Index must be unique identifiers. Multiple data columns allowed. All dtypes must be numeric. 
+    analysis_type (str): The type of enrichment analysis you want to perform. Either "ranked" or "nonranked".
+    data (pandas.DataFrame or pandas.Series, or list or array-like): The data you want to overlay. Format depends on the analysis type.
+        If ranked analysis:
+            - data is a DataFrame or Series where the index is unique gene/protein identifiers and column(s) are ranking values (e.g. expression values for genes).
+            - Multiple data columns allowed and are analyzed as separate ranked enrichment analyses.
+            - All dtypes must be numeric.
+        If unranked analysis:
+            - data is a list or index of identifiers to test pathways for enrichment with.
     sort_by (str): The metric by which to sort the pathways when selecting the top ones. You can pass "p_value" to sort by the P value (hypergeometric distribution), "proportion_found" to sort by the proportion of proteins in the pathway that were found in your data, or one of the metrics directly supported by the Reactome API, listed below. (Yes, our function just maps "p_value" and "proportion_found" to "ENTITIES_PVALUE" and "ENTITIES_RATIO" respectively.)
         "NAME",
         "TOTAL_ENTITIES",
@@ -555,9 +562,11 @@ def reactome_enrichment_analysis(df, sort_by, ascending, num_results=25):
     """
     # Check the sort_by parameter
     if sort_by == "p_value":
-        sort_by = "ENTITIES_PVALUE"
+        parsed_sort_by = "ENTITIES_PVALUE"
     elif sort_by == "proportion_found":
-        sort_by = "ENTITIES_RATIO"
+        parsed_sort_by = "ENTITIES_RATIO"
+    else:
+        parsed_sort_by = sort_by
 
     valid_sort_bys = [
         "NAME",
@@ -572,108 +581,50 @@ def reactome_enrichment_analysis(df, sort_by, ascending, num_results=25):
         "ENTITIES_FDR",
         "REACTIONS_RATIO"]
     
-    if sort_by not in valid_sort_bys: 
-        raise InvalidParameterError(f"You passed an invalid value to the 'sort_by' parameter. Must be one of the following:\n'p_value'\n'proportion_found'\n{\n.join([f'{x}' for x in valid_sort_bys])")
+    if parsed_sort_by not in valid_sort_bys: 
+        newline = "\n"
+        single_qt = "'"
+        raise InvalidParameterError(f"Invalid value for 'sort_by' parameter. You passed '{sort_by}'. Must be one of the following:\n'p_value'\n'proportion_found'\n{newline.join([f'{single_qt}{x}{single_qt}' for x in valid_sort_bys])}")
 
-    # Copy the data
-    df = df.copy(deep=True)
-    
-    # If they gave us a series, make it a dataframe
-    if isinstance(df, pd.Series):
-        if df.name is None:
-            df.name = "data"
-        df = pd.DataFrame(df)
+    if analysis_type == "ranked":
 
-    # The identifier series (the index) needs to have a name starting with "#"
-    if df.index.name is None:
-        df.index.name = "#identifier"
-    elif not df.index.name.startswith("#"):
-        df.index.name = "#" + df.index.name
+        # Copy the data
+        data = data.copy(deep=True)
+        
+        # If they gave us a series, make it a dataframe
+        if isinstance(data, pd.Series):
+            if data.name is None:
+                data.name = "data"
+            data = pd.DataFrame(data)
 
-    # Take care of NaNs
-    df = df.astype(str) # This represents NaNs as 'nan', which Reactome is OK with
+        # The identifier series (the index) needs to have a name starting with "#"
+        if data.index.name is None:
+            data.index.name = "#identifier"
+        elif not data.index.name.startswith("#"):
+            data.index.name = "#" + data.index.name
 
-    # Get the df as a tab-separated string
-    df_str = df.to_csv(sep='\t')
+        # Take care of NaNs
+        data = data.astype(str) # This represents NaNs as 'nan', which Reactome is OK with
 
-    # Post the data to the Reactome analysis service
-    analysis_url = "https://reactome.org/AnalysisService/identifiers/projection"
-    headers = {"Content-Type": "text/plain"}
-    params = {
-        "pageSize": str(num_results), 
-        "page": "1",
-        "sortBy": sort_by,
-        "order": "ASC" if ascending else "DESC"
-    }
+        # Get the data as a tab-separated string
+        data_str = data.to_csv(sep='\t')
 
-    resp = requests.post(analysis_url, headers=headers, params=params, data=df_str)
+    elif analysis_type == "unranked":
 
-    # Check that the response came back good
-    if resp.status_code != requests.codes.ok:
-        raise HttpResponseError(f"Submitting your data for analysis returned an HTTP status {resp.status_code}. The content returned from the request may be helpful:\n{resp.content.decode('utf-8')}")
+        # Format data
+        data = pd.Index(data) # Convert it to an index if it wasn't
+        data = data.dropna() # Drop NaNs
+        data = data.astype(str) # Make it strings
+        
+        # The first item needs to be a column header string starting with '#'
+        if not data[0].startswith("#"):
+            data = data.insert(0, "#identifier")
 
-    warnings_list = resp.json()["warnings"]
-    if len(warnings_list) != 0:
-        raise InvalidParameterError(f"Analysis request returned the following warnings. You may have a data formatting problem. Check that your data matches the format specified in the docstring. Here are the first few warnings:\n{'\n'.join(warnings_list[0:len(warnings_list)] if len(warnings_list) < 10 else warnings_list[0:10])}.")
+        # Get the list as a newline-separated string
+        data_str = "\n".join(data)
 
-    return resp
-
-def reactome_overrepresentation_analysis(id_list, sort_by, ascending, num_results=25):
-    """Perform an overrepresentation analysis for the given id_list. That is, for each pathway in Reactome, answer the question, "Does my list contain more entities that are part of this pathway than would be expected by chance?". Uses a hypergeometric distribution; FDR corrected p-values are also calculated using the Benjamini-Hochberg method.
-
-    id_list (list or array-like): List of identifiers to test pathways for enrichment with.
-    sort_by (str): The metric by which to sort the pathways when selecting the top ones. You can pass "p_value" to sort by the P value (hypergeometric distribution), "proportion_found" to sort by the proportion of proteins in the pathway that were found in your data, or one of the metrics directly supported by the Reactome API, listed below. (Yes, our function just maps "p_value" and "proportion_found" to "ENTITIES_PVALUE" and "ENTITIES_RATIO" respectively.)
-        "NAME",
-        "TOTAL_ENTITIES",
-        "TOTAL_INTERACTORS",
-        "TOTAL_REACTIONS",
-        "FOUND_ENTITIES",
-        "FOUND_INTERACTORS",
-        "FOUND_REACTIONS",
-        "ENTITIES_RATIO",
-        "ENTITIES_PVALUE",
-        "ENTITIES_FDR",
-        "REACTIONS_RATIO",
-    ascending (bool): When sorting pathways by the specified metric, whether to put smaller values first.
-    num_results: The number of top pathways to return data for. Default 25.
-
-    Returns:
-    pandas.DataFrame: A dataframe with info on the top enriched pathways, sorted by the specified metric.
-    """
-
-    # Check the sort_by parameter
-    if sort_by == "p_value":
-        sort_by = "ENTITIES_PVALUE"
-    elif sort_by == "proportion_found":
-        sort_by = "ENTITIES_RATIO"
-
-    valid_sort_bys = [
-        "NAME",
-        "TOTAL_ENTITIES",
-        "TOTAL_INTERACTORS",
-        "TOTAL_REACTIONS",
-        "FOUND_ENTITIES",
-        "FOUND_INTERACTORS",
-        "FOUND_REACTIONS",
-        "ENTITIES_RATIO",
-        "ENTITIES_PVALUE",
-        "ENTITIES_FDR",
-        "REACTIONS_RATIO"]
-    
-    if sort_by not in valid_sort_bys: 
-        raise InvalidParameterError(f"You passed an invalid value to the 'sort_by' parameter. Must be one of the following:\n'p_value'\n'proportion_found'\n{\n.join([f'{x}' for x in valid_sort_bys])")
-
-    # Format data
-    id_list = pd.Index(id_list) # Convert it to an index if it wasn't
-    id_list = id_list.dropna() # Drop NaNs
-    id_list = id_list.astype(str) # Make it strings
-    
-    # The first item needs to be a column header string starting with '#'
-    if not id_list[0].startswith("#"):
-        id_list = id_list.insert(0, "#identifier")
-
-    # Get the list as a newline-separated string
-    id_list_str = "\n".join(id_list)
+    else:
+        raise InvalidParameterError(f"Invalid value for 'analysis_type' parameter. You passed '{analysis_type}'. Must be 'ranked' or 'unranked'.")
 
     # Post the data to the Reactome analysis service
     analysis_url = "https://reactome.org/AnalysisService/identifiers/projection"
@@ -681,18 +632,19 @@ def reactome_overrepresentation_analysis(id_list, sort_by, ascending, num_result
     params = {
         "pageSize": str(num_results), 
         "page": "1",
-        "sortBy": sort_by,
+        "sortBy": parsed_sort_by,
         "order": "ASC" if ascending else "DESC"
     }
 
-    resp = requests.post(analysis_url, headers=headers, params=params, data=id_list_str)
+    resp = requests.post(analysis_url, headers=headers, params=params, data=data_str)
 
     # Check that the response came back good
     if resp.status_code != requests.codes.ok:
         raise HttpResponseError(f"Submitting your data for analysis returned an HTTP status {resp.status_code}. The content returned from the request may be helpful:\n{resp.content.decode('utf-8')}")
-    
+
     warnings_list = resp.json()["warnings"]
     if len(warnings_list) != 0:
-        raise InvalidParameterError(f"Analysis request returned the following warnings. You may have a data formatting problem. Check that your data matches the format specified in the docstring. Here are the first few warnings:\n{'\n'.join(warnings_list[0:len(warnings_list)] if len(warnings_list) < 10 else warnings_list[0:10])}.")
+        newline = "\n"
+        raise InvalidParameterError(f"Analysis request returned the following warnings. You may have a data formatting problem. Check that your data matches the format specified in the docstring. Here are the first few warnings:\n{newline.join(warnings_list[0:len(warnings_list)] if len(warnings_list) < 10 else warnings_list[0:10])}\n...")
 
     return resp

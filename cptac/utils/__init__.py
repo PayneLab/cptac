@@ -29,8 +29,7 @@ from .pathway_utils import (
         search_reactome_proteins_in_pathways,
         search_reactome_pathways_with_proteins,
 
-        reactome_expression_analysis,
-        reactome_overrepresentation_analysis,
+        reactome_enrichment_analysis,
 
         # Other pathway databases functions
         get_interacting_proteins,
