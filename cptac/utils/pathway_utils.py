@@ -530,7 +530,7 @@ def search_reactome_proteins_in_pathways(pathway_ids, quiet=False):
     all_pathway_df = all_pathway_df.reset_index(drop=True)
     return all_pathway_df
 
-def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, num_results=25):
+def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, disease_pathways=True, include_interactors=False, num_results=25):
     """Use the Reactome Analysis Service API to do a gene set enrichment analysis.
 
     Parameters:
@@ -555,7 +555,9 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, num_re
         "ENTITIES_FDR",
         "REACTIONS_RATIO",
     ascending (bool): When sorting pathways by the specified metric, whether to put smaller values first.
-    num_results: The number of top pathways to return data for. Default 25.
+    disease_pathways (bool, optional): Whether to include pathways that describe disease related function. Default True.
+    include_interactors (bool, optional): Whether to include computationally inferred interactors when identifying pathways that are enriched with your submitted proteins/genes. Default False. You may want to set this to True if a large portion of the identifiers you submitted do not match a Reactome pathway when it is set to False.
+    num_results (int, optional): The number of top pathways to return data for. Default 25.
 
     Returns:
     pandas.DataFrame: A dataframe with info on the top enriched pathways, sorted by the specified metric.
@@ -630,10 +632,12 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, num_re
     analysis_url = "https://reactome.org/AnalysisService/identifiers/projection"
     headers = {"Content-Type": "text/plain"}
     params = {
+        "interactors": include_interactors,
         "pageSize": str(num_results), 
         "page": "1",
         "sortBy": parsed_sort_by,
-        "order": "ASC" if ascending else "DESC"
+        "order": "ASC" if ascending else "DESC",
+        "includeDisease": disease_pathways,
     }
 
     resp = requests.post(analysis_url, headers=headers, params=params, data=data_str)
