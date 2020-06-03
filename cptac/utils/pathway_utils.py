@@ -530,7 +530,7 @@ def search_reactome_proteins_in_pathways(pathway_ids, quiet=False):
     all_pathway_df = all_pathway_df.reset_index(drop=True)
     return all_pathway_df
 
-def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, disease_pathways=True, include_interactors=False, num_results=25):
+def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, include_high_level_diagrams=True, disease_pathways=True, include_interactors=False):
     """Use the Reactome Analysis Service API to do a gene set enrichment analysis.
 
     Parameters:
@@ -541,7 +541,7 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, diseas
             - Multiple data columns allowed and are analyzed as separate ranked enrichment analyses.
             - All dtypes must be numeric.
         If unranked analysis:
-            - data is a list or index of identifiers to test pathways for enrichment with.
+            - data is a list or pandas.Index of identifiers to test pathways for enrichment with.
     sort_by (str): The metric by which to sort the pathways when selecting the top ones. You can pass "p_value" to sort by the P value (hypergeometric distribution), "proportion_found" to sort by the proportion of proteins in the pathway that were found in your data, or one of the metrics directly supported by the Reactome API, listed below. (Yes, our function just maps "p_value" and "proportion_found" to "ENTITIES_PVALUE" and "ENTITIES_RATIO" respectively.)
         "NAME",
         "TOTAL_ENTITIES",
@@ -555,9 +555,9 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, diseas
         "ENTITIES_FDR",
         "REACTIONS_RATIO",
     ascending (bool): When sorting pathways by the specified metric, whether to put smaller values first.
+    include_high_level_diagrams (bool, optional): Whether to include pathway diagrams in the output that are just summaries of lower level pathways and don't show actual reactions. If False, this will exclude any Reactome pathways that have EHLD (Enhanced Higher Level Diagrams). Default True includes these pathways in results.
     disease_pathways (bool, optional): Whether to include pathways that describe disease related function. Default True.
     include_interactors (bool, optional): Whether to include computationally inferred interactors when identifying pathways that are enriched with your submitted proteins/genes. Default False. You may want to set this to True if a large portion of the identifiers you submitted do not match a Reactome pathway when it is set to False.
-    num_results (int, optional): The number of top pathways to return data for. Default 25.
 
     Returns:
     pandas.DataFrame: A dataframe with info on the top enriched pathways, sorted by the specified metric.
@@ -633,8 +633,6 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, diseas
     headers = {"Content-Type": "text/plain"}
     params = {
         "interactors": include_interactors,
-        "pageSize": str(num_results), 
-        "page": "1",
         "sortBy": parsed_sort_by,
         "order": "ASC" if ascending else "DESC",
         "includeDisease": disease_pathways,
@@ -649,6 +647,55 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, diseas
     warnings_list = resp.json()["warnings"]
     if len(warnings_list) != 0:
         newline = "\n"
-        raise InvalidParameterError(f"Analysis request returned the following warnings. You may have a data formatting problem. Check that your data matches the format specified in the docstring. Here are the first few warnings:\n{newline.join(warnings_list[0:len(warnings_list)] if len(warnings_list) < 10 else warnings_list[0:10])}\n...")
+        raise InvalidParameterError(f"Your analysis request returned the following warnings. You may have a data formatting problem. Check that your data matches the format specified in the docstring. Here are the first few warnings:\n{newline.join(warnings_list[0:len(warnings_list)] if len(warnings_list) < 10 else warnings_list[0:10])}\n...")
 
-    return resp
+    # Process the JSON response
+    resp_json = resp.json()
+    analysis_token = resp.json()["summary"]["token"]
+    pathways_table = pd.json_normalize(resp_json["pathways"], sep="_")
+    
+    # Select the columns we want
+    pathways_table = pathways_table[["stId", "name", "entities_ratio", "entities_pValue", "entities_fdr", "entities_found", "entities_total"]]
+
+    # If requested, filter out EHLD pathways
+    if not include_high_level_diagrams:
+
+        num_ids = pathways_table["stId"].size
+        has_ehld = pd.Series()
+
+        # The API limits us to 20 ids at a time for the query we're going to run
+        for start in range(0, num_ids, 20):
+
+            stop = min(start + 20, num_ids)
+            selected_ids = pathways_table["stId"][start:stop]
+            ids_csv = ",".join(selected_ids)
+
+            # Get info for those pathways
+            headers = {
+                "content-type": "text/plain",
+                "accept": "application/json",
+            }
+
+            ehld_resp = requests.post("https://reactome.org/ContentService/data/query/ids", headers=headers, data=ids_csv)
+
+            # Check that the response came back good
+            if ehld_resp.status_code != requests.codes.ok:
+                raise HttpResponseError(f"Checking whether pathways are high level pathways returned an HTTP status {ehld_resp.status_code}. The content returned from the request may be helpful:\n{ehld_resp.content.decode('utf-8')}")
+
+            # Get the EHLD data for the selected ids
+            info_table = pd.json_normalize(ehld_resp.json()) 
+
+            # Reorder it to match the order in the pathways table
+            selected_ids = pd.DataFrame({"selected_ids": selected_ids.values}, index=selected_ids.index)
+            selected_ids = selected_ids.merge(info_table, left_on="selected_ids", right_on="stId")
+
+            # Append the result
+            has_ehld = has_ehld.append(selected_ids["hasEHLD"])
+
+        has_ehld = has_ehld.reset_index(drop=True)
+        pathways_table = pathways_table[~has_ehld]
+
+        # Make the index look normal
+        pathways_table = pathways_table.reset_index(drop=True)
+
+    return analysis_token, pathways_table
