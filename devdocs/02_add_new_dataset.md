@@ -10,7 +10,7 @@
 4. Reformat this index.txt that you just created:
     1. On each line, have the file name and hash for one file. This is the format of the md5sum output, but you need to edit it so the filenames are first, followed by a tab and no other whitespace, followed by the file hash, followed by no other whitespace.
     2. At the top of the file, add a line that has the version number preceded by a crunch, e.g. "#3.1" for version 3.1
-5. Create a folder on the Box drive for the new dataset, inside the 'CPTAC/cptac' directory (not 'CPTAC/cptac_raw' or 'CPTAC/cptac_old'), with the format "data_<dataset>", e.g. "data_endometrial". Within that folder, create another folder with a name formatted as "<dataset>_v<version>", e.g. "endometrial_v2.1". Upload all the compressed data files to this second folder.
+5. Create a folder on the Box drive for the new dataset, inside the 'CPTAC/cptac' directory (not 'CPTAC/cptac_raw' or 'CPTAC/cptac_old'), with the format "data_[dataset]", e.g. "data_endometrial". Within that folder, create another folder with a name formatted as "[dataset]_v[version]", e.g. "endometrial_v2.1". Upload all the compressed data files to this second folder.
     3. To be clear, for the endometrial dataset, you'd create "data_endometrial" and "data_endometrial/endometrial_v2.1", and upload the data files to "data_endometrial/endometrial_v2.1"
 6. Create a shared direct download link for each file, and store it in index.txt:
     4. Click on the file
@@ -23,7 +23,7 @@
 7. Now that you've finished the index file, use md5sum to create a checksum for the index file, and store the hash in a file called "index_hash.txt". md5sum will automatically output both the hash and file name, but you just want the hash, so delete the file name. Also make sure there is no whitespace before or after the hash.
 8. Upload index.txt and index_hash.txt to the parent directory you created for the dataset--for example, with the endometrial dataset, you'd upload them to the "data_endometrial/" folder, not to "data_endometrial/endometrial_v2.1/". 
 9. Create shared direct download links for the index.txt and index_hash.txt files, following the same steps as for creating shared direct download links for the data files. Even if this is a password protected dataset, you do not need to password protect these files.
-10. Within the cptac/cptac directory in the copy of the git repository on your local machine, create a directory for the dataset, with the format "data_<dataset>", e.g. "data_endometrial".
+10. Within the cptac/cptac directory in the copy of the git repository on your local machine, create a directory for the dataset, with the format "data_[dataset]", e.g. "data_endometrial".
 11. Within that directory, create a file called "index_urls.tsv". The first line of this file should have the name of the index file ("index.txt"), followed by a tab, followed by the direct download link for the index file. The second line of this file should have the name of the index hash file ("index_hash.txt"), followed by a tab, followed by the direct download link for the index hash file. There must be no extra whitespace on either line.
 12. Add index urls file to the MANIFEST.in file, which is in the same directory as setup.py
 13. Add dataset's data folder to the .gitignore, which is in the same directory as setup.py, but use and exclamation point to include the index_urls.tsv file (see existing entries in the .gitignore for examples)

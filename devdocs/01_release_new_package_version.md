@@ -10,11 +10,11 @@
 3. Use "grep -rn set_trace ." to make sure there are no files with breakpoints in them
 4. After committing the last commit for the new version, tag it with the version number: 
     4. Use "git log" to list the commits, and copy the checksum of the commit you want (e.g. 964f16d36dfccde844893cac5b347e7b3d44abbc)
-    5. Run this: git tag -a <tag> <checksum>, as in 
+    5. Run this: git tag -a [tag] [checksum], as in 
 
         git tag -a v0.0 964f16d36dfccde844893cac5b347e7b3d44abbc
 
-    6. By default, git push will not push tags, so after creating a tag, you need to push it to the repository by running "git push origin <tagname>", as in 
+    6. By default, git push will not push tags, so after creating a tag, you need to push it to the repository by running "git push origin [tagname]", as in 
 
         git push origin v0.0
 

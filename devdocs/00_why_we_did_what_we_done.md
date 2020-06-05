@@ -144,7 +144,7 @@ When a user installs the cptac package, it is installed to a package installatio
 
 ~/anaconda3/lib/python3.7/site-packages/cptac if they've installed it to their base environment, or 
 
-~/anaconda3/envs/<environment name>/lib/python3.7/site-packages/cptac if they've installed it to a different environment.
+~/anaconda3/envs/[environment name]/lib/python3.7/site-packages/cptac if they've installed it to a different environment.
 
  Within the package installation directory, they get a file structure that looks like this:
 
