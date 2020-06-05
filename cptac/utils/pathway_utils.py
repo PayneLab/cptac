@@ -332,6 +332,7 @@ def reactome_pathway_overlay(pathway, df=None, analysis_token=None, open_browser
     quality (int, optional): If export_path is not none, this specifies what relative quality to export the image at. Must be between 1 and 10 inclusive. Default 7.
 
     Returns:
+    list of float: The mean of the data values for all proteins in the pathways, for each column in the data table, in the order of the columns in the data table. I.e. each value in this list is the average of the data from a particular column for all the proteins in the pathway.
     str: If export_path is None, returns URL to diagram with data overlaid in Reactome Pathway Browser. Otherwise returns the path the image was exported to.
     """
     # Parameter checking
@@ -405,6 +406,23 @@ def reactome_pathway_overlay(pathway, df=None, analysis_token=None, open_browser
     else:
         token = analysis_token
 
+    # Get the mean data values
+    expr_url = f"https://reactome.org/AnalysisService/token/{token}/filter/pathways?resource=TOTAL&pValue=1"
+
+    headers = {
+        "accept": "application/json",
+        "content-type": "text/plain",
+    }
+
+    expr_resp = requests.post(expr_url, headers=headers, data=pathway)
+
+    # Check that the response came back good
+    if expr_resp.status_code != requests.codes.ok:
+        raise HttpResponseError(f"Submitting your data for analysis returned an HTTP status {expr_resp.status_code}. The content returned from the request may be helpful:\n{expr_resp.content.decode('utf-8')}")    
+
+    # Get the expression list
+    expr_list = expr_resp.json()[0]["entities"]["exp"]
+
     # Use the token and the pathway ID to open the pathway diagram with the data overlaid in the Reactome Pathway Browser
     viewer_url = f"https://reactome.org/PathwayBrowser/#/{pathway}&DTAB=AN&ANALYSIS={token}"
     if open_browser:
@@ -425,9 +443,9 @@ def reactome_pathway_overlay(pathway, df=None, analysis_token=None, open_browser
             dest.write(export_resp.content)
 
     if export_path is None:
-        return viewer_url
+        return expr_list, viewer_url
     else:
-        return export_path
+        return expr_list, export_path
 
 
 def search_reactome_pathways_with_proteins(ids, resource="UniProt", quiet=False):
@@ -653,7 +671,7 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, includ
 
     # Process the JSON response
     resp_json = resp.json()
-    analysis_token = resp.json()["summary"]["token"]
+    analysis_token = resp_json["summary"]["token"]
     pathways_table = pd.json_normalize(resp_json["pathways"], sep="_")
     
     # Select the columns we want
