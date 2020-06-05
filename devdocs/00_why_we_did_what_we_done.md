@@ -1,5 +1,5 @@
 ```
-"WELCOME TO cptac!
+"WELCOME TO CPTAC!
 
 cptac is a package of adventure, danger, and low cunning. In it you will
 explore some of the most amazing data ever seen by mortals. No computer should

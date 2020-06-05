@@ -23,40 +23,38 @@ Steps for updating an existing dataset:
 6. Add the version number for the new data version to the valid_versions list at the beginning of the dataset's __init__ function.
 7. Edit the `data_files` dictionary created at the beginning of the dataset's class's __init__ function, so that it contains a key that is the new version number, with a value that is a list of all the files in the new data version.
 8. Write new `if`/`elif` statements in the dataframe loading portion of the __init__ function to load and parse any data files that weren't included in the previous data version. In those statements, add an additional condition that self._version match the new data version, so that the block won't be executed if they're loading the old version.
-    3. As will be mentioned again in step 9, make sure that these new tables are formatted properly. For formatting details, look at the dataframes from previous versions for examples, and consult the "add_new_dataset" document.
+    1. As will be mentioned again in step 9, make sure that these new tables are formatted properly. For formatting details, look at the dataframes from previous versions for examples, and consult the "add_new_dataset" document.
         1. You may encounter tables that need a multi-level column index. Consult the "Mulit-level column indices" section of the "why_we_did_what_we_done" document for more details, if you're unfamiliar with the Pandas MultiIndex.
-    4. None of the column headers should be duplicated.
+    2. None of the column headers should be duplicated.
 9. As necessary, edit the `if`/`elif` statements for data files that were already included in the previous data release. 
-    5. You can usually use most of the same loading code to load and parse these files, if their format didn't change drastically. To check for differences, I recommend manually reading in the old and new versions of the file in a Python interpreter, using the pandas read_csv function, and comparing the two versions of the files. You can also manually type in the old loading and parsing code, but use it on the new file, and see if it works (or do this with the Python debugger).
-    6. If you're using the same file between two versions, but the file name has changed, you'll have to edit the if statement so that it will accept both file names. So, instead of something like `if file_name == old_file_name:` you can say `if file_name in [old_file_name, new_file_name]:`
-    7. As mentioned above, if you do need to make changes, **don't delete the old code**, because we still want to be able to load the old files. Instead, add an `if` statement that checks the data version (stored in the self._version attribute of the dataset class), and executes the old code if we're loading the old version, or executes the new code if we're loading the new version. For examples of this, look at cptac/gbm.py.
-    8. There may have been conditional statements that were based on the version of the data--they would look like
+    1. You can usually use most of the same loading code to load and parse these files, if their format didn't change drastically. To check for differences, I recommend manually reading in the old and new versions of the file in a Python interpreter, using the pandas read_csv function, and comparing the two versions of the files. You can also manually type in the old loading and parsing code, but use it on the new file, and see if it works (or do this with the Python debugger).
+    2. If you're using the same file between two versions, but the file name has changed, you'll have to edit the if statement so that it will accept both file names. So, instead of something like `if file_name == old_file_name:` you can say `if file_name in [old_file_name, new_file_name]:`
+    3. As mentioned above, if you do need to make changes, **don't delete the old code**, because we still want to be able to load the old files. Instead, add an `if` statement that checks the data version (stored in the self._version attribute of the dataset class), and executes the old code if we're loading the old version, or executes the new code if we're loading the new version. For examples of this, look at cptac/gbm.py.
+    4. There may have been conditional statements that were based on the version of the data--they would look like
 
     ```
-            if self._version == "2.0":
-                # Process older file version...
-            elif self._version == "2.5":
-                # Process new file version...
+    if self._version == "2.0":
+        # Process older file version...
+    elif self._version == "2.5":
+        # Process new file version...
     ```
 
+    If you were updating to data version 3.0, for example, but the particular file was the same as in version 2.5, you'd need to edit the conditional to look like the following, so that it would still process the file the same way as version 2.5:
 
-        If you were updating to data version 3.0, for example, but the particular file was the same as in version 2.5, you'd need to edit the conditional to look like the following, so that it would still process the file the same way as version 2.5:
-
-
-        ```
-        if self._version == "2.0":
-                    # Process older file version...
-                elif self._version in ["2.5", "3.0"]:
-                    # Process new file version…
-        ```
+    ```
+    if self._version == "2.0":
+        # Process older file version...
+    elif self._version in ["2.5", "3.0"]:
+        # Process new file version…
+    ```
 
 
         To find all places where you'd need to make the edit, you could just do a search for the string `_version`.
 
 10. Make sure that new data files are processed properly:
-    9. If any columns were being dropped from the old dataframe, make sure we should still drop those columns from the new one.
-    10. Compare the patient ids and sample ids included in the new vs. old data, and consider any ramifications of a new sample being included, or a previously included sample no longer being included.
-    11. Make sure to check all tables for duplicate column headers or rows, additional indexing columns, etc. For full formatting details, look at the dataframes from previous versions for examples, and consult the "Dataframe formatting requirements" section in the "add_new_dataset" document. 
+    1. If any columns were being dropped from the old dataframe, make sure we should still drop those columns from the new one.
+    2. Compare the patient ids and sample ids included in the new vs. old data, and consider any ramifications of a new sample being included, or a previously included sample no longer being included.
+    3. Make sure to check all tables for duplicate column headers or rows, additional indexing columns, etc. For full formatting details, look at the dataframes from previous versions for examples, and consult the "Dataframe formatting requirements" section in the "add_new_dataset" document. 
 11. Check the possibilities for values in the "Mutation" column of the somatic_mutation dataframe. The standard possibilities are ['Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', 'Splice_Site', 'In_Frame_Del', 'In_Frame_Ins', 'Missense_Mutation']. 'Silent' is optional. If the new mutation file uses different categories, you will need to add an elif statement in the DataSet._filter_multiple_mutations function to handle that. This also affects the DataSet.get_genotype_all_vars function, and the utils.get_frequently_mutated function.
 12. Make a new index file and index hash. However, instead of creating a new index file, append the new indexing information to the end of the existing index file, to create something like this:
 
@@ -64,5 +62,5 @@ Steps for updating an existing dataset:
  (Note that even if a file stays exactly the same between two data versions, we still have a different copy of it in each version's data directory on Box, and thus have a unique shared URL for that file in that data version.)
 13. **IMPORTANT:** Uncomment the lines of code in the cptac/dataset.py file that you commented out in step one, and delete the temporary line of code.
 14. Release the new version of the package on GitHub and PyPI, following all of the instructions in the "release_new_package_version" document. Make sure to update the `version.txt` file on Box so users will know they need to update the package. Then, immediately after releasing the new package on PyPI, upload the updated dataset's index and index_hash files on Box. 
-    12. Make sure to update the files on Box quickly, because until the index and index hash files are updated, the package will be broken for anyone who tries to use the new package version. 
-    13. While updating the files on Box, make sure to use the "Upload New Version" button for the existing versions of the files, instead of separately uploading the new versions of files, so that the shared URLs for the files don't change. If the URLs changed, it would make it so no one could download the files with the URLs embedded in the package.
+    1. Make sure to update the files on Box quickly, because until the index and index hash files are updated, the package will be broken for anyone who tries to use the new package version. 
+    2. While updating the files on Box, make sure to use the "Upload New Version" button for the existing versions of the files, instead of separately uploading the new versions of files, so that the shared URLs for the files don't change. If the URLs changed, it would make it so no one could download the files with the URLs embedded in the package.
