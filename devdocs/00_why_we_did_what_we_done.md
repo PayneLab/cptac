@@ -1,9 +1,10 @@
 ```
 "WELCOME TO cptac!
 
-cptac is a package of adventure, danger, and low cunning. In it you will explore some of the most amazing data ever seen by mortals. No computer should be without one!"
+cptac is a package of adventure, danger, and low cunning. In it you will
+explore some of the most amazing data ever seen by mortals. No computer should
+be without one!"
 
-_________________________________________________________________
 ```
 
 
@@ -52,43 +53,24 @@ In this section, we'll go through how we implemented the package.
 
 The data for each dataset are currently stored on Dr. Payne's Box drive. Here is a sketch of the file structure we use on Box for storing the data:
 
+```
 cptac/
-
     version.txt
-
     data_brca/
-
     data_ccrcc/
-
         index.txt
-
         index_hash.txt
-
         ccrcc_v0.0/
-
-
             ccrccMethylGeneLevelByMean.txt.gz
-
-
             ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz
-
-
             Clinical Table S1.xlsx
-
-
             cptac-metadata.xls.gz
-
-
             kirc_wgs_cnv_gene.csv.gz
-
-
             ...
-
     data_colon/
-
     data_endometrial/
-
-    …
+    ...
+```
 
 As you can see, we refer to each dataset by an acronym or short name. BRCA is for breast cancer, CCRCC is for clear cell renal cell carcinoma, endometrial is short for uterine corpus endometrial carcinoma (UCEC), and so on. 
 
@@ -111,78 +93,53 @@ Several datasets have more than one data version. The index contains the informa
 
 This is what the structure of the data_endometrial folder would look like if there were multiple versions of the endometrial dataset:
 
+```
 data_endometrial/
-
     index.txt
-
     index_hash.txt
-
     endometrial_v2.0/
-
         clinical.txt
-
         CNA.cct.gz
-
         definitions.txt
-
         ...
-
     endometrial_v2.1/
-
         acetylproteomics.cct.gz
-
         clinical.txt
-
         CNA.cct.gz
-
         ...
+```
 
 
 ### Downloading the data
 
 When a user installs the cptac package, it is installed to a package installation directory at one of the following locations (if they're using Anaconda):
 
-~/anaconda3/lib/python3.7/site-packages/cptac if they've installed it to their base environment, or 
+`~/anaconda3/lib/python3.7/site-packages/cptac` if they've installed it to their base environment, or 
 
-~/anaconda3/envs/[environment name]/lib/python3.7/site-packages/cptac if they've installed it to a different environment.
+`~/anaconda3/envs/[ENVIRONMENT NAME]/lib/python3.7/site-packages/cptac` if they've installed it to a different environment.
 
  Within the package installation directory, they get a file structure that looks like this:
 
+```
 cptac/
-
     __init__.py
-
     brca.py
-
     ccrcc.py
-
     colon.py
-
     dataframe_tools.py
-
     dataset.py
-
     endometrial.py
-
-    …
-
-    data_brca/
-
-        index_urls.tsv
-
-    data_ccrcc/
-
-        index_urls.tsv
-
-    data_colon/
-
-        index_urls.tsv
-
-    data_endometrial/
-
-        index_urls.tsv
-
     ...
+    data_brca/
+        index_urls.tsv
+    data_ccrcc/
+        index_urls.tsv
+    data_colon/
+        index_urls.tsv
+    data_endometrial/
+        index_urls.tsv
+    ...
+```
 
 The various .py files contain the code for running the package. We will discuss those in a moment. The folders with the "data" prefix are the folders for storing the data files for each dataset. For every dataset folder on Box, there is a corresponding data folder within the package. However, as you can see, when a user first downloads the package, these data folders don't contain any data files, because the user hasn't downloaded any yet.
 
@@ -198,86 +155,42 @@ When a user runs the cptac.download function, located in the cptac/file_download
 
 After downloading a couple datasets, the file structure in the installation directory on the user's machine will look something like this:
 
+```
 cptac/
-
     __init__.py
-
     brca.py
-
     ccrcc.py
-
     colon.py
-
     dataframe_tools.py
-
     dataset.py
-
     endometrial.py
-
-    …
-
+    ...
     data_brca/
-
         index_urls.tsv
-
     data_ccrcc/
-
         index.txt
-
         index_urls.tsv
-
         ccrcc_v0.0/
-
             ccrccMethylGeneLevelByMean.txt.gz
-
-
             ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz
-
-
             Clinical Table S1.xlsx
-
-
             cptac-metadata.xls.gz
-
-
             kirc_wgs_cnv_gene.csv.gz
-
-
             ...
-
     data_colon/
-
         index_urls.tsv
-
     data_endometrial/
-
         index.txt
-
-
-    index_urls.tsv
-
-
-    endometrial_v2.1/
-
-
-        acetylproteomics.cct.gz
-
-
-        clinical.txt
-
-
+        index_urls.tsv
+        endometrial_v2.1/
+            acetylproteomics.cct.gz
+            clinical.txt
             CNA.cct.gz
-
-
-        definitions.txt
-
-
-        miRNA.cct.gz
-
-
+            definitions.txt
+            miRNA.cct.gz
         ...
-
-    …
+    ...
+```
 
 In the example above, the user has downloaded version 0.0 of the CCRCC data, and version 2.1 of the endometrial data.
 
