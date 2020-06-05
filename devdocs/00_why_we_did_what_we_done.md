@@ -5,7 +5,7 @@ cptac is a package of adventure, danger, and low cunning. In it you will
 explore some of the most amazing data ever seen by mortals. No computer should
 be without one!"
 ```
-
+(a paraphrase of the opening to the beloved 1977 text-based adventure game [Zork](https://en.wikipedia.org/wiki/Zork) created at MIT by Tim Anderson, Marc Blank, Bruce Daniels, and Dave Lebling)
 
 This document will explain what cptac is, how it is structured, and why we chose to structure it that way.
 
