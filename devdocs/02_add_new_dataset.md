@@ -28,9 +28,9 @@
 12. Add index urls file to the MANIFEST.in file, which is in the same directory as setup.py
 13. Add dataset's data folder to the .gitignore, which is in the same directory as setup.py, but use and exclamation point to include the index_urls.tsv file (see existing entries in the .gitignore for examples)
 
-**Adding the code for a new dataset **
 
 
+**Adding the code for a new dataset**
 
 1. Write a dataset loader, stored in the cptac/cptac/ directory, and having the dataset name, all lowercase, as the filename, with .py as the extension. For example, the loader for the endometrial dataset is called `endometrial.py`; for the CCRCC dataset, it's called `ccrcc.py`.
     1. See child_dataset_template.py for more info.

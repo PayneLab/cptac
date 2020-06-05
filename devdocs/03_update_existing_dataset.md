@@ -32,21 +32,21 @@ Steps for updating an existing dataset:
     3. As mentioned above, if you do need to make changes, **don't delete the old code**, because we still want to be able to load the old files. Instead, add an `if` statement that checks the data version (stored in the self._version attribute of the dataset class), and executes the old code if we're loading the old version, or executes the new code if we're loading the new version. For examples of this, look at cptac/gbm.py.
     4. There may have been conditional statements that were based on the version of the data--they would look like
 
-    ```
-    if self._version == "2.0":
-        # Process older file version...
-    elif self._version == "2.5":
-        # Process new file version...
-    ```
+        ```
+        if self._version == "2.0":
+            # Process older file version...
+        elif self._version == "2.5":
+            # Process new file version...
+        ```
 
-    If you were updating to data version 3.0, for example, but the particular file was the same as in version 2.5, you'd need to edit the conditional to look like the following, so that it would still process the file the same way as version 2.5:
+        If you were updating to data version 3.0, for example, but the particular file was the same as in version 2.5, you'd need to edit the conditional to look like the following, so that it would still process the file the same way as version 2.5:
 
-    ```
-    if self._version == "2.0":
-        # Process older file version...
-    elif self._version in ["2.5", "3.0"]:
-        # Process new file version…
-    ```
+        ```
+        if self._version == "2.0":
+            # Process older file version...
+        elif self._version in ["2.5", "3.0"]:
+            # Process new file version…
+        ```
 
 
         To find all places where you'd need to make the edit, you could just do a search for the string `_version`.
