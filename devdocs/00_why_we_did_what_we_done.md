@@ -4,7 +4,6 @@
 cptac is a package of adventure, danger, and low cunning. In it you will
 explore some of the most amazing data ever seen by mortals. No computer should
 be without one!"
-
 ```
 
 
@@ -91,7 +90,7 @@ Several datasets have more than one data version. The index contains the informa
 ![endometrial_multi_version_index](imgs/endo_multi_version_index.png)
 
 
-This is what the structure of the data_endometrial folder would look like if there were multiple versions of the endometrial dataset:
+This is what the structure of the data_endometrial folder would look like with multiple versions of the endometrial dataset:
 
 ```
 data_endometrial/
@@ -143,7 +142,7 @@ cptac/
 
 The various .py files contain the code for running the package. We will discuss those in a moment. The folders with the "data" prefix are the folders for storing the data files for each dataset. For every dataset folder on Box, there is a corresponding data folder within the package. However, as you can see, when a user first downloads the package, these data folders don't contain any data files, because the user hasn't downloaded any yet.
 
-What each data folder does contain is an "index_urls.tsv" file for that dataset. This tsv file contains the direct download URLs for the index for that dataset, and the index hash for that dataset, both of which you saw in the Box drive. This is what the file looks like for CCRCC:
+What each data folder does contain is an `index_urls.tsv` file for that dataset. This tsv file contains the direct download URLs for the index for that dataset, and the index hash for that dataset, both of which you saw in the Box drive. This is what the file looks like for CCRCC:
 
 
 ![ccrcc_index_urls](imgs/ccrcc_index_urls.png)
@@ -151,7 +150,7 @@ What each data folder does contain is an "index_urls.tsv" file for that dataset.
 
 As you can see, it's a small, simple file. It has the same format for every dataset. The first line has the name of the index file, then a tab character, then the direct download URL for the index; the second line has the name of the index hash file, then a tab character, then the direct download URL for the index checksum.
 
-When a user runs the cptac.download function, located in the cptac/file_download.py file, the function uses the URLs from index_urls.tsv to download index.txt from Box, and then to download index_hash.txt and check against the slim chance of the index being corrupted on download. It saves index.txt in the data folder, and then creates a subdirectory in the data directory, for the data version the user has requested to download. It then uses the URLs from the index file to download the data files and save them to the version subdirectory. After each download, it hashes the file and checks it against the hash provided in the index, to make sure nothing went wrong during the download.
+When a user runs the cptac.download function, located in the `cptac/file_download.py` file, the function uses the URLs from index_urls.tsv to download index.txt from Box, and then to download index_hash.txt and check against the slim chance of the index being corrupted on download. It saves index.txt in the data folder, and then creates a subdirectory in the data directory, for the data version the user has requested to download. It then uses the URLs from the index file to download the data files and save them to the version subdirectory. After each download, it hashes the file and checks it against the hash provided in the index, to make sure nothing went wrong during the download.
 
 After downloading a couple datasets, the file structure in the installation directory on the user's machine will look something like this:
 
@@ -206,17 +205,17 @@ Once a user has downloaded a dataset, they can access it in their Python interpr
 
 
 
-*   import cptac
-    *   This imports the package into the current namespace, and runs everything in cptac/__init__.py , which defines some helper functions (cptac.list_datasets, cptac.how_to_cite, etc.), sets up error and warning handling for cptac-generated errors and warnings (more on that later), and checks that the package is up-to-date.
-*   en = cptac.Endometrial()
-    *   This creates an instance of the Endometrial class, which is defined in cptac/endometrial.py, and calls the class's __init__ function. 
-    *   The Endometrial __init__ function first calls the __init__ function of its parent class, DataSet, located in cptac/dataset.py. This initializes several private variables self._data, which is the dictionary for holding the dataset's dataframes.
-    *   The Endometrial __init__ then calls the update_index function, located in cptac/file_download.py, to check that the index is downloaded and up to date. If there's no internet, this check fails silently, and the user can still use the dataset.
-    *   The __init__ function then calls the validate_version function, located in cptac/file_tools.py, to parse the version parameter passed in the class instantiation.
-    *   Then, the __init__ gets a list of the paths to all the data files for the dataset (assuming they're downloaded), and reads them in one by one, using a series of elif statements to read in each file as it needs to be, and then saving each dataframe as a value in the self._data dictionary, with the name of the dataframe as the key.
-    *   Finally, the __init__ performs a series of operations to properly format each dataframe, and reindex them with sample IDs as needed.
-*   prot = en.get_proteomics()
-    *   Like all of the get, join, and other member functions of the Endometrial class, get_proteomics is inherited from the DataSet class (in cptac/dataset.py). 
+*   `import cptac`
+    *   This imports the package into the current namespace, and runs everything in `cptac/__init__.py`, which defines some helper functions (cptac.list_datasets, cptac.how_to_cite, etc.), sets up error and warning handling for cptac-generated errors and warnings (more on that later), and checks that the package is up-to-date.
+*   `en = cptac.Endometrial()`
+    *   This creates an instance of the Endometrial class, which is defined in `cptac/endometrial.py`, and calls the class's `__init__` function. 
+    *   The Endometrial `__init__` function first calls the `__init__` function of its parent class, DataSet, located in `cptac/dataset.py`. This initializes several private variables self._data, which is the dictionary for holding the dataset's dataframes.
+    *   The Endometrial `__init__` then calls the update_index function, located in `cptac/file_download.py`, to check that the index is downloaded and up to date. If there's no internet, this check fails silently, and the user can still use the dataset.
+    *   The `__init__` function then calls the validate_version function, located in `cptac/file_tools.py`, to parse the version parameter passed in the class instantiation.
+    *   Then, the `__init__` gets a list of the paths to all the data files for the dataset (assuming they're downloaded), and reads them in one by one, using a series of elif statements to read in each file as it needs to be, and then saving each dataframe as a value in the self._data dictionary, with the name of the dataframe as the key.
+    *   Finally, the `__init__` performs a series of operations to properly format each dataframe, and reindex them with sample IDs as needed.
+*   `prot = en.get_proteomics()`
+    *   Like all of the get, join, and other member functions of the Endometrial class, get_proteomics is inherited from the DataSet class (in `cptac/dataset.py`). 
     *   get_proteomics calls the private Dataset._get_dataframe function, passing "proteomics", to get the proteomics dataframe.
     *   _get_dataframe checks that the dataframe is included in the dataset's self._data variable, and then makes a deep copy of the dataframe and returns it to get_proteomics. get_proteomics then returns it to the user. Returning a deep copy ensures that any operations performed by the user on the dataframe don't affect the master copy stored in self._data.
 
@@ -255,7 +254,7 @@ Below, we print an example of what an actual dataframe with a multi-level column
 
 Multi-level indexing has many advantages as a method for uniquely identifying columns. It makes it simple to select columns based on any combination of keys, because each key is a different element in the tuple, so it's easy to look at just a single key, or multiple keys, when selecting data. For example, we could select all columns with a particular gene name, or look at columns with a particular type of site in the "Site" level of the index. 
 
-We provide a helper function, DataSet.reduce_multiindex, to make it easier for users to work with dataframes that have multi-level column indices. It has a "levels_to_drop" parameter that allows a user to drop one or multiple levels from a column multiindex, and it warns the user if such an operation creates any duplicated column headers. It also has a "flatten" parameter that provides the option to concatenate the values from each level of the index into a single string for each column header, thus create a single-level index, but avoiding duplicate column headers. By default, it uses an underscore as the separator character between the values joined from different levels, but the user can specify a different character.
+We provide a helper function, DataSet.reduce_multiindex, to make it easier for users to work with dataframes that have multi-level column indices. It has a `levels_to_drop` parameter that allows a user to drop one or multiple levels from a column multiindex, and it warns the user if such an operation creates any duplicated column headers. It also has a `flatten` parameter that provides the option to concatenate the values from each level of the index into a single string for each column header, thus create a single-level index, but avoiding duplicate column headers. By default, it uses an underscore as the separator character between the values joined from different levels, but the user can specify a different character.
 
 
 ### Merging dataframes
@@ -278,21 +277,21 @@ These functions handle numerous details that would normally make joining tables 
 *   When two dataframes are joined that have a different number of levels in their column indices, levels filled with NaNs are added to the column index of the dataframe with less levels, so they are compatible for joining.
 *   The join functions use full outer joins. If this causes any cells to be filled with NaN because there wasn't a value in that column for a particular sample that did exist in the other dataframe, the function warns the user.
 *   When joining an omics or metadata dataframe to the mutations dataframe, the join function automatically handles the work of selecting the specified mutations from the somatic mutation dataframe, and reformatting the table to be joinable with an omics or metadata dataframe.
-*   When there are multiple mutations for a single sample in a particular gene, the join_omics_to_mutations and join_metadata_to_mutations functions have a "mutations_filter" parameter that allows you to filter those multiple mutations down to a single mutation, using either a default priority, or using a priority the user supplies.
+*   When there are multiple mutations for a single sample in a particular gene, the join_omics_to_mutations and join_metadata_to_mutations functions have a `mutations_filter` parameter that allows you to filter those multiple mutations down to a single mutation, using either a default priority, or using a priority the user supplies.
 
 (Note that some metadata tables, such as treatment and medical_history, have multiple rows for each sample, and as a result cannot be used in join functions.)
 
 
 ### Package checks if it's up-to-date
 
-As noted earlier, cptac automatically checks that it's up-to-date, every time a user imports it. This is done in the cptac/__init__.py file. The package version is checked by using the hardcoded download URL to download the version.txt file on Box and read it into a string, and then comparing that string with the return value of cptac.version(). If the two values do not match, a warning that the package is out-of-date is printed to stderr.
+As noted earlier, cptac automatically checks that it's up-to-date, every time a user imports it. This is done in the `cptac/__init__.py` file. The package version is checked by using the hardcoded download URL to download the version.txt file on Box and read it into a string, and then comparing that string with the return value of cptac.version(). If the two values do not match, a warning that the package is out-of-date is printed to stderr.
 
 
 ### Exceptions and warnings
 
 There are various reasons that an exception or warning might need to be raised by cptac. For example, a user may pass the wrong type of parameter to a function, or request a dataframe or column that doesn't exist in that particular dataset, or create duplicate levels in a column multiindex when they request to drop a particular level. If a problem is severe enough that the entire operation needs to be cancelled, cptac does so by raising an exception. If the issue is not fatal, and is merely something the user should be aware of, cptac issues a warning, using the standard Python warnings module. This design is clean and simple. Additionally, since all warning and exception messages are sent to stderr, not stdout, it is easy for a user to separate the output of a command or script from the warning or error messages--they simply just pipe stderr and stdout to different output files.
 
-The disadvantage to exceptions and warnings is that their syntax can be confusing or intimidating to users with less coding experience, and that includes many biologists who we hope will use this package. To solve this problem, we created custom exception and warning classes for all exceptions and warnings generated by cptac. They are defined in cptac/exceptions.py. Then, in the package initialization code in cptac/__init__.py, which is run immediately when a user imports the package, we set a custom exception hook (sys.excepthook) and warning displayer (warnings.showwarning). When an exception or warning is routed through one of these, they check whether it inherits from CptacException or CptacWarning, the base classes for all the exceptions and warnings defined in cptac/exceptions.py. If it is, the exception or warning message is parsed and printed in a simple, non-intimidating format, and the user can go on their merry way. If the exception or warning originated from another source, however, it is printed in the default format. We've included an example below.
+The disadvantage to exceptions and warnings is that their syntax can be confusing or intimidating to users with less coding experience, and that includes many biologists who we hope will use this package. To solve this problem, we created custom exception and warning classes for all exceptions and warnings generated by cptac. They are defined in `cptac/exceptions.py`. Then, in the package initialization code in `cptac/__init__.py`, which is run immediately when a user imports the package, we set a custom exception hook (sys.excepthook) and warning displayer (warnings.showwarning). When an exception or warning is routed through one of these, they check whether it inherits from CptacException or CptacWarning, the base classes for all the exceptions and warnings defined in `cptac/exceptions.py`. If it is, the exception or warning message is parsed and printed in a simple, non-intimidating format, and the user can go on their merry way. If the exception or warning originated from another source, however, it is printed in the default format. We've included an example below.
 
 
 ![errors_demo](imgs/errors_demo.png)

@@ -6,12 +6,12 @@
 
 1. Download the data files onto your machine.
 2. gzip the files (unless they're Excel files--then just leave them uncompressed).
-3. Use md5sum to hash all the files, and send the output to a file called "index.txt".
+3. Use md5sum to hash all the files, and send the output to a file called `index.txt`.
 4. Reformat this index.txt that you just created:
     1. On each line, have the file name and hash for one file. This is the format of the md5sum output, but you need to edit it so the filenames are first, followed by a tab and no other whitespace, followed by the file hash, followed by no other whitespace.
     2. At the top of the file, add a line that has the version number preceded by a crunch, e.g. "#3.1" for version 3.1
-5. Create a folder on the Box drive for the new dataset, inside the 'CPTAC/cptac' directory (not 'CPTAC/cptac_raw' or 'CPTAC/cptac_old'), with the format "data_[dataset]", e.g. "data_endometrial". Within that folder, create another folder with a name formatted as "[dataset]_v[version]", e.g. "endometrial_v2.1". Upload all the compressed data files to this second folder.
-    3. To be clear, for the endometrial dataset, you'd create "data_endometrial" and "data_endometrial/endometrial_v2.1", and upload the data files to "data_endometrial/endometrial_v2.1"
+5. Create a folder on the Box drive for the new dataset, inside the `CPTAC/cptac` directory (not `CPTAC/cptac_raw` or `CPTAC/cptac_old`), with the format `data_[dataset]`, e.g. `data_endometrial`. Within that folder, create another folder with a name formatted as `[dataset]_v[version]`, e.g. `endometrial_v2.1`. Upload all the compressed data files to this second folder.
+    3. To be clear, for the endometrial dataset, you'd create `data_endometrial` and `data_endometrial/endometrial_v2.1`, and upload the data files to `data_endometrial/endometrial_v2.1`
 6. Create a shared direct download link for each file, and store it in index.txt:
     4. Click on the file
     5. Click on the "Share" button for the file
@@ -20,11 +20,11 @@
     8. Click on the "Link settings" button, and at the bottom of the new box that pops up, you'll find the link to directly download the file, under the header "Direct Link". This is the link we need to put in our index; the link in the previous popup box was just for viewing the file.
         1. Optional: If you need to password protect the file, check the "Require password" box under the "Password Protect" header and enter the desired password. It must be the same password for all files within one dataset.
     9. Copy the direct download link, and paste it into index.txt. Put it on the same line as the file it corresponds to, after the hash, separated from the hash by a tab and no other whitespace, and followed by no other whitespace.
-7. Now that you've finished the index file, use md5sum to create a checksum for the index file, and store the hash in a file called "index_hash.txt". md5sum will automatically output both the hash and file name, but you just want the hash, so delete the file name. Also make sure there is no whitespace before or after the hash.
-8. Upload index.txt and index_hash.txt to the parent directory you created for the dataset--for example, with the endometrial dataset, you'd upload them to the "data_endometrial/" folder, not to "data_endometrial/endometrial_v2.1/". 
+7. Now that you've finished the index file, use md5sum to create a checksum for the index file, and store the hash in a file called `index_hash.txt`. md5sum will automatically output both the hash and file name, but you just want the hash, so delete the file name. Also make sure there is no whitespace before or after the hash.
+8. Upload index.txt and index_hash.txt to the parent directory you created for the dataset--for example, with the endometrial dataset, you'd upload them to the `data_endometrial/` folder, not to `data_endometrial/endometrial_v2.1/`. 
 9. Create shared direct download links for the index.txt and index_hash.txt files, following the same steps as for creating shared direct download links for the data files. Even if this is a password protected dataset, you do not need to password protect these files.
-10. Within the cptac/cptac directory in the copy of the git repository on your local machine, create a directory for the dataset, with the format "data_[dataset]", e.g. "data_endometrial".
-11. Within that directory, create a file called "index_urls.tsv". The first line of this file should have the name of the index file ("index.txt"), followed by a tab, followed by the direct download link for the index file. The second line of this file should have the name of the index hash file ("index_hash.txt"), followed by a tab, followed by the direct download link for the index hash file. There must be no extra whitespace on either line.
+10. Within the cptac/cptac directory in the copy of the git repository on your local machine, create a directory for the dataset, with the format `data_[dataset]`, e.g. `data_endometrial`.
+11. Within that directory, create a file called `index_urls.tsv`. The first line of this file should have the name of the index file (`index.txt`), followed by a tab, followed by the direct download link for the index file. The second line of this file should have the name of the index hash file (`index_hash.txt`), followed by a tab, followed by the direct download link for the index hash file. There must be no extra whitespace on either line.
 12. Add index urls file to the MANIFEST.in file, which is in the same directory as setup.py
 13. Add dataset's data folder to the .gitignore, which is in the same directory as setup.py, but use and exclamation point to include the index_urls.tsv file (see existing entries in the .gitignore for examples)
 
@@ -32,12 +32,12 @@
 
 
 
-1. Write a dataset loader, stored in the cptac/cptac/ directory, and having the dataset name, all lowercase, as the filename, with .py as the extension. For example, the loader for the endometrial dataset is called "endometrial.py"; for the CCRCC dataset, it's called "ccrcc.py".
+1. Write a dataset loader, stored in the cptac/cptac/ directory, and having the dataset name, all lowercase, as the filename, with .py as the extension. For example, the loader for the endometrial dataset is called `endometrial.py`; for the CCRCC dataset, it's called `ccrcc.py`.
     1. See child_dataset_template.py for more info.
-2. At the top of cptac/__init__.py, add a line to import the dataset class from its file, using the lowercase file name and the UpperCamelCase dataset name (e.g. "from .ccrcc import Ccrcc")
+2. At the top of `cptac/__init__.py`, add a line to import the dataset class from its file, using the lowercase file name and the UpperCamelCase dataset name (e.g. `from .ccrcc import Ccrcc`)
 3. Add the dataset and its associated info to cptac.list_datasets()
 4. Make sure all dfs in self._valid_metatdata_dfs and self._valid_omics_dfs in dataset.py are valid as metadata or omics dfs, respectively, for the utilities functions. If not, override those lists for the dataset class.
-5. If the dataset is password protected, add it to the password_protected_datasets list in the download function in the cptac/file_download.py file.
+5. If the dataset is password protected, add it to the password_protected_datasets list in the download function in the `cptac/file_download.py` file.
 6. At the point marked in the child dataset template, write code to format the dataframes according to the specifications below.
 
 **General dataframe formatting requirements**
@@ -69,7 +69,7 @@ These tables conform to these requirements
 *   No duplicate column headers or index values.
     *   Check by calling the 'df.index.duplicated().any()' and 'df.columns.duplicated().any()' functions; both should return False.
     *   Exception: The somatic_mutation dataframe will have multiple rows for each sample, so it will have duplicate index values.
-        *   Some metadata dataframes, such as the treatment dataframe in Ovarian or medical_history dataframe in Ccrcc, may also have multiple rows for each sample. If so, they will need to be excluded from join functions. Check the _valid_omics_dfs and _valid_metadata_dfs and make sure that tables with duplicate index values aren't included in either of those lists.
+        *   Some metadata dataframes, such as the treatment dataframe in Ovarian or medical_history dataframe in Ccrcc, may also have multiple rows for each sample. If so, they will need to be excluded from join functions. Check the _valid_omics_dfs and _valid_metadata_dfs lists and make sure that tables with duplicate index values aren't included in either of those lists.
     *   There may be duplicate column headers. If that's the case, you'll probably need to use additional identifiers to uniquely identify each column. We use a multi-level column index to accomplish this (see the 00_why_we_did_what_we_done document for more details).
     *   If you have duplicated samples, either there are multiple rows for each patient (as in the treatment or somatic_mutation dataframes), or you need to prepend an 'N' to the Patient_IDs of the normal samples.
 *   Index and column names are standardized:
@@ -81,7 +81,7 @@ These tables conform to these requirements
     *   Include the minimum number of levels needed to uniquely identify each column. In addition to the gene name, you may need to include a level for a database identifier, a phosphorylation/acetylation site (if it's a phosphoproteomics or acetylproteomics file), and/or a peptide. If it's not a phosphoproteomics or acetylproteomics file, the gene name and database ID levels will probably be sufficient, since database IDs will be unique for different isoforms.
     *   Whatever of the possible multiindex levels you have must have these names, and be in this order: Name, Site, Peptide, Database_ID
 *   The key for each dataframe in the self._data dictionary is the standard, all lowercase name for that dataset, as determined by the getter function for it. The getter functions for each table type are named "get_" followed by the exact name of the table type.
-*   If the new dataset has a table type not included in any other datasets, you must write a getter for it in the parent DataSet class, found in cptac/dataset.py, using the private method DataSet._get_dataframe and passing the tissue_type parameter if it's an omics dataframe.
+*   If the new dataset has a table type not included in any other datasets, you must write a getter for it in the parent DataSet class, found in `cptac/dataset.py`, using the private method DataSet._get_dataframe and passing the tissue_type parameter if it's an omics dataframe.
     *   You'd also need to add the new dataframe's name to self._valid_omics_dfs if it's a valid omics df for the DataSet merge functions, or self._valid_metadata_dfs if it's a valid metadata df for DataSet.append_metadata_to_omics
         *   Note that a dataframe with multiple rows for each sample, like the treatment dataframe in the Ovarian dataset, should **NOT** be a valid dataset for joining
 *   Column names are consistent--e.g., all Sample_Tumor_Normal columns should be labeled as such, not as Sample_Status or something else. Rename columns as necessary to match this.

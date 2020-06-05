@@ -3,7 +3,7 @@ To activate your conda environment:
 2. Run `conda activate YourEnvironment`, substituting in the name of your environment
 
 To clone the repository from GitHub:
-1. Open the GitHub page, click on the green button that says `Clone or Download`, and copy the URL in the box
+1. Open the GitHub page, click on the green button that says "Clone or Download", and copy the URL in the box
 2. Open your Git Bash or terminal, and navigate to the directory you want to store the repository in
 3. Run this command: `git clone https://the.url.provided/goes/here`, subbing in the URL you copied
 
@@ -32,5 +32,5 @@ To run Jupyter Notebooks to look at Python Notebooks:
 5. This will start a local Jupyter server in that terminal, and open the Jupyter interface in a tab of your default web browser.
 
 To close Jupyter notebooks:
-1. On any open notebooks, click `File`, then `Close and halt` in the drop down box
-2. On the main Jupyter interface page, click `Quit` in the top right corner. This will close the page, and stop the server process that was running in the terminal you started the Jupyter server from.
+1. On any open notebooks, click "File", then "Close and halt" in the drop down box
+2. On the main Jupyter interface page, click "Quit" in the top right corner. This will close the page, and stop the server process that was running in the terminal you started the Jupyter server from.
