@@ -605,8 +605,10 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, includ
         elif not data.index.name.startswith("#"):
             data.index.name = "#" + data.index.name
 
-        # Take care of NaNs
-        data = data.astype(str) # This represents NaNs as 'nan', which Reactome is OK with
+        # Take care of NaNs and small numbers
+        # This represents NaNs as 'nan', which Reactome is OK with
+        # Also rounds all numbers without scientific notation
+        data.iloc[:, 0] = data.iloc[:, 0].apply(lambda x: "{:.9f}".format(x)) 
 
         # Get the data as a tab-separated string
         data_str = data.to_csv(sep='\t')
@@ -647,7 +649,7 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, includ
     warnings_list = resp.json()["warnings"]
     if len(warnings_list) != 0:
         newline = "\n"
-        raise InvalidParameterError(f"Your analysis request returned the following warnings. You may have a data formatting problem. Check that your data matches the format specified in the docstring. Here are the first few warnings:\n{newline.join(warnings_list[0:len(warnings_list)] if len(warnings_list) < 10 else warnings_list[0:10])}\n...")
+        raise InvalidParameterError(f"Your analysis request returned the following warnings. You may have a data formatting problem. Check that your data matches the format specified in the docstring. Here's up to the first ten warnings:\n{newline.join(warnings_list[0:len(warnings_list)] if len(warnings_list) < 10 else warnings_list[0:10] + ['...'])}")
 
     # Process the JSON response
     resp_json = resp.json()
@@ -660,39 +662,20 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, includ
     # If requested, filter out EHLD pathways
     if not include_high_level_diagrams:
 
-        num_ids = pathways_table["stId"].size
-        has_ehld = pd.Series()
+        # Download a list of all diagrams with EHLD diagrams
+        ehld_url = "https://reactome.org/download/current/ehld/svgsummary.txt"
+        ehld_resp = requests.get(ehld_url)
 
-        # The API limits us to 20 ids at a time for the query we're going to run
-        for start in range(0, num_ids, 20):
+        # Check that the response came back good
+        if ehld_resp.status_code != requests.codes.ok:
+            raise HttpResponseError(f"Checking whether pathways are high level pathways returned an HTTP status {ehld_resp.status_code}. The content returned from the request may be helpful:\n{ehld_resp.content.decode('utf-8')}")
 
-            stop = min(start + 20, num_ids)
-            selected_ids = pathways_table["stId"][start:stop]
-            ids_csv = ",".join(selected_ids)
+        # Parse the response
+        ehld_list = ehld_resp.content.decode("utf-8")
+        ehld_list = ehld_list.split("\n")
+        ehld_list = [pathway_id for pathway_id in ehld_list if pathway_id.startswith("R-HSA-")]
 
-            # Get info for those pathways
-            headers = {
-                "content-type": "text/plain",
-                "accept": "application/json",
-            }
-
-            ehld_resp = requests.post("https://reactome.org/ContentService/data/query/ids", headers=headers, data=ids_csv)
-
-            # Check that the response came back good
-            if ehld_resp.status_code != requests.codes.ok:
-                raise HttpResponseError(f"Checking whether pathways are high level pathways returned an HTTP status {ehld_resp.status_code}. The content returned from the request may be helpful:\n{ehld_resp.content.decode('utf-8')}")
-
-            # Get the EHLD data for the selected ids
-            info_table = pd.json_normalize(ehld_resp.json()) 
-
-            # Reorder it to match the order in the pathways table
-            selected_ids = pd.DataFrame({"selected_ids": selected_ids.values}, index=selected_ids.index)
-            selected_ids = selected_ids.merge(info_table, left_on="selected_ids", right_on="stId")
-
-            # Append the result
-            has_ehld = has_ehld.append(selected_ids["hasEHLD"])
-
-        has_ehld = has_ehld.reset_index(drop=True)
+        has_ehld = pathways_table["stId"].isin(ehld_list)
         pathways_table = pathways_table[~has_ehld]
 
         # Make the index look normal
