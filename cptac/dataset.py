@@ -679,7 +679,7 @@ class Dataset:
 
             to_join.append(columns)
 
-        joined = reduce(self_join_dataframe, to_join)
+        joined = reduce(self._join_dataframe, to_join)
         return joined
     
     
