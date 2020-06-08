@@ -12,6 +12,8 @@
 import pandas as pd
 import numpy as np
 import warnings
+from functools import reduce
+import re
 from .file_download import update_index
 from .file_tools import validate_version, get_version_files_paths
 from .dataframe_tools import add_index_levels, join_col_to_dataframe, sort_df_by_sample_status
@@ -621,8 +623,68 @@ class Dataset:
         joined = sort_df_by_sample_status(joined, sample_status_col)
 
         return joined
+    
+    def multi_join(self, join_dict, mutations_filter=None, tissue_type = "both"):    
+        """Takes a dictionary which keys are dataframes and values are columns from those dataframes and joins all the columns into one dataframe.
+        
+        Parameters:
+        join_dict (dict): A dictionary with the dataframe and columns to join. Keys are the names of the dataframes and the value is a list of string with the name of the columns corresponding to each dataframe. Example: {phosphoproteomics':['A2M', 'AAAS'],'proteomics':['AAAS', 'ZZZ3'], 'somatic_mutation':['AHCTF1', 'ZFHX3']}
+            Valid dataframes are: acetylproteomics, CNV, phosphoproteomics, phosphoproteomics_gene, proteomics, somatic_mutation_binary, somatic_mutation, transcriptomics, clinical, derived_molecular and experimental_design.
+            
+        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
+        
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both"
+        
+        Returns: pandas.DataFrame
+        """
+        column_names = []    
+        to_join=[]
+        for df_name in join_dict.keys():
 
+            if df_name in self._valid_omics_dfs:
+                if df_name == "somatic_mutation_binary":
+                    binary_data = self.get_somatic_mutation_binary()
+                    binary_data = "\n".join(list(binary_data.columns))
+                    found_genes = []
+                    if len(join_dict[df_name]) != 0:
+                        for gene in join_dict[df_name]:
+                            found_genes += (re.findall((gene+".+\n"), binary_data))
+                        found_genes = list(map(lambda x: x.strip("\n"), found_genes))#returns a list of columns that match the given gene
+                        columns = self._get_omics_cols(df_name, found_genes, tissue_type= tissue_type)
+                    else:
+                        columns = self._get_omics_cols(df_name, None, tissue_type= tissue_type)
+                else:
+                    if len(join_dict[df_name]) != 0:
+                        columns = self._get_omics_cols(df_name, join_dict[df_name], tissue_type = tissue_type)
+                    else:
+                        columns = self._get_omics_cols(df_name, None, tissue_type = tissue_type)
+
+            elif df_name in self._valid_metadata_dfs:
+                if len(join_dict[df_name]) != 0:
+                    columns = self._get_metadata_cols(df_name, join_dict[df_name], tissue_type = tissue_type)
+                else:
+                    columns = self._get_metadata_cols(df_name, None, tissue_type = tissue_type)
+
+            elif df_name == "somatic_mutation":
+                columns = self._get_genes_mutations(join_dict[df_name], mutations_filter = mutations_filter)
+
+            #### CHECKS IF THERE ARE COLUMNS WITH THE SAME NAME
+            for i in columns.columns:
+                if type(i) == tuple:
+                    i = reduce(lambda  x, y: str(x)+str(y), i)#returns a flattened column name
+                if i in column_names:
+                    columns = columns.rename(columns={i: str(i)+'_'+df_name})
+                column_names.append(i)
+            ####     
+
+            to_join.append(columns)
+
+        joined = reduce(self_join_dataframe, to_join)
+        return joined
+    
+    
     # "Private" methods
+    
     def _get_dataframe(self, name, tissue_type = "both"):
         """Check if a dataframe with the given name exists, and return a copy of it if it does.
 
@@ -1102,3 +1164,17 @@ class Dataset:
         possible_values = ['outer', 'inner', 'left', 'right']
         if given_how not in possible_values:
             raise InvalidParameterError("'{}' is not a valid value for 'how'. Possible values are 'outer', 'inner', 'left', 'right'.".format(given_how))
+            
+            
+    def _join_dataframe(self, df1, df2):
+        """Joins a dataframe to another dataframe.
+ 
+        Returns: pandas.DataFrame
+        """
+        if df1.columns.names != df2.columns.names:
+            df1.columns = add_index_levels(to=df1.columns, source=df2.columns)
+            df2.columns = add_index_levels(to=df2.columns, source=df1.columns)
+
+        joined = df1.join(df2, how= 'outer')
+
+        return joined
