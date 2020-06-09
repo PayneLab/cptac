@@ -421,7 +421,12 @@ def reactome_pathway_overlay(pathway, df=None, analysis_token=None, open_browser
         raise HttpResponseError(f"Submitting your data for analysis returned an HTTP status {expr_resp.status_code}. The content returned from the request may be helpful:\n{expr_resp.content.decode('utf-8')}")    
 
     # Get the expression list
-    expr_list = expr_resp.json()[0]["entities"]["exp"]
+    expr_json = expr_resp.json()
+
+    if len(expr_json) > 0:
+        expr_list = expr_resp.json()[0]["entities"]["exp"]
+    else:
+        expr_list = []
 
     # Use the token and the pathway ID to open the pathway diagram with the data overlaid in the Reactome Pathway Browser
     viewer_url = f"https://reactome.org/PathwayBrowser/#/{pathway}&DTAB=AN&ANALYSIS={token}"
