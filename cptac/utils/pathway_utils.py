@@ -349,7 +349,7 @@ def reactome_pathway_overlay(pathway, df=None, analysis_token=None, open_browser
 
         if display_col_idx is None:
             display_col_idx = ""        
-        elif display_col_idx not in range(0, df.shape[1]):
+        elif df is not None and display_col_idx not in range(0, df.shape[1]):
             raise InvalidParameterError(f"Invalid value for 'display_col_idx' parameter. Must be either None, or an int between 0 and one less than the number of columns in df (which is {df.shape[1] - 1} for this df), inclusive. You passed {display_col_idx}.")
 
         if diagram_colors not in ("Modern", "Standard"):
@@ -510,10 +510,10 @@ def search_reactome_proteins_in_pathways(pathway_ids, quiet=False):
     """Query the Reactome REST API to get a list of proteins contained in a particular pathway.
 
     Parameters:
-    pathway_id (str): The pathway to get the contained proteins for.
+    pathway_ids (str or list of str): The pathway(s) to get the contained proteins for.
 
     Returns:
-    list: The proteins contained in the pathway.
+    pandas.DataFrame: The proteins contained in the pathways.
     """
     # Process string input
     if isinstance(pathway_ids, str):
