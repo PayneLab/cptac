@@ -377,6 +377,13 @@ def reactome_pathway_overlay(pathway, df=None, analysis_token=None, open_browser
                 df.name = "data"
             df = pd.DataFrame(df)
 
+        # Check that the index is strings (gene/protein names)
+        if df.index.dtype != np.dtype("object"):
+            raise InvalidParameterError(f"The dataframe you passed does not have an index of strings. The dtype of your dataframe's index is {df.index.dtype}.")
+
+        elif df.index.str.isnumeric().any():
+            raise InvalidParameterError(f"The dataframe you passed has an index of strings, but some of the values are completely numbers as strings. Gene/protein identifier always have letters in them.")
+
         # The identifier series (the index) needs to have a name starting with "#"
         if df.index.name is None:
             df.index.name = "#identifier"
@@ -622,6 +629,13 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, includ
                 data.name = "data"
             data = pd.DataFrame(data)
 
+        # Check that the index is strings (gene/protein names)
+        if data.index.dtype != np.dtype("object"):
+            raise InvalidParameterError(f"The dataframe you passed does not have an index of strings. The dtype of your dataframe's index is {data.index.dtype}.")
+
+        elif data.index.str.isnumeric().any():
+            raise InvalidParameterError(f"The dataframe you passed has an index of strings, but some of the values are completely numbers as strings. Gene/protein identifier always have letters in them.")
+
         # The identifier series (the index) needs to have a name starting with "#"
         if data.index.name is None:
             data.index.name = "#identifier"
@@ -642,7 +656,11 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, includ
         data = pd.Index(data) # Convert it to an index if it wasn't
         data = data.dropna() # Drop NaNs
         data = data.astype(str) # Make it strings
-        
+
+        # Check that they're actual gene/protein names
+        if data.str.isnumeric().any():
+            raise InvalidParameterError(f"The data you passed has some values that are completely numeric. Gene/protein identifier always have letters in them.")
+
         # The first item needs to be a column header string starting with '#'
         if not data[0].startswith("#"):
             data = data.insert(0, "#identifier")
