@@ -624,14 +624,21 @@ class Dataset:
 
         return joined
     
-    def multi_join(self, join_dict, mutations_filter=None, tissue_type = "both"):    
-        """Takes a dictionary which keys are dataframes and values are columns from those dataframes and joins all the columns into one dataframe.
+    def multi_join(self, join_dict, mutations_filter=None, flatten = False, levels_to_drop = [], how = 'outer', tissue_type = 'both'):    
+        """Takes a dictionary which keys are dataframes and values are columns from those dataframes and joins all the columns into one dataframe. If the value is an empty list it will join the dataframe
         
         Parameters:
-        join_dict (dict): A dictionary with the dataframe and columns to join. Keys are the names of the dataframes and the value is a list of string with the name of the columns corresponding to each dataframe. Example: {phosphoproteomics':['A2M', 'AAAS'],'proteomics':['AAAS', 'ZZZ3'], 'somatic_mutation':['AHCTF1', 'ZFHX3']}
+        join_dict (dict): A dictionary with the dataframe and columns to join. Keys are the names of the dataframes and the value is a list of string with the name of the columns corresponding to each dataframe. Example: {'phosphoproteomics':['A2M', 'AAAS'],'proteomics':['AAAS', 'ZZZ3'], 'somatic_mutation':['AHCTF1', 'ZFHX3']}.
+        
             Valid dataframes are: acetylproteomics, CNV, phosphoproteomics, phosphoproteomics_gene, proteomics, somatic_mutation_binary, somatic_mutation, transcriptomics, clinical, derived_molecular and experimental_design.
             
+            For somatic_mutation_binary it joins all columns that match a gene. Example {'somatic_mutation_binary' : ['A1CF', 'ZYG11B']} It returns a dataframe with all columns that contain those genes.
+            
         mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
+        
+        flatten (bool, optional): Defaults to False and will flatten the multiindexes if set to True.
+        
+        levels_to_drop (list, optional): Defaults to empty list. Takes a list of strings. Strings are levels to be dropped. If empty it will not drop any.
         
         tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both"
         
@@ -639,9 +646,11 @@ class Dataset:
         """
         column_names = []    
         to_join=[]
+        
         for df_name in join_dict.keys():
-
+            ## If key belongs to omics
             if df_name in self._valid_omics_dfs:
+                # If key is somatic_mutation_binary it will join all columns that match a gene
                 if df_name == "somatic_mutation_binary":
                     binary_data = self.get_somatic_mutation_binary()
                     binary_data = "\n".join(list(binary_data.columns))
@@ -654,35 +663,40 @@ class Dataset:
                     else:
                         columns = self._get_omics_cols(df_name, None, tissue_type= tissue_type)
                 else:
-                    if len(join_dict[df_name]) != 0:
+                    if len(join_dict[df_name]) != 0:# If there are values to join it will get the columns
                         columns = self._get_omics_cols(df_name, join_dict[df_name], tissue_type = tissue_type)
-                    else:
+                    else:# Else join all the dataframe
                         columns = self._get_omics_cols(df_name, None, tissue_type = tissue_type)
-
+            ## If key belongs to metadata 
             elif df_name in self._valid_metadata_dfs:
-                if len(join_dict[df_name]) != 0:
+                if len(join_dict[df_name]) != 0:# If there are values to join it will get the columns
                     columns = self._get_metadata_cols(df_name, join_dict[df_name], tissue_type = tissue_type)
-                else:
+                else:# Else join all the dataframe
                     columns = self._get_metadata_cols(df_name, None, tissue_type = tissue_type)
-
+            ## If key is somatic_mutation 
             elif df_name == "somatic_mutation":
                 columns = self._get_genes_mutations(join_dict[df_name], mutations_filter = mutations_filter)
 
-            #### CHECKS IF THERE ARE COLUMNS WITH THE SAME NAME
+            ### Checks if there are columns with the same name and adds the name of the
             for i in columns.columns:
                 if type(i) == tuple:
                     i = reduce(lambda  x, y: str(x)+str(y), i)#returns a flattened column name
                 if i in column_names:
                     columns = columns.rename(columns={i: str(i)+'_'+df_name})
                 column_names.append(i)
-            ####     
+            ###     
 
             to_join.append(columns)
 
-        joined = reduce(self._join_dataframe, to_join)
+        joined, how = reduce(self._join_dataframe, to_join, how)
+    
+        if len(levels_to_drop) != 0:
+            joined = ut.reduce_multiindex(joined, levels_to_drop=levels_to_drop)
+
+        if flatten == True:
+            joined = ut.reduce_multiindex(joined, flatten=flatten)
         return joined
-    
-    
+
     # "Private" methods
     
     def _get_dataframe(self, name, tissue_type = "both"):
@@ -1171,10 +1185,13 @@ class Dataset:
  
         Returns: pandas.DataFrame
         """
-        if df1.columns.names != df2.columns.names:
-            df1.columns = add_index_levels(to=df1.columns, source=df2.columns)
-            df2.columns = add_index_levels(to=df2.columns, source=df1.columns)
+        if type(df1) == str:
+            return [df2, df1]
+        elif type(df1) == list:
+            how = df1[1]
+            if df1[0].columns.names != df2.columns.names:
+                    df1[0].columns = add_index_levels(to=df1[0].columns, source=df2.columns)
+                    df2.columns = add_index_levels(to=df2.columns, source=df1[0].columns)
 
-        joined = df1.join(df2, how= 'outer')
-
-        return joined
+            joined = df1[0].join(df2, how= how)
+        return [joined,how]
