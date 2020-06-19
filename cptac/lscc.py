@@ -238,7 +238,6 @@ class Lscc(Dataset):
                 self._data['derived_molecular'] = derived_molecular_df
 
             elif file_name == "lscc-v3.2-sample-annotation.csv.gz":
-                print("version 3")
                 df = pd.read_csv(file_path, sep=",", dtype=object)
                 filter = df['QC.status'] == "QC.pass" #There are some samples that are internal references. IRs are used for scaling purposes, and don't belong to a single patient, so we want to drop them.
                 df = df[filter]
