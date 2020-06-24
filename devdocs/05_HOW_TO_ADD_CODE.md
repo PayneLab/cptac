@@ -17,5 +17,5 @@ If at any point you encounter merge conflicts, then it's probably because someon
 9. Merge the dev branch into master (`git merge dev`).
 10. Push the changes (`git push`).
 11. Checkout the dev branch (`git checkout dev`).
-12. Merge the master branch into the dev branch (`git merge master`).
-13. Push the changes. The dev and master branches should now be even with (equivalent to) each other. (`git push`)
+12. Merge the master branch into the dev branch (this is just to be safe--you should get a message that says "Already up to date"). (`git merge master`).
+13. Push the dev branch. The dev and master branches should now be even with (equivalent to) each other. (`git push`)
