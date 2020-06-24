@@ -572,7 +572,7 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, includ
             - All dtypes must be numeric.
         If unranked analysis:
             - data is a list or pandas.Index of identifiers to test pathways for enrichment with.
-    sort_by (str): The metric by which to sort the pathways when selecting the top ones. You can pass "p_value" to sort by the P value (hypergeometric distribution), "proportion_found" to sort by the proportion of proteins in the pathway that were found in your data, or one of the metrics directly supported by the Reactome API, listed below. (Yes, our function just maps "p_value" and "proportion_found" to "ENTITIES_PVALUE" and "ENTITIES_RATIO" respectively.)
+    sort_by (str): The metric by which to sort the pathways when selecting the top ones. You can pass "p_value" to sort by the P value (hypergeometric distribution), or pass one of the metrics directly supported by the Reactome API, listed below. (Yes, our function just maps "p_value" to "ENTITIES_PVALUE" .)
         "NAME",
         "TOTAL_ENTITIES",
         "TOTAL_INTERACTORS",
@@ -580,7 +580,7 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, includ
         "FOUND_ENTITIES",
         "FOUND_INTERACTORS",
         "FOUND_REACTIONS",
-        "ENTITIES_RATIO",
+        "ENTITIES_RATIO", # Note: This value is the ratio of the total number of proteins in the pathway, to the total number of proteins in all of Reactome.
         "ENTITIES_PVALUE",
         "ENTITIES_FDR",
         "REACTIONS_RATIO",
@@ -595,8 +595,6 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, includ
     # Check the sort_by parameter
     if sort_by == "p_value":
         parsed_sort_by = "ENTITIES_PVALUE"
-    elif sort_by == "proportion_found":
-        parsed_sort_by = "ENTITIES_RATIO"
     else:
         parsed_sort_by = sort_by
 
@@ -616,7 +614,7 @@ def reactome_enrichment_analysis(analysis_type, data, sort_by, ascending, includ
     if parsed_sort_by not in valid_sort_bys: 
         newline = "\n"
         single_qt = "'"
-        raise InvalidParameterError(f"Invalid value for 'sort_by' parameter. You passed '{sort_by}'. Must be one of the following:\n'p_value'\n'proportion_found'\n{newline.join([f'{single_qt}{x}{single_qt}' for x in valid_sort_bys])}")
+        raise InvalidParameterError(f"Invalid value for 'sort_by' parameter. You passed '{sort_by}'. Must be one of the following:\n'p_value'\n{newline.join([f'{single_qt}{x}{single_qt}' for x in valid_sort_bys])}")
 
     if analysis_type == "ranked":
 
