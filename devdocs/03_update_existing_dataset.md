@@ -1,3 +1,5 @@
+# How to update an existing dataset
+
 Note: In the process of updating a dataset, we want to be very careful that we don't break things for current users of the old dataset while we're working on the update, and we want to make sure that after they have the updated package and data, they can still access the old data. I'll reiterate the following points in context in the instructions below, but to achieve these goals, make sure to do the following:
 
 

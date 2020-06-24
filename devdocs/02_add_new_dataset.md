@@ -1,8 +1,6 @@
+# How to add a new dataset
 
-
-**Adding the data files for a new dataset**
-
-
+## Adding the data files for a new dataset
 
 1. Download the data files onto your machine.
 2. gzip the files (unless they're Excel files--then just leave them uncompressed).
@@ -30,7 +28,7 @@
 
 
 
-**Adding the code for a new dataset**
+## Adding the code for a new dataset
 
 1. Write a dataset loader, stored in the cptac/cptac/ directory, and having the dataset name, all lowercase, as the filename, with .py as the extension. For example, the loader for the endometrial dataset is called `endometrial.py`; for the CCRCC dataset, it's called `ccrcc.py`.
     1. See child_dataset_template.py for more info.
@@ -114,7 +112,7 @@ These tables conform to these requirements
         *   Make sure that the "Tumor" and "Normal" values are capitalized properly--can use Series.str.title() to fix if necessary
     *   In some datasets, such as HNSCC, there are also cored normal samples. You should mark the patient IDs for these samples with a '.C' at the end in all tables, instead of a '.N'. You also need to give them the value "Normal" in the Sample_Tumor_Normal column, and the value True in a column called Cored_Sample that you need to create in the clinical dataframe. All tumor and non-cored normal samples will have the value False in the Cored_Sample column.
 
-**Tips for writing the parser/loader:**
+### Tips for writing the parser/loader:
 
 
 

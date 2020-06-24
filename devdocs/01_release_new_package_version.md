@@ -1,6 +1,4 @@
-**How to release a new version of the cptac package**
-
-
+# How to release a new version of the cptac package
 
 1. Make sure to update:
     1. cptac/version.py
