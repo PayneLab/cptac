@@ -9,7 +9,7 @@ If at any point you encounter merge conflicts, then it's probably because someon
 1. Switch to the dev branch of the repository (`git checkout dev`).
 2. Pull the latest version of the dev branch. **You should always pull latest from remote before making any edits to anything**. (`git pull`)
 3. Create and add your code and changes, whether in a new file or an existing file.
-5. If you created any new files, add them to be tracked by git. (`git add [PUT_IN_YOUR_FILENAME_HERE]`).
+5. If you created any new files, first move them to the exact place you want them to be located in the repository, then add them to be tracked by git. (`git add [PUT_IN_YOUR_FILENAME_HERE]`).
 5. Commit your changes (`git commit -a`).
 6. Push the commit(s) to remote (`git push`).
 7. Switch to the master branch (`git checkout master`).
