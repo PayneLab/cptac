@@ -349,7 +349,7 @@ def reactome_pathway_overlay(pathway, df=None, analysis_token=None, open_browser
 
         if display_col_idx is None:
             display_col_idx = ""        
-        elif df is not None and display_col_idx not in range(0, df.shape[1]):
+        elif df is not None and display_col_idx not in range(0, df.shape[1] if isinstance(df, pd.DataFrame) else 1):
             raise InvalidParameterError(f"Invalid value for 'display_col_idx' parameter. Must be either None, or an int between 0 and one less than the number of columns in df (which is {df.shape[1] - 1} for this df), inclusive. You passed {display_col_idx}.")
 
         if diagram_colors not in ("Modern", "Standard"):
