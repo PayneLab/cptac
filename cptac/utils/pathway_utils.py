@@ -21,96 +21,81 @@ import warnings
 
 from cptac.exceptions import HttpResponseError, InvalidParameterError, ParameterWarning
 
-'''
-@Param protein:
-    The name of the protein that you want to generate a list of interacting proteins for.
 
-@Param number (default=25):
-    The number of interacting proteins that you want to get.
+def get_interacting_proteins_string(protein, num_results=25):
+    """
+    @Param protein:
+        The name of the protein that you want to generate a list of interacting proteins for.
 
-@Return:
-    A list of proteins known by the String api to be interacting partners with the specified protein.
-    Returns None if specified protein isn't found in String database, or connection to String api fails.
+    @Param num_results (default=25):
+        The number of interacting proteins that you want to get.
 
-
-This method takes as a parameter the name of a protein. It then accesses the STRING database, through
-a call to their public API, and generates a list of proteins known to be interacting partners with the specified
-protein. Optional second parameter is number (which by default is 25), which specifies in the API call how many
-interacting partners to retrieve from the database. The list of interacting proteins is returned to the caller
-as a python list.
-'''
-
-def get_interacting_proteins_string(protein, number=25):
-    '''Use urllib3 to access the string database api, gather list of interacting proteins'''
-    urllib3.disable_warnings()
-    string_api_url = "https://string-db.org/api"
-    output_format = "json"
-    method = "network"
-
-    '''Use the specified gene and homo sapiens species code'''
-    my_protein = [protein]
-    species = "9606"
-
-    '''Format the api request to collect the appropriate information'''
-    request_url = string_api_url + "/" + output_format + "/" + method + "?"
-    request_url += "identifiers=%s" % "%0d".join(my_protein)
-    request_url += "&" + "species=" + species
-    request_url += "&" + "limit=" + str(number)
-
-    '''Send a request to the API, print the response status'''
-    try:
-        http = urllib3.PoolManager()
-        response = http.request('GET',request_url)
-        '''Catch exception if it fails while accessing the api'''
-    except urllib3.exceptions.HTTPError as err:
-        error_message = err.read()
-        print("Error accessing STRING api, " , error_message)
-        sys.exit()
-
-    '''Get the data from the api response'''
-    interacting_proteins = []
-    if response.status == 200:
-        '''Get the data from the API's response'''
-        data = response.data
-        y = json.loads(data)
-
-        '''Make a list of the resulting interacting proteins'''
-        for entry in y:
-            if entry["preferredName_A"] not in interacting_proteins:
-                interacting_proteins.append(entry["preferredName_A"])
-            if entry["preferredName_B"] not in interacting_proteins:
-                interacting_proteins.append(entry["preferredName_B"])
-
-        if protein not in interacting_proteins:
-            interacting_proteins.append(protein)
-
-        return interacting_proteins
-
-        '''If we didnt get a successful response from the api, notify the caller and return None'''
-    else:
-        print("\nSpecified gene was not found in String database, double check that you have it correctly!")
-        return None
+    @Return:
+        A list of proteins known by the String api to be interacting partners with the specified protein.
+        This list will always also contain the protein you were looking for interactors for.
+        Returns None if specified protein isn't found in String database, or connection to String api fails.
 
 
-'''
-@Param protein:
-    The name of the protein that you want to generate a list of interacting proteins for.
+    This method takes as a parameter the name of a protein. It then accesses the STRING database, through
+    a call to their public API, and generates a list of proteins known to be interacting partners with the specified
+    protein. Optional second parameter is num_results (which by default is 25), which specifies in the API call how many
+    interacting partners to retrieve from the database. The list of interacting proteins is returned to the caller
+    as a Python list.
+    """
 
-@Param number (default=25):
-    The number of interacting proteins that you want to get.
+    # Post query to the STRING API
+    query_url = "https://string-db.org/api/json/network"
 
-@Return:
-    A list of proteins known by the biogrid api to be interacting partners with the specified protein.
-    Returns None if specified protein isn't found in biogrid database, or connection to biogrid api fails.
+    params = {
+        "identifiers": protein,
+        "species": "9606", # Homo sapiens
+        "limit": num_results,
+    }
 
+    query_resp = requests.post(query_url, params=params)
 
-This method takes as a parameter the name of a protein. It then accesses the biogrid database, through
-a call to their public API, and generates a list of proteins known to be interacting partners with the specified
-protein. Optional second parameter is number (which by default is 25), which specifies in the API call how many
-interacting partners to retrieve from the database. The list of interacting proteins is returned to the caller
-as a python list.
-'''
+    # Check that the response came back good
+    if query_resp.status_code != requests.codes.ok:
+        raise HttpResponseError(f"Submitting your query to the STRING API returned an HTTP status {query_resp.status_code}. The content returned from the request may be helpful:\n{query_resp.content.decode('utf-8')}")    
+
+    # Put the response data in a dataframe
+    resp_df = pd.DataFrame(query_resp.json())
+
+    # Get the unique values of columns we want, as a list
+    interactors = resp_df["preferredName_A"].\
+        append(resp_df["preferredName_B"]).\
+        unique().\
+        tolist()
+
+    # Make sure the protein they searched is in the output list
+    if protein not in interactors:
+        interactors.append(protein)
+
+    # Sort
+    interactors = sorted(interactors)
+
+    return interactors
+
 def get_interacting_proteins_biogrid(protein, number=25):
+    '''
+    @Param protein:
+        The name of the protein that you want to generate a list of interacting proteins for.
+
+    @Param number (default=25):
+        The number of interacting proteins that you want to get.
+
+    @Return:
+        A list of proteins known by the biogrid api to be interacting partners with the specified protein.
+        Returns None if specified protein isn't found in biogrid database, or connection to biogrid api fails.
+
+
+    This method takes as a parameter the name of a protein. It then accesses the biogrid database, through
+    a call to their public API, and generates a list of proteins known to be interacting partners with the specified
+    protein. Optional second parameter is number (which by default is 25), which specifies in the API call how many
+    interacting partners to retrieve from the database. The list of interacting proteins is returned to the caller
+    as a python list.
+    '''
+
     '''Store interacting proteins in a list'''
     interacting_proteins = []
     urllib3.disable_warnings()
