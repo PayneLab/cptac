@@ -18,21 +18,19 @@ from .stats_utils import (
     )
 
 from .pathway_utils import (
+        # Pathway member query functions
+        get_pathways_with_proteins,
+        get_proteins_in_pathways,
+
         # WikiPathways functions
         get_interacting_proteins_wikipathways,
-        get_protein_pathways,
-        get_proteins_in_pathway,
-        list_pathways,
+        list_pathways_wikipathways,
 
         # Reactome functions
         reactome_pathway_overlay,
-        search_reactome_proteins_in_pathways,
-        search_reactome_pathways_with_proteins,
-
         reactome_enrichment_analysis,
 
         # Other pathway databases functions
-        get_interacting_proteins,
         get_interacting_proteins_biogrid,
         get_interacting_proteins_bioplex,
         get_interacting_proteins_string
