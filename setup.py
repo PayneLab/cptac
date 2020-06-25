@@ -37,9 +37,6 @@ setup(name='cptac',
 		'xlrd>=1.2.0',
 		'statsmodels>=0.10.0',
 	],
-    data_files=[
-         ('bioplex_interactions',['cptac/utils/BioPlex_interactionList_v4a.tsv'])
-    ],
 	classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
