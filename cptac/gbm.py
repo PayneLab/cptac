@@ -128,7 +128,8 @@ class Gbm(Dataset):
                 self._data["acetylproteomics"] = df
 
             elif df_name == "clinical_data_core":
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = pd.read_csv(file_path, sep='\t', index_col=0).\
+                    assign(Stage="IV") # By definition they're all stage IV, since it's glioblastoma
                 self._data["clinical"] = df
 
             elif file_name == "gbm_all_subtype_collections.2020-01-13.tsv.gz":
