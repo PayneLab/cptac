@@ -88,7 +88,7 @@ These tables conform to these requirements
 
 
 * Mass-spectrometry derived tables (proteomics, phosphoproteomics, acetylproteomics)
-    * The expression values should be centered around zero. If they are not already centered around zero, then you probably need to find the "Reference Intensity" column and subtract it from all the other columns. If that isn't the solution or you can't find the column, talk to someone with more information about it.
+    * The expression values should be centered around zero. If they are not already centered around zero, then you probably need to find the "Reference Intensity" column and subtract it from all the other columns. Do that automatically when parsing the table. If that isn't the solution or you can't find the column, talk to someone with more information about it.
 *   somatic_mutation
     *   The somatic_mutation table should have 3 columns: Gene, Mutation, and Location.
     *   If you're parsing from a MAF file, then the columns you want will probably be named as follows:
