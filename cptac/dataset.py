@@ -83,29 +83,29 @@ class Dataset:
             ] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in Ccrcc, because they both have multiple rows for each sample.
 
     # Methods to get metadata dataframes
-    def get_clinical(self):
+    def get_clinical(self, tissue_type="both"):
         """Get the clinical dataframe."""
-        return self._get_dataframe("clinical")
+        return self._get_dataframe("clinical", tissue_type)
 
-    def get_derived_molecular(self):
+    def get_derived_molecular(self, tissue_type="both"):
         """Get the derived_molecular dataframe."""
-        return self._get_dataframe("derived_molecular")
+        return self._get_dataframe("derived_molecular", tissue_type)
 
-    def get_experimental_design(self):
+    def get_experimental_design(self, tissue_type="both"):
         """Get the experimental_design dataframe."""
-        return self._get_dataframe("experimental_design")
+        return self._get_dataframe("experimental_design", tissue_type)
 
-    def get_medical_history(self):
+    def get_medical_history(self, tissue_type="both"):
         """Get the medical_history dataframe."""
-        return self._get_dataframe("medical_history")
+        return self._get_dataframe("medical_history", tissue_type)
 
-    def get_treatment(self):
+    def get_treatment(self, tissue_type="both"):
         """Get the treatment dataframe."""
-        return self._get_dataframe("treatment")
+        return self._get_dataframe("treatment", tissue_type)
 
-    def get_followup(self):
+    def get_followup(self, tissue_type="both"):
         """Get the followup dataframe."""
-        return self._get_dataframe("followup")
+        return self._get_dataframe("followup", tissue_type)
 
     # Methods to get omics dataframes
     def get_acetylproteomics(self, tissue_type="both"):
@@ -1167,7 +1167,7 @@ class Dataset:
         clinical = self._get_dataframe("clinical")
         clinical_tumor = clinical[clinical.Sample_Tumor_Normal == "Tumor"]
         tumor_list = list(clinical_tumor.index.values)
-        tumor_df = df.loc[df.index & tumor_list]
+        tumor_df = df.loc[df.index.isin(tumor_list)]
         return tumor_df
 
     def _normal_only(self, df):
@@ -1176,7 +1176,7 @@ class Dataset:
         clinical = self._get_dataframe("clinical")
         clinical_normal = clinical[clinical.Sample_Tumor_Normal == "Normal"]
         normal_list = list(clinical_normal.index.values)
-        normal_df = df.loc[df.index & normal_list]
+        normal_df = df.loc[df.index.isin(normal_list)]
         return normal_df
 
     def _check_how_parameter(self, given_how):
