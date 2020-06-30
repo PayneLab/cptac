@@ -108,11 +108,11 @@ class Dataset:
         return self._get_dataframe("followup")
 
     # Methods to get omics dataframes
-    def get_acetylproteomics(self, tissue_type = "both"):
+    def get_acetylproteomics(self, tissue_type="both"):
         """Get the acetylproteomics dataframe."""
         return self._get_dataframe("acetylproteomics", tissue_type)
 
-    def get_circular_RNA(self, tissue_type = "both"):
+    def get_circular_RNA(self, tissue_type="both"):
         """Get the circular_RNA dataframe."""
         return self._get_dataframe("circular_RNA", tissue_type)
 
@@ -120,31 +120,31 @@ class Dataset:
         """Get the CNV dataframe."""
         return self._get_dataframe("CNV")
 
-    def get_lincRNA(self, tissue_type = "both"):
+    def get_lincRNA(self, tissue_type="both"):
         """Get the lincRNA dataframe."""
         return self._get_dataframe("lincRNA",tissue_type)
 
-    def get_lipidomics(self, tissue_type = "both"):
+    def get_lipidomics(self, tissue_type="both"):
         """Get the lipidomics dataframe."""
         return self._get_dataframe("lipidomics", tissue_type)
 
-    def get_metabolomics(self, tissue_type = "both"):
+    def get_metabolomics(self, tissue_type="both"):
         """Get the metabolomics dataframe."""
         return self._get_dataframe("metabolomics", tissue_type)
 
-    def get_methylation(self, tissue_type = "both"):
+    def get_methylation(self, tissue_type="both"):
         """Get the methylation dataframe."""
         return self._get_dataframe("methylation", tissue_type)
 
-    def get_miRNA(self, tissue_type = "both"):
+    def get_miRNA(self, tissue_type="both"):
         """Get the miRNA dataframe."""
         return self._get_dataframe("miRNA",tissue_type)
 
-    def get_phosphoproteomics(self, tissue_type = "both"):
+    def get_phosphoproteomics(self, tissue_type="both"):
         """Get the phosphoproteomics dataframe."""
         return self._get_dataframe("phosphoproteomics",tissue_type)
 
-    def get_phosphoproteomics_gene(self, tissue_type = "both"):
+    def get_phosphoproteomics_gene(self, tissue_type="both"):
         """Get the phosphoproteomics_gene dataframe. The gene level phosphorylation measurement is an aggregate metric which potentially averages together individual measurements of different sites. Use get_phosphoproteomics() to view the data for individual sites."""
         return self._get_dataframe("phosphoproteomics_gene",tissue_type)
 
@@ -159,11 +159,11 @@ class Dataset:
         """
         return self._get_omics_cols("phosphoproteomics", genes)
 
-    def get_proteomics(self, tissue_type = "both"):
+    def get_proteomics(self, tissue_type="both"):
         """Get the proteomics dataframe."""
         return self._get_dataframe("proteomics",tissue_type)
 
-    def get_transcriptomics(self, tissue_type = "both"):
+    def get_transcriptomics(self, tissue_type="both"):
         """Get the transcriptomics dataframe."""
         return self._get_dataframe("transcriptomics", tissue_type)
 
@@ -436,7 +436,7 @@ class Dataset:
 
 
     # Join functions
-    def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None, how = "outer", quiet = False, tissue_type = "both"):
+    def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None, how="outer", quiet=False, tissue_type="both"):
         """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -475,7 +475,7 @@ class Dataset:
 
         return joined
 
-    def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True, how = "outer", quiet = False, tissue_type = "both"):
+    def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both"):
         """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
@@ -513,7 +513,7 @@ class Dataset:
 
         return joined
 
-    def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None, how = "outer", quiet = False, tissue_type = "both"):
+    def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None, how="outer", quiet=False, tissue_type="both"):
         """Take specified column(s) from one metadata dataframe, and join to specified columns(s) from another metadata dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -547,7 +547,7 @@ class Dataset:
 
         return joined
 
-    def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None, how = "outer", quiet = False, tissue_type = "both"):
+    def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None, how="outer", quiet=False, tissue_type="both"):
         """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_design) to part or all of an omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -585,7 +585,7 @@ class Dataset:
 
         return joined
 
-    def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, mutations_filter=None, show_location=True, how = "outer", quiet = False, tissue_type = "both"):
+    def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both"):
         """Select all mutations for specified gene(s), and joins them to all or part of the given metadata dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
@@ -624,7 +624,7 @@ class Dataset:
 
         return joined
     
-    def multi_join(self, join_dict, mutations_filter=None, flatten = False, levels_to_drop = [], how = 'outer', tissue_type = 'both'):    
+    def multi_join(self, join_dict, mutations_filter=None, flatten=False, levels_to_drop=[], how="outer", tissue_type="both"):    
         """Takes a dictionary which keys are dataframes and values are columns from those dataframes and joins all the columns into one dataframe. If the value is an empty list it will join the dataframe
         
         Parameters:
@@ -699,7 +699,7 @@ class Dataset:
 
     # "Private" methods
     
-    def _get_dataframe(self, name, tissue_type = "both"):
+    def _get_dataframe(self, name, tissue_type="both"):
         """Check if a dataframe with the given name exists, and return a copy of it if it does.
 
         Parameters:
@@ -789,7 +789,7 @@ class Dataset:
         elif len(unique) > 0:
             warnings.warn(f"{other_name} data was not found for the following samples, so {other_name} data columns were filled with NaN for these samples: {', '.join(unique)}", InsertedNanWarning, stacklevel=4)
 
-    def _get_omics_cols(self, omics_df_name, genes, tissue_type = "both"):
+    def _get_omics_cols(self, omics_df_name, genes, tissue_type="both"):
         """Based on a single gene, or a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
 
         Parameters:
@@ -850,7 +850,7 @@ class Dataset:
             selected = selected.add_suffix('_' + omics_df_name)
         return selected
 
-    def _get_metadata_cols(self, df_name, cols, tissue_type = "both"):
+    def _get_metadata_cols(self, df_name, cols, tissue_type="both"):
         """Select a single column or several columns from a metadata dataframe.
 
         Parameters:
@@ -1160,7 +1160,10 @@ class Dataset:
                 if found_digits: # We only want the first block of numbers
                     return int(num)
         return int(num) # We get here if the location ended with a digit
+
     def _tumor_only(self, df):
+        """For a given dataframe, extract only the tumor samples."""
+
         clinical = self._get_dataframe("clinical")
         clinical_tumor = clinical[clinical.Sample_Tumor_Normal == "Tumor"]
         tumor_list = list(clinical_tumor.index.values)
@@ -1168,6 +1171,8 @@ class Dataset:
         return tumor_df
 
     def _normal_only(self, df):
+        """For a given dataframe, extract only the tumor samples."""
+
         clinical = self._get_dataframe("clinical")
         clinical_normal = clinical[clinical.Sample_Tumor_Normal == "Normal"]
         normal_list = list(clinical_normal.index.values)
@@ -1178,7 +1183,6 @@ class Dataset:
         possible_values = ['outer', 'inner', 'left', 'right']
         if given_how not in possible_values:
             raise InvalidParameterError("'{}' is not a valid value for 'how'. Possible values are 'outer', 'inner', 'left', 'right'.".format(given_how))
-            
             
     def _join_dataframe(self, df1, df2):
         """Joins a dataframe to another dataframe.
