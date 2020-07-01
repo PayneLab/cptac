@@ -719,7 +719,10 @@ class Dataset:
                 return self._tumor_only(return_df)
             elif tissue_type == "normal":
                 return self._normal_only(return_df)
-            return return_df
+            elif tissue_type == "both":
+                return return_df
+            else:
+                raise InvalidParameterError(f"Unrecognized value for tissue_type parameter. You passed '{tissue_type}'. Valid options are 'tumor', 'normal', or 'both'.")
         else:
             raise DataframeNotIncludedError(f"{name} dataframe not included in the {self.get_cancer_type()} dataset.")
 
