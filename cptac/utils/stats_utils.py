@@ -35,10 +35,18 @@ from cptac.exceptions import InvalidParameterError
     Boolean. If true, will return a dataframe containing all comparisons and p-values, regardless of significance.
     If false, will only return significant comparisons and p-values in the dataframe, or None if no significant comparisons.
 
-@Param correction_method (default = 'bonferroni')
+@Param correction_method (default = 'bonferroni'):
     String. Specifies method of adjustment for multiple testing. See -
     https://www.statsmodels.org/stable/generated/statsmodels.stats.multitest.multipletests.html
     - for documentation and available methods.
+
+@Param mincount (default=3):
+    The minimum number of samples that must have a recorded value, in order for a ttest to be performed. The default is 3,
+    which means that there must be at least 3 values recorded for both the mutation type (e.g missense_mutation) and the wildtype.
+
+@Param pval_return_corrected (default=True):
+    Returns corrected pvalues if True,
+    Returns uncorrected pvalues if False 
 
 @Return:
     A pandas dataframe of column names and corresponding p-values which were determined to be significant in
@@ -58,7 +66,7 @@ The resulting p-values will be corrected for multiple testing, using a specified
 the significant results will be returned as a dataframe, sorted by p-value.
 '''
 
-def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, return_all=False, correction_method='bonferroni'):
+def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, return_all=False, correction_method='bonferroni', mincount=3, pval_return_corrected=True):
     try:
         '''Verify precondition that label column exists and has exactly 2 unique values'''
         label_values = df[label_column].unique()
@@ -83,10 +91,16 @@ def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, return_all=
         pvals = []
 
         '''Loop through each comparison column, perform the t-test, and record the p-val'''
+
         for column in comparison_columns:
-            stat, pval = scipy.stats.ttest_ind(partition1[column].dropna(axis=0), partition2[column].dropna(axis=0))
-            comparisons.append(column)
-            pvals.append(pval)
+            if len(partition1[column].dropna(axis=0)) <= mincount:
+                continue
+            elif len(partition2[column].dropna(axis=0)) <= mincount:
+                continue
+            else:
+                stat, pval = scipy.stats.ttest_ind(partition1[column].dropna(axis=0), partition2[column].dropna(axis=0))
+                comparisons.append(column)
+                pvals.append(pval)
 
         '''Correct for multiple testing to determine if each comparison meets the new cutoff'''
         results = statsmodels.stats.multitest.multipletests(pvals=pvals, alpha=alpha, method=correction_method)
@@ -97,14 +111,22 @@ def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, return_all=
 
         '''If return all, add all comparisons and p-values to dataframe'''
         if return_all:
-            results_df['Comparison'] = comparisons
-            results_df['P_Value'] = pvals
+            if pval_return_corrected:
+                results_df['Comparison'] = comparisons
+                results_df['P_Value'] = results[1]
+
+            else:
+                results_df['Comparison'] = comparisons
+                results_df['P_Value'] = pvals
 
             '''Else only add significant comparisons'''
         else:
             for i in range(0, len(reject)):
                 if reject[i]:
-                    results_df = results_df.append({'Comparison':comparisons[i],'P_Value':pvals[i]}, ignore_index=True)
+                    if pval_return_corrected:
+                        results_df = results_df.append({'Comparison':comparisons[i],'P_Value':results[1][i]}, ignore_index=True)
+                    else:
+                        results_df = results_df.append({'Comparison':comparisons[i],'P_Value':pvals[i]}, ignore_index=True)
 
 
         '''Sort dataframe by ascending p-value'''
@@ -121,6 +143,7 @@ def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, return_all=
     except:
         print("Incorrectly Formatted Dataframe!")
         return None
+
 
 '''
 @Param df: Dataframe.Each column is a different gene/ comparison. Rows contains numeric values (such as proteomics) for correlation test
@@ -271,7 +294,7 @@ def permutation_test_corr(data, num_permutations):
     Parameters:
     data (pandas.DataFrame): A dataframe where the rows are samples, and the columns are the two variables we're testing correlation between.
 
-    Returns:        
+    Returns:
     float: The linear correlation coefficient for the two variables.
     float: The P value for the null hypothesis that the correlation coefficient is zero.
     """
