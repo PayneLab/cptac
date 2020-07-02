@@ -169,9 +169,17 @@ class NameOrAcronym(DataSet):
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 
         ###FILL: If the dataset is not under publication embargo, you can remove
-        ### the code block below.
+        ### the code block below. If it is password protected, still remove
+        ### this warning, and instead keep the password protection warning
+        ### below.
         # Print data embargo warning, if the date hasn't passed yet.
         today = datetime.date.today()
         embargo_date = datetime.date(year="""FILL: Insert embargo year""", month="""FILL: Insert embargo month""", day="""FILL: Insert embargo day""")
         if today < embargo_date:
             warnings.warn("The ###FILL: Insert dataset name### dataset is under publication embargo until ###FILL: Insert embargo date###. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until after the embargo date. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details.", PublicationEmbargoWarning, stacklevel=2)
+
+        ###FILL: If the dataset is not password access only, remove the message
+        ### below. If it's under publication embargo, still remove this
+        ### warning, and keep the above warning about publication embargo.
+        # Print password access only warning
+        warnings.warn("The ###FILL: Insert dataset name### data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)

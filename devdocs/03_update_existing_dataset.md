@@ -62,7 +62,16 @@ Steps for updating an existing dataset:
 
 ![endo_multi_version_index](imgs/endo_multi_version_index.png)
  (Note that even if a file stays exactly the same between two data versions, we still have a different copy of it in each version's data directory on Box, and thus have a unique shared URL for that file in that data version.)
-13. **IMPORTANT:** Uncomment the lines of code in the cptac/dataset.py file that you commented out in step one, and delete the temporary line of code.
-14. Release the new version of the package on GitHub and PyPI, following all of the instructions in the "release_new_package_version" document. Make sure to update the `version.txt` file on Box so users will know they need to update the package. Then, immediately after releasing the new package on PyPI, upload the updated dataset's index and index_hash files on Box. 
+
+13. If the dataset was previously password protected but is now just under publication embargo:
+    1. Go on Box and remove the password requirement from all the data files for all versions. You do this by clicking on a file, then clicking the "Share" button on the right hand side of the file's row, then clicking the "Link settings" button on the popup box, and then unchecking the "Require password" box on the next popup box.
+    2. Remove the dataset from the `password_protected_datasets` list in the `download` function in the `cptac/file_download.py` file
+    3. Update the dataset's data reuse status from "password access only" to "publication embargo" in the `list_datasets` function in the `cptac/__init__.py` file
+    4. Change the password access only warning at the end of the dataset's `__init__` function to be a publication embargo warning, with the publication embargo date.
+14. If the dataset was perviously under publication embargo but now has no restrictions:
+    1. Update the dataset's data reuse status from "publication embargo" to "no restrictions" in the `list_datasets` function in the `cptac/__init__.py` file
+    2. Remove the publication embargo warning from the end of the dataset's `__init__` function.
+15. **IMPORTANT:** Uncomment the lines of code in the cptac/dataset.py file that you commented out in step one, and delete the temporary line of code.
+16. Release the new version of the package on GitHub and PyPI, following all of the instructions in the "release_new_package_version" document. Make sure to update the `version.txt` file on Box so users will know they need to update the package. Then, immediately after releasing the new package on PyPI, upload the updated dataset's index and index_hash files on Box. 
     1. Make sure to update the files on Box quickly, because until the index and index hash files are updated, the package will be broken for anyone who tries to use the new package version. 
     2. While updating the files on Box, make sure to use the "Upload New Version" button for the existing versions of the files, instead of separately uploading the new versions of files, so that the shared URLs for the files don't change. If the URLs changed, it would make it so no one could download the files with the URLs embedded in the package.

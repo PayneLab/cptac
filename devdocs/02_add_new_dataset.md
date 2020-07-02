@@ -35,7 +35,7 @@
 2. At the top of `cptac/__init__.py`, add a line to import the dataset class from its file, using the lowercase file name and the UpperCamelCase dataset name (e.g. `from .ccrcc import Ccrcc`)
 3. Add the dataset and its associated info to cptac.list_datasets()
 4. Make sure all dfs in self._valid_metatdata_dfs and self._valid_omics_dfs in dataset.py are valid as metadata or omics dfs, respectively, for the utilities functions. If not, override those lists for the dataset class.
-5. If the dataset is password protected, add it to the password_protected_datasets list in the download function in the `cptac/file_download.py` file.
+5. If the dataset is password protected, add it to the `password_protected_datasets` list in the `download` function in the `cptac/file_download.py` file. Also make sure it has a password access only warning at the end of its `__init__` function.
 6. At the point marked in the child dataset template, write code to format the dataframes according to the specifications below.
 
 **General dataframe formatting requirements**
