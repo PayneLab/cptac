@@ -103,8 +103,7 @@ def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, return_all=
                 pvals.append(pval)
 
         if len(pvals) == 0: # None of the groups had enough members to pass the mincount
-            print("No groups had enough members to pass mincount; no tests run.")
-            return None
+            raise InvalidParameterError("No groups had enough members to pass mincount; no tests run.")
 
         '''Correct for multiple testing to determine if each comparison meets the new cutoff'''
         results = statsmodels.stats.multitest.multipletests(pvals=pvals, alpha=alpha, method=correction_method)

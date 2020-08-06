@@ -21,7 +21,6 @@ import warnings
 
 from cptac.exceptions import HttpResponseError, InvalidParameterError, ParameterWarning
 
-
 def get_interacting_proteins_string(protein, num_results=25):
     """
     @Param protein:
@@ -41,7 +40,7 @@ def get_interacting_proteins_string(protein, num_results=25):
     as a pandas.Series.
     """
 
-    # Post query to the STRING API
+    # Send query to the STRING API
     query_url = "https://string-db.org/api/json/network"
 
     params = {
@@ -74,23 +73,14 @@ def get_interacting_proteins_string(protein, num_results=25):
 
     return interactors
 
-def get_interacting_proteins_biogrid(protein, num_results=25):
-    """
-    @Param protein:
-        The name of the protein that you want to generate a list of interacting proteins for.
+def get_interacting_proteins_biogrid(protein):
+    """Queries the BioGRID API to get interacting proteins for a given protein, based on curated literature references.
 
-    @Param num_results (default=25):
-        The number of interacting proteins that you want to get.
+    Parameters:
+    protein: The name of the protein that you want to generate a list of interacting proteins for.
 
-    @Return:
-        A list of proteins known by the biogrid api to be interacting partners with the specified protein.
-
-    This method takes as a parameter the name of a protein. It then accesses the biogrid database, through
-    a call to their public API, and generates a list of proteins known to be interacting partners with the specified
-    protein. Optional second parameter is num_results (which by default is 25), which specifies in the API call how many
-    interacting partners to retrieve from the database. You will be given one more result than that number, because the
-    protein you queried for is also inserted into the list. The list of interacting proteins is returned to the caller
-    as a pandas.Series.
+    Returns:
+    pandas.DataFrame: The interacting proteins, ranked by the number of literature references supporting them.
     """
 
     # Post query to the BioGRID API
@@ -100,10 +90,11 @@ def get_interacting_proteins_biogrid(protein, num_results=25):
         "searchNames": "true",
         "geneList": protein,
         "includeInteractors": "true",
+        "includeInteractorInteractions": "false",
+        "interSpeciesExcluded": "true",
         "format": "json",
         "taxId": "9606",
         "start": "0",
-        "max": 3 * num_results,
         "accesskey": "0ff59dcf3511928e78aad499688381c9"
     }
 
@@ -119,27 +110,13 @@ def get_interacting_proteins_biogrid(protein, num_results=25):
     # Put the response data in a dataframe
     resp_df = pd.DataFrame(query_resp.json()).transpose()
 
-    # Get the unique values of columns we want, as a list
-    # We do the sort_index so that the genes are in priority order
-    # We requested double num_results above, and then take the
-    # first num_results here, because removing duplicates takes
-    # away from the initial number we get
+    # Get a list of all the interactors, and rank them by how many references each has
     interactors = resp_df["OFFICIAL_SYMBOL_A"].\
-        append(resp_df["OFFICIAL_SYMBOL_B"]).\
-        sort_index()
+    where(resp_df["OFFICIAL_SYMBOL_A"] != protein, other=resp_df["OFFICIAL_SYMBOL_B"]).\
+    value_counts().\
+    to_frame("num_references")
 
-    interactors = interactors[interactors != protein].\
-        unique()[:num_results]
-
-    # Make sure the protein they searched is in the output list
-    # We took it out earlier, if it was already in, so we can get
-    # a consistent number of results.
-    if protein not in interactors:
-        interactors = np.insert(interactors, 0, protein)
-
-    # Sort and convert to series
-    interactors = np.sort(interactors)
-    interactors = pd.Series(interactors)
+    interactors.index.name = "protein"
 
     return interactors
 
