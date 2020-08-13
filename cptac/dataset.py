@@ -1009,19 +1009,10 @@ class Dataset:
         joined = join_col_to_dataframe(joined, sample_status_map)
         joined.columns.name = "Name" # This attribute gets lost in the join above
 
-        # If there's no mutations filter, then based on the dtypes in the dataframe, set our fill values so that .loc will insert the value as a single item in a list, instead of unpacking the list.
-        if mutations_were_filtered:
-            wildtype_normal_fill = "Wildtype_Normal"
-            wildtype_tumor_fill = "Wildtype_Tumor"
-            no_mutation_fill = "No_mutation"
-        elif (joined.dtypes == "object").all(): # If all columns in "joined" have a dtype of "object"
-            wildtype_normal_fill = [["Wildtype_Normal"]]
-            wildtype_tumor_fill = [["Wildtype_Tumor"]]
-            no_mutation_fill = [["No_mutation"]]
-        else:
-            wildtype_normal_fill = [[["Wildtype_Normal"]]]
-            wildtype_tumor_fill = [[["Wildtype_Tumor"]]]
-            no_mutation_fill = [[["No_mutation"]]]
+        # Set our fill values
+        wildtype_normal_fill = "Wildtype_Normal"
+        wildtype_tumor_fill = "Wildtype_Tumor"
+        no_mutation_fill = "No_mutation"
 
         # Fill in Wildtype_Normal or Wildtype_Tumor for NaN values (i.e., no mutation data for that sample) in joined dataframe mutation columns
         mutation_regex = r'^.*_Mutation$' # Construct regex to find all mutation columns
@@ -1043,6 +1034,10 @@ class Dataset:
             joined.loc[(sample_status_map == "Normal") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_normal_fill # Change all NaN mutation values for Normal samples to Wildtype_Normal.
             joined.loc[(sample_status_map == "Tumor") & (pd.isnull(joined[mutation_col])), mutation_col] = wildtype_tumor_fill # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
 
+            # If we didn't filter mutations, encapsulate the fill values in lists, to match the other values in the column
+            if not mutations_were_filtered:
+                joined = joined.assign(**{mutation_col: joined[mutation_col].apply(lambda x: x if isinstance(x, list) else [x])})
+
         if len(fill_log) > 0 and not quiet:
             warnings.warn(f"In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: {', '.join(fill_log)}", FilledMutationDataWarning, stacklevel=3)
 
@@ -1051,7 +1046,13 @@ class Dataset:
         location_cols = joined.columns[joined.columns.get_level_values("Name").str.match(location_regex)] # Get a list of all location columns
         for location_col in location_cols:
             if show_location: # If we're including the location column, fill NaN with "No_mutation", since that's what it means, so things are clearer to the user.
-                joined.loc[(pd.isnull(joined[location_col])) & (pd.notnull(sample_status_map)), location_col] = no_mutation_fill # Make sure Sample Status is not NaN, though--if it is, we have no mutation data at all for that sample, so we can't say "No_mutation". It must have been a sample that was in the other dataframe, but not the mutations.
+
+                # Make sure Sample Status is not NaN, though--if it is, we have no mutation data at all for that sample, so we can't say "No_mutation". It must have been a sample that was in the other dataframe, but not the mutations.
+                joined.loc[(pd.isnull(joined[location_col])) & (pd.notnull(sample_status_map)), location_col] = no_mutation_fill 
+                
+                # If we didn't filter mutations, encapsulate the fill values in lists, to match the other values in the column
+                if not mutations_were_filtered:
+                    joined = joined.assign(**{location_col: joined[location_col].apply(lambda x: x if isinstance(x, list) else [x])})
             else:
                 joined = joined.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
 
