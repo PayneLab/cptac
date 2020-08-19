@@ -31,6 +31,10 @@ from cptac.exceptions import InvalidParameterError
 @Param alpha (default = .05):
     Significance level. Will be adjusted using parameter correction_method if more than 1 comparison is done.
 
+@Param equal_var (default = True):
+    Whether the variances of the two groups are equal. If True, will perform Student's t test. If False, will perform
+    Welch's t test.
+
 @Param return_all (default = False):
     Boolean. If true, will return a dataframe containing all comparisons and p-values, regardless of significance.
     If false, will only return significant comparisons and p-values in the dataframe, or None if no significant comparisons.
@@ -66,7 +70,7 @@ The resulting p-values will be corrected for multiple testing, using a specified
 the significant results will be returned as a dataframe, sorted by p-value.
 '''
 
-def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, return_all=False, correction_method='bonferroni', mincount=3, pval_return_corrected=True):
+def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, equal_var=True, return_all=False, correction_method='bonferroni', mincount=3, pval_return_corrected=True):
     try:
         '''Verify precondition that label column exists and has exactly 2 unique values'''
         label_values = df[label_column].unique()
@@ -98,7 +102,12 @@ def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, return_all=
             elif len(partition2[column].dropna(axis=0)) <= mincount:
                 continue
             else:
-                stat, pval = scipy.stats.ttest_ind(partition1[column].dropna(axis=0), partition2[column].dropna(axis=0))
+                stat, pval = scipy.stats.ttest_ind(
+                    a=partition1[column].dropna(axis=0),
+                    b=partition2[column].dropna(axis=0), 
+                    equal_var=equal_var
+                )
+
                 comparisons.append(column)
                 pvals.append(pval)
 
