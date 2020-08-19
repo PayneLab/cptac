@@ -1036,7 +1036,7 @@ class Dataset:
 
             # If we didn't filter mutations, encapsulate the fill values in lists, to match the other values in the column
             if not mutations_were_filtered:
-                joined = joined.assign(**{mutation_col: joined[mutation_col].apply(lambda x: x if isinstance(x, list) else [x])})
+                joined[mutation_col] = joined[mutation_col].apply(lambda x: x if isinstance(x, list) else [x])
 
         if len(fill_log) > 0 and not quiet:
             warnings.warn(f"In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: {', '.join(fill_log)}", FilledMutationDataWarning, stacklevel=3)
@@ -1052,7 +1052,7 @@ class Dataset:
                 
                 # If we didn't filter mutations, encapsulate the fill values in lists, to match the other values in the column
                 if not mutations_were_filtered:
-                    joined = joined.assign(**{location_col: joined[location_col].apply(lambda x: x if isinstance(x, list) else [x])})
+                    joined[location_col] = joined[location_col].apply(lambda x: x if isinstance(x, list) else [x])
             else:
                 joined = joined.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
 
