@@ -10,6 +10,7 @@
 #   limitations under the License.
 
 import cptac
+import os
 from collections import namedtuple
 
 NO_INTERNET = True
@@ -63,40 +64,54 @@ class TestGetters:
                     assert df.Sample_Tumor_Normal.isna().sum() == 0
 
     def _get_dataset_tuples(self):
-        """Load the datasets and return a list of them."""
+        """Parses index files to generate a list of named tuples of all exisiting dataset names and version numbers, and references to their loader functions."""
 
+        # Download latest versions of all datasets, so we have the latest versions 
+        # of all the index files and can get complete lists of all versions
+        cptac.download(dataset="all", version="latest", redownload=False)
+
+        # Construct the path to the cptac directory
+        path_here = os.path.abspath(os.path.dirname(__file__))
+        dirs = path_here.split(os.sep)
+        dirs = dirs[:-1]
+        dirs.append("cptac")
+        cptac_path = os.sep.join(dirs)
+        
+        # Get a list of all data directories in the cptac directory, and
+        # turn it into a list of the paths to all the index files
+        all_dirs = [f.path for f in os.scandir(cptac_path) if f.is_dir()]
+        data_dirs = [dir for dir in all_dirs if dir.split(os.sep)[-1].startswith("data_")]
+        index_paths = [os.sep.join([dir, "index.txt"]) for dir in data_dirs]
+
+        # Read in the index file from each data directory, and parse out all version numbers
+        versions = {}
+        for path in index_paths:
+
+            # Get the dataset name
+            dataset = path.split(os.sep)[-2].split("_", maxsplit=1)[1]
+
+            # Read in the index file and parse out the version numbers
+            with open(path, "r") as fp:
+                versions_list = [line.strip()[1:] for line in fp.readlines() if line.startswith("#")]
+
+            # Save the versions for that dataset
+            versions[dataset] = versions_list
+
+        # Create a named tuple for each version of each dataset
         DatasetTuple = namedtuple("DatasetTuple", ["name", "version", "function"])
+        dataset_tuples = []
 
-        dss = [
-            DatasetTuple("brca", "3.1", cptac.Brca),
-            DatasetTuple("brca", "3.1.1", cptac.Brca),
+        for dataset in versions.keys():
+            data_versions = versions[dataset]
+            for version in data_versions:
+                version_tuple = DatasetTuple(name=dataset, version=version, function=dataset)
+                dataset_tuples.append(version_tuple)
 
-            DatasetTuple("ccrcc", "0.0", cptac.Ccrcc),
-            DatasetTuple("ccrcc", "0.1", cptac.Ccrcc),
+        # TODO: Get functions. Can we scrape them from a namespace by checking inheritance from Dataset class?
+        # Other option is to further standardize naming, but that would be more susceptible to bugs. If you do,
+        # leave more troubleshooting notes detailing that issues might arise from incorrectly named datasets.
 
-            DatasetTuple("ccrcc", "0.1.1", cptac.Ccrcc),
-            DatasetTuple("colon", "0.0", cptac.Colon),
-            DatasetTuple("colon", "0.0.1", cptac.Colon),
+        # Also, move the downloading step out of this function, and into the class init equivalent. Have that also call
+        # this, and download all previous data versions.
 
-            DatasetTuple("endometrial", "2.1", cptac.Endometrial),
-            DatasetTuple("endometrial", "2.1.1", cptac.Endometrial),
-
-            DatasetTuple("gbm", "1.0", cptac.Gbm),
-            DatasetTuple("gbm", "2.0", cptac.Gbm),
-            DatasetTuple("gbm", "2.1", cptac.Gbm),
-            DatasetTuple("gbm", "3.0", cptac.Gbm),
-
-            DatasetTuple("hnscc", "0.1", cptac.Hnscc),
-            DatasetTuple("hnscc", "2.0", cptac.Hnscc),
-
-            DatasetTuple("lscc", "1.0", cptac.Lscc),
-
-            DatasetTuple("luad", "2.0", cptac.Luad),
-            DatasetTuple("luad", "3.1", cptac.Luad),
-            DatasetTuple("luad", "3.1.1", cptac.Luad),
-
-            DatasetTuple("ovarian", "0.0", cptac.Ovarian),
-            DatasetTuple("ovarian", "0.0.1", cptac.Ovarian),
-        ]
-
-        return dss
+        return dataset_tuples
