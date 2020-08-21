@@ -724,7 +724,7 @@ class Dataset:
             else:
                 raise InvalidParameterError(f"Unrecognized value for tissue_type parameter. You passed '{tissue_type}'. Valid options are 'tumor', 'normal', or 'both'.")
         else:
-            raise DataframeNotIncludedError(f"{name} dataframe not included in the {self.get_cancer_type()} dataset.")
+            raise DataFrameNotIncludedError(f"{name} dataframe not included in the {self.get_cancer_type()} dataset.")
 
     def _get_sample_status_map(self):
         """Get a pandas Series from the clinical dataframe, with sample ids as the index, and each sample's status (tumor or normal) as the values."""
@@ -753,7 +753,7 @@ class Dataset:
             raise CptacDevError(f"Invalid df_type of {df_type} passed to cptac.Dataset._check_df_valid.")
 
         if df_name not in self._data.keys():
-            raise DataframeNotIncludedError(f"{df_name} dataframe not included in the {self.get_cancer_type()} dataset.")
+            raise DataFrameNotIncludedError(f"{df_name} dataframe not included in the {self.get_cancer_type()} dataset.")
         elif df_name not in valid_dfs:
             error_msg = f"{df_name} is not a valid {df_type} dataframe for this function in this dataset. Valid options:"
             for valid_name in valid_dfs:

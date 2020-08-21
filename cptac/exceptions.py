@@ -66,7 +66,7 @@ class NoDefinitionsError(DataError):
     """They tried to access definitions for a dataset that doesn't provide any."""
     pass
 
-class DataframeNotIncludedError(DataError):
+class DataFrameNotIncludedError(DataError):
     """They requested a dataframe that's not included in the dataset."""
     pass
 

@@ -11,12 +11,22 @@
 
 import cptac
 import os
-from collections import namedtuple
+import inspect
+import packaging.version
+import warnings
+import collections
 
 NO_INTERNET = True
 
 class TestGetters:
 
+    # Test setup
+    @classmethod
+    def setup_class(cls):
+        """Download all datasets, and do any other setup."""
+        cptac.download(dataset="all", version="latest", redownload=False)
+
+    # Test driver functions
     def test_all_getters(self):
         """Test all getters for a dataset."""
 
@@ -66,10 +76,6 @@ class TestGetters:
     def _get_dataset_tuples(self):
         """Parses index files to generate a list of named tuples of all exisiting dataset names and version numbers, and references to their loader functions."""
 
-        # Download latest versions of all datasets, so we have the latest versions 
-        # of all the index files and can get complete lists of all versions
-        cptac.download(dataset="all", version="latest", redownload=False)
-
         # Construct the path to the cptac directory
         path_here = os.path.abspath(os.path.dirname(__file__))
         dirs = path_here.split(os.sep)
@@ -97,21 +103,22 @@ class TestGetters:
             # Save the versions for that dataset
             versions[dataset] = versions_list
 
+        # Get references to the classes for each dataset
+        ds_classes = {}
+        for name, obj in cptac.__dict__.items():
+            if inspect.isclass(obj) and issubclass(obj, cptac.dataset.Dataset):
+                ds_classes[name.lower()] = obj # We call str.lower() because the class names are in UpperCamelCase
+
         # Create a named tuple for each version of each dataset
-        DatasetTuple = namedtuple("DatasetTuple", ["name", "version", "function"])
+        DatasetTuple = collections.namedtuple("DatasetTuple", ["name", "version", "function"])
         dataset_tuples = []
 
-        for dataset in versions.keys():
+        for dataset in sorted(versions.keys()):
+            ds_class = ds_classes[dataset]
             data_versions = versions[dataset]
-            for version in data_versions:
-                version_tuple = DatasetTuple(name=dataset, version=version, function=dataset)
+
+            for version in sorted(data_versions, key=packaging.version.parse):
+                version_tuple = DatasetTuple(name=dataset, version=version, function=ds_class)
                 dataset_tuples.append(version_tuple)
-
-        # TODO: Get functions. Can we scrape them from a namespace by checking inheritance from Dataset class?
-        # Other option is to further standardize naming, but that would be more susceptible to bugs. If you do,
-        # leave more troubleshooting notes detailing that issues might arise from incorrectly named datasets.
-
-        # Also, move the downloading step out of this function, and into the class init equivalent. Have that also call
-        # this, and download all previous data versions.
 
         return dataset_tuples
