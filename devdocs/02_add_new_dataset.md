@@ -30,8 +30,9 @@
 
 ## Adding the code for a new dataset
 
-1. Write a dataset loader, stored in the cptac/cptac/ directory, and having the dataset name, all lowercase, as the filename, with .py as the extension. For example, the loader for the endometrial dataset is called `endometrial.py`; for the CCRCC dataset, it's called `ccrcc.py`.
-    1. See child_dataset_template.py for more info.
+1. Copy the child_dataset_template.py file to create a new class for the new dataset, inheriting from the abstract `Dataset` class. When you copy the template to a new file,store the new file in the cptac/cptac/ directory, and set its name as the dataset's name or acronym, all lowercase, with .py as the extension. For example, the loader for the endometrial dataset is called `endometrial.py`; for the ccRCC dataset, it's called `ccrcc.py`.
+    1. The name of the class for the new dataset should be the dataset's name or acronym in UpperCamelCase. For example, the endometrial dataset's class is `Endometrial`; the BRCA dataset's class is `Brca`; and the ccRCC dataset's class is `Ccrcc`.
+    2. See child_dataset_template.py for more info.
 2. At the top of `cptac/__init__.py`, add a line to import the dataset class from its file, using the lowercase file name and the UpperCamelCase dataset name (e.g. `from .ccrcc import Ccrcc`)
 3. Add the dataset and its associated info to cptac.list_datasets()
 4. Make sure all dfs in `self._valid_metatdata_dfs` and `self._valid_omics_dfs` in dataset.py are valid as metadata or omics dfs, respectively, for the utilities functions. If not, override those lists for the dataset class.

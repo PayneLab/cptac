@@ -45,6 +45,7 @@ from .exceptions import FailedReindexWarning, PublicationEmbargoWarning, Reindex
 ################################################################################
 
 ###FILL: Put in the actual name/acronym for the cancer type as the class name in the line below, in UpperCamelCase.
+### For example, the endometrial dataset's class is called Endometrial; the BRCA dataset's class is called Brca; and the ccRCC dataset's class is called Ccrcc.
 class NameOrAcronym(DataSet):
 
     def __init__(self, version="latest", no_internet=False):
