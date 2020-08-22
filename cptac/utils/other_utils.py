@@ -241,7 +241,6 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     tumor_status = clinical_df[['Sample_Tumor_Normal']]
     tumor = tumor_status.loc[tumor_status['Sample_Tumor_Normal'] == 'Tumor']
     total_tumor_count = float(len(tumor))
-    print(total_tumor_count)
     
     # Get mutations data frame
     somatic_mutations = cancer_object.get_somatic_mutation() 
