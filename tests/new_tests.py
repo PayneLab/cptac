@@ -28,13 +28,15 @@ class TestGetters:
 
     # Test driver functions
     def test_all_getters(self):
-        """Test all getters for a dataset."""
+        """Test all getters for all datasets."""
 
         getter_names = [name for name in dir(cptac.dataset.Dataset)
             if name.startswith("get_")
             and name not in ("get_cancer_type", "get_genotype_all_vars")]
 
         dss = self._get_dataset_tuples()
+
+        # TODO: Split dss into four parts, (use numpy.array_split?), then split testing into 4 processes to allow multithreading.
 
         for ds in dss:
             self._check_single_getter(ds, getter_names)
@@ -44,7 +46,7 @@ class TestGetters:
         """Test a single getter from a dataset."""
 
         # Instantiate the dataset
-        ds = ds_tuple.function(ds_tuple.version)
+        ds = ds_tuple.function(ds_tuple.version, no_internet=NO_INTERNET)
 
         for getter_name in getter_names:
 
@@ -53,7 +55,10 @@ class TestGetters:
 
             # Call the getter to get the dataframe
             try:
-                df = getter()
+                if getter_name == "get_phosphosites":
+                    df = getter(["TP53", "EGFR"])
+                else:
+                    df = getter()
 
             except cptac.exceptions.DataFrameNotIncludedError:
                 warnings.warn(f"The {getter_name[4:]} dataframe was not found in the {ds_tuple.name} dataset.")
@@ -67,11 +72,11 @@ class TestGetters:
                 if getter_name[4:] not in ["somatic_mutation", "treatment", "medical_history", "gene_fusion", "followup"]:
                     assert df.index.duplicated().sum() == 0
                     assert df.columns.duplicated().sum() == 0
-                    assert df.duplicated().sum() == 0
+                    assert df.reset_index(drop=False).duplicated().sum() == 0
 
                 # Check no null sample statuses
                 if getter_name == "get_clinical":
-                    assert df.Sample_Tumor_Normal.isna().sum() == 0
+                    assert df["Sample_Tumor_Normal"].isna().sum() == 0
 
     def _get_dataset_tuples(self):
         """Parses index files to generate a list of named tuples of all exisiting dataset names and version numbers, and references to their loader functions."""

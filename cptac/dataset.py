@@ -851,6 +851,8 @@ class Dataset:
             selected.columns = selected.columns.set_levels(selected.columns.levels[0] + '_' + omics_df_name, level=0)
         else:
             selected = selected.add_suffix('_' + omics_df_name)
+
+        selected.columns.name = "Name"
         return selected
 
     def _get_metadata_cols(self, df_name, cols, tissue_type="both"):
