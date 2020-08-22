@@ -236,22 +236,25 @@ exceed the Unique_Samples_Mut column which only counts if
 the gene was mutated once per sample."""
 
 def get_frequently_mutated(cancer_object, cutoff = 0.1):  
-    # Get total tumors/patients
+    # Get total tumor count
     clinical_df = cancer_object.get_clinical()
     tumor_status = clinical_df[['Sample_Tumor_Normal']]
     tumor = tumor_status.loc[tumor_status['Sample_Tumor_Normal'] == 'Tumor']
     total_tumor_count = float(len(tumor))
+    print(total_tumor_count)
     
     # Get mutations data frame
     somatic_mutations = cancer_object.get_somatic_mutation() 
 
     # Drop silent mutations for Hnscc, Ovarian, and Ccrcc dataset, and synonymous SNV (i.e. silent) mutations in HNSCC
     if 'Silent' in somatic_mutations['Mutation'].unique():
-        origin_df = somatic_mutations.loc[somatic_mutations['Mutation'] != 'Silent'].reset_index()
-    elif 'synonymous SNV' in somatic_mutations['Mutation'].unique():
-        origin_df = somatic_mutations.loc[somatic_mutations['Mutation'] != 'synonymous SNV'].reset_index()
-    else:
-        origin_df = somatic_mutations.reset_index() #prepare to count unique samples
+        somatic_mutations = somatic_mutations.loc[somatic_mutations['Mutation'] != 'Silent']
+    if 'RNA' in somatic_mutations['Mutation'].unique():
+        somatic_mutations = somatic_mutations.loc[somatic_mutations['Mutation'] != 'RNA'] #ignore RNA in LSCC
+    if 'synonymous SNV' in somatic_mutations['Mutation'].unique():
+        somatic_mutations = somatic_mutations.loc[somatic_mutations['Mutation'] != 'synonymous SNV']
+        
+    origin_df = somatic_mutations.reset_index() #prepare to count unique samples
         
     # Create two categories in Mutation column - 'M': Missense, 'T': Truncation
     if cancer_object.get_cancer_type() in ('hnscc') and cancer_object.version() == '0.1':
@@ -286,6 +289,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
         
     elif unique_mutations != 2: # Check that all mutation names are catagorized
         print('Warning: New mutation name not classified. Counts will be affected.')
+        print(mutations_replaced_M_T['Mutation'].unique())
     
     # Find frequently mutated genes (total fraction > cutoff)
     # Same steps will be repeated for finding the missense and truncation mutation frequencies
@@ -298,6 +302,7 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     fraction_mutated = count_mutations.apply(lambda x: x / total_tumor_count) # Step 3 
     fraction_greater_than_cutoff = fraction_mutated.where(lambda x: x > cutoff) #na used when not > cutoff
     filtered_gene_df = fraction_greater_than_cutoff.dropna() # drop genes below cutoff
+    
     
     # Create and join Missense column (following similar steps as seen above) *Counts missense once in sample
     miss = mutations_replaced_M_T.loc[mutations_replaced_M_T['Mutation'] == 'M']
