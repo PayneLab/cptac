@@ -194,7 +194,7 @@ class ParseWikiPathways:
 
             if fileName == ".DS_Store":
                 continue
-            filePath = os.path.join('path', 'fileName')
+            filePath = os.path.join(path, fileName)
             pathwayGenes = []
 
             xmldoc = minidom.parse(filePath)
@@ -203,7 +203,12 @@ class ParseWikiPathways:
 
             dataNodes = pathway.getElementsByTagName("DataNode")
             for node in dataNodes:
-                if node.getAttribute("Type") == "GeneProduct":
+
+                # We want nodes marked either "GeneProduct" or "Protein". "GeneProduct" is the default label for
+                # proteins, DNA, and RNA, and unfortunately not all proteins are changed from "GeneProduct" to "Protein".
+                # See the "Data nodes" section of https://www.wikipathways.org/index.php/Help:Guidelines_EditorPalette for
+                # details.
+                if node.getAttribute("Type") == "GeneProduct" or node.getAttribute("Type") == "Protein":
                     geneName = node.getAttribute("TextLabel")
                     pathwayGenes.append(geneName)
 
