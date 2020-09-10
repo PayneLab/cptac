@@ -30,7 +30,7 @@ class Lscc(Dataset):
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
-        valid_versions = ["1.0","3.2"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["1.0", "3.2", "3.2.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "1.0": [
@@ -63,8 +63,19 @@ class Lscc(Dataset):
                 "lscc-v3.2-gene-level-cnv-gistic2-all_data_by_genes.gct.gz",
                 "lscc-v3.2-mutsig-2cv-umich-v2-lscc-poncptac3-lscc-v3beta.final-analysis-set.maf.gz",
                 "lscc-v3.2-ubiquitylome-ratio-norm-NArm.gct.gz",
-                "lscc-v3.2-circular-rna-rsem-uq-log2.gct.gz"
-                ]
+                "lscc-v3.2-circular-rna-rsem-uq-log2.gct.gz"],
+            "3.2.1": [
+                "lscc-v3.2-acetylome-ratio-norm-NArm.gct.gz",
+                "lscc-v3.2-circular-rna-rsem-uq-log2.gct.gz",
+                "lscc-v3.2-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
+                "lscc-v3.2-gene-level-cnv-gistic2-log-ratio-all_data_by_genes.gct.gz",
+                "lscc-v3.2-mirna-mature-tpm-log2.gct.gz",
+                "lscc-v3.2-mutsig-2cv-umich-v2-lscc-poncptac3-lscc-v3beta.final-analysis-set.maf.gz",
+                "lscc-v3.2-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "lscc-v3.2-proteome-ratio-norm-NArm.gct.gz",
+                "lscc-v3.2-rnaseq-uq-fpkm-log2-NArm.gct.gz",
+                "lscc-v3.2-sample-annotation.csv.gz",
+                "lscc-v3.2-ubiquitylome-ratio-norm-NArm.gct.gz"],
         }
 
         super().__init__(cancer_type="lscc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
@@ -385,15 +396,15 @@ class Lscc(Dataset):
 
                 self._data["acetylproteomics"] = df
 
-            elif file_name in ["lscc-v2.0-gene-level-cnv-gistic2-all_data_by_genes.gct.gz","lscc-v3.2-gene-level-cnv-gistic2-all_data_by_genes.gct.gz"]:
+            elif file_name in ["lscc-v2.0-gene-level-cnv-gistic2-all_data_by_genes.gct.gz","lscc-v3.2-gene-level-cnv-gistic2-all_data_by_genes.gct.gz", "lscc-v3.2-gene-level-cnv-gistic2-log-ratio-all_data_by_genes.gct.gz"]:
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
                 df = df.set_index("id")
                 cols_to_drop = ["Cytoband","Gene.ID","geneSymbol"]
-                if file_name == "lscc-v3.2-gene-level-cnv-gistic2-all_data_by_genes.gct.gz":
+                if file_name in ["lscc-v3.2-gene-level-cnv-gistic2-all_data_by_genes.gct.gz", "lscc-v3.2-gene-level-cnv-gistic2-log-ratio-all_data_by_genes.gct.gz"]:
                     cols_to_drop.extend(['Samples.altered','Samples.amp','Samples.del'])
-                df = df.drop(columns = cols_to_drop)
+                df = df.drop(columns=cols_to_drop)
                 df = df.apply(pd.to_numeric)
                 df = df.sort_index()
                 df = df.transpose()
