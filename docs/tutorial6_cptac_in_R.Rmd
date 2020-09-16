@@ -7,7 +7,7 @@ urlcolor: blue
 
 Thus, even though `cptac` is a Python package, with the help of `reticulate` you can load and work with the datasets in R.
 
-## Step 1: Environment setup
+## Environment setup
 First, you need to load the `reticulate` package, and then tell it which Python environment you want to use to access the `cptac` package.
 
 ```{r, message=FALSE}
@@ -23,7 +23,7 @@ library(reticulate)
 use_condaenv("dev", required = TRUE)
 ```
 
-## Step 2: Load `cptac` and access data
+## Load `cptac` and access data
 Now we will load `cptac` and get the dataset we want.
 
 ```{r}
@@ -36,7 +36,7 @@ cptac <- import("cptac", convert = FALSE)
 en <- cptac$Endometrial()
 ```
 
-# Load a dataframe and convert it to an R object
+## Load a dataframe and convert it to an R object
 This dataframe just has a regular column index (not a multiindex), so we can directly convert it into an R object after loading it.
 
 When `reticulate` converts a `pandas.DataFrame` into R, it converts it to the R `data.frame` type.
@@ -51,7 +51,7 @@ prot <- py_to_r(prot_py)
 print(prot[1:10, 1:8])
 ```
 
-# Load a multiindex dataframe
+## Load a multiindex dataframe
 If it's a dataframe with a column multiindex, you need to first flatten the index before converting it to an R object.
 
 See [tutorial 4](https://github.com/PayneLab/cptac/blob/master/docs/tutorial4_multiindex.ipynb) for more information on column multiindexes.
