@@ -1,0 +1,72 @@
+---
+title: "Using reticulate to access CPTAC data in R"
+---
+
+# Using `reticulate` to access CPTAC data in R
+
+`reticulate` is an R package that allows you to create Python objects from your R environment, then convert them into R objects and load them into your R environment. Thus, even though `cptac` is a Python package, with the help of `reticulate` you can still use it to load and work with the CPTAC datasets in an R environment.
+
+## Step 1: Environment setup
+First, you need to load the `reticulate` package, and then tell it which Python environment you want to use to access the `cptac` package.
+
+```{r, message=FALSE}
+# Install reticulate if necessary
+if (!require(reticulate)) install.packages("reticulate")
+
+# Load the package
+library(reticulate)
+
+# Specify to use the environment where the cptac package is installed. Replace 
+# "dev" with the name of your environment. If you use an environment manager 
+# besides conda, you'll want this command: use_virtualenv("myenv")
+use_condaenv("dev", required=TRUE)
+```
+
+## Step 2: Load `cptac` and access data
+Now we will load `cptac` and get the dataset we want.
+
+```{r}
+# Import the package. We pass convert = FALSE so that objects won't be 
+# converted from Python to R until we explicitly ask for it. This is necessary 
+# to properly prepare a multiindex dataframe for conversion to R (see below).
+cptac <- import("cptac", convert = FALSE) 
+
+# Load the dataset
+en <- cptac$Endometrial()
+```
+
+# Load a dataframe and convert it to an R object
+This dataframe just has a regular column index (not a multiindex), so we can directly convert it into an R object after loading it.
+
+```{r}
+# Load the table
+prot_py <- en$get_proteomics() 
+
+# Convert into R
+prot <- py_to_r(prot_py) 
+
+print(prot, max = 10)
+```
+
+# Load a multiindex dataframe
+If it's a dataframe with a column multiindex, you need to first flatten the index before converting it to an R object. See [tutorial 4](https://github.com/PayneLab/cptac/blob/master/docs/tutorial4_multiindex.ipynb) for more information on dataframes with a column multiindex.
+
+```{r}
+# Load the table
+phos_py_multiindex <- en$get_phosphoproteomics()
+
+# Load cptac.utils so we can access a helper function to convert the multiindex 
+# to a single level index.
+utils <- import("cptac.utils", convert = FALSE)
+
+# Convert the multiindex to a single level index. This works because we passed 
+# convert = FALSE when we imported the cptac package, so the dataframe is still
+# a Python object at this point (it  wasn't automatically converted into an R 
+# object on loading) and can be passed to this Python function.
+phos_py_single_index <- utils$reduce_multiindex(phos_py_multiindex, flatten = TRUE) 
+
+# Convert to R
+phos <- py_to_r(phos_py_single_index) 
+
+print(phos, max = 10)
+```
