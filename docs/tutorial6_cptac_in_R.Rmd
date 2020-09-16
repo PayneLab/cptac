@@ -1,9 +1,7 @@
 ---
 title: "Using reticulate to access CPTAC data in R"
+output: pdf_document
 ---
-
-# Using `reticulate` to access CPTAC data in R
-
 `reticulate` is an R package that allows you to create Python objects from your R environment, then convert them into R objects and load them into your R environment. Thus, even though `cptac` is a Python package, with the help of `reticulate` you can still use it to load and work with the CPTAC datasets in an R environment.
 
 ## Step 1: Environment setup
@@ -45,7 +43,7 @@ prot_py <- en$get_proteomics()
 # Convert into R
 prot <- py_to_r(prot_py) 
 
-print(prot, max = 10)
+print(prot[1:10, 1:8])
 ```
 
 # Load a multiindex dataframe
@@ -68,5 +66,5 @@ phos_py_single_index <- utils$reduce_multiindex(phos_py_multiindex, flatten = TR
 # Convert to R
 phos <- py_to_r(phos_py_single_index) 
 
-print(phos, max = 10)
+print(phos[1:10, 1:8])
 ```
