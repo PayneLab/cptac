@@ -1,8 +1,11 @@
 ---
 title: "Using reticulate to access CPTAC data in R"
 output: pdf_document
+urlcolor: blue
 ---
-`reticulate` is an R package that allows you to create Python objects from your R environment, then convert them into R objects and load them into your R environment. Thus, even though `cptac` is a Python package, with the help of `reticulate` you can still use it to load and work with the CPTAC datasets in an R environment.
+`reticulate` is an R package that allows you to create Python objects and convert them into R objects for use in your R environment.
+
+Thus, even though `cptac` is a Python package, with the help of `reticulate` you can load and work with the datasets in R.
 
 ## Step 1: Environment setup
 First, you need to load the `reticulate` package, and then tell it which Python environment you want to use to access the `cptac` package.
@@ -17,7 +20,7 @@ library(reticulate)
 # Specify to use the environment where the cptac package is installed. Replace 
 # "dev" with the name of your environment. If you use an environment manager 
 # besides conda, you'll want this command: use_virtualenv("myenv")
-use_condaenv("dev", required=TRUE)
+use_condaenv("dev", required = TRUE)
 ```
 
 ## Step 2: Load `cptac` and access data
@@ -36,6 +39,8 @@ en <- cptac$Endometrial()
 # Load a dataframe and convert it to an R object
 This dataframe just has a regular column index (not a multiindex), so we can directly convert it into an R object after loading it.
 
+When `reticulate` converts a `pandas.DataFrame` into R, it converts it to the R `data.frame` type.
+
 ```{r}
 # Load the table
 prot_py <- en$get_proteomics() 
@@ -47,7 +52,9 @@ print(prot[1:10, 1:8])
 ```
 
 # Load a multiindex dataframe
-If it's a dataframe with a column multiindex, you need to first flatten the index before converting it to an R object. See [tutorial 4](https://github.com/PayneLab/cptac/blob/master/docs/tutorial4_multiindex.ipynb) for more information on dataframes with a column multiindex.
+If it's a dataframe with a column multiindex, you need to first flatten the index before converting it to an R object.
+
+See [tutorial 4](https://github.com/PayneLab/cptac/blob/master/docs/tutorial4_multiindex.ipynb) for more information on column multiindexes.
 
 ```{r}
 # Load the table
@@ -66,5 +73,5 @@ phos_py_single_index <- utils$reduce_multiindex(phos_py_multiindex, flatten = TR
 # Convert to R
 phos <- py_to_r(phos_py_single_index) 
 
-print(phos[1:10, 1:8])
+print(phos[1:10, 1:6])
 ```
