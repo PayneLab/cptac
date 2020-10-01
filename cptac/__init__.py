@@ -36,7 +36,7 @@ def list_datasets():
     col_names = ["Description", "Data reuse status", "Publication link"]
     col_index = pd.Index(data=col_names, name="Dataset name")
     datasets = {
-        "Brca": ["breast cancer", "password access only", "unpublished"],
+        "Brca": ["breast cancer", "no restrictions", "in press"],
         "Ccrcc": ["clear cell renal cell carcinoma (kidney)", "no restrictions", "https://www.ncbi.nlm.nih.gov/pubmed/31675502"],
         "Colon": ["colorectal cancer", "no restrictions", "https://www.ncbi.nlm.nih.gov/pubmed/31031003"],
         "Endometrial": ["endometrial carcinoma (uterine)", "no restrictions", "https://www.ncbi.nlm.nih.gov/pubmed/32059776"],
