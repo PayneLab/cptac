@@ -20,7 +20,7 @@ from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class PdcBrca(DataSet):
+class PdcLuad(DataSet):
 
     def __init__(self, no_internet, version="latest"):
         """Load all of the gbm dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -45,7 +45,7 @@ class PdcBrca(DataSet):
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="pancanbrca", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="pdcluad", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"

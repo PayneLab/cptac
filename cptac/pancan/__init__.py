@@ -11,6 +11,8 @@
 
 import pandas as pd
 
+from .downloadpdc import _pdc_download_cancer_type
+
 def list_datasets():
     """List all available datasets."""
     col_names = ["Description", "Data reuse status", "Publication link"]
