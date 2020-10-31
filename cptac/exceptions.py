@@ -70,6 +70,15 @@ class DataFrameNotIncludedError(DataError):
     """They requested a dataframe that's not included in the dataset."""
     pass
 
+# Pancan exceptions
+class PancanError(CptacError):
+    """Base class for cptac.pancan specific exceptions."""
+    pass
+
+class DataTypeNotInSourceError(PancanError):
+    """The source they requested does not have the data type they requested."""
+    pass
+
 # Warnings
 class CptacWarning(UserWarning):
     """Base class for all warnings we'll generate."""
