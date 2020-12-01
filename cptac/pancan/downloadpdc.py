@@ -30,23 +30,17 @@ def _pdc_download_cancer_type(cancer_type, version, redownload):
             "proteome_bi": "S039-1",
         },
         "ccrcc": {
-            "compref_phosphoproteome": "S044-2-CompRef",
-            "compref_proteome": "S044-1-CompRef",
-            "dia_proteome": "CPTAC CCRCC Discovery Study - DIA Proteome",
             "phosphoproteome": "S044-2",
             "proteome": "S044-1",
         },
         "colon": {
             "phosphoproteome_pnnl": "S037-3",
             "proteome_pnnl": "S037-2",
-            "proteome_vu": "S037-1",
+#           "proteome_vu": "S037-1", # Can't find quant data?
         },
         "gbm": {
-            "compref_acetylome": "CPTAC GBM Discovery Study - CompRef Acetylome",
-            "compref_phosphoproteome": "CPTAC GBM Discovery Study - CompRef Phosphoproteome",
-            "compref_proteome": "CPTAC GBM Discovery Study - CompRef Proteome",
-            "acetylome": "CPTAC GBM Discovery Study - Acetylome",
-            "phosphoproteome": "CPTAC GBM Discovery Study - Phosphoproteome",
+#           "acetylome": "CPTAC GBM Discovery Study - Acetylome",
+#           "phosphoproteome": "CPTAC GBM Discovery Study - Phosphoproteome",
             "proteome": "CPTAC GBM Discovery Study - Proteome",
         },
         "hnscc": {
@@ -60,9 +54,6 @@ def _pdc_download_cancer_type(cancer_type, version, redownload):
             "ubiquitylome": "CPTAC LSCC Discovery Study - Ubiquitylome",
         },
         "luad": {
-            "compref_acetylome": "CPTAC LUAD Discovery Study - CompRef Acetylome",
-            "compref_phosphoproteome": "S046-2-CompRef",
-            "compref_proteome": "S046-1-CompRef",
             "acetylome": "CPTAC LUAD Discovery Study - Acetylome",
             "phosphoproteome": "S046-2",
             "proteome": "S046-1",
@@ -73,42 +64,69 @@ def _pdc_download_cancer_type(cancer_type, version, redownload):
             "proteome_pnnl": "S038-2",
         },
         "ucec": {
-            "compref_acetylome": "CPTAC UCEC Discovery Study - CompRef Acetylome",
-            "compref_phosphoproteome": "S043-2-CompRef",
-            "compref_proteome ": "S043-1-CompRef",
             "acetylome": "CPTAC UCEC Discovery Study - Acetylome",
             "phosphoproteome": "S043-2",
             "proteome": "S043-1",
         },
     }
 
-    cancer_type_ids = study_submitter_id_map[cancer_type]
+    cancer_type = str.lower(cancer_type)
+    if cancer_type != "all" and cancer_type not in study_submitter_id_map.keys():
+        raise ex.InvalidParameterError(f"cancer_type must be either 'all' or one of the following:\n{list(study_submitter_id_map.keys())}\nYou passed '{cancer_type}'.")
 
-    tables = {
-        "clin": {},
-        "quant": {},
-    }
+    if cancer_type == "all":
 
-    for study, study_submitter_id in cancer_type_ids.items():
+        tables = {}
+        for cancer, cancer_type_ids in study_submitter_id_map.items():
+            tables[cancer_type] = _download_cancer_type(cancer_type_ids)
+
+        return tables
+
+    else:
+        cancer_type_ids = study_submitter_id_map[cancer_type]
+        return _download_cancer_type(cancer_type_ids)
+
+
+def _download_cancer_type(cancer_type_ids):
+    """Download the tables for all study_submitter_id for a particular cancer type."""
+
+    tables = {}
+    clin = {}
+
+    for data_type, study_submitter_id in cancer_type_ids.items():
 
         clin_df = _pdc_download_study_clin(study_submitter_id)
-        quant_df = _pdc_download_study_quant(study_submitter_id)
 
-        if quant_df.shape[1] != 0:
-            quant_df = quant_df.\
-            join(
-                other=clin_df["case_submitter_id"],
-                how="outer",
-            ).\
-            reset_index(drop=False).\
-            set_index("case_submitter_id")
+        quant_df = _pdc_download_study_quant(study_submitter_id).\
+        join(
+            other=clin_df["case_submitter_id"],
+            how="outer",
+        ).\
+        reset_index(drop=False).\
+        set_index("case_submitter_id")
 
-            clin_df = clin_df.\
-            reset_index(drop=False).\
-            set_index("case_submitter_id")
+        clin_df = clin_df.\
+        reset_index(drop=False).\
+        set_index("case_submitter_id")
 
-        tables["clin"][study] = clin_df
-        tables["quant"][study] = quant_df
+        clin[data_type] = clin_df
+        tables[data_type] = quant_df
+
+    master_clin = None
+
+    for data_type in clin.keys():
+
+        if master_clin is None:
+            master_clin = clin[data_type].sort_index()
+            print(f"\nMaster is {data_type}")
+        else:
+            new_clin = clin[data_type].sort_index()
+            if not master_clin.equals(new_clin):
+                print(f"Clin table was different: {data_type}")
+            else:
+                print(f"Clin table was same: {data_type}")
+
+    tables["clin"] = master_clin
 
     return tables
 
@@ -159,6 +177,8 @@ def _pdc_download_study_quant(study_submitter_id):
         result_df = result_df.set_index(0).transpose()
         result_df = result_df.set_index(result_df.columns[0])
         result_df.index.name = "case_id"
+    else:
+        print(f"MISSING: {study_submitter_id} quant")
 
     return result_df
 

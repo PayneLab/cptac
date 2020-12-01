@@ -2,15 +2,18 @@
 
 Note: In the process of updating a dataset, we want to be very careful that we don't break things for current users of the old dataset while we're working on the update, and we want to make sure that after they have the updated package and data, they can still access the old data. I'll reiterate the following points in context in the instructions below, but to achieve these goals, make sure to do the following:
 
-
-
 *   **Don't delete the old data files from Box**--leave them exactly as they are.
 *   **Don't upload the new version of the index and index hash until the new package version is released on PyPI.** Otherwise, the package will be broken for all current users, because it will try to load the new data files, but it won't have the code for handling them, and will almost always run into errors.
 *   **If/when you make ANY changes to the dataset's class's __init__ function, don't delete whatever the old code was.** We need to preserve it, so the package can still load the old data versions. Instead, create an `if` statement that checks the self._version attribute, and if it's the old data version, runs the old code; else, if it's the new data version, run the new code.
 
+**Important:** Whenever you're testing changes to your code, make sure to locally install the package using `pip`, using the following instructions. These instructions will take the local copy of the package that you've been editing and install it in your Anaconda environment's package installation directory. This will make it so that when you've opened a Python prompt or a Jupyter Notebook from that Anaconda environment and then import the package, you'll be importing your edited version of the package. This allows you to test the edits you've made, without having to push them to PyPI. So, to install your locally edited version of the package:
+    1. Open your Anaconda prompt or terminal
+    2. Activate your development environment (`conda activate MyEnvironment`, subbing in the name of your environment)
+    3. Navigate to the cptac directory that contains the `setup.py` file (which is the upper cptac directory, not the lower one). `pip` reads this file to know how to install the package.
+    4. In that directory, run this command: `pip install .` (don't forget the dot--it's a reference to your current directory, telling pip to build the package based on the `setup.py` file it finds in the current directory)
+    5. Alternatively, if you're in a different directory, you could run `pip install /path/to/cptac/directory/with/setup/py/file`, subbing in the proper path to the cptac `setup.py` file, and replacing / with \ if you're on Windows. `pip` will follow that path, find the `setup.py` file, and then install the package based off of it.
+
 Steps for updating an existing dataset:
-
-
 
 1. During the next several steps, you will be writing the code to load the new data version files. You want to be able to run this on your machine, so you can test the code as you work on it. However, you can't automatically do that, because when you create the dataset, the __init__ function will automatically update the dataset index, which will download the old version of the index, as stored on Box, which you don't want. However, you can't update the index on Box yet, because that would break the package for all current users trying to access the dataset.
 
