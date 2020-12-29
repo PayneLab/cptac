@@ -36,11 +36,10 @@ def _pdc_download_cancer_type(cancer_type, version, redownload):
         "colon": {
             "phosphoproteome_pnnl": "S037-3",
             "proteome_pnnl": "S037-2",
-#           "proteome_vu": "S037-1", # Can't find quant data?
         },
         "gbm": {
-#           "acetylome": "CPTAC GBM Discovery Study - Acetylome",
-#           "phosphoproteome": "CPTAC GBM Discovery Study - Phosphoproteome",
+            "acetylome": "CPTAC GBM Discovery Study - Acetylome",
+            "phosphoproteome": "CPTAC GBM Discovery Study - Phosphoproteome",
             "proteome": "CPTAC GBM Discovery Study - Proteome",
         },
         "hnscc": {
