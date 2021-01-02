@@ -1,11 +1,11 @@
 # Easy access to CPTAC data
-This software, a Python package called `cptac`, provides easy access to cancer data from the National Cancer Institute's CPTAC program, which characterizes and studies the proteogenomic landscape of tumors. We implement the software as a Python package, but you can seamlessly use it in an R environment with the help of the `reticulate` package (demonstrated in [Tutorial 6](https://paynelab.github.io/cptac/tutorial06_cptac_in_R.html)). The software is installed in one step with `pip`:
+This software provides easy access to cancer data from the National Cancer Institute's CPTAC program, which characterizes and studies the proteogenomic landscape of tumors. We implement the software as a Python package called `cptac`, but you can seamlessly use it in an R environment with the help of the `reticulate` package (demonstrated in [Tutorial 6](https://paynelab.github.io/cptac/tutorial06_cptac_in_R.html)). Our package is installed in one step with `pip`:
 ```
 pip install cptac
 ```
 See the Installation section below if you have further questions.
 
-The package gives you the data as `pandas DataFrame` objects in Python. If you are using R, `reticulate` converts the tables to `data.frame` objects. By providing the tables natively in your programming environment, we eliminate the need for parsing and formatting, allowing you to quickly feed the data into whatever analysis code you have written. Follow our walkthrough tutorials and use cases for examples of how to use the software.
+The package gives you the data as `pandas` `DataFrame` objects in Python. If you are using R, `reticulate` converts the tables to `data.frame` objects. By providing the tables natively in your programming environment, we eliminate the need for parsing and formatting, allowing you to quickly feed the data into whatever analysis code you have written. Follow our walkthrough tutorials and use cases for examples of how to use the software.
 
 Additionally, the software automatically handles data downloading, storage, and updates. You need only to tell it which datasets you want downloaded, and it will automatically get the data without requiring you to write any HTTP requests or database queries.
 
