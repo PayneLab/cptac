@@ -1,4 +1,4 @@
-# `cptac`: Easy access to CPTAC data
+# cptac: Easy access to CPTAC data
 This software provides easy access to cancer data from the National Cancer Institute's CPTAC program, which characterizes and studies the proteogenomic landscape of tumors. We implement the software as a Python package, but you can seamlessly use it in an R environment with the help of the `reticulate` package (demonstrated in [Tutorial 6](https://paynelab.github.io/cptac/tutorial06_cptac_in_R.html)). The software is installed in one step with `pip`:
 ```
 pip install cptac
@@ -15,7 +15,7 @@ This package is intended to run on Python 3.6 or greater. If you plan on interfa
 ### Installing Python
 If you do not already have Python installed on your computer, we suggest using either the [standard Python distribution](https://www.python.org/downloads/) or the [Anaconda distribution](https://www.anaconda.com/distribution/). Follow the installation instructions at the respective links. The Anaconda distribution allows you to set up multiple distinct Python environments and comes with many useful Python packages pre-installed. For more information, see the Ananconda documentation.
 
-### Installing the `cptac` package
+### Installing the cptac package
 We distribute the package [through the Python Package Index (PyPI)](https://pypi.org/project/cptac/), so regardless of which Python distribution you are using, you install the package using the `pip` program:
 ```
 pip install cptac
@@ -54,4 +54,4 @@ Documentation for anyone wanting to understand the internal workings of the pack
 See the [LICENSE.md](https://github.com/PayneLab/cptac/blob/master/LICENSE.md) document on the GitHub repository. Please note the difference between the license as it applies to code versus data.
 
 ## Contact
-This package is maintained by the Payne lab at Brigham Young University, https://payne.byu.edu
+This package is maintained by [the Payne lab](https://payne.byu.edu) at Brigham Young University.
