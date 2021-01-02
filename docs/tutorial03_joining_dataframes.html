@@ -3,7 +3,7 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>usecase7_trans_genetic_effect</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>tutorial03_joining_dataframes</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 
 
@@ -14259,34 +14259,7 @@ a.anchor-link {
 
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Use-Case-7:-Trans-genetic-effects">Use Case 7: Trans genetic effects<a class="anchor-link" href="#Use-Case-7:-Trans-genetic-effects">&#182;</a></h1>
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>We will explore <a href="https://en.wikipedia.org/wiki/Trans-acting">trans genetic effects</a>. This occurs when DNA mutation in one gene has an effect on a different gene. To fully understand the effect of DNA mutation, this use case will show how to find some of those downstream affected protiens using two prominent cancer genes: TP53 and ARID1A.</p>
-
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Part-I:-TP53">Part I: TP53<a class="anchor-link" href="#Part-I:-TP53">&#182;</a></h1>
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>TP53 is a tumor suppressing gene that is very important in helping prevent mutation, as well as repairing damaged DNA in cells <a href="https://en.wikipedia.org/wiki/P53">(Wikipedia)</a>. Since TP53 has a well-documented set of interating proteins, we'll examine those to find trans effects.</p>
-
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Step-1:-Import-Libraries">Step 1: Import Libraries<a class="anchor-link" href="#Step-1:-Import-Libraries">&#182;</a></h1>
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Here we will import standard python libraries used to analyze and visualize data as pandas dataframes, as well as our CPTAC data.</p>
+<h1 id="Tutorial-3:-Joining-dataframes-with-cptac">Tutorial 3: Joining dataframes with <code>cptac</code><a class="anchor-link" href="#Tutorial-3:-Joining-dataframes-with-cptac">&#182;</a></h1><p>In this tutorial, we provide several examples of how to use the built-in <code>cptac</code> functions for joining different dataframes.</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -14295,15 +14268,8 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">scipy.stats</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
-
-<span class="kn">import</span> <span class="nn">cptac</span>
-<span class="kn">import</span> <span class="nn">cptac.utils</span> <span class="k">as</span> <span class="nn">ut</span>
-
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">cptac</span>
+<span class="n">cptac</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;endometrial&quot;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;latest&quot;</span><span class="p">)</span>
 <span class="n">en</span> <span class="o">=</span> <span class="n">cptac</span><span class="o">.</span><span class="n">Endometrial</span><span class="p">()</span>
 </pre></div>
 
@@ -14335,18 +14301,16 @@ a.anchor-link {
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Our analysis here will be done with endometrial cancer, but can also be done using any of the other cancers in the CPTAC dataset.</p>
+<h2 id="General-format">General format<a class="anchor-link" href="#General-format">&#182;</a></h2><p>In all of the join functions, you specify the dataframes you want to join by passing their names to the appropriate parameters in the function call. The function will automatically check that the dataframes whose names you provided are valid for the join function, and print an error message if they aren't.</p>
+<p>Whenever a column from an -omics dataframe is included in a joined table, the name of the -omics dataframe it came from is joined to the column header, to avoid confusion.</p>
+<p>If you wish to only include particular columns in the join, pass them to the appropriate parameters in the join function. All such parameters will accept either a single column name as a string, or a list of column name strings. In this use case, we will usually only select specific columns for readability, but you could select the whole dataframe in all these cases, except for the mutations dataframe.</p>
+<p>The join functions use logic analogous to an SQL INNER JOIN.</p>
 
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Step-2:-Get-Interacting-Proteins">Step 2: Get Interacting Proteins<a class="anchor-link" href="#Step-2:-Get-Interacting-Proteins">&#182;</a></h1>
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Now we will get a list of the proteins that are know to interact with TP53 directly. Our list comes from Bioplex, a process that identifies proteins in direct physical contact. The CPTAC package also has a method called get_interacting_proteins_bioplex, which returns a list of proteins that interact with our gene in this way.</p>
+<h2 id="join_omics_to_omics"><code>join_omics_to_omics</code><a class="anchor-link" href="#join_omics_to_omics">&#182;</a></h2><p>The <code>join_omics_to_omics</code> function joins two -omics dataframes to each other. Types of -omics data valid for use with this function are acetylproteomics, CNV, phosphoproteomics, phosphoproteomics_gene, proteomics, and transcriptomics.</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -14355,13 +14319,8 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">gene</span> <span class="o">=</span> <span class="s2">&quot;TP53&quot;</span>
-<span class="n">omics</span> <span class="o">=</span> <span class="s2">&quot;proteomics&quot;</span>
-
-<span class="n">interacting_proteins</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_interacting_proteins_bioplex</span><span class="p">(</span><span class="n">gene</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Interacting Proteins:&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">interacting_proteins</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">prot_and_phos</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_omics_to_omics</span><span class="p">(</span><span class="n">df1_name</span><span class="o">=</span><span class="s2">&quot;proteomics&quot;</span><span class="p">,</span> <span class="n">df2_name</span><span class="o">=</span><span class="s2">&quot;phosphoproteomics&quot;</span><span class="p">)</span>
+<span class="n">prot_and_phos</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -14377,14 +14336,222 @@ a.anchor-link {
 <div class="jp-OutputArea-child">
 
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[2]:</div>
 
 
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Interacting Proteins:
-[&#39;CELA2B&#39;, &#39;HNF4A&#39;, &#39;FAM175B&#39;, &#39;AURKA&#39;, &#39;GPR156&#39;, &#39;MDM4&#39;, &#39;CUL9&#39;, &#39;MDM2&#39;, &#39;FBXW7&#39;, &#39;RORC&#39;, &#39;HOMER3&#39;, &#39;CUL7&#39;, &#39;FAM111A&#39;]
-</pre>
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead tr th {
+        text-align: left;
+    }
+
+    .dataframe thead tr:last-of-type th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>A1BG_proteomics</th>
+      <th>A2M_proteomics</th>
+      <th>A2ML1_proteomics</th>
+      <th>A4GALT_proteomics</th>
+      <th>AAAS_proteomics</th>
+      <th>AACS_proteomics</th>
+      <th>AADAT_proteomics</th>
+      <th>AAED1_proteomics</th>
+      <th>AAGAB_proteomics</th>
+      <th>AAK1_proteomics</th>
+      <th>...</th>
+      <th colspan="10" halign="left">ZZZ3_phosphoproteomics</th>
+    </tr>
+    <tr>
+      <th>Site</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th>...</th>
+      <th>S397</th>
+      <th>S411</th>
+      <th>S420</th>
+      <th>S424</th>
+      <th>S426</th>
+      <th>S468</th>
+      <th>S89</th>
+      <th>T415</th>
+      <th>T418</th>
+      <th>Y399</th>
+    </tr>
+    <tr>
+      <th>Patient_ID</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>C3L-00006</th>
+      <td>-1.180</td>
+      <td>-0.8630</td>
+      <td>-0.802</td>
+      <td>0.222</td>
+      <td>0.2560</td>
+      <td>0.6650</td>
+      <td>1.2800</td>
+      <td>-0.3390</td>
+      <td>0.412</td>
+      <td>-0.664</td>
+      <td>...</td>
+      <td>0.18400</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>-0.20500</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>C3L-00008</th>
+      <td>-0.685</td>
+      <td>-1.0700</td>
+      <td>-0.684</td>
+      <td>0.984</td>
+      <td>0.1350</td>
+      <td>0.3340</td>
+      <td>1.3000</td>
+      <td>0.1390</td>
+      <td>1.330</td>
+      <td>-0.367</td>
+      <td>...</td>
+      <td>-0.17100</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>-0.393</td>
+      <td>-0.17100</td>
+      <td>NaN</td>
+      <td>0.29</td>
+      <td>NaN</td>
+      <td>0.1605</td>
+      <td>-0.0635</td>
+    </tr>
+    <tr>
+      <th>C3L-00032</th>
+      <td>-0.528</td>
+      <td>-1.3200</td>
+      <td>0.435</td>
+      <td>NaN</td>
+      <td>-0.2400</td>
+      <td>1.0400</td>
+      <td>-0.0213</td>
+      <td>-0.0479</td>
+      <td>0.419</td>
+      <td>-0.500</td>
+      <td>...</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>C3L-00090</th>
+      <td>-1.670</td>
+      <td>-1.1900</td>
+      <td>-0.443</td>
+      <td>0.243</td>
+      <td>-0.0993</td>
+      <td>0.7570</td>
+      <td>0.7400</td>
+      <td>-0.9290</td>
+      <td>0.229</td>
+      <td>-0.223</td>
+      <td>...</td>
+      <td>0.13970</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>-0.55900</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0.2980</td>
+    </tr>
+    <tr>
+      <th>C3L-00098</th>
+      <td>-0.374</td>
+      <td>-0.0206</td>
+      <td>-0.537</td>
+      <td>0.311</td>
+      <td>0.3750</td>
+      <td>0.0131</td>
+      <td>-1.1000</td>
+      <td>NaN</td>
+      <td>0.565</td>
+      <td>-0.101</td>
+      <td>...</td>
+      <td>-0.15875</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0.196</td>
+      <td>0.06175</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>-0.2900</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 84211 columns</p>
 </div>
+</div>
+
 </div>
 
 </div>
@@ -14394,12 +14561,8 @@ a.anchor-link {
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Step-3:-Get-Omics-Data">Step 3: Get Omics Data<a class="anchor-link" href="#Step-3:-Get-Omics-Data">&#182;</a></h1>
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Now we create a new dataframe containing protein measurements for TP53 and its interacting proteins, calling en.join_omics_to_mutations. We note thqta if proteomfics data does not identify one of the genes in your request, the join method will throw a warning and fill with NAN (a missing value).</p>
+<p>Joining only specific columns.
+(Note that when a gene is selected from the phosphoproteomics dataframe, data for all sites of the gene are selected. The same is done for acetylproteomics data.)</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -14408,8 +14571,127 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">protdf</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_omics_to_mutations</span><span class="p">(</span><span class="n">mutations_genes</span><span class="o">=</span><span class="n">gene</span><span class="p">,</span> <span class="n">omics_df_name</span><span class="o">=</span><span class="n">omics</span><span class="p">,</span> <span class="n">omics_genes</span><span class="o">=</span><span class="n">interacting_proteins</span><span class="p">)</span>
-<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">protdf</span><span class="p">[</span><span class="s1">&#39;Sample_Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Tumor&#39;</span><span class="p">]</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">prot_and_phos_selected</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_omics_to_omics</span><span class="p">(</span>
+    <span class="n">df1_name</span><span class="o">=</span><span class="s2">&quot;proteomics&quot;</span><span class="p">,</span> 
+    <span class="n">df2_name</span><span class="o">=</span><span class="s2">&quot;phosphoproteomics&quot;</span><span class="p">,</span> 
+    <span class="n">genes1</span><span class="o">=</span><span class="s2">&quot;A1BG&quot;</span><span class="p">,</span> 
+    <span class="n">genes2</span><span class="o">=</span><span class="s2">&quot;PIK3CA&quot;</span><span class="p">)</span>
+
+<span class="n">prot_and_phos_selected</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[3]:</div>
+
+
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead tr th {
+        text-align: left;
+    }
+
+    .dataframe thead tr:last-of-type th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>A1BG_proteomics</th>
+      <th colspan="2" halign="left">PIK3CA_phosphoproteomics</th>
+    </tr>
+    <tr>
+      <th>Site</th>
+      <th></th>
+      <th>S312</th>
+      <th>T313</th>
+    </tr>
+    <tr>
+      <th>Patient_ID</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>C3L-00006</th>
+      <td>-1.180</td>
+      <td>-0.00615</td>
+      <td>0.0731</td>
+    </tr>
+    <tr>
+      <th>C3L-00008</th>
+      <td>-0.685</td>
+      <td>-0.02220</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>C3L-00032</th>
+      <td>-0.528</td>
+      <td>NaN</td>
+      <td>0.0830</td>
+    </tr>
+    <tr>
+      <th>C3L-00090</th>
+      <td>-1.670</td>
+      <td>NaN</td>
+      <td>-0.8460</td>
+    </tr>
+    <tr>
+      <th>C3L-00098</th>
+      <td>-0.374</td>
+      <td>0.43600</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="join_metadata_to_omics"><code>join_metadata_to_omics</code><a class="anchor-link" href="#join_metadata_to_omics">&#182;</a></h2><p>The <code>join_metadata_to_omics</code> function joins a metadata dataframe (e.g. clinical or derived_molecular) with an -omics dataframe:</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">clin_and_tran</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_metadata_to_omics</span><span class="p">(</span><span class="n">metadata_df_name</span><span class="o">=</span><span class="s2">&quot;clinical&quot;</span><span class="p">,</span> <span class="n">omics_df_name</span><span class="o">=</span><span class="s2">&quot;transcriptomics&quot;</span><span class="p">)</span>
+<span class="n">clin_and_tran</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -14429,34 +14711,10 @@ a.anchor-link {
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>cptac warning: The following columns were not found in the proteomics dataframe, so they were inserted into joined table, but filled with NaN: CELA2B, FAM175B, FBXW7, GPR156, HNF4A, MDM2, MDM4, RORC (C:\Users\humbe\miniconda3\lib\site-packages\ipykernel_launcher.py, line 1)
-cptac warning: In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: 123 samples for the TP53 gene (C:\Users\humbe\miniconda3\lib\site-packages\ipykernel_launcher.py, line 1)
+<pre>cptac warning: transcriptomics data was not found for the following samples, so transcriptomics data columns were filled with NaN for these samples: C3L-00563.N, C3L-00605.N, C3L-00769.N, C3L-00770.N, C3L-00771.N, C3L-00930.N, C3L-00947.N, C3L-00963.N, C3L-01246.N, C3L-01249.N, C3L-01252.N, C3L-01256.N, C3L-01257.N, C3L-01744.N, C3N-00200.N, C3N-00729.N, C3N-01211.N, NX1.N, NX10.N, NX11.N, NX12.N, NX13.N, NX14.N, NX15.N, NX16.N, NX17.N, NX18.N, NX2.N, NX3.N, NX4.N, NX5.N, NX6.N, NX7.N, NX8.N, NX9.N (/home/caleb/anaconda3/envs/dev/lib/python3.7/site-packages/ipykernel_launcher.py, line 1)
 </pre>
 </div>
 </div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">protdf</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
 
 <div class="jp-OutputArea-child">
 
@@ -14484,26 +14742,34 @@ cptac warning: In joining the somatic_mutation table, no mutations were found fo
   <thead>
     <tr style="text-align: right;">
       <th>Name</th>
-      <th>CELA2B_proteomics</th>
-      <th>HNF4A_proteomics</th>
-      <th>FAM175B_proteomics</th>
-      <th>AURKA_proteomics</th>
-      <th>GPR156_proteomics</th>
-      <th>MDM4_proteomics</th>
-      <th>CUL9_proteomics</th>
-      <th>MDM2_proteomics</th>
-      <th>FBXW7_proteomics</th>
-      <th>RORC_proteomics</th>
-      <th>HOMER3_proteomics</th>
-      <th>CUL7_proteomics</th>
-      <th>FAM111A_proteomics</th>
-      <th>TP53_Mutation</th>
-      <th>TP53_Location</th>
-      <th>TP53_Mutation_Status</th>
-      <th>Sample_Status</th>
+      <th>Sample_ID</th>
+      <th>Sample_Tumor_Normal</th>
+      <th>Proteomics_Tumor_Normal</th>
+      <th>Country</th>
+      <th>Histologic_Grade_FIGO</th>
+      <th>Myometrial_invasion_Specify</th>
+      <th>Histologic_type</th>
+      <th>Treatment_naive</th>
+      <th>Tumor_purity</th>
+      <th>Path_Stage_Primary_Tumor-pT</th>
+      <th>...</th>
+      <th>ZWILCH_transcriptomics</th>
+      <th>ZWINT_transcriptomics</th>
+      <th>ZXDA_transcriptomics</th>
+      <th>ZXDB_transcriptomics</th>
+      <th>ZXDC_transcriptomics</th>
+      <th>ZYG11A_transcriptomics</th>
+      <th>ZYG11B_transcriptomics</th>
+      <th>ZYX_transcriptomics</th>
+      <th>ZZEF1_transcriptomics</th>
+      <th>ZZZ3_transcriptomics</th>
     </tr>
     <tr>
       <th>Patient_ID</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
       <th></th>
       <th></th>
       <th></th>
@@ -14526,102 +14792,670 @@ cptac warning: In joining the somatic_mutation table, no mutations were found fo
   <tbody>
     <tr>
       <th>C3L-00006</th>
+      <td>S001</td>
+      <td>Tumor</td>
+      <td>Tumor</td>
+      <td>United States</td>
+      <td>FIGO grade 1</td>
+      <td>under 50 %</td>
+      <td>Endometrioid</td>
+      <td>YES</td>
+      <td>Normal</td>
+      <td>pT1a (FIGO IA)</td>
+      <td>...</td>
+      <td>11.06</td>
+      <td>10.73</td>
+      <td>8.40</td>
+      <td>9.78</td>
+      <td>10.88</td>
+      <td>5.93</td>
+      <td>11.52</td>
+      <td>10.23</td>
+      <td>11.50</td>
+      <td>11.47</td>
+    </tr>
+    <tr>
+      <th>C3L-00008</th>
+      <td>S002</td>
+      <td>Tumor</td>
+      <td>Tumor</td>
+      <td>United States</td>
+      <td>FIGO grade 1</td>
+      <td>under 50 %</td>
+      <td>Endometrioid</td>
+      <td>YES</td>
+      <td>Normal</td>
+      <td>pT1a (FIGO IA)</td>
+      <td>...</td>
+      <td>10.87</td>
+      <td>11.43</td>
+      <td>8.39</td>
+      <td>9.14</td>
+      <td>10.38</td>
+      <td>7.25</td>
+      <td>11.64</td>
+      <td>10.64</td>
+      <td>11.26</td>
+      <td>11.57</td>
+    </tr>
+    <tr>
+      <th>C3L-00032</th>
+      <td>S003</td>
+      <td>Tumor</td>
+      <td>Tumor</td>
+      <td>United States</td>
+      <td>FIGO grade 2</td>
+      <td>under 50 %</td>
+      <td>Endometrioid</td>
+      <td>YES</td>
+      <td>Normal</td>
+      <td>pT1a (FIGO IA)</td>
+      <td>...</td>
+      <td>10.06</td>
+      <td>10.13</td>
+      <td>8.35</td>
+      <td>9.27</td>
+      <td>10.46</td>
+      <td>6.85</td>
+      <td>11.60</td>
+      <td>10.21</td>
+      <td>11.51</td>
+      <td>11.09</td>
+    </tr>
+    <tr>
+      <th>C3L-00090</th>
+      <td>S005</td>
+      <td>Tumor</td>
+      <td>Tumor</td>
+      <td>United States</td>
+      <td>FIGO grade 2</td>
+      <td>under 50 %</td>
+      <td>Endometrioid</td>
+      <td>YES</td>
+      <td>Normal</td>
+      <td>pT1a (FIGO IA)</td>
+      <td>...</td>
+      <td>10.29</td>
+      <td>10.41</td>
+      <td>9.10</td>
+      <td>9.59</td>
+      <td>10.15</td>
+      <td>7.89</td>
+      <td>11.90</td>
+      <td>10.21</td>
+      <td>11.34</td>
+      <td>11.51</td>
+    </tr>
+    <tr>
+      <th>C3L-00098</th>
+      <td>S006</td>
+      <td>Tumor</td>
+      <td>Tumor</td>
+      <td>United States</td>
       <td>NaN</td>
+      <td>under 50 %</td>
+      <td>Serous</td>
+      <td>YES</td>
+      <td>Normal</td>
+      <td>pT1a (FIGO IA)</td>
+      <td>...</td>
+      <td>10.36</td>
+      <td>11.24</td>
+      <td>8.60</td>
+      <td>9.44</td>
+      <td>11.80</td>
+      <td>9.32</td>
+      <td>11.97</td>
+      <td>9.77</td>
+      <td>11.37</td>
+      <td>12.35</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 28084 columns</p>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Joining only specific columns:</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">clin_and_tran</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_metadata_to_omics</span><span class="p">(</span>
+    <span class="n">metadata_df_name</span><span class="o">=</span><span class="s2">&quot;clinical&quot;</span><span class="p">,</span> 
+    <span class="n">omics_df_name</span><span class="o">=</span><span class="s2">&quot;transcriptomics&quot;</span><span class="p">,</span> 
+    <span class="n">metadata_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Age&quot;</span><span class="p">,</span> <span class="s2">&quot;Histologic_type&quot;</span><span class="p">],</span> 
+    <span class="n">omics_genes</span><span class="o">=</span><span class="s2">&quot;ZZZ3&quot;</span><span class="p">)</span>
+
+<span class="n">clin_and_tran</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>cptac warning: transcriptomics data was not found for the following samples, so transcriptomics data columns were filled with NaN for these samples: C3L-00563.N, C3L-00605.N, C3L-00769.N, C3L-00770.N, C3L-00771.N, C3L-00930.N, C3L-00947.N, C3L-00963.N, C3L-01246.N, C3L-01249.N, C3L-01252.N, C3L-01256.N, C3L-01257.N, C3L-01744.N, C3N-00200.N, C3N-00729.N, C3N-01211.N, NX1.N, NX10.N, NX11.N, NX12.N, NX13.N, NX14.N, NX15.N, NX16.N, NX17.N, NX18.N, NX2.N, NX3.N, NX4.N, NX5.N, NX6.N, NX7.N, NX8.N, NX9.N (/home/caleb/anaconda3/envs/dev/lib/python3.7/site-packages/ipykernel_launcher.py, line 5)
+</pre>
+</div>
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[5]:</div>
+
+
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Name</th>
+      <th>Age</th>
+      <th>Histologic_type</th>
+      <th>ZZZ3_transcriptomics</th>
+    </tr>
+    <tr>
+      <th>Patient_ID</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>C3L-00006</th>
+      <td>64.0</td>
+      <td>Endometrioid</td>
+      <td>11.47</td>
+    </tr>
+    <tr>
+      <th>C3L-00008</th>
+      <td>58.0</td>
+      <td>Endometrioid</td>
+      <td>11.57</td>
+    </tr>
+    <tr>
+      <th>C3L-00032</th>
+      <td>50.0</td>
+      <td>Endometrioid</td>
+      <td>11.09</td>
+    </tr>
+    <tr>
+      <th>C3L-00090</th>
+      <td>75.0</td>
+      <td>Endometrioid</td>
+      <td>11.51</td>
+    </tr>
+    <tr>
+      <th>C3L-00098</th>
+      <td>63.0</td>
+      <td>Serous</td>
+      <td>12.35</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="join_metadata_to_metadata"><code>join_metadata_to_metadata</code><a class="anchor-link" href="#join_metadata_to_metadata">&#182;</a></h2><p>The <code>join_metadata_to_metadata</code> function joins two metadata dataframes (e.g. clinical or derived_molecular) to each other. Note how we passed a column name to select from the clinical dataframe, but passing <code>None</code> for the column parameter for the derived_molecular dataframe caused the entire dataframe to be selected. We could have omitted the <code>cols2</code> parameter altogether, as it is assigned to None by default.</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">hist_and_derived_molecular</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_metadata_to_metadata</span><span class="p">(</span>
+    <span class="n">df1_name</span><span class="o">=</span><span class="s2">&quot;clinical&quot;</span><span class="p">,</span>
+    <span class="n">df2_name</span><span class="o">=</span><span class="s2">&quot;derived_molecular&quot;</span><span class="p">,</span>
+    <span class="n">cols1</span><span class="o">=</span><span class="s2">&quot;Histologic_type&quot;</span><span class="p">)</span> <span class="c1"># Note that we can omit the cols2 parameter, and it will by default select all of df2.</span>
+                             <span class="c1"># We could have also omitted cols1, if we wanted to select all of df1.</span>
+
+<span class="n">hist_and_derived_molecular</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[6]:</div>
+
+
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Name</th>
+      <th>Histologic_type</th>
+      <th>Estrogen_Receptor</th>
+      <th>Estrogen_Receptor_%</th>
+      <th>Progesterone_Receptor</th>
+      <th>Progesterone_Receptor_%</th>
+      <th>MLH1</th>
+      <th>MLH2</th>
+      <th>MSH6</th>
+      <th>PMS2</th>
+      <th>p53</th>
+      <th>...</th>
+      <th>Log2_variant_total</th>
+      <th>Log2_SNP_total</th>
+      <th>Log2_INDEL_total</th>
+      <th>Genomics_subtype</th>
+      <th>Mutation_signature_C&gt;A</th>
+      <th>Mutation_signature_C&gt;G</th>
+      <th>Mutation_signature_C&gt;T</th>
+      <th>Mutation_signature_T&gt;C</th>
+      <th>Mutation_signature_T&gt;A</th>
+      <th>Mutation_signature_T&gt;G</th>
+    </tr>
+    <tr>
+      <th>Patient_ID</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>C3L-00006</th>
+      <td>Endometrioid</td>
+      <td>Cannot be determined</td>
       <td>NaN</td>
+      <td>Cannot be determined</td>
       <td>NaN</td>
+      <td>Intact nuclear expression</td>
+      <td>Intact nuclear expression</td>
+      <td>Loss of nuclear expression</td>
+      <td>Intact nuclear expression</td>
+      <td>Cannot be determined</td>
+      <td>...</td>
+      <td>10.062046</td>
+      <td>9.984418</td>
+      <td>5.832890</td>
+      <td>MSI-H</td>
+      <td>8.300395</td>
+      <td>1.482213</td>
+      <td>72.529644</td>
+      <td>14.426877</td>
+      <td>1.383399</td>
+      <td>1.877470</td>
+    </tr>
+    <tr>
+      <th>C3L-00008</th>
+      <td>Endometrioid</td>
+      <td>Cannot be determined</td>
       <td>NaN</td>
+      <td>Cannot be determined</td>
       <td>NaN</td>
+      <td>Intact nuclear expression</td>
+      <td>Intact nuclear expression</td>
+      <td>Intact nuclear expression</td>
+      <td>Loss of nuclear expression</td>
+      <td>Cannot be determined</td>
+      <td>...</td>
+      <td>8.861087</td>
+      <td>8.330917</td>
+      <td>7.169925</td>
+      <td>MSI-H</td>
+      <td>14.641745</td>
+      <td>2.803738</td>
+      <td>64.485981</td>
+      <td>15.264798</td>
+      <td>0.934579</td>
+      <td>1.869159</td>
+    </tr>
+    <tr>
+      <th>C3L-00032</th>
+      <td>Endometrioid</td>
+      <td>Cannot be determined</td>
       <td>NaN</td>
-      <td>0.0355</td>
+      <td>Cannot be determined</td>
       <td>NaN</td>
+      <td>Intact nuclear expression</td>
+      <td>Intact nuclear expression</td>
+      <td>Intact nuclear expression</td>
+      <td>Intact nuclear expression</td>
+      <td>Cannot be determined</td>
+      <td>...</td>
+      <td>5.321928</td>
+      <td>5.000000</td>
+      <td>3.169925</td>
+      <td>CNV_low</td>
+      <td>16.129032</td>
+      <td>3.225806</td>
+      <td>70.967742</td>
+      <td>3.225806</td>
+      <td>3.225806</td>
+      <td>3.225806</td>
+    </tr>
+    <tr>
+      <th>C3L-00090</th>
+      <td>Endometrioid</td>
+      <td>Cannot be determined</td>
       <td>NaN</td>
+      <td>Cannot be determined</td>
       <td>NaN</td>
-      <td>-0.443</td>
-      <td>0.0408</td>
-      <td>0.363000</td>
-      <td>[Missense_Mutation]</td>
-      <td>[p.R248W]</td>
-      <td>Single_mutation</td>
+      <td>Intact nuclear expression</td>
+      <td>Intact nuclear expression</td>
+      <td>Intact nuclear expression</td>
+      <td>Intact nuclear expression</td>
+      <td>Cannot be determined</td>
+      <td>...</td>
+      <td>5.672425</td>
+      <td>5.523562</td>
+      <td>2.584963</td>
+      <td>CNV_low</td>
+      <td>17.777778</td>
+      <td>8.888889</td>
+      <td>62.222222</td>
+      <td>8.888889</td>
+      <td>2.222222</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>C3L-00098</th>
+      <td>Serous</td>
+      <td>Cannot be determined</td>
+      <td>NaN</td>
+      <td>Cannot be determined</td>
+      <td>NaN</td>
+      <td>Intact nuclear expression</td>
+      <td>Intact nuclear expression</td>
+      <td>Intact nuclear expression</td>
+      <td>Intact nuclear expression</td>
+      <td>Normal</td>
+      <td>...</td>
+      <td>6.108524</td>
+      <td>5.954196</td>
+      <td>3.000000</td>
+      <td>CNV_high</td>
+      <td>9.836066</td>
+      <td>13.114754</td>
+      <td>62.295082</td>
+      <td>3.278689</td>
+      <td>8.196721</td>
+      <td>3.278689</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 126 columns</p>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="join_omics_to_mutations"><code>join_omics_to_mutations</code><a class="anchor-link" href="#join_omics_to_mutations">&#182;</a></h2><p>The <code>join_omics_to_mutations</code> function joins an -omics dataframe with the mutation data for a specified gene or genes. Because there may be multiple mutations for one gene in a single sample, the mutation type and location data are returned in lists by default, even if there is only one mutation. If there is no mutation for the gene in a particular sample, the list contains either "Wildtype_Tumor" or "Wildtype_Normal", depending on whether it's a tumor or normal sample. The mutation status column contains either "Single_mutation", "Multiple_mutation", "Wildtype_Tumor", or "Wildtype_Normal", for help with parsing.</p>
+<p>(Note: You can hide the Location columns by passing <code>False</code> to the optional <code>show_location</code> parameter.)</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">selected_acet_and_PTEN_mut</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_omics_to_mutations</span><span class="p">(</span>
+    <span class="n">omics_df_name</span><span class="o">=</span><span class="s2">&quot;proteomics&quot;</span><span class="p">,</span>
+    <span class="n">mutations_genes</span><span class="o">=</span><span class="s2">&quot;PTEN&quot;</span><span class="p">,</span> 
+    <span class="n">omics_genes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;AURKA&quot;</span><span class="p">,</span> <span class="s2">&quot;TP53&quot;</span><span class="p">])</span>
+
+<span class="n">selected_acet_and_PTEN_mut</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>cptac warning: In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: 69 samples for the PTEN gene (/home/caleb/anaconda3/envs/dev/lib/python3.7/site-packages/ipykernel_launcher.py, line 4)
+</pre>
+</div>
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[7]:</div>
+
+
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Name</th>
+      <th>AURKA_proteomics</th>
+      <th>TP53_proteomics</th>
+      <th>PTEN_Mutation</th>
+      <th>PTEN_Location</th>
+      <th>PTEN_Mutation_Status</th>
+      <th>Sample_Status</th>
+    </tr>
+    <tr>
+      <th>Patient_ID</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>C3L-00006</th>
+      <td>NaN</td>
+      <td>0.2950</td>
+      <td>[Missense_Mutation, Nonsense_Mutation]</td>
+      <td>[p.R130Q, p.R233*]</td>
+      <td>Multiple_mutation</td>
       <td>Tumor</td>
     </tr>
     <tr>
       <th>C3L-00008</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.311</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.1480</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.897</td>
-      <td>-0.1430</td>
-      <td>0.601000</td>
-      <td>[Wildtype_Tumor]</td>
-      <td>[No_mutation]</td>
-      <td>Wildtype_Tumor</td>
+      <td>0.31100</td>
+      <td>0.2770</td>
+      <td>[Missense_Mutation]</td>
+      <td>[p.G127R]</td>
+      <td>Single_mutation</td>
       <td>Tumor</td>
     </tr>
     <tr>
       <th>C3L-00032</th>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.1130</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.451</td>
-      <td>0.0999</td>
-      <td>-0.280000</td>
-      <td>[Wildtype_Tumor]</td>
-      <td>[No_mutation]</td>
-      <td>Wildtype_Tumor</td>
+      <td>-0.8710</td>
+      <td>[Nonsense_Mutation]</td>
+      <td>[p.W111*]</td>
+      <td>Single_mutation</td>
       <td>Tumor</td>
     </tr>
     <tr>
       <th>C3L-00090</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.798</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.1680</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.034</td>
-      <td>-0.7460</td>
-      <td>0.066500</td>
+      <td>-0.79800</td>
+      <td>-0.3430</td>
+      <td>[Missense_Mutation]</td>
+      <td>[p.R130G]</td>
+      <td>Single_mutation</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00098</th>
+      <td>3.11000</td>
+      <td>3.0100</td>
       <td>[Wildtype_Tumor]</td>
       <td>[No_mutation]</td>
       <td>Wildtype_Tumor</td>
       <td>Tumor</td>
     </tr>
     <tr>
-      <th>C3L-00098</th>
+      <th>C3L-00136</th>
+      <td>-1.65000</td>
+      <td>-0.1480</td>
+      <td>[Missense_Mutation, Missense_Mutation]</td>
+      <td>[p.Y68C, p.R130G]</td>
+      <td>Multiple_mutation</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00137</th>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>3.110</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.2530</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.535</td>
-      <td>-0.1200</td>
-      <td>-0.000411</td>
+      <td>0.4410</td>
+      <td>[Frame_Shift_Ins, Nonsense_Mutation]</td>
+      <td>[p.H118Qfs*8, p.Y180*]</td>
+      <td>Multiple_mutation</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00139</th>
+      <td>0.84800</td>
+      <td>-1.2200</td>
+      <td>[Wildtype_Tumor]</td>
+      <td>[No_mutation]</td>
+      <td>Wildtype_Tumor</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00143</th>
+      <td>-1.73000</td>
+      <td>-0.0825</td>
       <td>[Missense_Mutation]</td>
-      <td>[p.S241C]</td>
+      <td>[p.R130G]</td>
       <td>Single_mutation</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00145</th>
+      <td>-0.00513</td>
+      <td>-0.1810</td>
+      <td>[Missense_Mutation, Frame_Shift_Ins]</td>
+      <td>[p.H93R, p.E242*]</td>
+      <td>Multiple_mutation</td>
       <td>Tumor</td>
     </tr>
   </tbody>
@@ -14638,77 +15472,20 @@ cptac warning: In joining the somatic_mutation table, no mutations were found fo
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>If you scroll the table abo ve all the way over to the right, you will see three columns for TP53 mutation. As a sample may have a complete set of mutations, these columns contain lists and the "Mutation_status" column says whether it is a single or multiple mutation. We want to simplify this column to have just two values, either "Mutated" or "Wildtype." Next, we remove a few unwanted columns.</p>
+<h3 id="Filtering-multiple-mutations">Filtering multiple mutations<a class="anchor-link" href="#Filtering-multiple-mutations">&#182;</a></h3><p>The function has the ability to filter multiple mutations down to just one mutation. It allows you to specify particular mutation types or locations to prioritize, and also provides a default sorting hierarchy for all other mutations. The default hierarchy chooses truncation mutations over missense mutations, and silent mutations last of all. If there are multiple mutations of the same type, it chooses the mutation occurring earlier in the sequence.</p>
+<p>To filter all mutations based on this default hierarchy, simply pass an empty list to the optional <code>mutations_filter</code> parameter. Notice how in sample S001, the nonsense mutation was chosen over the missense mutation, because it's a type of trucation mutation, even though the missense mutation occurs earlier in the peptide sequence. In sample S008, both mutations were types of truncation mutations, so the function just chose the earlier one.</p>
 
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">protdf</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-    <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Mutation_Status&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;Wildtype_Tumor&#39;</span><span class="p">:</span>
-        <span class="n">protdf</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span><span class="s1">&#39;TP53 Mutation Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Mutated&#39;</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">protdf</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span><span class="s1">&#39;TP53 Mutation Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Wildtype&#39;</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Mutation&quot;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Location&quot;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Mutation_Status&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;Sample_Status&quot;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Step-4:-Do-T-tests">Step 4: Do T-tests<a class="anchor-link" href="#Step-4:-Do-T-tests">&#182;</a></h1>
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>We take the column names, which are the interacting proteins, and create a list in order to run our t-tests for each protein individually.</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">col_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">protdf</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
-<span class="n">col_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;TP53 Mutation Status&#39;</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">col_list</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">PTEN_default_filter</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_omics_to_mutations</span><span class="p">(</span><span class="n">omics_df_name</span><span class="o">=</span><span class="s2">&quot;proteomics&quot;</span><span class="p">,</span> <span class="n">mutations_genes</span><span class="o">=</span><span class="s2">&quot;PTEN&quot;</span><span class="p">,</span> 
+                                                        <span class="n">omics_genes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;AURKA&quot;</span><span class="p">,</span> <span class="s2">&quot;TP53&quot;</span><span class="p">],</span>
+                                                        <span class="n">mutations_filter</span><span class="o">=</span><span class="p">[])</span>
+<span class="n">PTEN_default_filter</span><span class="o">.</span><span class="n">loc</span><span class="p">[[</span><span class="s2">&quot;C3L-00006&quot;</span><span class="p">,</span> <span class="s2">&quot;C3L-00137&quot;</span><span class="p">]]</span>
 </pre></div>
 
      </div>
@@ -14727,10 +15504,79 @@ cptac warning: In joining the somatic_mutation table, no mutations were found fo
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
 
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>[&#39;CELA2B_proteomics&#39;, &#39;HNF4A_proteomics&#39;, &#39;FAM175B_proteomics&#39;, &#39;AURKA_proteomics&#39;, &#39;GPR156_proteomics&#39;, &#39;MDM4_proteomics&#39;, &#39;CUL9_proteomics&#39;, &#39;MDM2_proteomics&#39;, &#39;FBXW7_proteomics&#39;, &#39;RORC_proteomics&#39;, &#39;HOMER3_proteomics&#39;, &#39;CUL7_proteomics&#39;, &#39;FAM111A_proteomics&#39;]
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>cptac warning: In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: 69 samples for the PTEN gene (/home/caleb/anaconda3/envs/dev/lib/python3.7/site-packages/ipykernel_launcher.py, line 3)
 </pre>
 </div>
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[8]:</div>
+
+
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Name</th>
+      <th>AURKA_proteomics</th>
+      <th>TP53_proteomics</th>
+      <th>PTEN_Mutation</th>
+      <th>PTEN_Location</th>
+      <th>PTEN_Mutation_Status</th>
+      <th>Sample_Status</th>
+    </tr>
+    <tr>
+      <th>Patient_ID</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>C3L-00006</th>
+      <td>NaN</td>
+      <td>0.295</td>
+      <td>Nonsense_Mutation</td>
+      <td>p.R233*</td>
+      <td>Multiple_mutation</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00137</th>
+      <td>NaN</td>
+      <td>0.441</td>
+      <td>Frame_Shift_Ins</td>
+      <td>p.H118Qfs*8</td>
+      <td>Multiple_mutation</td>
+      <td>Tumor</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
 </div>
 
 </div>
@@ -14740,7 +15586,7 @@ cptac warning: In joining the somatic_mutation table, no mutations were found fo
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Now we call wrap_ttest, which is an accessory function in cptac.utils. It expects one column with a binary variable (this is why we crearted the 'TP53 Mutation Status' column earlier), and all other data as numeric. It will then run ttests on each column to determine if there is a statistically significant difference between the binary values. For us, it will identify if there are significantly different protein abundances between wildtype and mutated samples.</p>
+<p>To prioritize a particular type of mutation, or a particular location, include it in the <code>mutations_filter</code> list. Below, we tell the function to prioritize nonsense mutations over all other mutations. Notice how in sample S008, the nonsense mutation is now selected instead of the frameshift insertion, even though the nonsense mutation occurs later in the peptide sequence.</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -14749,13 +15595,10 @@ cptac warning: In joining the somatic_mutation table, no mutations were found fo
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[9]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Doing t-test comparisons</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">wrap_results</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">wrap_ttest</span><span class="p">(</span><span class="n">protdf</span><span class="p">,</span> <span class="s1">&#39;TP53 Mutation Status&#39;</span><span class="p">,</span> <span class="n">col_list</span><span class="p">)</span>
-<span class="c1">#This gives us back a dataframe with significant comparisons</span>
-
-<span class="k">if</span> <span class="n">wrap_results</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">wrap_results</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">PTEN_simple_filter</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_omics_to_mutations</span><span class="p">(</span><span class="n">omics_df_name</span><span class="o">=</span><span class="s2">&quot;proteomics&quot;</span><span class="p">,</span> <span class="n">mutations_genes</span><span class="o">=</span><span class="s2">&quot;PTEN&quot;</span><span class="p">,</span> 
+                                                        <span class="n">omics_genes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;AURKA&quot;</span><span class="p">,</span> <span class="s2">&quot;TP53&quot;</span><span class="p">],</span> 
+                                                        <span class="n">mutations_filter</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Nonsense_Mutation&quot;</span><span class="p">])</span>
+<span class="n">PTEN_simple_filter</span><span class="o">.</span><span class="n">loc</span><span class="p">[[</span><span class="s2">&quot;C3L-00006&quot;</span><span class="p">,</span> <span class="s2">&quot;C3L-00137&quot;</span><span class="p">]]</span>
 </pre></div>
 
      </div>
@@ -14774,14 +15617,8 @@ cptac warning: In joining the somatic_mutation table, no mutations were found fo
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
 
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Doing t-test comparisons
-
-         Comparison   P_Value
-0  AURKA_proteomics  0.000016
-
-
-
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>cptac warning: In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: 69 samples for the PTEN gene (/home/caleb/anaconda3/envs/dev/lib/python3.7/site-packages/ipykernel_launcher.py, line 3)
 </pre>
 </div>
 </div>
@@ -14789,16 +15626,70 @@ cptac warning: In joining the somatic_mutation table, no mutations were found fo
 <div class="jp-OutputArea-child">
 
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[9]:</div>
 
 
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:152: RuntimeWarning: invalid value encountered in less_equal
-  reject = pvals &lt;= alphacBonf
-C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:256: RuntimeWarning: invalid value encountered in greater
-  pvals_corrected[pvals_corrected&gt;1] = 1
-</pre>
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Name</th>
+      <th>AURKA_proteomics</th>
+      <th>TP53_proteomics</th>
+      <th>PTEN_Mutation</th>
+      <th>PTEN_Location</th>
+      <th>PTEN_Mutation_Status</th>
+      <th>Sample_Status</th>
+    </tr>
+    <tr>
+      <th>Patient_ID</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>C3L-00006</th>
+      <td>NaN</td>
+      <td>0.295</td>
+      <td>Nonsense_Mutation</td>
+      <td>p.R233*</td>
+      <td>Multiple_mutation</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00137</th>
+      <td>NaN</td>
+      <td>0.441</td>
+      <td>Nonsense_Mutation</td>
+      <td>p.Y180*</td>
+      <td>Multiple_mutation</td>
+      <td>Tumor</td>
+    </tr>
+  </tbody>
+</table>
 </div>
+</div>
+
 </div>
 
 </div>
@@ -14808,7 +15699,7 @@ C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:256: 
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Our t-test returned one protein whose levels were significantly changed by a mutation in TP53, Aurora Kinase, which has a known relationship with TP53 <a href="https://www.ncbi.nlm.nih.gov/pubmed/27933271">(link)</a>. Let's lot the data with Seaborn to show exactly how levels of aurora kinase change with our gene's mutation.</p>
+<p>You can include multiple mutation types and/or locations in the <code>mutations_filter</code> list. Values earlier in the list will be prioritized over values later in the list. For example, with the filter we specify below, the function first selects sample S001's missense mutation over its nonsense mutation, because we put the location of S001's missense mutation as the first value in our filter list. We still included Nonsense_Mutation in the filter list, but it comes after the location of S001's missense mutation, which is why S001's missense mutation is still prioritized. However, on all other samples, unless they also have a mutation at that same location, the function will continue prioritizing nonsense mutations, as we see in sample S008.</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -14817,8 +15708,10 @@ C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:256: 
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[10]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">sns</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">protdf</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="s1">&#39;TP53 Mutation Status&#39;</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="s1">&#39;AURKA_proteomics&#39;</span><span class="p">,</span> <span class="n">showfliers</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
-<span class="n">sns</span><span class="o">.</span><span class="n">stripplot</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">protdf</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="s1">&#39;TP53 Mutation Status&#39;</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="s1">&#39;AURKA_proteomics&#39;</span><span class="p">,</span> <span class="n">jitter</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">dodge</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;.3&#39;</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">PTEN_complex_filter</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_omics_to_mutations</span><span class="p">(</span><span class="n">omics_df_name</span><span class="o">=</span><span class="s2">&quot;proteomics&quot;</span><span class="p">,</span> <span class="n">mutations_genes</span><span class="o">=</span><span class="s2">&quot;PTEN&quot;</span><span class="p">,</span> 
+                                                        <span class="n">omics_genes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;AURKA&quot;</span><span class="p">,</span> <span class="s2">&quot;TP53&quot;</span><span class="p">],</span> 
+                                                        <span class="n">mutations_filter</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;p.R130Q&quot;</span><span class="p">,</span> <span class="s2">&quot;Nonsense_Mutation&quot;</span><span class="p">])</span>
+<span class="n">PTEN_complex_filter</span><span class="o">.</span><span class="n">loc</span><span class="p">[[</span><span class="s2">&quot;C3L-00006&quot;</span><span class="p">,</span> <span class="s2">&quot;C3L-00137&quot;</span><span class="p">]]</span>
 </pre></div>
 
      </div>
@@ -14830,6 +15723,18 @@ C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:256: 
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>cptac warning: In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: 69 samples for the PTEN gene (/home/caleb/anaconda3/envs/dev/lib/python3.7/site-packages/ipykernel_launcher.py, line 3)
+</pre>
+</div>
+</div>
 
 <div class="jp-OutputArea-child">
 
@@ -14838,25 +15743,64 @@ C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:256: 
 
 
 
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
 
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>&lt;matplotlib.axes._subplots.AxesSubplot at 0x1b3e8cbaa88&gt;</pre>
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Name</th>
+      <th>AURKA_proteomics</th>
+      <th>TP53_proteomics</th>
+      <th>PTEN_Mutation</th>
+      <th>PTEN_Location</th>
+      <th>PTEN_Mutation_Status</th>
+      <th>Sample_Status</th>
+    </tr>
+    <tr>
+      <th>Patient_ID</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>C3L-00006</th>
+      <td>NaN</td>
+      <td>0.295</td>
+      <td>Missense_Mutation</td>
+      <td>p.R130Q</td>
+      <td>Multiple_mutation</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00137</th>
+      <td>NaN</td>
+      <td>0.441</td>
+      <td>Nonsense_Mutation</td>
+      <td>p.Y180*</td>
+      <td>Multiple_mutation</td>
+      <td>Tumor</td>
+    </tr>
+  </tbody>
+</table>
 </div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedImage jp-OutputArea-output ">
-<img src="data:image/png;base64,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
-"
->
 </div>
 
 </div>
@@ -14868,24 +15812,7 @@ C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:256: 
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>From this boxplot, we can see that there is a significant increase in aurora kinase levels with a mutation in TP53.</p>
-
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Part-II:-Example-Using-ARID1A">Part II: Example Using ARID1A<a class="anchor-link" href="#Part-II:-Example-Using-ARID1A">&#182;</a></h1>
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>We will now look at ARID1A, which potentially affects the transcription of many genes through its function as a chromatin remodeling protein <a href="https://en.wikipedia.org/wiki/ARID1A">(Wikipedia)</a>.</p>
-
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>In order to perform this analysis, we will use the same steps as we did earlier, only this time without separated code blocks. Because we are not sure which proteins might be affected, we will look for trans effects in all the proteomics data. Due to the high amount of comparisons, this will take a little bit of time. In the end, we will have a list of genes affected by ARID1A.</p>
+<h2 id="join_metadata_to_mutations"><code>join_metadata_to_mutations</code><a class="anchor-link" href="#join_metadata_to_mutations">&#182;</a></h2><p>The <code>join_metadata_to_mutations</code> function works exactly like <code>join_omics_to_mutations</code>, except that it works with metadata dataframes (e.g. clinical and derived molecular) instead of omics dataframes. It also can filter multiple mutations, which you control through the <code>mutations_filter</code> parameter, and has the ability to hide the location colunms.</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -14894,39 +15821,12 @@ C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:256: 
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[11]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">gene</span> <span class="o">=</span> <span class="s2">&quot;ARID1A&quot;</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Gene: &quot;</span><span class="p">,</span> <span class="n">gene</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">hist_and_PTEN</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_metadata_to_mutations</span><span class="p">(</span>
+    <span class="n">metadata_df_name</span><span class="o">=</span><span class="s2">&quot;clinical&quot;</span><span class="p">,</span>
+    <span class="n">mutations_genes</span><span class="o">=</span><span class="s2">&quot;PTEN&quot;</span><span class="p">,</span>
+    <span class="n">metadata_cols</span><span class="o">=</span><span class="s2">&quot;Histologic_type&quot;</span><span class="p">)</span>
 
-<span class="c1"># Step 1: Create dataframe in order to do comparisons with wrap_ttest</span>
-<span class="n">protdf</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_omics_to_mutations</span><span class="p">(</span><span class="n">mutations_genes</span><span class="o">=</span><span class="p">[</span><span class="n">gene</span><span class="p">],</span> <span class="n">omics_df_name</span><span class="o">=</span><span class="n">omics</span><span class="p">)</span>
-<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">protdf</span><span class="p">[</span><span class="s1">&#39;Sample_Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Tumor&#39;</span><span class="p">]</span>
-
-<span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">protdf</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-    <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Mutation_Status&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;Wildtype_Tumor&#39;</span><span class="p">:</span>
-        <span class="n">protdf</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span><span class="s1">&#39;ARID1A Mutation Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Mutated&#39;</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">protdf</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span><span class="s1">&#39;ARID1A Mutation Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Wildtype&#39;</span>
-
-        
-<span class="c1"># Step 2: Format the dataframe to set it up properly for our t-test</span>
-<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Mutation&quot;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Location&quot;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Mutation_Status&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;Sample_Status&quot;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-
-
-<span class="c1">#Step 3: Make list of columns to be compared using t-tests</span>
-<span class="n">col_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">protdf</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
-<span class="n">col_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;ARID1A Mutation Status&#39;</span><span class="p">)</span>
-
-    
-<span class="c1">#Step 4: Call wrap_ttest, pass in formatted dataframe, print results</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Doing t-test comparisons</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">wrap_results</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">wrap_ttest</span><span class="p">(</span><span class="n">protdf</span><span class="p">,</span> <span class="s1">&#39;ARID1A Mutation Status&#39;</span><span class="p">,</span> <span class="n">col_list</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="n">wrap_results</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">wrap_results</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">hist_and_PTEN</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -14945,21 +15845,8 @@ C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:256: 
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
 
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>
-Gene:  ARID1A
-</pre>
-</div>
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>cptac warning: In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: 101 samples for the ARID1A gene (C:\Users\humbe\miniconda3\lib\site-packages\ipykernel_launcher.py, line 5)
+<pre>cptac warning: In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: 69 samples for the PTEN gene (/home/caleb/anaconda3/envs/dev/lib/python3.7/site-packages/ipykernel_launcher.py, line 4)
 </pre>
 </div>
 </div>
@@ -14967,73 +15854,90 @@ Gene:  ARID1A
 <div class="jp-OutputArea-child">
 
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[11]:</div>
 
 
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Doing t-test comparisons
 
-</pre>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Name</th>
+      <th>Histologic_type</th>
+      <th>PTEN_Mutation</th>
+      <th>PTEN_Location</th>
+      <th>PTEN_Mutation_Status</th>
+      <th>Sample_Status</th>
+    </tr>
+    <tr>
+      <th>Patient_ID</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>C3L-00006</th>
+      <td>Endometrioid</td>
+      <td>[Missense_Mutation, Nonsense_Mutation]</td>
+      <td>[p.R130Q, p.R233*]</td>
+      <td>Multiple_mutation</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00008</th>
+      <td>Endometrioid</td>
+      <td>[Missense_Mutation]</td>
+      <td>[p.G127R]</td>
+      <td>Single_mutation</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00032</th>
+      <td>Endometrioid</td>
+      <td>[Nonsense_Mutation]</td>
+      <td>[p.W111*]</td>
+      <td>Single_mutation</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00090</th>
+      <td>Endometrioid</td>
+      <td>[Missense_Mutation]</td>
+      <td>[p.R130G]</td>
+      <td>Single_mutation</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00098</th>
+      <td>Serous</td>
+      <td>[Wildtype_Tumor]</td>
+      <td>[No_mutation]</td>
+      <td>Wildtype_Tumor</td>
+      <td>Tumor</td>
+    </tr>
+  </tbody>
+</table>
 </div>
 </div>
 
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>C:\Users\humbe\miniconda3\lib\site-packages\numpy\core\fromnumeric.py:3584: RuntimeWarning: Degrees of freedom &lt;= 0 for slice
-  **kwargs)
-C:\Users\humbe\miniconda3\lib\site-packages\numpy\core\_methods.py:209: RuntimeWarning: invalid value encountered in double_scalars
-  ret = ret.dtype.type(ret / rcount)
-C:\Users\humbe\miniconda3\lib\site-packages\scipy\stats\_distn_infrastructure.py:903: RuntimeWarning: invalid value encountered in greater
-  return (a &lt; x) &amp; (x &lt; b)
-C:\Users\humbe\miniconda3\lib\site-packages\scipy\stats\_distn_infrastructure.py:903: RuntimeWarning: invalid value encountered in less
-  return (a &lt; x) &amp; (x &lt; b)
-C:\Users\humbe\miniconda3\lib\site-packages\scipy\stats\_distn_infrastructure.py:1912: RuntimeWarning: invalid value encountered in less_equal
-  cond2 = cond0 &amp; (x &lt;= _a)
-</pre>
-</div>
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>          Comparison       P_Value
-0  ARID1A_proteomics  1.025018e-10
-1   MAP1S_proteomics  1.010149e-07
-2    DPF2_proteomics  2.166609e-07
-3   KDM4B_proteomics  4.414547e-07
-4    RRM1_proteomics  4.455870e-07
-5  MAP7D3_proteomics  4.880890e-07
-6   CYTH3_proteomics  3.109396e-06
-7   CEP78_proteomics  3.749172e-06
-
-
-
-</pre>
-</div>
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:152: RuntimeWarning: invalid value encountered in less_equal
-  reject = pvals &lt;= alphacBonf
-C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:256: RuntimeWarning: invalid value encountered in greater
-  pvals_corrected[pvals_corrected&gt;1] = 1
-</pre>
-</div>
 </div>
 
 </div>
@@ -15043,9 +15947,159 @@ C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:256: 
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Each of the proteins shown can be individually analyzed in the same manner that we showed above. The reason for the relatively small list of proteins shown here is that our wrap_ttest does Bonferroni correction, so the cutoff for "significance" is very strict. For further ideas about how to analyze larger lists of genes, refer to usecase 5.</p>
+<p>With multiple mutations filtered:</p>
 
 </div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[12]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">hist_and_PTEN</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_metadata_to_mutations</span><span class="p">(</span>
+    <span class="n">metadata_df_name</span><span class="o">=</span><span class="s2">&quot;clinical&quot;</span><span class="p">,</span>
+    <span class="n">mutations_genes</span><span class="o">=</span><span class="s2">&quot;PTEN&quot;</span><span class="p">,</span>
+    <span class="n">metadata_cols</span><span class="o">=</span><span class="s2">&quot;Histologic_type&quot;</span><span class="p">,</span>
+    <span class="n">mutations_filter</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Nonsense_Mutation&quot;</span><span class="p">])</span>
+
+<span class="n">hist_and_PTEN</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>cptac warning: In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: 69 samples for the PTEN gene (/home/caleb/anaconda3/envs/dev/lib/python3.7/site-packages/ipykernel_launcher.py, line 5)
+</pre>
+</div>
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[12]:</div>
+
+
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Name</th>
+      <th>Histologic_type</th>
+      <th>PTEN_Mutation</th>
+      <th>PTEN_Location</th>
+      <th>PTEN_Mutation_Status</th>
+      <th>Sample_Status</th>
+    </tr>
+    <tr>
+      <th>Patient_ID</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>C3L-00006</th>
+      <td>Endometrioid</td>
+      <td>Nonsense_Mutation</td>
+      <td>p.R233*</td>
+      <td>Multiple_mutation</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00008</th>
+      <td>Endometrioid</td>
+      <td>Missense_Mutation</td>
+      <td>p.G127R</td>
+      <td>Single_mutation</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00032</th>
+      <td>Endometrioid</td>
+      <td>Nonsense_Mutation</td>
+      <td>p.W111*</td>
+      <td>Single_mutation</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00090</th>
+      <td>Endometrioid</td>
+      <td>Missense_Mutation</td>
+      <td>p.R130G</td>
+      <td>Single_mutation</td>
+      <td>Tumor</td>
+    </tr>
+    <tr>
+      <th>C3L-00098</th>
+      <td>Serous</td>
+      <td>Wildtype_Tumor</td>
+      <td>No_mutation</td>
+      <td>Wildtype_Tumor</td>
+      <td>Tumor</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="Exporting-dataframes">Exporting dataframes<a class="anchor-link" href="#Exporting-dataframes">&#182;</a></h1><p>If you wish to export a dataframe to a file, simply call the dataframe's to_csv method, passing the path you wish to save the file to, and the value separator you want:</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[13]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">hist_and_PTEN</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">path_or_buf</span><span class="o">=</span><span class="s2">&quot;histologic_type_and_PTEN_mutation.tsv&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
 </div>
 </body>
 

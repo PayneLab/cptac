@@ -3,7 +3,7 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>tutorial4_multiindex</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>tutorial02_pandas</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 
 
@@ -14259,10 +14259,27 @@ a.anchor-link {
 
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Tutorial-4:-Multi-level-column-indices-(MultiIndex)">Tutorial 4: Multi-level column indices (<code>MultiIndex</code>)<a class="anchor-link" href="#Tutorial-4:-Multi-level-column-indices-(MultiIndex)">&#182;</a></h1><p>A MultiIndex is an index with multiple, hierarchical levels. We use a multiindex for the column headers of a 
-dataframe. This allows each column to have multiple keys associated with it--one key for each level.</p>
-<p>The multiindex is a native part of the <code>pandas</code> package. For more documentation, see their <a href="https://pandas.pydata.org/pandas-docs/stable/user_guide/advanced.html">MultiIndex / advanced indexing page</a>.</p>
-<p>MultiIndexes make it easy to associate multiple identifiers with a single column.  To show what this looks like we'll look at phosphoproteomics data in the endometrial cancer dataset.</p>
+<h1 id="Tutorial-2:-Accessing-dataframes-and-using-them-with-pandas">Tutorial 2: Accessing dataframes and using them with <code>pandas</code><a class="anchor-link" href="#Tutorial-2:-Accessing-dataframes-and-using-them-with-pandas">&#182;</a></h1><p>A large portion of this package utilizes the functionality of pandas dataframes. Here we give a few specific instances of using dataframes with our package. For a more general overview of dataframes, see pandas <a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html">documentation</a> and <a href="https://www.datacamp.com/community/tutorials/pandas-tutorial-dataframe-python">tutorials</a>.</p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="How-do-I-install-the-package?">How do I install the package?<a class="anchor-link" href="#How-do-I-install-the-package?">&#182;</a></h2><p>Install the package from the <a href="https://pypi.org/project/cptac/">Python Package Index (PyPI)</a> in the command line using the <a href="https://pypi.org/project/pip/">pip package installer</a>, with the name of the package:</p>
+<p><code>pip install cptac</code></p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="How-do-I-import-the-package-once-it-has-been-installed?">How do I import the package once it has been installed?<a class="anchor-link" href="#How-do-I-import-the-package-once-it-has-been-installed?">&#182;</a></h2><p>The cptac package has several cancer data sets. First import the entire package by entering the following:</p>
+<p><code>import cptac</code></p>
+<p>(Once the package has loaded, a message will display the package version, as well as instructions for viewing specific data sets.)</p>
+<p>Then, to access a specific data set (i.e. Endometrial data) and its functionalities, download the data for it:</p>
+<p><code>cptac.download(dataset="endometrial", version="latest")</code></p>
+<p>Then, load the dataset object and assign it to a variable, like this:</p>
+<p><code>en = cptac.Endometrial()</code></p>
+<p>As the dataset loads, it will update you on the progress of the data loading until it's finished.</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -14271,10 +14288,9 @@ dataframe. This allows each column to have multiple keys associated with it--one
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Throughout the tutorial we will be using the endometrial and colon datasets</span>
-<span class="kn">import</span> <span class="nn">cptac</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">cptac</span>
 <span class="n">cptac</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;endometrial&quot;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;latest&quot;</span><span class="p">)</span>
-<span class="n">cptac</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;colon&quot;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;latest&quot;</span><span class="p">)</span>
+<span class="n">en</span> <span class="o">=</span> <span class="n">cptac</span><span class="o">.</span><span class="n">Endometrial</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -14298,33 +14314,27 @@ dataframe. This allows each column to have multiple keys associated with it--one
 </div>
 </div>
 
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[1]:</div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>True</pre>
 </div>
 
 </div>
 
 </div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Can-I-use-multiple-datasets-at-the-same-time?">Can I use multiple datasets at the same time?<a class="anchor-link" href="#Can-I-use-multiple-datasets-at-the-same-time?">&#182;</a></h2><p>You can have multiple datasets loaded at the same time, once you have downloaded their data files. As you load each dataset, it will display its individual loading information.</p>
 
 </div>
-
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">en</span> <span class="o">=</span> <span class="n">cptac</span><span class="o">.</span><span class="n">Endometrial</span><span class="p">()</span>
-<span class="n">phospho</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">get_phosphoproteomics</span><span class="p">()</span>
-<span class="n">phospho</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">cptac</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;ovarian&quot;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;latest&quot;</span><span class="p">)</span>
+<span class="n">cptac</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;colon&quot;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;latest&quot;</span><span class="p">)</span>
+
+<span class="n">ov</span> <span class="o">=</span> <span class="n">cptac</span><span class="o">.</span><span class="n">Ovarian</span><span class="p">()</span>
+<span class="n">co</span> <span class="o">=</span> <span class="n">cptac</span><span class="o">.</span><span class="n">Colon</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -14344,224 +14354,8 @@ dataframe. This allows each column to have multiple keys associated with it--one
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>                                                </pre>
+<pre>                                            </pre>
 </div>
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[2]:</div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead tr th {
-        text-align: left;
-    }
-
-    .dataframe thead tr:last-of-type th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th colspan="3" halign="left">AAAS</th>
-      <th>AACS</th>
-      <th>AAED1</th>
-      <th colspan="2" halign="left">AAGAB</th>
-      <th colspan="3" halign="left">AAK1</th>
-      <th>...</th>
-      <th colspan="10" halign="left">ZZZ3</th>
-    </tr>
-    <tr>
-      <th>Site</th>
-      <th>S495</th>
-      <th>S541</th>
-      <th>Y485</th>
-      <th>S618</th>
-      <th>S12</th>
-      <th>S310</th>
-      <th>S311</th>
-      <th>S14</th>
-      <th>S18</th>
-      <th>S20</th>
-      <th>...</th>
-      <th>S397</th>
-      <th>S411</th>
-      <th>S420</th>
-      <th>S424</th>
-      <th>S426</th>
-      <th>S468</th>
-      <th>S89</th>
-      <th>T415</th>
-      <th>T418</th>
-      <th>Y399</th>
-    </tr>
-    <tr>
-      <th>Patient_ID</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C3L-00006</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.881</td>
-      <td>-1.810</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.242</td>
-      <td>-0.2420</td>
-      <td>...</td>
-      <td>0.18400</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.20500</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>C3L-00008</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.084</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-1.110</td>
-      <td>-0.383</td>
-      <td>-1.0900</td>
-      <td>...</td>
-      <td>-0.17100</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.393</td>
-      <td>-0.17100</td>
-      <td>NaN</td>
-      <td>0.29</td>
-      <td>NaN</td>
-      <td>0.1605</td>
-      <td>-0.0635</td>
-    </tr>
-    <tr>
-      <th>C3L-00032</th>
-      <td>-0.202</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-1.880</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.382</td>
-      <td>-0.0416</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>C3L-00090</th>
-      <td>-0.002</td>
-      <td>NaN</td>
-      <td>-0.407</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.5550</td>
-      <td>...</td>
-      <td>0.13970</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.55900</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.2980</td>
-    </tr>
-    <tr>
-      <th>C3L-00098</th>
-      <td>0.556</td>
-      <td>-0.0461</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.941</td>
-      <td>NaN</td>
-      <td>0.429</td>
-      <td>0.362</td>
-      <td>0.697</td>
-      <td>-0.0529</td>
-      <td>...</td>
-      <td>-0.15875</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.196</td>
-      <td>0.06175</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.2900</td>
-    </tr>
-  </tbody>
-</table>
-<p>5 rows × 73212 columns</p>
-</div>
-</div>
-
 </div>
 
 </div>
@@ -14571,15 +14365,13 @@ dataframe. This allows each column to have multiple keys associated with it--one
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>The first level of keys is the name of the gene associated with the column of data. The second level is the site of acetylation. Each column has its own Name and Site associated with it. 
-Normally, as above, keys that repeat for adjacent columns are not displayed, to make it easier to read the dataframe. For example, in the table above the first 7 columns are all for the A2M gene, but the label is only shown for the first column.</p>
+<p><strong>NOTE: When using multiple data sets, be sure to check that each function used matches the expected data set, as each data set uses the same API.</strong> For example, the command for retrieving clinical data is <code>get_clinical()</code> for all data sets, so make sure not to retrieve ovarian clinical data <code>ov.get_clinical()</code> when you meant to get the endometrial clinical data <code>en.get_clinical()</code>.</p>
 
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Join-functions-with-multiindices">Join functions with multiindices<a class="anchor-link" href="#Join-functions-with-multiindices">&#182;</a></h1><p>The join functions have been written to handle multiindices. More information on the join functions can be found in the joining_dataframes tutorial. 
-An example of joining a multiindexed dataframe (in this case phosphoproteomics) with a non multiindexed dataframe (in this case CNV) is below.</p>
+<h2 id="How-do-I-access-a-particular-dataframe?">How do I access a particular dataframe?<a class="anchor-link" href="#How-do-I-access-a-particular-dataframe?">&#182;</a></h2><p>You can access a specific dataframe by calling the dataset's "get" method for that dataframe. (To see all available dataframes, call the dataset's <code>list_data</code> function, e.g. <code>en.list_data()</code>.)</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -14588,8 +14380,8 @@ An example of joining a multiindexed dataframe (in this case phosphoproteomics) 
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">phospho_and_CNV</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_omics_to_omics</span><span class="p">(</span><span class="n">df1_name</span><span class="o">=</span><span class="s2">&quot;CNV&quot;</span><span class="p">,</span> <span class="n">df2_name</span><span class="o">=</span><span class="s2">&quot;phosphoproteomics&quot;</span><span class="p">)</span>
-<span class="n">phospho_and_CNV</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">proteomics</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">get_proteomics</span><span class="p">()</span>
+<span class="n">proteomics</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -14601,18 +14393,6 @@ An example of joining a multiindexed dataframe (in this case phosphoproteomics) 
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>cptac warning: CNV data was not found for the following samples, so CNV data columns were filled with NaN for these samples: C3L-00006.N, C3L-00361.N, C3L-00563.N, C3L-00586.N, C3L-00601.N, C3L-00605.N, C3L-00769.N, C3L-00770.N, C3L-00771.N, C3L-00930.N, C3L-00932.N, C3L-00947.N, C3L-00963.N, C3L-01246.N, C3L-01249.N, C3L-01252.N, C3L-01256.N, C3L-01257.N, C3L-01282.N, C3L-01304.N, C3L-01307.N, C3L-01311.N, C3L-01744.N, C3N-00200.N, C3N-00333.N, C3N-00383.N, C3N-00729.N, C3N-00858.N, C3N-00866.N, C3N-01211.N, C3N-01346.N, NX1.N, NX10.N, NX11.N, NX12.N, NX13.N, NX14.N, NX15.N, NX16.N, NX17.N, NX18.N, NX2.N, NX3.N, NX4.N, NX5.N, NX6.N, NX7.N, NX8.N, NX9.N (/home/caleb/anaconda3/envs/dev/lib/python3.7/site-packages/ipykernel_launcher.py, line 1)
-</pre>
-</div>
-</div>
 
 <div class="jp-OutputArea-child">
 
@@ -14632,54 +14412,35 @@ An example of joining a multiindexed dataframe (in this case phosphoproteomics) 
         vertical-align: top;
     }
 
-    .dataframe thead tr th {
-        text-align: left;
-    }
-
-    .dataframe thead tr:last-of-type th {
+    .dataframe thead th {
         text-align: right;
     }
 </style>
 <table border="1" class="dataframe">
   <thead>
-    <tr>
+    <tr style="text-align: right;">
       <th>Name</th>
-      <th>A1BG_CNV</th>
-      <th>A1BG-AS1_CNV</th>
-      <th>A1CF_CNV</th>
-      <th>A2M_CNV</th>
-      <th>A2M-AS1_CNV</th>
-      <th>A2ML1_CNV</th>
-      <th>A2MP1_CNV</th>
-      <th>A3GALT2_CNV</th>
-      <th>A4GALT_CNV</th>
-      <th>A4GNT_CNV</th>
+      <th>A1BG</th>
+      <th>A2M</th>
+      <th>A2ML1</th>
+      <th>A4GALT</th>
+      <th>AAAS</th>
+      <th>AACS</th>
+      <th>AADAT</th>
+      <th>AAED1</th>
+      <th>AAGAB</th>
+      <th>AAK1</th>
       <th>...</th>
-      <th colspan="10" halign="left">ZZZ3_phosphoproteomics</th>
-    </tr>
-    <tr>
-      <th>Site</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th>...</th>
-      <th>S397</th>
-      <th>S411</th>
-      <th>S420</th>
-      <th>S424</th>
-      <th>S426</th>
-      <th>S468</th>
-      <th>S89</th>
-      <th>T415</th>
-      <th>T418</th>
-      <th>Y399</th>
+      <th>ZSWIM8</th>
+      <th>ZSWIM9</th>
+      <th>ZW10</th>
+      <th>ZWILCH</th>
+      <th>ZWINT</th>
+      <th>ZXDC</th>
+      <th>ZYG11B</th>
+      <th>ZYX</th>
+      <th>ZZEF1</th>
+      <th>ZZZ3</th>
     </tr>
     <tr>
       <th>Patient_ID</th>
@@ -14709,127 +14470,127 @@ An example of joining a multiindexed dataframe (in this case phosphoproteomics) 
   <tbody>
     <tr>
       <th>C3L-00006</th>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>-0.01</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.01</td>
-      <td>-0.01</td>
+      <td>-1.180</td>
+      <td>-0.8630</td>
+      <td>-0.802</td>
+      <td>0.222</td>
+      <td>0.2560</td>
+      <td>0.6650</td>
+      <td>1.2800</td>
+      <td>-0.3390</td>
+      <td>0.412</td>
+      <td>-0.664</td>
       <td>...</td>
-      <td>0.18400</td>
+      <td>-0.08770</td>
       <td>NaN</td>
+      <td>0.0229</td>
+      <td>0.1090</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.20500</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>-0.332</td>
+      <td>-0.43300</td>
+      <td>-1.020</td>
+      <td>-0.1230</td>
+      <td>-0.0859</td>
     </tr>
     <tr>
       <th>C3L-00008</th>
-      <td>0.01</td>
-      <td>0.01</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.01</td>
-      <td>0.00</td>
+      <td>-0.685</td>
+      <td>-1.0700</td>
+      <td>-0.684</td>
+      <td>0.984</td>
+      <td>0.1350</td>
+      <td>0.3340</td>
+      <td>1.3000</td>
+      <td>0.1390</td>
+      <td>1.330</td>
+      <td>-0.367</td>
       <td>...</td>
-      <td>-0.17100</td>
+      <td>-0.03560</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.393</td>
-      <td>-0.17100</td>
-      <td>NaN</td>
-      <td>0.29</td>
-      <td>NaN</td>
-      <td>0.1605</td>
-      <td>-0.0635</td>
+      <td>0.3630</td>
+      <td>1.0700</td>
+      <td>0.737</td>
+      <td>-0.564</td>
+      <td>-0.00461</td>
+      <td>-1.130</td>
+      <td>-0.0757</td>
+      <td>-0.4730</td>
     </tr>
     <tr>
       <th>C3L-00032</th>
-      <td>0.01</td>
-      <td>0.01</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.01</td>
-      <td>0.00</td>
-      <td>0.00</td>
+      <td>-0.528</td>
+      <td>-1.3200</td>
+      <td>0.435</td>
+      <td>NaN</td>
+      <td>-0.2400</td>
+      <td>1.0400</td>
+      <td>-0.0213</td>
+      <td>-0.0479</td>
+      <td>0.419</td>
+      <td>-0.500</td>
       <td>...</td>
+      <td>0.00112</td>
+      <td>-0.1450</td>
+      <td>0.0105</td>
+      <td>-0.1160</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>0.151</td>
+      <td>-0.07400</td>
+      <td>-0.540</td>
+      <td>0.3200</td>
+      <td>-0.4190</td>
     </tr>
     <tr>
       <th>C3L-00090</th>
-      <td>-0.04</td>
-      <td>-0.04</td>
-      <td>0.36</td>
-      <td>-0.05</td>
-      <td>-0.05</td>
-      <td>-0.05</td>
-      <td>-0.05</td>
-      <td>-0.04</td>
-      <td>-0.04</td>
-      <td>-0.05</td>
+      <td>-1.670</td>
+      <td>-1.1900</td>
+      <td>-0.443</td>
+      <td>0.243</td>
+      <td>-0.0993</td>
+      <td>0.7570</td>
+      <td>0.7400</td>
+      <td>-0.9290</td>
+      <td>0.229</td>
+      <td>-0.223</td>
       <td>...</td>
-      <td>0.13970</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.55900</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.2980</td>
+      <td>0.07250</td>
+      <td>-0.0552</td>
+      <td>-0.0714</td>
+      <td>0.0933</td>
+      <td>0.156</td>
+      <td>-0.398</td>
+      <td>-0.07520</td>
+      <td>-0.797</td>
+      <td>-0.0301</td>
+      <td>-0.4670</td>
     </tr>
     <tr>
       <th>C3L-00098</th>
-      <td>0.85</td>
-      <td>0.85</td>
-      <td>0.16</td>
-      <td>-0.41</td>
-      <td>-0.41</td>
-      <td>-0.41</td>
-      <td>-0.41</td>
-      <td>-0.12</td>
-      <td>0.15</td>
-      <td>0.19</td>
+      <td>-0.374</td>
+      <td>-0.0206</td>
+      <td>-0.537</td>
+      <td>0.311</td>
+      <td>0.3750</td>
+      <td>0.0131</td>
+      <td>-1.1000</td>
+      <td>NaN</td>
+      <td>0.565</td>
+      <td>-0.101</td>
       <td>...</td>
-      <td>-0.15875</td>
+      <td>-0.17600</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>0.196</td>
-      <td>0.06175</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.2900</td>
+      <td>-1.2200</td>
+      <td>-0.5620</td>
+      <td>0.937</td>
+      <td>-0.646</td>
+      <td>0.20700</td>
+      <td>-1.850</td>
+      <td>-0.1760</td>
+      <td>0.0513</td>
     </tr>
   </tbody>
 </table>
-<p>5 rows × 101269 columns</p>
+<p>5 rows × 10999 columns</p>
 </div>
 </div>
 
@@ -14842,18 +14603,8 @@ An example of joining a multiindexed dataframe (in this case phosphoproteomics) 
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Since the CNV dataframe doesn't have the level "Site", it is filled in with NANs, so that it can be joined to the phosphoproteomics dataframe.</p>
-
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="How-to-select-from-multiindex">How to select from multiindex<a class="anchor-link" href="#How-to-select-from-multiindex">&#182;</a></h1>
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Selecting-based-on-all-levels">Selecting based on all levels<a class="anchor-link" href="#Selecting-based-on-all-levels">&#182;</a></h2><p>We can select single columns by passing the proper keys for all levels of the multiindex. For example, to get the acetylproteomics for A2M at site K1176, we'd do the following:</p>
+<h2 id="How-do-I-access-specific-columns-in-a-dataframe?">How do I access specific columns in a dataframe?<a class="anchor-link" href="#How-do-I-access-specific-columns-in-a-dataframe?">&#182;</a></h2><p>You'll probably want to get a feel for what data is in the dataframes you load. For example, say we want to know what kind of data is included in our proteomics dataframe. Each column in that dataframe contains the proteomics data for a different protein.</p>
+<p>You can view a list of column names (which is a list of protein names, in the case of the proteomics dataframe) by appending <code>.columns</code> to the end of a dataframe variable. (If you wish to see all of the column names, even if there are a lot, append <code>.columns.values</code> to the dataframe variable.)</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -14862,9 +14613,7 @@ An example of joining a multiindexed dataframe (in this case phosphoproteomics) 
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">acetyl</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">get_acetylproteomics</span><span class="p">()</span>
-<span class="n">all_levels_selection</span> <span class="o">=</span> <span class="n">acetyl</span><span class="p">[</span><span class="s2">&quot;A2M&quot;</span><span class="p">][</span><span class="s2">&quot;K1176&quot;</span><span class="p">]</span>
-<span class="n">all_levels_selection</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">proteomics</span><span class="o">.</span><span class="n">columns</span>
 </pre></div>
 
      </div>
@@ -14886,18 +14635,12 @@ An example of joining a multiindexed dataframe (in this case phosphoproteomics) 
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>Patient_ID
-C3L-00006    1.080
-C3L-00008    0.477
-C3L-00032      NaN
-C3L-00090   -0.608
-C3L-00098    1.630
-C3L-00136   -0.210
-C3L-00137   -0.175
-C3L-00139   -0.223
-C3L-00143   -1.120
-C3L-00145      NaN
-Name: K1176, dtype: float64</pre>
+<pre>Index([&#39;A1BG&#39;, &#39;A2M&#39;, &#39;A2ML1&#39;, &#39;A4GALT&#39;, &#39;AAAS&#39;, &#39;AACS&#39;, &#39;AADAT&#39;, &#39;AAED1&#39;,
+       &#39;AAGAB&#39;, &#39;AAK1&#39;,
+       ...
+       &#39;ZSWIM8&#39;, &#39;ZSWIM9&#39;, &#39;ZW10&#39;, &#39;ZWILCH&#39;, &#39;ZWINT&#39;, &#39;ZXDC&#39;, &#39;ZYG11B&#39;, &#39;ZYX&#39;,
+       &#39;ZZEF1&#39;, &#39;ZZZ3&#39;],
+      dtype=&#39;object&#39;, name=&#39;Name&#39;, length=10999)</pre>
 </div>
 
 </div>
@@ -14909,7 +14652,11 @@ Name: K1176, dtype: float64</pre>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Selecting-based-on-one-level">Selecting based on one level<a class="anchor-link" href="#Selecting-based-on-one-level">&#182;</a></h2><p>We can easily select multiple columns from our multiindex dataframe, based on just the "Name" level of the multiindex:</p>
+<p>To access specific column (which is a specific protein's data, in the case of the proteomics dataframe), slice the column out of the dataframe using either of the following methods:</p>
+<p><code>proteomics["A1BG"]</code></p>
+<p>or</p>
+<p><code>proteomics.A1BG</code></p>
+<p>Both return the column as a <a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.html">pandas series</a>. The first method is useful when the name of the column you want is stored as a string variable.</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -14918,9 +14665,9 @@ Name: K1176, dtype: float64</pre>
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">gene1_filter</span> <span class="o">=</span> <span class="n">acetyl</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;AA&quot;</span><span class="p">)</span> <span class="c1"># Select all columns where the gene starts with &quot;AA&quot;. This will grab every column where the key &quot;Name&quot; starts with AA</span>
-<span class="n">gene1_data</span> <span class="o">=</span> <span class="n">acetyl</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">gene1_filter</span><span class="p">]</span>
-<span class="n">gene1_data</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">protein</span> <span class="o">=</span> <span class="s2">&quot;A1BG&quot;</span>
+<span class="n">A1BG_col</span> <span class="o">=</span> <span class="n">proteomics</span><span class="p">[</span><span class="n">protein</span><span class="p">]</span>
+<span class="n">A1BG_col</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -14940,133 +14687,15 @@ Name: K1176, dtype: float64</pre>
 
 
 
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
 
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead tr th {
-        text-align: left;
-    }
-
-    .dataframe thead tr:last-of-type th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>AACS</th>
-      <th>AAGAB</th>
-      <th>AAK1</th>
-      <th>AARS</th>
-      <th>AASDH</th>
-      <th colspan="3" halign="left">AASS</th>
-      <th colspan="2" halign="left">AATF</th>
-    </tr>
-    <tr>
-      <th>Site</th>
-      <th>K391</th>
-      <th>K290</th>
-      <th>K201</th>
-      <th>K338</th>
-      <th>K765</th>
-      <th>K138</th>
-      <th>K539</th>
-      <th>K93</th>
-      <th>K380</th>
-      <th>K74</th>
-    </tr>
-    <tr>
-      <th>Patient_ID</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C3L-00006</th>
-      <td>NaN</td>
-      <td>0.461</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>1.300</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>C3L-00008</th>
-      <td>NaN</td>
-      <td>1.770</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.652</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>C3L-00032</th>
-      <td>NaN</td>
-      <td>-0.815</td>
-      <td>-0.00573</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.305</td>
-      <td>0.398</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>C3L-00090</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>C3L-00098</th>
-      <td>NaN</td>
-      <td>0.205</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.244</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-</div>
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
+<pre>Patient_ID
+C3L-00006   -1.180
+C3L-00008   -0.685
+C3L-00032   -0.528
+C3L-00090   -1.670
+C3L-00098   -0.374
+Name: A1BG, dtype: float64</pre>
 </div>
 
 </div>
@@ -15078,7 +14707,7 @@ Name: K1176, dtype: float64</pre>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Selecting-based-on-a-different-level-of-the-multiindex">Selecting based on a different level of the multiindex<a class="anchor-link" href="#Selecting-based-on-a-different-level-of-the-multiindex">&#182;</a></h2><p>We can also select based on one of the inner levels of the multiindex. For example, to get data for all tyrosine phosphorylation sites:</p>
+<p>This <code>dataframe["col_name"]</code> syntax also allows for selection of multiple columns by entering a list of column names.</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -15087,10 +14716,9 @@ Name: K1176, dtype: float64</pre>
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">y_site_filter</span> <span class="o">=</span> <span class="n">phospho</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;Site&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;Y&quot;</span><span class="p">)</span> <span class="c1"># Create a boolean filter selecting all columns where the Site level contains a &quot;Y&quot;</span>
-
-<span class="n">y_sites</span> <span class="o">=</span> <span class="n">phospho</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">y_site_filter</span><span class="p">]</span> <span class="c1"># Select the columns</span>
-<span class="n">y_sites</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">proteins</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;A1BG&quot;</span><span class="p">,</span><span class="s2">&quot;PTEN&quot;</span><span class="p">,</span><span class="s2">&quot;TP53&quot;</span><span class="p">]</span>
+<span class="n">selected_prot</span> <span class="o">=</span> <span class="n">proteomics</span><span class="p">[</span><span class="n">proteins</span><span class="p">]</span>
+<span class="n">selected_prot</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -15121,82 +14749,20 @@ Name: K1176, dtype: float64</pre>
         vertical-align: top;
     }
 
-    .dataframe thead tr th {
-        text-align: left;
-    }
-
-    .dataframe thead tr:last-of-type th {
+    .dataframe thead th {
         text-align: right;
     }
 </style>
 <table border="1" class="dataframe">
   <thead>
-    <tr>
+    <tr style="text-align: right;">
       <th>Name</th>
-      <th>AAAS</th>
-      <th>AAK1</th>
-      <th>ABCC1</th>
-      <th>ABI1</th>
-      <th>ABI2</th>
-      <th>ABI3</th>
-      <th>ABL1</th>
-      <th>ABL2</th>
-      <th colspan="2" halign="left">ABLIM1</th>
-      <th>...</th>
-      <th>ZNF799</th>
-      <th>ZNF839</th>
-      <th>ZNF860</th>
-      <th>ZNRF2</th>
-      <th colspan="2" halign="left">ZRANB2</th>
-      <th>ZRSR2</th>
-      <th>ZYX</th>
-      <th>ZZEF1</th>
-      <th>ZZZ3</th>
-    </tr>
-    <tr>
-      <th>Site</th>
-      <th>Y485</th>
-      <th>Y687</th>
-      <th>Y920</th>
-      <th>Y213</th>
-      <th>Y213</th>
-      <th>Y361</th>
-      <th>Y204</th>
-      <th>Y80</th>
-      <th>Y357</th>
-      <th>Y439</th>
-      <th>...</th>
-      <th>Y430</th>
-      <th>Y283</th>
-      <th>Y49</th>
-      <th>Y111</th>
-      <th>Y114</th>
-      <th>Y124</th>
-      <th>Y347</th>
-      <th>Y172</th>
-      <th>Y1795</th>
-      <th>Y399</th>
+      <th>A1BG</th>
+      <th>PTEN</th>
+      <th>TP53</th>
     </tr>
     <tr>
       <th>Patient_ID</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
       <th></th>
       <th></th>
       <th></th>
@@ -15205,127 +14771,36 @@ Name: K1176, dtype: float64</pre>
   <tbody>
     <tr>
       <th>C3L-00006</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.4340</td>
-      <td>-0.591</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.759</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.312</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.181</td>
-      <td>0.788</td>
-      <td>-0.378</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>-1.180</td>
+      <td>-0.526</td>
+      <td>0.295</td>
     </tr>
     <tr>
       <th>C3L-00008</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.5110</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-1.210</td>
-      <td>0.321</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>0.0684</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.929</td>
-      <td>NaN</td>
-      <td>-1.230</td>
-      <td>NaN</td>
-      <td>-0.0635</td>
+      <td>-0.685</td>
+      <td>-0.830</td>
+      <td>0.277</td>
     </tr>
     <tr>
       <th>C3L-00032</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.283</td>
-      <td>0.675</td>
-      <td>0.700</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>-0.528</td>
+      <td>-0.941</td>
+      <td>-0.871</td>
     </tr>
     <tr>
       <th>C3L-00090</th>
-      <td>-0.407</td>
-      <td>NaN</td>
-      <td>1.2680</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.173</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.123</td>
-      <td>-0.026</td>
-      <td>-1.020</td>
-      <td>NaN</td>
-      <td>0.2980</td>
+      <td>-1.670</td>
+      <td>0.730</td>
+      <td>-0.343</td>
     </tr>
     <tr>
       <th>C3L-00098</th>
-      <td>NaN</td>
-      <td>-0.4315</td>
-      <td>-0.0685</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.965</td>
-      <td>0.657</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.058</td>
-      <td>NaN</td>
-      <td>0.109</td>
-      <td>NaN</td>
-      <td>-0.636</td>
-      <td>NaN</td>
-      <td>-0.2900</td>
+      <td>-0.374</td>
+      <td>-0.379</td>
+      <td>3.010</td>
     </tr>
   </tbody>
 </table>
-<p>5 rows × 2397 columns</p>
 </div>
 </div>
 
@@ -15338,42 +14813,16 @@ Name: K1176, dtype: float64</pre>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="How-to-use-cptac.utils.reduce_multiindex()">How to use <code>cptac.utils.reduce_multiindex()</code><a class="anchor-link" href="#How-to-use-cptac.utils.reduce_multiindex()">&#182;</a></h1><p>To make it easier to work with multi-level indices, we provide the <code>reduce_multiindex</code> function, available for import from the <code>cptac.utils</code> submodule. It can both drop levels from a multiindex, and "flatten" a multi-level index into a single-level index by concatenating the keys from multiple levels into a single key for each column.</p>
+<h2 id="How-do-I-access-specific-rows-in-a-dataframe?">How do I access specific rows in a dataframe?<a class="anchor-link" href="#How-do-I-access-specific-rows-in-a-dataframe?">&#182;</a></h2><p>You can access specific rows in a dataframe (which are specific samples, in the case of the CPTAC data) using the dataframe's <code>.iloc</code> (by row number) or <code>.loc</code> (by row name) method, which both return a pandas Series if you select one row, and a pandas DataFrame if you select multiple rows.</p>
 
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">cptac.utils</span> <span class="k">as</span> <span class="nn">ut</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Dropping-Levels">Dropping Levels<a class="anchor-link" href="#Dropping-Levels">&#182;</a></h2><p>We can drop levels based on index or name. We can also drop single or multiple levels at once. 
-Note that it will warn you if duplicate column key combinations arise due to dropping levels.</p>
-
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Dropping-by-index-or-name">Dropping by index or name<a class="anchor-link" href="#Dropping-by-index-or-name">&#182;</a></h3>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">ut</span><span class="o">.</span><span class="n">reduce_multiindex</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">phospho</span><span class="p">,</span> <span class="n">levels_to_drop</span><span class="o">=</span><span class="s2">&quot;Site&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">proteomics</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
 </pre></div>
 
      </div>
@@ -15389,19 +14838,7 @@ Note that it will warn you if duplicate column key combinations arise due to dro
 <div class="jp-OutputArea-child">
 
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>cptac warning: Due to dropping the specified levels, dataframe now has 71331 duplicated column headers. (/home/caleb/anaconda3/envs/dev/lib/python3.7/site-packages/ipykernel_launcher.py, line 1)
-</pre>
-</div>
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[8]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[7]:</div>
 
 
 
@@ -15424,26 +14861,26 @@ Note that it will warn you if duplicate column key combinations arise due to dro
   <thead>
     <tr style="text-align: right;">
       <th>Name</th>
-      <th>AAAS</th>
-      <th>AAAS</th>
+      <th>A1BG</th>
+      <th>A2M</th>
+      <th>A2ML1</th>
+      <th>A4GALT</th>
       <th>AAAS</th>
       <th>AACS</th>
+      <th>AADAT</th>
       <th>AAED1</th>
       <th>AAGAB</th>
-      <th>AAGAB</th>
-      <th>AAK1</th>
-      <th>AAK1</th>
       <th>AAK1</th>
       <th>...</th>
-      <th>ZZZ3</th>
-      <th>ZZZ3</th>
-      <th>ZZZ3</th>
-      <th>ZZZ3</th>
-      <th>ZZZ3</th>
-      <th>ZZZ3</th>
-      <th>ZZZ3</th>
-      <th>ZZZ3</th>
-      <th>ZZZ3</th>
+      <th>ZSWIM8</th>
+      <th>ZSWIM9</th>
+      <th>ZW10</th>
+      <th>ZWILCH</th>
+      <th>ZWINT</th>
+      <th>ZXDC</th>
+      <th>ZYG11B</th>
+      <th>ZYX</th>
+      <th>ZZEF1</th>
       <th>ZZZ3</th>
     </tr>
     <tr>
@@ -15474,127 +14911,127 @@ Note that it will warn you if duplicate column key combinations arise due to dro
   <tbody>
     <tr>
       <th>C3L-00006</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.881</td>
-      <td>-1.810</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.242</td>
-      <td>-0.2420</td>
+      <td>-1.180</td>
+      <td>-0.8630</td>
+      <td>-0.802</td>
+      <td>0.222</td>
+      <td>0.2560</td>
+      <td>0.6650</td>
+      <td>1.2800</td>
+      <td>-0.3390</td>
+      <td>0.412</td>
+      <td>-0.664</td>
       <td>...</td>
-      <td>0.18400</td>
+      <td>-0.08770</td>
       <td>NaN</td>
+      <td>0.0229</td>
+      <td>0.1090</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.20500</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>-0.332</td>
+      <td>-0.43300</td>
+      <td>-1.020</td>
+      <td>-0.1230</td>
+      <td>-0.0859</td>
     </tr>
     <tr>
       <th>C3L-00008</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.084</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-1.110</td>
-      <td>-0.383</td>
-      <td>-1.0900</td>
+      <td>-0.685</td>
+      <td>-1.0700</td>
+      <td>-0.684</td>
+      <td>0.984</td>
+      <td>0.1350</td>
+      <td>0.3340</td>
+      <td>1.3000</td>
+      <td>0.1390</td>
+      <td>1.330</td>
+      <td>-0.367</td>
       <td>...</td>
-      <td>-0.17100</td>
+      <td>-0.03560</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.393</td>
-      <td>-0.17100</td>
-      <td>NaN</td>
-      <td>0.29</td>
-      <td>NaN</td>
-      <td>0.1605</td>
-      <td>-0.0635</td>
+      <td>0.3630</td>
+      <td>1.0700</td>
+      <td>0.737</td>
+      <td>-0.564</td>
+      <td>-0.00461</td>
+      <td>-1.130</td>
+      <td>-0.0757</td>
+      <td>-0.4730</td>
     </tr>
     <tr>
       <th>C3L-00032</th>
-      <td>-0.202</td>
+      <td>-0.528</td>
+      <td>-1.3200</td>
+      <td>0.435</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-1.880</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.382</td>
-      <td>-0.0416</td>
+      <td>-0.2400</td>
+      <td>1.0400</td>
+      <td>-0.0213</td>
+      <td>-0.0479</td>
+      <td>0.419</td>
+      <td>-0.500</td>
       <td>...</td>
+      <td>0.00112</td>
+      <td>-0.1450</td>
+      <td>0.0105</td>
+      <td>-0.1160</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>0.151</td>
+      <td>-0.07400</td>
+      <td>-0.540</td>
+      <td>0.3200</td>
+      <td>-0.4190</td>
     </tr>
     <tr>
       <th>C3L-00090</th>
-      <td>-0.002</td>
-      <td>NaN</td>
-      <td>-0.407</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.5550</td>
+      <td>-1.670</td>
+      <td>-1.1900</td>
+      <td>-0.443</td>
+      <td>0.243</td>
+      <td>-0.0993</td>
+      <td>0.7570</td>
+      <td>0.7400</td>
+      <td>-0.9290</td>
+      <td>0.229</td>
+      <td>-0.223</td>
       <td>...</td>
-      <td>0.13970</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.55900</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.2980</td>
+      <td>0.07250</td>
+      <td>-0.0552</td>
+      <td>-0.0714</td>
+      <td>0.0933</td>
+      <td>0.156</td>
+      <td>-0.398</td>
+      <td>-0.07520</td>
+      <td>-0.797</td>
+      <td>-0.0301</td>
+      <td>-0.4670</td>
     </tr>
     <tr>
       <th>C3L-00098</th>
-      <td>0.556</td>
-      <td>-0.0461</td>
+      <td>-0.374</td>
+      <td>-0.0206</td>
+      <td>-0.537</td>
+      <td>0.311</td>
+      <td>0.3750</td>
+      <td>0.0131</td>
+      <td>-1.1000</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>0.941</td>
-      <td>NaN</td>
-      <td>0.429</td>
-      <td>0.362</td>
-      <td>0.697</td>
-      <td>-0.0529</td>
+      <td>0.565</td>
+      <td>-0.101</td>
       <td>...</td>
-      <td>-0.15875</td>
+      <td>-0.17600</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>0.196</td>
-      <td>0.06175</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.2900</td>
+      <td>-1.2200</td>
+      <td>-0.5620</td>
+      <td>0.937</td>
+      <td>-0.646</td>
+      <td>0.20700</td>
+      <td>-1.850</td>
+      <td>-0.1760</td>
+      <td>0.0513</td>
     </tr>
   </tbody>
 </table>
-<p>5 rows × 73212 columns</p>
+<p>5 rows × 10999 columns</p>
 </div>
 </div>
 
@@ -15604,22 +15041,14 @@ Note that it will warn you if duplicate column key combinations arise due to dro
 
 </div>
 
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Dropping-single-or-multiple-levels-at-once">Dropping single or multiple levels at once<a class="anchor-link" href="#Dropping-single-or-multiple-levels-at-once">&#182;</a></h3><p>By passing a list (or array-like) to levels_to drop, we can drop multiple levels of the multiindex at the same time. Note that we must leave at least one existing level.</p>
-<p>We will show this with the colon data.</p>
-
-</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[9]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">colon</span> <span class="o">=</span> <span class="n">cptac</span><span class="o">.</span><span class="n">Colon</span><span class="p">()</span>
-<span class="n">phospho</span> <span class="o">=</span> <span class="n">colon</span><span class="o">.</span><span class="n">get_phosphoproteomics</span><span class="p">()</span>
-<span class="n">phospho</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">S001_row</span> <span class="o">=</span> <span class="n">proteomics</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s2">&quot;C3L-00006&quot;</span><span class="p">]</span>
+<span class="n">S001_row</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -15635,13 +15064,53 @@ Note that it will warn you if duplicate column key combinations arise due to dro
 <div class="jp-OutputArea-child">
 
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[8]:</div>
 
 
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>                                          </pre>
+
+
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
+<pre>Name
+A1BG     -1.180
+A2M      -0.863
+A2ML1    -0.802
+A4GALT    0.222
+AAAS      0.256
+Name: C3L-00006, dtype: float64</pre>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="How-do-I-access-specific-rows-and-columns?">How do I access specific rows and columns?<a class="anchor-link" href="#How-do-I-access-specific-rows-and-columns?">&#182;</a></h2><p>In addition to selecting specific rows, you can also use <code>.loc</code> to select a subset of rows and columns, using lists.</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[9]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">samples</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;C3L-00006&quot;</span><span class="p">,</span><span class="s2">&quot;C3L-00032&quot;</span><span class="p">,</span><span class="s2">&quot;C3L-00413&quot;</span><span class="p">]</span>
+<span class="n">proteins</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;A1BG&quot;</span><span class="p">,</span><span class="s2">&quot;PTEN&quot;</span><span class="p">,</span><span class="s2">&quot;TP53&quot;</span><span class="p">]</span>
+<span class="n">proteomics</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">samples</span><span class="p">,</span> <span class="n">proteins</span><span class="p">]</span>
+</pre></div>
+
+     </div>
 </div>
 </div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
 
 <div class="jp-OutputArea-child">
 
@@ -15661,94 +15130,20 @@ Note that it will warn you if duplicate column key combinations arise due to dro
         vertical-align: top;
     }
 
-    .dataframe thead tr th {
-        text-align: left;
-    }
-
-    .dataframe thead tr:last-of-type th {
+    .dataframe thead th {
         text-align: right;
     }
 </style>
 <table border="1" class="dataframe">
   <thead>
-    <tr>
+    <tr style="text-align: right;">
       <th>Name</th>
-      <th colspan="3" halign="left">AAAS</th>
-      <th>AAED1</th>
-      <th colspan="2" halign="left">AAGAB</th>
-      <th colspan="4" halign="left">AAK1</th>
-      <th>...</th>
-      <th colspan="5" halign="left">ZZEF1</th>
-      <th colspan="5" halign="left">ZZZ3</th>
-    </tr>
-    <tr>
-      <th>Site</th>
-      <th>S495</th>
-      <th>S525</th>
-      <th>S541</th>
-      <th>S12</th>
-      <th>S310</th>
-      <th>S311</th>
-      <th>S20</th>
-      <th>S21</th>
-      <th>S26</th>
-      <th>S618</th>
-      <th>...</th>
-      <th>S1501</th>
-      <th>S1518</th>
-      <th>S1537</th>
-      <th>S1540</th>
-      <th>T1521</th>
-      <th>S113</th>
-      <th>S391</th>
-      <th>S606</th>
-      <th>S90</th>
-      <th>S91</th>
-    </tr>
-    <tr>
-      <th>Database_ID</th>
-      <th>Q9NRG9</th>
-      <th>Q9NRG9</th>
-      <th>Q9NRG9</th>
-      <th>Q7RTV5</th>
-      <th>Q6PD74</th>
-      <th>Q6PD74</th>
-      <th>Q2M2I8</th>
-      <th>Q2M2I8</th>
-      <th>Q2M2I8</th>
-      <th>Q2M2I8</th>
-      <th>...</th>
-      <th>O43149</th>
-      <th>O43149</th>
-      <th>O43149</th>
-      <th>O43149</th>
-      <th>O43149</th>
-      <th>Q8IYH5</th>
-      <th>Q8IYH5</th>
-      <th>Q8IYH5</th>
-      <th>Q8IYH5</th>
-      <th>Q8IYH5</th>
+      <th>A1BG</th>
+      <th>PTEN</th>
+      <th>TP53</th>
     </tr>
     <tr>
       <th>Patient_ID</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
       <th></th>
       <th></th>
       <th></th>
@@ -15756,128 +15151,25 @@ Note that it will warn you if duplicate column key combinations arise due to dro
   </thead>
   <tbody>
     <tr>
-      <th>01CO005</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.240</td>
-      <td>-0.460</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.231</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>-0.6750</td>
-      <td>-1.404</td>
-      <td>-1.404</td>
-      <td>NaN</td>
-      <td>-0.572</td>
-      <td>NaN</td>
-      <td>0.205</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <th>C3L-00006</th>
+      <td>-1.180</td>
+      <td>-0.526</td>
+      <td>0.2950</td>
     </tr>
     <tr>
-      <th>01CO006</th>
-      <td>-0.3650</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.424</td>
-      <td>-0.015</td>
-      <td>-0.015</td>
-      <td>NaN</td>
-      <td>-0.485</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>-0.2875</td>
-      <td>0.222</td>
-      <td>0.222</td>
-      <td>-0.701</td>
-      <td>0.624</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <th>C3L-00032</th>
+      <td>-0.528</td>
+      <td>-0.941</td>
+      <td>-0.8710</td>
     </tr>
     <tr>
-      <th>01CO008</th>
-      <td>0.7250</td>
-      <td>0.137</td>
-      <td>0.137</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>-0.147</td>
-      <td>-0.1470</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.03</td>
-    </tr>
-    <tr>
-      <th>01CO013</th>
-      <td>0.2265</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-1.278</td>
-      <td>0.403</td>
-      <td>0.075</td>
-      <td>-0.223</td>
-      <td>-0.701</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>-0.041</td>
-      <td>0.0430</td>
-      <td>0.554</td>
-      <td>0.554</td>
-      <td>0.127</td>
-      <td>1.263</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>01CO014</th>
-      <td>0.5600</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.382</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.259</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>-0.1290</td>
-      <td>-0.919</td>
-      <td>-0.919</td>
-      <td>NaN</td>
-      <td>0.032</td>
-      <td>NaN</td>
-      <td>0.026</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <th>C3L-00413</th>
+      <td>0.150</td>
+      <td>-1.700</td>
+      <td>0.0213</td>
     </tr>
   </tbody>
 </table>
-<p>5 rows × 31339 columns</p>
 </div>
 </div>
 
@@ -15887,15 +15179,26 @@ Note that it will warn you if duplicate column key combinations arise due to dro
 
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="How-can-I-search-using-conditional-statements?">How can I search using conditional statements?<a class="anchor-link" href="#How-can-I-search-using-conditional-statements?">&#182;</a></h2><p>There are a variety of ways to use boolean statements to traverse a dataframe. A common way is to pass a boolean statement that selects the data you want to the <code>.loc</code> function. For example, if we want to see all the data for samples that have a positive protein expression level for the A1BG protein, we would pass the <code>.loc</code> function the boolean statement asking for rows containing values above zero for the A1BG column.</p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p><code>.loc</code> has many functionalities. For a full list, see pandas documentation for <a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.loc.html">.loc</a> and <a href="https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html">indexing and slicing</a>.</p>
+
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[10]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Drop evey level except Database_ID</span>
-<span class="n">drop</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="s2">&quot;Site&quot;</span><span class="p">]</span>
-<span class="n">ut</span><span class="o">.</span><span class="n">reduce_multiindex</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">phospho</span><span class="p">,</span> <span class="n">levels_to_drop</span><span class="o">=</span><span class="n">drop</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">a1bg_positive</span> <span class="o">=</span> <span class="n">proteomics</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">proteomics</span><span class="p">[</span><span class="s2">&quot;A1BG&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">a1bg_positive</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -15907,18 +15210,6 @@ Note that it will warn you if duplicate column key combinations arise due to dro
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>cptac warning: Due to dropping the specified levels, dataframe now has 29259 duplicated column headers. (/home/caleb/anaconda3/envs/dev/lib/python3.7/site-packages/ipykernel_launcher.py, line 3)
-</pre>
-</div>
-</div>
 
 <div class="jp-OutputArea-child">
 
@@ -15945,28 +15236,28 @@ Note that it will warn you if duplicate column key combinations arise due to dro
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
-      <th>Database_ID</th>
-      <th>Q9NRG9</th>
-      <th>Q9NRG9</th>
-      <th>Q9NRG9</th>
-      <th>Q7RTV5</th>
-      <th>Q6PD74</th>
-      <th>Q6PD74</th>
-      <th>Q2M2I8</th>
-      <th>Q2M2I8</th>
-      <th>Q2M2I8</th>
-      <th>Q2M2I8</th>
+      <th>Name</th>
+      <th>A1BG</th>
+      <th>A2M</th>
+      <th>A2ML1</th>
+      <th>A4GALT</th>
+      <th>AAAS</th>
+      <th>AACS</th>
+      <th>AADAT</th>
+      <th>AAED1</th>
+      <th>AAGAB</th>
+      <th>AAK1</th>
       <th>...</th>
-      <th>O43149</th>
-      <th>O43149</th>
-      <th>O43149</th>
-      <th>O43149</th>
-      <th>O43149</th>
-      <th>Q8IYH5</th>
-      <th>Q8IYH5</th>
-      <th>Q8IYH5</th>
-      <th>Q8IYH5</th>
-      <th>Q8IYH5</th>
+      <th>ZSWIM8</th>
+      <th>ZSWIM9</th>
+      <th>ZW10</th>
+      <th>ZWILCH</th>
+      <th>ZWINT</th>
+      <th>ZXDC</th>
+      <th>ZYG11B</th>
+      <th>ZYX</th>
+      <th>ZZEF1</th>
+      <th>ZZZ3</th>
     </tr>
     <tr>
       <th>Patient_ID</th>
@@ -15995,128 +15286,128 @@ Note that it will warn you if duplicate column key combinations arise due to dro
   </thead>
   <tbody>
     <tr>
-      <th>01CO005</th>
+      <th>C3L-00413</th>
+      <td>0.1500</td>
+      <td>0.9870</td>
+      <td>5.070</td>
+      <td>0.302</td>
+      <td>-0.1690</td>
+      <td>0.3980</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.240</td>
-      <td>-0.460</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.231</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>-0.2740</td>
+      <td>1.090</td>
+      <td>0.147</td>
       <td>...</td>
-      <td>NaN</td>
-      <td>-0.6750</td>
-      <td>-1.404</td>
-      <td>-1.404</td>
-      <td>NaN</td>
-      <td>-0.572</td>
-      <td>NaN</td>
-      <td>0.205</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>0.34800</td>
+      <td>-0.484</td>
+      <td>0.1420</td>
+      <td>0.250</td>
+      <td>-0.14200</td>
+      <td>0.077</td>
+      <td>-0.1570</td>
+      <td>-0.87200</td>
+      <td>-0.00663</td>
+      <td>-0.0175</td>
     </tr>
     <tr>
-      <th>01CO006</th>
-      <td>-0.3650</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.424</td>
-      <td>-0.015</td>
-      <td>-0.015</td>
-      <td>NaN</td>
-      <td>-0.485</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <th>C3L-00449</th>
+      <td>0.1810</td>
+      <td>-0.2830</td>
+      <td>0.689</td>
+      <td>0.104</td>
+      <td>-0.1300</td>
+      <td>-0.0683</td>
+      <td>-0.376</td>
+      <td>-0.0838</td>
+      <td>0.160</td>
+      <td>0.277</td>
       <td>...</td>
+      <td>0.22800</td>
       <td>NaN</td>
-      <td>-0.2875</td>
-      <td>0.222</td>
-      <td>0.222</td>
-      <td>-0.701</td>
-      <td>0.624</td>
+      <td>0.0206</td>
+      <td>-0.970</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>-0.452</td>
+      <td>0.1720</td>
+      <td>0.62600</td>
+      <td>0.34200</td>
+      <td>-0.2030</td>
     </tr>
     <tr>
-      <th>01CO008</th>
-      <td>0.7250</td>
-      <td>0.137</td>
-      <td>0.137</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <th>C3L-00770</th>
+      <td>0.0499</td>
+      <td>0.0199</td>
+      <td>-0.125</td>
+      <td>0.477</td>
+      <td>-0.2520</td>
+      <td>0.8380</td>
+      <td>-0.100</td>
+      <td>-0.8510</td>
+      <td>0.351</td>
+      <td>-0.582</td>
       <td>...</td>
-      <td>-0.147</td>
-      <td>-0.1470</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.03</td>
+      <td>0.04910</td>
+      <td>-0.479</td>
+      <td>0.0548</td>
+      <td>0.933</td>
+      <td>0.00967</td>
+      <td>-1.140</td>
+      <td>-0.5410</td>
+      <td>-0.83800</td>
+      <td>0.02380</td>
+      <td>-0.0602</td>
     </tr>
     <tr>
-      <th>01CO013</th>
-      <td>0.2265</td>
+      <th>C3L-00771</th>
+      <td>0.7730</td>
+      <td>0.5460</td>
+      <td>-0.603</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>-1.278</td>
-      <td>0.403</td>
-      <td>0.075</td>
-      <td>-0.223</td>
-      <td>-0.701</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>0.0555</td>
+      <td>-0.6390</td>
+      <td>-0.390</td>
+      <td>0.4670</td>
+      <td>-0.366</td>
+      <td>0.427</td>
       <td>...</td>
-      <td>-0.041</td>
-      <td>0.0430</td>
-      <td>0.554</td>
-      <td>0.554</td>
-      <td>0.127</td>
-      <td>1.263</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>-0.00835</td>
+      <td>0.119</td>
+      <td>-0.2960</td>
+      <td>-0.205</td>
+      <td>-0.07650</td>
+      <td>0.228</td>
+      <td>0.2370</td>
+      <td>1.05000</td>
+      <td>0.01850</td>
+      <td>0.5870</td>
     </tr>
     <tr>
-      <th>01CO014</th>
-      <td>0.5600</td>
+      <th>C3L-00780</th>
+      <td>0.5510</td>
+      <td>0.2030</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>-0.382</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.259</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>-0.4930</td>
+      <td>0.2110</td>
+      <td>1.060</td>
+      <td>-0.2800</td>
+      <td>0.207</td>
+      <td>0.334</td>
       <td>...</td>
+      <td>0.30000</td>
       <td>NaN</td>
-      <td>-0.1290</td>
-      <td>-0.919</td>
-      <td>-0.919</td>
+      <td>0.1420</td>
+      <td>-0.549</td>
       <td>NaN</td>
-      <td>0.032</td>
-      <td>NaN</td>
-      <td>0.026</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>-0.390</td>
+      <td>-0.0972</td>
+      <td>0.00108</td>
+      <td>0.20000</td>
+      <td>-0.1940</td>
     </tr>
   </tbody>
 </table>
-<p>5 rows × 31339 columns</p>
+<p>5 rows × 10999 columns</p>
 </div>
 </div>
 
@@ -16129,21 +15420,32 @@ Note that it will warn you if duplicate column key combinations arise due to dro
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Combining-levels-(Flattening)">Combining levels (Flattening)<a class="anchor-link" href="#Combining-levels-(Flattening)">&#182;</a></h2>
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>We can combine levels of a multiindexed dataframe. When combined the levels will be sepereated by an underscore, by default. We could specify a different seperator using the <code>sep</code> parameter.</p>
+<p>For another example, suppose we wanted to separate clinical information for samples that are serous vs. endometrioid, as recorded in the "Histologic_type" column.</p>
 
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[11]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">ut</span><span class="o">.</span><span class="n">reduce_multiindex</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">phospho</span><span class="p">,</span> <span class="n">flatten</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">clinical</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">get_clinical</span><span class="p">()</span>
+<span class="n">endometrioid_clinical</span> <span class="o">=</span> <span class="n">clinical</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">clinical</span><span class="p">[</span><span class="s2">&quot;Histologic_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Endometrioid&quot;</span><span class="p">]</span>
+<span class="n">serous_clinical</span> <span class="o">=</span> <span class="n">clinical</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">clinical</span><span class="p">[</span><span class="s2">&quot;Histologic_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Serous&quot;</span><span class="p">]</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[12]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">endometrioid_clinical</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -16159,7 +15461,7 @@ Note that it will warn you if duplicate column key combinations arise due to dro
 <div class="jp-OutputArea-child">
 
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[11]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[12]:</div>
 
 
 
@@ -16182,293 +15484,27 @@ Note that it will warn you if duplicate column key combinations arise due to dro
   <thead>
     <tr style="text-align: right;">
       <th>Name</th>
-      <th>AAAS_S495_Q9NRG9</th>
-      <th>AAAS_S525_Q9NRG9</th>
-      <th>AAAS_S541_Q9NRG9</th>
-      <th>AAED1_S12_Q7RTV5</th>
-      <th>AAGAB_S310_Q6PD74</th>
-      <th>AAGAB_S311_Q6PD74</th>
-      <th>AAK1_S20_Q2M2I8</th>
-      <th>AAK1_S21_Q2M2I8</th>
-      <th>AAK1_S26_Q2M2I8</th>
-      <th>AAK1_S618_Q2M2I8</th>
+      <th>Sample_ID</th>
+      <th>Sample_Tumor_Normal</th>
+      <th>Proteomics_Tumor_Normal</th>
+      <th>Country</th>
+      <th>Histologic_Grade_FIGO</th>
+      <th>Myometrial_invasion_Specify</th>
+      <th>Histologic_type</th>
+      <th>Treatment_naive</th>
+      <th>Tumor_purity</th>
+      <th>Path_Stage_Primary_Tumor-pT</th>
       <th>...</th>
-      <th>ZZEF1_S1501_O43149</th>
-      <th>ZZEF1_S1518_O43149</th>
-      <th>ZZEF1_S1537_O43149</th>
-      <th>ZZEF1_S1540_O43149</th>
-      <th>ZZEF1_T1521_O43149</th>
-      <th>ZZZ3_S113_Q8IYH5</th>
-      <th>ZZZ3_S391_Q8IYH5</th>
-      <th>ZZZ3_S606_Q8IYH5</th>
-      <th>ZZZ3_S90_Q8IYH5</th>
-      <th>ZZZ3_S91_Q8IYH5</th>
-    </tr>
-    <tr>
-      <th>Patient_ID</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>01CO005</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.240</td>
-      <td>-0.460</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.231</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>-0.6750</td>
-      <td>-1.404</td>
-      <td>-1.404</td>
-      <td>NaN</td>
-      <td>-0.572</td>
-      <td>NaN</td>
-      <td>0.205</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>01CO006</th>
-      <td>-0.3650</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.424</td>
-      <td>-0.015</td>
-      <td>-0.015</td>
-      <td>NaN</td>
-      <td>-0.485</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>-0.2875</td>
-      <td>0.222</td>
-      <td>0.222</td>
-      <td>-0.701</td>
-      <td>0.624</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>01CO008</th>
-      <td>0.7250</td>
-      <td>0.137</td>
-      <td>0.137</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>-0.147</td>
-      <td>-0.1470</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.03</td>
-    </tr>
-    <tr>
-      <th>01CO013</th>
-      <td>0.2265</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-1.278</td>
-      <td>0.403</td>
-      <td>0.075</td>
-      <td>-0.223</td>
-      <td>-0.701</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>-0.041</td>
-      <td>0.0430</td>
-      <td>0.554</td>
-      <td>0.554</td>
-      <td>0.127</td>
-      <td>1.263</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>01CO014</th>
-      <td>0.5600</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.382</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.259</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>-0.1290</td>
-      <td>-0.919</td>
-      <td>-0.919</td>
-      <td>NaN</td>
-      <td>0.032</td>
-      <td>NaN</td>
-      <td>0.026</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-<p>5 rows × 31339 columns</p>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>When flatteing levels , NaNs and empty strings will automitically be dropped.</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[12]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">phospho_and_CNV</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_omics_to_omics</span><span class="p">(</span><span class="n">df1_name</span><span class="o">=</span><span class="s2">&quot;CNV&quot;</span><span class="p">,</span> <span class="n">df2_name</span><span class="o">=</span><span class="s2">&quot;phosphoproteomics&quot;</span><span class="p">)</span>
-<span class="n">phospho_and_CNV</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
-
-<span class="c1"># Note that the CNV columns all have empty strings in the &quot;Site&quot; level of the columns,</span>
-<span class="c1"># since the CNV data doesn&#39;t have any values for that.</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>cptac warning: CNV data was not found for the following samples, so CNV data columns were filled with NaN for these samples: C3L-00006.N, C3L-00361.N, C3L-00563.N, C3L-00586.N, C3L-00601.N, C3L-00605.N, C3L-00769.N, C3L-00770.N, C3L-00771.N, C3L-00930.N, C3L-00932.N, C3L-00947.N, C3L-00963.N, C3L-01246.N, C3L-01249.N, C3L-01252.N, C3L-01256.N, C3L-01257.N, C3L-01282.N, C3L-01304.N, C3L-01307.N, C3L-01311.N, C3L-01744.N, C3N-00200.N, C3N-00333.N, C3N-00383.N, C3N-00729.N, C3N-00858.N, C3N-00866.N, C3N-01211.N, C3N-01346.N, NX1.N, NX10.N, NX11.N, NX12.N, NX13.N, NX14.N, NX15.N, NX16.N, NX17.N, NX18.N, NX2.N, NX3.N, NX4.N, NX5.N, NX6.N, NX7.N, NX8.N, NX9.N (/home/caleb/anaconda3/envs/dev/lib/python3.7/site-packages/ipykernel_launcher.py, line 1)
-</pre>
-</div>
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[12]:</div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead tr th {
-        text-align: left;
-    }
-
-    .dataframe thead tr:last-of-type th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>A1BG_CNV</th>
-      <th>A1BG-AS1_CNV</th>
-      <th>A1CF_CNV</th>
-      <th>A2M_CNV</th>
-      <th>A2M-AS1_CNV</th>
-      <th>A2ML1_CNV</th>
-      <th>A2MP1_CNV</th>
-      <th>A3GALT2_CNV</th>
-      <th>A4GALT_CNV</th>
-      <th>A4GNT_CNV</th>
-      <th>...</th>
-      <th colspan="10" halign="left">ZZZ3_phosphoproteomics</th>
-    </tr>
-    <tr>
-      <th>Site</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th>...</th>
-      <th>S397</th>
-      <th>S411</th>
-      <th>S420</th>
-      <th>S424</th>
-      <th>S426</th>
-      <th>S468</th>
-      <th>S89</th>
-      <th>T415</th>
-      <th>T418</th>
-      <th>Y399</th>
+      <th>Age</th>
+      <th>Diabetes</th>
+      <th>Race</th>
+      <th>Ethnicity</th>
+      <th>Gender</th>
+      <th>Tumor_Site</th>
+      <th>Tumor_Site_Other</th>
+      <th>Tumor_Focality</th>
+      <th>Tumor_Size_cm</th>
+      <th>Num_full_term_pregnancies</th>
     </tr>
     <tr>
       <th>Patient_ID</th>
@@ -16498,127 +15534,127 @@ Note that it will warn you if duplicate column key combinations arise due to dro
   <tbody>
     <tr>
       <th>C3L-00006</th>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>-0.01</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.01</td>
-      <td>-0.01</td>
+      <td>S001</td>
+      <td>Tumor</td>
+      <td>Tumor</td>
+      <td>United States</td>
+      <td>FIGO grade 1</td>
+      <td>under 50 %</td>
+      <td>Endometrioid</td>
+      <td>YES</td>
+      <td>Normal</td>
+      <td>pT1a (FIGO IA)</td>
       <td>...</td>
-      <td>0.18400</td>
+      <td>64.0</td>
+      <td>No</td>
+      <td>White</td>
+      <td>Not-Hispanic or Latino</td>
+      <td>Female</td>
+      <td>Anterior endometrium</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.20500</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>Unifocal</td>
+      <td>2.9</td>
+      <td>1</td>
     </tr>
     <tr>
       <th>C3L-00008</th>
-      <td>0.01</td>
-      <td>0.01</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.01</td>
-      <td>0.00</td>
+      <td>S002</td>
+      <td>Tumor</td>
+      <td>Tumor</td>
+      <td>United States</td>
+      <td>FIGO grade 1</td>
+      <td>under 50 %</td>
+      <td>Endometrioid</td>
+      <td>YES</td>
+      <td>Normal</td>
+      <td>pT1a (FIGO IA)</td>
       <td>...</td>
-      <td>-0.17100</td>
+      <td>58.0</td>
+      <td>No</td>
+      <td>White</td>
+      <td>Not-Hispanic or Latino</td>
+      <td>Female</td>
+      <td>Posterior endometrium</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.393</td>
-      <td>-0.17100</td>
-      <td>NaN</td>
-      <td>0.29</td>
-      <td>NaN</td>
-      <td>0.1605</td>
-      <td>-0.0635</td>
+      <td>Unifocal</td>
+      <td>3.5</td>
+      <td>1</td>
     </tr>
     <tr>
       <th>C3L-00032</th>
-      <td>0.01</td>
-      <td>0.01</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.01</td>
-      <td>0.00</td>
-      <td>0.00</td>
+      <td>S003</td>
+      <td>Tumor</td>
+      <td>Tumor</td>
+      <td>United States</td>
+      <td>FIGO grade 2</td>
+      <td>under 50 %</td>
+      <td>Endometrioid</td>
+      <td>YES</td>
+      <td>Normal</td>
+      <td>pT1a (FIGO IA)</td>
       <td>...</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>50.0</td>
+      <td>Yes</td>
+      <td>White</td>
+      <td>Not-Hispanic or Latino</td>
+      <td>Female</td>
+      <td>Other, specify</td>
+      <td>Anterior and Posterior endometrium</td>
+      <td>Unifocal</td>
+      <td>4.5</td>
+      <td>4 or more</td>
     </tr>
     <tr>
       <th>C3L-00090</th>
-      <td>-0.04</td>
-      <td>-0.04</td>
-      <td>0.36</td>
-      <td>-0.05</td>
-      <td>-0.05</td>
-      <td>-0.05</td>
-      <td>-0.05</td>
-      <td>-0.04</td>
-      <td>-0.04</td>
-      <td>-0.05</td>
+      <td>S005</td>
+      <td>Tumor</td>
+      <td>Tumor</td>
+      <td>United States</td>
+      <td>FIGO grade 2</td>
+      <td>under 50 %</td>
+      <td>Endometrioid</td>
+      <td>YES</td>
+      <td>Normal</td>
+      <td>pT1a (FIGO IA)</td>
       <td>...</td>
-      <td>0.13970</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.55900</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.2980</td>
+      <td>75.0</td>
+      <td>No</td>
+      <td>White</td>
+      <td>Not-Hispanic or Latino</td>
+      <td>Female</td>
+      <td>Other, specify</td>
+      <td>Anterior and Posterior endometrium</td>
+      <td>Unifocal</td>
+      <td>3.5</td>
+      <td>4 or more</td>
     </tr>
     <tr>
-      <th>C3L-00098</th>
-      <td>0.85</td>
-      <td>0.85</td>
-      <td>0.16</td>
-      <td>-0.41</td>
-      <td>-0.41</td>
-      <td>-0.41</td>
-      <td>-0.41</td>
-      <td>-0.12</td>
-      <td>0.15</td>
-      <td>0.19</td>
+      <th>C3L-00136</th>
+      <td>S007</td>
+      <td>Tumor</td>
+      <td>Tumor</td>
+      <td>United States</td>
+      <td>FIGO grade 1</td>
+      <td>under 50 %</td>
+      <td>Endometrioid</td>
+      <td>YES</td>
+      <td>Normal</td>
+      <td>pT1a (FIGO IA)</td>
       <td>...</td>
-      <td>-0.15875</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.196</td>
-      <td>0.06175</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.2900</td>
+      <td>50.0</td>
+      <td>No</td>
+      <td>White</td>
+      <td>Not-Hispanic or Latino</td>
+      <td>Female</td>
+      <td>Other, specify</td>
+      <td>Anterior and Posterior endometrium</td>
+      <td>Unifocal</td>
+      <td>4.5</td>
+      <td>3</td>
     </tr>
   </tbody>
 </table>
-<p>5 rows × 101269 columns</p>
+<p>5 rows × 27 columns</p>
 </div>
 </div>
 
@@ -16634,8 +15670,7 @@ Note that it will warn you if duplicate column key combinations arise due to dro
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[13]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">ut</span><span class="o">.</span><span class="n">reduce_multiindex</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">phospho_and_CNV</span><span class="p">,</span> <span class="n">flatten</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
-<span class="c1"># Notice that the empty strings have been dropped</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">serous_clinical</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -16674,27 +15709,27 @@ Note that it will warn you if duplicate column key combinations arise due to dro
   <thead>
     <tr style="text-align: right;">
       <th>Name</th>
-      <th>A1BG_CNV</th>
-      <th>A1BG-AS1_CNV</th>
-      <th>A1CF_CNV</th>
-      <th>A2M_CNV</th>
-      <th>A2M-AS1_CNV</th>
-      <th>A2ML1_CNV</th>
-      <th>A2MP1_CNV</th>
-      <th>A3GALT2_CNV</th>
-      <th>A4GALT_CNV</th>
-      <th>A4GNT_CNV</th>
+      <th>Sample_ID</th>
+      <th>Sample_Tumor_Normal</th>
+      <th>Proteomics_Tumor_Normal</th>
+      <th>Country</th>
+      <th>Histologic_Grade_FIGO</th>
+      <th>Myometrial_invasion_Specify</th>
+      <th>Histologic_type</th>
+      <th>Treatment_naive</th>
+      <th>Tumor_purity</th>
+      <th>Path_Stage_Primary_Tumor-pT</th>
       <th>...</th>
-      <th>ZZZ3_phosphoproteomics_S397</th>
-      <th>ZZZ3_phosphoproteomics_S411</th>
-      <th>ZZZ3_phosphoproteomics_S420</th>
-      <th>ZZZ3_phosphoproteomics_S424</th>
-      <th>ZZZ3_phosphoproteomics_S426</th>
-      <th>ZZZ3_phosphoproteomics_S468</th>
-      <th>ZZZ3_phosphoproteomics_S89</th>
-      <th>ZZZ3_phosphoproteomics_T415</th>
-      <th>ZZZ3_phosphoproteomics_T418</th>
-      <th>ZZZ3_phosphoproteomics_Y399</th>
+      <th>Age</th>
+      <th>Diabetes</th>
+      <th>Race</th>
+      <th>Ethnicity</th>
+      <th>Gender</th>
+      <th>Tumor_Site</th>
+      <th>Tumor_Site_Other</th>
+      <th>Tumor_Focality</th>
+      <th>Tumor_Size_cm</th>
+      <th>Num_full_term_pregnancies</th>
     </tr>
     <tr>
       <th>Patient_ID</th>
@@ -16723,128 +15758,128 @@ Note that it will warn you if duplicate column key combinations arise due to dro
   </thead>
   <tbody>
     <tr>
-      <th>C3L-00006</th>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>-0.01</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.01</td>
-      <td>-0.01</td>
-      <td>...</td>
-      <td>0.18400</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.20500</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>C3L-00008</th>
-      <td>0.01</td>
-      <td>0.01</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.01</td>
-      <td>0.00</td>
-      <td>...</td>
-      <td>-0.17100</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.393</td>
-      <td>-0.17100</td>
-      <td>NaN</td>
-      <td>0.29</td>
-      <td>NaN</td>
-      <td>0.1605</td>
-      <td>-0.0635</td>
-    </tr>
-    <tr>
-      <th>C3L-00032</th>
-      <td>0.01</td>
-      <td>0.01</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>0.01</td>
-      <td>0.00</td>
-      <td>0.00</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>C3L-00090</th>
-      <td>-0.04</td>
-      <td>-0.04</td>
-      <td>0.36</td>
-      <td>-0.05</td>
-      <td>-0.05</td>
-      <td>-0.05</td>
-      <td>-0.05</td>
-      <td>-0.04</td>
-      <td>-0.04</td>
-      <td>-0.05</td>
-      <td>...</td>
-      <td>0.13970</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.55900</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.2980</td>
-    </tr>
-    <tr>
       <th>C3L-00098</th>
-      <td>0.85</td>
-      <td>0.85</td>
-      <td>0.16</td>
-      <td>-0.41</td>
-      <td>-0.41</td>
-      <td>-0.41</td>
-      <td>-0.41</td>
-      <td>-0.12</td>
-      <td>0.15</td>
-      <td>0.19</td>
+      <td>S006</td>
+      <td>Tumor</td>
+      <td>Tumor</td>
+      <td>United States</td>
+      <td>NaN</td>
+      <td>under 50 %</td>
+      <td>Serous</td>
+      <td>YES</td>
+      <td>Normal</td>
+      <td>pT1a (FIGO IA)</td>
       <td>...</td>
-      <td>-0.15875</td>
+      <td>63.0</td>
+      <td>No</td>
+      <td>White</td>
+      <td>Not-Hispanic or Latino</td>
+      <td>Female</td>
+      <td>Other, specify</td>
+      <td>Anterior  and Posterior endometrium</td>
+      <td>Unifocal</td>
+      <td>6.0</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>C3L-00139</th>
+      <td>S009</td>
+      <td>Tumor</td>
+      <td>Tumor</td>
+      <td>United States</td>
       <td>NaN</td>
+      <td>50 % or more</td>
+      <td>Serous</td>
+      <td>YES</td>
+      <td>Normal</td>
+      <td>pT3a (FIGO IIIA)</td>
+      <td>...</td>
+      <td>83.0</td>
+      <td>No</td>
+      <td>White</td>
+      <td>Not-Hispanic or Latino</td>
+      <td>Female</td>
+      <td>Other, specify</td>
+      <td>Both anterior and posterior</td>
+      <td>Unifocal</td>
+      <td>4.0</td>
+      <td>4 or more</td>
+    </tr>
+    <tr>
+      <th>C3L-00358</th>
+      <td>S016</td>
+      <td>Tumor</td>
+      <td>Tumor</td>
+      <td>United States</td>
       <td>NaN</td>
-      <td>0.196</td>
-      <td>0.06175</td>
+      <td>50 % or more</td>
+      <td>Serous</td>
+      <td>YES</td>
+      <td>Normal</td>
+      <td>pT1b (FIGO IB)</td>
+      <td>...</td>
+      <td>90.0</td>
+      <td>No</td>
+      <td>White</td>
+      <td>Not-Hispanic or Latino</td>
+      <td>Female</td>
+      <td>Other, specify</td>
+      <td>Both anterior and posterior endometrium</td>
+      <td>Unifocal</td>
+      <td>4.5</td>
+      <td>Unknown</td>
+    </tr>
+    <tr>
+      <th>C3L-00963</th>
+      <td>S041</td>
+      <td>Tumor</td>
+      <td>Tumor</td>
+      <td>Other_specify</td>
       <td>NaN</td>
+      <td>50 % or more</td>
+      <td>Serous</td>
+      <td>YES</td>
+      <td>Normal</td>
+      <td>pT1b (FIGO IB)</td>
+      <td>...</td>
+      <td>59.0</td>
+      <td>Yes</td>
+      <td>White</td>
+      <td>Not reported</td>
+      <td>Female</td>
+      <td>Other, specify</td>
+      <td>along anterior and posterior surface</td>
+      <td>Unifocal</td>
+      <td>2.6</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>C3L-01246</th>
+      <td>S042</td>
+      <td>Tumor</td>
+      <td>Tumor</td>
+      <td>Other_specify</td>
       <td>NaN</td>
+      <td>under 50 %</td>
+      <td>Serous</td>
+      <td>YES</td>
+      <td>Normal</td>
+      <td>pT1a (FIGO IA)</td>
+      <td>...</td>
+      <td>62.0</td>
+      <td>No</td>
+      <td>White</td>
+      <td>Not reported</td>
+      <td>Female</td>
+      <td>Posterior endometrium</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.2900</td>
+      <td>Unifocal</td>
+      <td>2.3</td>
+      <td>1</td>
     </tr>
   </tbody>
 </table>
-<p>5 rows × 101269 columns</p>
+<p>5 rows × 27 columns</p>
 </div>
 </div>
 
@@ -16857,701 +15892,22 @@ Note that it will warn you if duplicate column key combinations arise due to dro
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Getting-a-single-level-index-of-tuples">Getting a single level index of tuples<a class="anchor-link" href="#Getting-a-single-level-index-of-tuples">&#182;</a></h2><p>You can also use <code>reduce_multiindex</code> to turn the multi-level column index into a single level index of tuples, with each value in a column's tuple corresponding to the column's value for that level of the index:</p>
+<h2 id="How-do-I-export-a-dataframe-to-a-file?">How do I export a dataframe to a file?<a class="anchor-link" href="#How-do-I-export-a-dataframe-to-a-file?">&#182;</a></h2><p>If you wish to export a dataframe to a file, call the dataframe's built-in <code>to_csv</code> method, specifying the path you wish to save to, and the separator you wish to use:</p>
 
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[14]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">ut</span><span class="o">.</span><span class="n">reduce_multiindex</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">phospho</span><span class="p">,</span> <span class="n">tuples</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">clinical</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">get_clinical</span><span class="p">()</span>
+<span class="n">clinical</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">path_or_buf</span><span class="o">=</span><span class="s2">&quot;clinical_df.tsv&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
 </pre></div>
 
      </div>
 </div>
 </div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[14]:</div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>(AAAS, S495, Q9NRG9)</th>
-      <th>(AAAS, S525, Q9NRG9)</th>
-      <th>(AAAS, S541, Q9NRG9)</th>
-      <th>(AAED1, S12, Q7RTV5)</th>
-      <th>(AAGAB, S310, Q6PD74)</th>
-      <th>(AAGAB, S311, Q6PD74)</th>
-      <th>(AAK1, S20, Q2M2I8)</th>
-      <th>(AAK1, S21, Q2M2I8)</th>
-      <th>(AAK1, S26, Q2M2I8)</th>
-      <th>(AAK1, S618, Q2M2I8)</th>
-      <th>...</th>
-      <th>(ZZEF1, S1501, O43149)</th>
-      <th>(ZZEF1, S1518, O43149)</th>
-      <th>(ZZEF1, S1537, O43149)</th>
-      <th>(ZZEF1, S1540, O43149)</th>
-      <th>(ZZEF1, T1521, O43149)</th>
-      <th>(ZZZ3, S113, Q8IYH5)</th>
-      <th>(ZZZ3, S391, Q8IYH5)</th>
-      <th>(ZZZ3, S606, Q8IYH5)</th>
-      <th>(ZZZ3, S90, Q8IYH5)</th>
-      <th>(ZZZ3, S91, Q8IYH5)</th>
-    </tr>
-    <tr>
-      <th>Patient_ID</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>01CO005</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.240</td>
-      <td>-0.460</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.231</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>-0.6750</td>
-      <td>-1.404</td>
-      <td>-1.404</td>
-      <td>NaN</td>
-      <td>-0.572</td>
-      <td>NaN</td>
-      <td>0.205</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>01CO006</th>
-      <td>-0.3650</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.424</td>
-      <td>-0.015</td>
-      <td>-0.015</td>
-      <td>NaN</td>
-      <td>-0.485</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>-0.2875</td>
-      <td>0.222</td>
-      <td>0.222</td>
-      <td>-0.701</td>
-      <td>0.624</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>01CO008</th>
-      <td>0.7250</td>
-      <td>0.137</td>
-      <td>0.137</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>-0.147</td>
-      <td>-0.1470</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.03</td>
-    </tr>
-    <tr>
-      <th>01CO013</th>
-      <td>0.2265</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-1.278</td>
-      <td>0.403</td>
-      <td>0.075</td>
-      <td>-0.223</td>
-      <td>-0.701</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>-0.041</td>
-      <td>0.0430</td>
-      <td>0.554</td>
-      <td>0.554</td>
-      <td>0.127</td>
-      <td>1.263</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>01CO014</th>
-      <td>0.5600</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.382</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.259</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>-0.1290</td>
-      <td>-0.919</td>
-      <td>-0.919</td>
-      <td>NaN</td>
-      <td>0.032</td>
-      <td>NaN</td>
-      <td>0.026</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-<p>5 rows × 31339 columns</p>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Turning-off-warnings">Turning off warnings<a class="anchor-link" href="#Turning-off-warnings">&#182;</a></h2><p>If your multiindex operation creates duplicate column headers, or has no effect, <code>reduce_multiindex</code> will warn you. You can silence these warnings by passing <code>True</code> to the <code>quiet</code> parameter:</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[15]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">ut</span><span class="o">.</span><span class="n">reduce_multiindex</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">phospho</span><span class="p">,</span> <span class="n">levels_to_drop</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="s2">&quot;Database_ID&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>cptac warning: Due to dropping the specified levels, dataframe now has 29529 duplicated column headers. (/home/caleb/anaconda3/envs/dev/lib/python3.7/site-packages/ipykernel_launcher.py, line 1)
-</pre>
-</div>
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[15]:</div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th>Site</th>
-      <th>S495</th>
-      <th>S525</th>
-      <th>S541</th>
-      <th>S12</th>
-      <th>S310</th>
-      <th>S311</th>
-      <th>S20</th>
-      <th>S21</th>
-      <th>S26</th>
-      <th>S618</th>
-      <th>...</th>
-      <th>S1501</th>
-      <th>S1518</th>
-      <th>S1537</th>
-      <th>S1540</th>
-      <th>T1521</th>
-      <th>S113</th>
-      <th>S391</th>
-      <th>S606</th>
-      <th>S90</th>
-      <th>S91</th>
-    </tr>
-    <tr>
-      <th>Patient_ID</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>01CO005</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.240</td>
-      <td>-0.460</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.231</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>-0.6750</td>
-      <td>-1.404</td>
-      <td>-1.404</td>
-      <td>NaN</td>
-      <td>-0.572</td>
-      <td>NaN</td>
-      <td>0.205</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>01CO006</th>
-      <td>-0.3650</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.424</td>
-      <td>-0.015</td>
-      <td>-0.015</td>
-      <td>NaN</td>
-      <td>-0.485</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>-0.2875</td>
-      <td>0.222</td>
-      <td>0.222</td>
-      <td>-0.701</td>
-      <td>0.624</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>01CO008</th>
-      <td>0.7250</td>
-      <td>0.137</td>
-      <td>0.137</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>-0.147</td>
-      <td>-0.1470</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.03</td>
-    </tr>
-    <tr>
-      <th>01CO013</th>
-      <td>0.2265</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-1.278</td>
-      <td>0.403</td>
-      <td>0.075</td>
-      <td>-0.223</td>
-      <td>-0.701</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>-0.041</td>
-      <td>0.0430</td>
-      <td>0.554</td>
-      <td>0.554</td>
-      <td>0.127</td>
-      <td>1.263</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>01CO014</th>
-      <td>0.5600</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.382</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.259</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>-0.1290</td>
-      <td>-0.919</td>
-      <td>-0.919</td>
-      <td>NaN</td>
-      <td>0.032</td>
-      <td>NaN</td>
-      <td>0.026</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-<p>5 rows × 31339 columns</p>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[16]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># No warning will be issued</span>
-<span class="n">ut</span><span class="o">.</span><span class="n">reduce_multiindex</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">phospho</span><span class="p">,</span> <span class="n">levels_to_drop</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="s2">&quot;Database_ID&quot;</span><span class="p">],</span> <span class="n">quiet</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[16]:</div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th>Site</th>
-      <th>S495</th>
-      <th>S525</th>
-      <th>S541</th>
-      <th>S12</th>
-      <th>S310</th>
-      <th>S311</th>
-      <th>S20</th>
-      <th>S21</th>
-      <th>S26</th>
-      <th>S618</th>
-      <th>...</th>
-      <th>S1501</th>
-      <th>S1518</th>
-      <th>S1537</th>
-      <th>S1540</th>
-      <th>T1521</th>
-      <th>S113</th>
-      <th>S391</th>
-      <th>S606</th>
-      <th>S90</th>
-      <th>S91</th>
-    </tr>
-    <tr>
-      <th>Patient_ID</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>01CO005</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.240</td>
-      <td>-0.460</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.231</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>-0.6750</td>
-      <td>-1.404</td>
-      <td>-1.404</td>
-      <td>NaN</td>
-      <td>-0.572</td>
-      <td>NaN</td>
-      <td>0.205</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>01CO006</th>
-      <td>-0.3650</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.424</td>
-      <td>-0.015</td>
-      <td>-0.015</td>
-      <td>NaN</td>
-      <td>-0.485</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>-0.2875</td>
-      <td>0.222</td>
-      <td>0.222</td>
-      <td>-0.701</td>
-      <td>0.624</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>01CO008</th>
-      <td>0.7250</td>
-      <td>0.137</td>
-      <td>0.137</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>-0.147</td>
-      <td>-0.1470</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.03</td>
-    </tr>
-    <tr>
-      <th>01CO013</th>
-      <td>0.2265</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-1.278</td>
-      <td>0.403</td>
-      <td>0.075</td>
-      <td>-0.223</td>
-      <td>-0.701</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>-0.041</td>
-      <td>0.0430</td>
-      <td>0.554</td>
-      <td>0.554</td>
-      <td>0.127</td>
-      <td>1.263</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>01CO014</th>
-      <td>0.5600</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.382</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.259</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>-0.1290</td>
-      <td>-0.919</td>
-      <td>-0.919</td>
-      <td>NaN</td>
-      <td>0.032</td>
-      <td>NaN</td>
-      <td>0.026</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-<p>5 rows × 31339 columns</p>
-</div>
-</div>
-
-</div>
-
-</div>
-
 </div>
 
 </div>

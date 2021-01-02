@@ -3,7 +3,7 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>tutorial1_data_intro</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>tutorial05_updates</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 
 
@@ -14259,21 +14259,17 @@ a.anchor-link {
 
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Tutorial-1:-CPTAC-Data-Introduction">Tutorial 1: CPTAC Data Introduction<a class="anchor-link" href="#Tutorial-1:-CPTAC-Data-Introduction">&#182;</a></h1><p>The National Cancer Institute’s Clinical Proteomic Tumor Analysis Consortium (CPTAC) is a national effort to accelerate the understanding of the molecular basis of cancer through the application of large-scale proteome and genome analysis, or proteogenomics. CPTAC generates comprehensive proteomics and genomics data from clinical cohorts, typically with ~100 samples per tumor type. The graphic below summarizes the structure of each CPTAC dataset. For more information, visit the <a href="https://proteomics.cancer.gov/programs/cptac">NIH website</a>.</p>
-<p><img src="img/Graphical_Abstract.png" alt="CPTAC cohort" width="700"/></p>
-<p>This Python package makes accessing CPTAC data easy with Python code and Jupyter notebooks. The package contains several tutorials which demonstrate data access and usage. This first tutorial serves as an introduction to the data to help users become familiar with what is included and how it is presented.</p>
+<h1 id="Tutorial-5:-Data-and-package-updates">Tutorial 5: Data and package updates<a class="anchor-link" href="#Tutorial-5:-Data-and-package-updates">&#182;</a></h1><p>The datasets that <code>cptac</code> distributes are still being actively worked on by the teams that generated them. Additionally, we periodically make improvements to the <code>cptac</code> package itself. Thus, we regularly release new versions of the data and the package. This tutorial will go over how to access both those data and package updates.</p>
+<p><strong>Note: In this tutorial, we intentionally get <code>cptac</code> to generate the various errors and warnings it gives when your data or package is out of date. We do this on purpose, so you can see what it looks like; the tutorial is not broken.</strong></p>
 
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Installation-and-Data-Overview">Installation and Data Overview<a class="anchor-link" href="#Installation-and-Data-Overview">&#182;</a></h2><p>Access to the data is facilitated by a Python software program. If you do not already have Python installed on your computer, please read our setup documentation <a href="https://github.com/PayneLab/cptac/blob/master/docs/setup.md">here</a>.</p>
-<p>Install the package from the <a href="https://pypi.org/project/cptac/">Python Package Index (PyPI)</a> in the command line using the <a href="https://pypi.org/project/pip/">pip package installer</a>, with the name of the package:</p>
-<p><code>pip install cptac</code></p>
-<p>Once we have the package installed and we're in our Python environment, we begin by importing the package with a standard Python import statement:</p>
+<h2 id="Updating-the-package">Updating the package<a class="anchor-link" href="#Updating-the-package">&#182;</a></h2><p>Each time you import <code>cptac</code> into a Python environment, it automatically checks whether you have the most recent release of the package. If you don't, it will print a warning like this:</p>
 
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div>
@@ -14287,26 +14283,6 @@ a.anchor-link {
 </div>
 </div>
 
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>To view the available datasets, call the <code>cptac.list_datasets()</code> function:</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">cptac</span><span class="o">.</span><span class="n">list_datasets</span><span class="p">()</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
 <div class="jp-Cell-outputWrapper">
 
 
@@ -14318,32 +14294,8 @@ a.anchor-link {
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
 
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Available datasets:
-
-Dataset name                               Description     Data reuse status  \
-                                                                               
-Brca                                     breast cancer       no restrictions   
-Ccrcc         clear cell renal cell carcinoma (kidney)       no restrictions   
-Colon                                colorectal cancer       no restrictions   
-Endometrial            endometrial carcinoma (uterine)       no restrictions   
-Gbm                                       glioblastoma   publication embargo   
-Hnscc                                    head and neck  password access only   
-Lscc                      lung squamous cell carcinoma  password access only   
-Luad                               lung adenocarcinoma   publication embargo   
-Ovarian               high grade serous ovarian cancer       no restrictions   
-
-Dataset name                              Publication link  
-                                                            
-Brca                                           unpublished  
-Ccrcc         https://www.ncbi.nlm.nih.gov/pubmed/31675502  
-Colon         https://www.ncbi.nlm.nih.gov/pubmed/31031003  
-Endometrial   https://www.ncbi.nlm.nih.gov/pubmed/32059776  
-Gbm                                            unpublished  
-Hnscc                                          unpublished  
-Lscc                                           unpublished  
-Luad                                           unpublished  
-Ovarian       https://www.ncbi.nlm.nih.gov/pubmed/27372738  
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>Warning: Your version of cptac (0.6.2) is out-of-date. Latest is 0.6.3. Please run &#39;pip install --upgrade cptac&#39; to update it. (/home/caleb/anaconda3/envs/cptac-dev/lib/python3.7/site-packages/ipykernel_launcher.py, line 1)
 </pre>
 </div>
 </div>
@@ -14355,25 +14307,30 @@ Ovarian       https://www.ncbi.nlm.nih.gov/pubmed/27372738
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Data-Availability">Data Availability<a class="anchor-link" href="#Data-Availability">&#182;</a></h2><p>The goals of CPTAC as a consortium include the broad and open dissemination of cancer proteogenomic data. The timing of the a dataset's public release generally follows three stages: internal release to CPTAC investigators, public release with a publication embargo, and full public release. Each of the cancer types may be at a different data availability stage, depending on the date of data creation. In the Python <code>cptac</code> package, these three stages are dealt with as follows:</p>
-<p><strong>Internally released data</strong> requires a password to download.</p>
-<p><strong>Embargoed release data</strong> is publicly available, but prints an embargo statement every time you interact with the data.</p>
-<p><strong>Public data</strong> is fully released without restrictions.</p>
+<p>As the warning directs, simply run <code>pip install --upgrade cptac</code> to get the latest version of the package. This will ensure that you have all the latest functionality of the package, and that you're able to access the latest versions of all the datasets.</p>
 
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Downloading-data">Downloading data<a class="anchor-link" href="#Downloading-data">&#182;</a></h2><p>The cptac package stores the data files for each dataset on a remote server. When you first install cptac, you will have no data files. To install the latest version of the data files for a particular dataset, simply call the <code>cptac.download</code> function, passing the name of your desired dataset for the <code>dataset</code> parameter:</p>
+<h2 id="Watching-the-repository-for-new-releases">Watching the repository for new releases<a class="anchor-link" href="#Watching-the-repository-for-new-releases">&#182;</a></h2><p>Each time there's a new version of the package, we release the new version on PyPI, and also post a release page on GitHub. You can use GitHub's "Watch" feature to get an email sent to you every time we do this. Simply log in to GitHub, browse to the <a href="https://github.com/PayneLab/cptac">main page for our repository</a>, click on the "Watch" button in the upper right corner of the page, and select the "Releases only" option from the drop-down box, as shown below. You will then get an email every time we release another version of the package.</p>
+<p><img src="img/github_watch.png" alt="How to watch releases"></p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Accessing-data-updates">Accessing data updates<a class="anchor-link" href="#Accessing-data-updates">&#182;</a></h2><p>Periodically, there will be data updates released for different datasets. <code>cptac</code> automatically checks for this whenever you load a dataset, and if you don't manually specify a version when loading a dataset, it will raise an exception if your latest installed version of the data doesn't match the latest data version that's released. The error message will give you instructions for downloading the new data version.</p>
+<p><strong>Note: The error information below is rather long. This is because Jupyter Notebooks automatically prints the entire stack trace that accompanies an error. The informative error message is at the bottom. If you were using <code>cptac</code> in the command line or in a script, only the informative error message at the bottom would be printed.</strong></p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">cptac</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;endometrial&quot;</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">gb</span> <span class="o">=</span> <span class="n">cptac</span><span class="o">.</span><span class="n">Gbm</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -14393,14 +14350,92 @@ Ovarian       https://www.ncbi.nlm.nih.gov/pubmed/27372738
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>                                                </pre>
+<pre>                                    </pre>
 </div>
 </div>
 
 <div class="jp-OutputArea-child">
 
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[3]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">AmbiguousLatestError</span>                      Traceback (most recent call last)
+<span class="ansi-green-fg">&lt;ipython-input-2-c077f699f23e&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
+<span class="ansi-green-fg">----&gt; 1</span><span class="ansi-red-fg"> </span>gb <span class="ansi-blue-fg">=</span> cptac<span class="ansi-blue-fg">.</span>Gbm<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">)</span>
+
+<span class="ansi-green-fg">~/anaconda3/envs/cptac-dev/lib/python3.7/site-packages/cptac/gbm.py</span> in <span class="ansi-cyan-fg">__init__</span><span class="ansi-blue-fg">(self, version)</span>
+<span class="ansi-green-intense-fg ansi-bold">     57</span>         }
+<span class="ansi-green-intense-fg ansi-bold">     58</span> 
+<span class="ansi-green-fg">---&gt; 59</span><span class="ansi-red-fg">         </span>super<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">.</span>__init__<span class="ansi-blue-fg">(</span>cancer_type<span class="ansi-blue-fg">=</span><span class="ansi-blue-fg">&#34;gbm&#34;</span><span class="ansi-blue-fg">,</span> version<span class="ansi-blue-fg">=</span>version<span class="ansi-blue-fg">,</span> valid_versions<span class="ansi-blue-fg">=</span>valid_versions<span class="ansi-blue-fg">,</span> data_files<span class="ansi-blue-fg">=</span>data_files<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">     60</span> 
+<span class="ansi-green-intense-fg ansi-bold">     61</span>         <span class="ansi-red-fg"># Load the data into dataframes in the self._data dict</span>
+
+<span class="ansi-green-fg">~/anaconda3/envs/cptac-dev/lib/python3.7/site-packages/cptac/dataset.py</span> in <span class="ansi-cyan-fg">__init__</span><span class="ansi-blue-fg">(self, cancer_type, version, valid_versions, data_files)</span>
+<span class="ansi-green-intense-fg ansi-bold">     43</span> 
+<span class="ansi-green-intense-fg ansi-bold">     44</span>         <span class="ansi-red-fg"># Validate the version</span>
+<span class="ansi-green-fg">---&gt; 45</span><span class="ansi-red-fg">         </span>self<span class="ansi-blue-fg">.</span>_version <span class="ansi-blue-fg">=</span> validate_version<span class="ansi-blue-fg">(</span>version<span class="ansi-blue-fg">,</span> self<span class="ansi-blue-fg">.</span>_cancer_type<span class="ansi-blue-fg">,</span> use_context<span class="ansi-blue-fg">=</span><span class="ansi-blue-fg">&#34;init&#34;</span><span class="ansi-blue-fg">,</span> valid_versions<span class="ansi-blue-fg">=</span>valid_versions<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">     46</span> 
+<span class="ansi-green-intense-fg ansi-bold">     47</span>         <span class="ansi-red-fg"># Get the paths to the data files</span>
+
+<span class="ansi-green-fg">~/anaconda3/envs/cptac-dev/lib/python3.7/site-packages/cptac/file_tools.py</span> in <span class="ansi-cyan-fg">validate_version</span><span class="ansi-blue-fg">(version, dataset, use_context, valid_versions)</span>
+<span class="ansi-green-intense-fg ansi-bold">     67</span>                 return_version <span class="ansi-blue-fg">=</span> index_latest
+<span class="ansi-green-intense-fg ansi-bold">     68</span>             <span class="ansi-green-fg">elif</span> use_context <span class="ansi-blue-fg">==</span> <span class="ansi-blue-fg">&#34;init&#34;</span><span class="ansi-blue-fg">:</span>
+<span class="ansi-green-fg">---&gt; 69</span><span class="ansi-red-fg">                 </span><span class="ansi-green-fg">raise</span> AmbiguousLatestError<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">f&#34;You requested to load the {dataset} dataset. Latest version is {index_latest}, which is not installed locally. To download it, run \&#34;cptac.download(dataset=&#39;{dataset}&#39;)\&#34;. You will then be able to load the latest version of the dataset. To skip this and instead load the older version that is already installed, call \&#34;cptac.{dataset.title()}(version=&#39;{latest_installed}&#39;)\&#34;.&#34;</span><span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">     70</span>     <span class="ansi-green-fg">else</span><span class="ansi-blue-fg">:</span>
+<span class="ansi-green-intense-fg ansi-bold">     71</span>         <span class="ansi-green-fg">raise</span> InvalidParameterError<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">f&#34;{version} is an invalid version for the {dataset} dataset. Valid versions: {&#39;, &#39;.join(index.keys())}&#34;</span><span class="ansi-blue-fg">)</span>
+
+<span class="ansi-red-fg">AmbiguousLatestError</span>: You requested to load the gbm dataset. Latest version is 2.0, which is not installed locally. To download it, run &#34;cptac.download(dataset=&#39;gbm&#39;)&#34;. You will then be able to load the latest version of the dataset. To skip this and instead load the older version that is already installed, call &#34;cptac.Gbm(version=&#39;1.0&#39;)&#34;.</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>To download the new data version, run the <code>cptac.download</code> function as the error message directs. <code>cptac</code> will notify you that it is downloading new data.</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">cptac</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;gbm&quot;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;latest&quot;</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>                                        </pre>
+</div>
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[2]:</div>
 
 
 
@@ -14418,7 +14453,74 @@ Ovarian       https://www.ncbi.nlm.nih.gov/pubmed/27372738
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Exploring-the-data">Exploring the data<a class="anchor-link" href="#Exploring-the-data">&#182;</a></h2><p>Once you've downloaded a dataset, <code>cptac</code> allows you to load the dataset into a Python variable, and you can use that variable to access and work with the data. To load a particular dataset into a variable, type the name you want to give the variable, followed by <code>=</code>, and then type <code>cptac.</code> and the name of the dataset in <a href="https://en.wikipedia.org/wiki/Camel_case">UpperCamelCase</a> followed by two parentheses, e.g. <code>cptac.Endometrial()</code> or <code>cptac.Ccrcc()</code>:</p>
+<p>You can then load the dataset, and <code>cptac</code> will automatically load the latest data version.</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">gb</span> <span class="o">=</span> <span class="n">cptac</span><span class="o">.</span><span class="n">Gbm</span><span class="p">()</span>
+<span class="n">gb</span><span class="o">.</span><span class="n">version</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>                                        </pre>
+</div>
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>cptac warning: The GBM dataset is under publication embargo until March 01, 2021. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until after the embargo date. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details. (C:\Users\humbe\miniconda3\lib\site-packages\ipykernel_launcher.py, line 1)
+</pre>
+</div>
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[3]:</div>
+
+
+
+
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
+<pre>&#39;3.0&#39;</pre>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Accessing-old-data-versions-after-updates">Accessing old data versions after updates<a class="anchor-link" href="#Accessing-old-data-versions-after-updates">&#182;</a></h2><p>After you have updated a dataset, you can still access old versions of the data. This is helpful, for example, if you want to compare your analyses between data versions. To load an older version of the data, simply pass the desired version number to the <code>version</code> parameter when loading the dataset:</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -14427,7 +14529,8 @@ Ovarian       https://www.ncbi.nlm.nih.gov/pubmed/27372738
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">en</span> <span class="o">=</span> <span class="n">cptac</span><span class="o">.</span><span class="n">Endometrial</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">gb</span> <span class="o">=</span> <span class="n">cptac</span><span class="o">.</span><span class="n">Gbm</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="s2">&quot;1.0&quot;</span><span class="p">)</span>
+<span class="n">gb</span><span class="o">.</span><span class="n">version</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -14447,38 +14550,9 @@ Ovarian       https://www.ncbi.nlm.nih.gov/pubmed/27372738
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>                                                </pre>
+<pre>Loading gbm v1.0...                     </pre>
 </div>
 </div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>To see what data is available, use the <code>en.list_data()</code> function. This displays the different types of data included in the dataset for this particular cancer type, each stored in a <a href="https://pandas.pydata.org/pandas-docs/stable/getting_started/dsintro.html#dataframe">pandas dataframe</a>. It also prints the dimensions of each dataframe.</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">en</span><span class="o">.</span><span class="n">list_data</span><span class="p">()</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
 
 <div class="jp-OutputArea-child">
 
@@ -14486,71 +14560,12 @@ Ovarian       https://www.ncbi.nlm.nih.gov/pubmed/27372738
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
 
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Below are the dataframes contained in this dataset:
-	acetylproteomics
-		Dimensions: (144, 10862)
-	circular_RNA
-		Dimensions: (109, 4945)
-	clinical
-		Dimensions: (144, 27)
-	CNV
-		Dimensions: (95, 28057)
-	derived_molecular
-		Dimensions: (144, 125)
-	experimental_design
-		Dimensions: (144, 26)
-	followup
-		Dimensions: (396, 49)
-	miRNA
-		Dimensions: (99, 2337)
-	phosphoproteomics
-		Dimensions: (144, 73212)
-	proteomics
-		Dimensions: (144, 10999)
-	somatic_mutation
-		Dimensions: (52560, 3)
-	somatic_mutation_binary
-		Dimensions: (95, 51559)
-	transcriptomics
-		Dimensions: (109, 28057)
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>cptac warning: Old gbm data version. Latest is 3.0. This is 1.0. (C:\Users\humbe\miniconda3\lib\site-packages\ipykernel_launcher.py, line 1)
 </pre>
 </div>
 </div>
 
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Molecular-Omics">Molecular Omics<a class="anchor-link" href="#Molecular-Omics">&#182;</a></h1><p>Data can be accessed through several "get" functions. For example, we can look at the proteomics data by using <code>en.get_proteomics()</code>. This returns a <a href="https://pandas.pydata.org/pandas-docs/stable/getting_started/dsintro.html#dataframe">pandas dataframe</a> containing the proteomic data. Each column in the proteomics dataframe is the quantitiative measurement for a particular protein. Each row in the proteomics dataframe is a sample of either a tumor or non-tumor from a cancer patient.</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">proteomics</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">get_proteomics</span><span class="p">()</span>
-<span class="n">samples</span> <span class="o">=</span> <span class="n">proteomics</span><span class="o">.</span><span class="n">index</span>
-<span class="n">proteins</span> <span class="o">=</span> <span class="n">proteomics</span><span class="o">.</span><span class="n">columns</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Samples:&quot;</span><span class="p">,</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span> <span class="c1">#the first twenty samples</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Proteins:&quot;</span><span class="p">,</span><span class="n">proteins</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span> <span class="c1">#the first twenty proteins</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
 
     
@@ -14558,1117 +14573,9 @@ Ovarian       https://www.ncbi.nlm.nih.gov/pubmed/27372738
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Samples: [&#39;C3L-00006&#39;, &#39;C3L-00008&#39;, &#39;C3L-00032&#39;, &#39;C3L-00090&#39;, &#39;C3L-00098&#39;, &#39;C3L-00136&#39;, &#39;C3L-00137&#39;, &#39;C3L-00139&#39;, &#39;C3L-00143&#39;, &#39;C3L-00145&#39;, &#39;C3L-00156&#39;, &#39;C3L-00161&#39;, &#39;C3L-00358&#39;, &#39;C3L-00361&#39;, &#39;C3L-00362&#39;, &#39;C3L-00413&#39;, &#39;C3L-00449&#39;, &#39;C3L-00563&#39;, &#39;C3L-00586&#39;, &#39;C3L-00601&#39;]
-Proteins: [&#39;A1BG&#39;, &#39;A2M&#39;, &#39;A2ML1&#39;, &#39;A4GALT&#39;, &#39;AAAS&#39;, &#39;AACS&#39;, &#39;AADAT&#39;, &#39;AAED1&#39;, &#39;AAGAB&#39;, &#39;AAK1&#39;, &#39;AAMDC&#39;, &#39;AAMP&#39;, &#39;AAR2&#39;, &#39;AARS&#39;, &#39;AARS2&#39;, &#39;AARSD1&#39;, &#39;AASDHPPT&#39;, &#39;AASS&#39;, &#39;AATF&#39;, &#39;ABAT&#39;]
-</pre>
+<pre>                        </pre>
 </div>
 </div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Dataframe-values">Dataframe values<a class="anchor-link" href="#Dataframe-values">&#182;</a></h2><p>Values in the dataframe are protein abundance values. Values that read "NaN" mean that particular sample from that patient had no data for that particular protein. For the endometrial CPTAC proteomics data, a TMT-reference channel strategy was used. A detailed description of this strategy can be found at <a href="https://www.nature.com/articles/s41596-018-0006-9">Nature Protocols</a> and also at <a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=29988108">PubMed Central</a>. This strategy ratios each sample's abundance to a pooled reference. The ratio is then log transformed. Therefore positive values indicate a measurement higher than the pooled reference; negative values are lower than the pooled reference.</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">proteomics</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[7]:</div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th>Name</th>
-      <th>A1BG</th>
-      <th>A2M</th>
-      <th>A2ML1</th>
-      <th>A4GALT</th>
-      <th>AAAS</th>
-      <th>AACS</th>
-      <th>AADAT</th>
-      <th>AAED1</th>
-      <th>AAGAB</th>
-      <th>AAK1</th>
-      <th>...</th>
-      <th>ZSWIM8</th>
-      <th>ZSWIM9</th>
-      <th>ZW10</th>
-      <th>ZWILCH</th>
-      <th>ZWINT</th>
-      <th>ZXDC</th>
-      <th>ZYG11B</th>
-      <th>ZYX</th>
-      <th>ZZEF1</th>
-      <th>ZZZ3</th>
-    </tr>
-    <tr>
-      <th>Patient_ID</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C3L-00006</th>
-      <td>-1.180</td>
-      <td>-0.8630</td>
-      <td>-0.802</td>
-      <td>0.222</td>
-      <td>0.2560</td>
-      <td>0.6650</td>
-      <td>1.2800</td>
-      <td>-0.3390</td>
-      <td>0.412</td>
-      <td>-0.664</td>
-      <td>...</td>
-      <td>-0.08770</td>
-      <td>NaN</td>
-      <td>0.0229</td>
-      <td>0.1090</td>
-      <td>NaN</td>
-      <td>-0.332</td>
-      <td>-0.43300</td>
-      <td>-1.020</td>
-      <td>-0.1230</td>
-      <td>-0.0859</td>
-    </tr>
-    <tr>
-      <th>C3L-00008</th>
-      <td>-0.685</td>
-      <td>-1.0700</td>
-      <td>-0.684</td>
-      <td>0.984</td>
-      <td>0.1350</td>
-      <td>0.3340</td>
-      <td>1.3000</td>
-      <td>0.1390</td>
-      <td>1.330</td>
-      <td>-0.367</td>
-      <td>...</td>
-      <td>-0.03560</td>
-      <td>NaN</td>
-      <td>0.3630</td>
-      <td>1.0700</td>
-      <td>0.737</td>
-      <td>-0.564</td>
-      <td>-0.00461</td>
-      <td>-1.130</td>
-      <td>-0.0757</td>
-      <td>-0.4730</td>
-    </tr>
-    <tr>
-      <th>C3L-00032</th>
-      <td>-0.528</td>
-      <td>-1.3200</td>
-      <td>0.435</td>
-      <td>NaN</td>
-      <td>-0.2400</td>
-      <td>1.0400</td>
-      <td>-0.0213</td>
-      <td>-0.0479</td>
-      <td>0.419</td>
-      <td>-0.500</td>
-      <td>...</td>
-      <td>0.00112</td>
-      <td>-0.1450</td>
-      <td>0.0105</td>
-      <td>-0.1160</td>
-      <td>NaN</td>
-      <td>0.151</td>
-      <td>-0.07400</td>
-      <td>-0.540</td>
-      <td>0.3200</td>
-      <td>-0.4190</td>
-    </tr>
-    <tr>
-      <th>C3L-00090</th>
-      <td>-1.670</td>
-      <td>-1.1900</td>
-      <td>-0.443</td>
-      <td>0.243</td>
-      <td>-0.0993</td>
-      <td>0.7570</td>
-      <td>0.7400</td>
-      <td>-0.9290</td>
-      <td>0.229</td>
-      <td>-0.223</td>
-      <td>...</td>
-      <td>0.07250</td>
-      <td>-0.0552</td>
-      <td>-0.0714</td>
-      <td>0.0933</td>
-      <td>0.156</td>
-      <td>-0.398</td>
-      <td>-0.07520</td>
-      <td>-0.797</td>
-      <td>-0.0301</td>
-      <td>-0.4670</td>
-    </tr>
-    <tr>
-      <th>C3L-00098</th>
-      <td>-0.374</td>
-      <td>-0.0206</td>
-      <td>-0.537</td>
-      <td>0.311</td>
-      <td>0.3750</td>
-      <td>0.0131</td>
-      <td>-1.1000</td>
-      <td>NaN</td>
-      <td>0.565</td>
-      <td>-0.101</td>
-      <td>...</td>
-      <td>-0.17600</td>
-      <td>NaN</td>
-      <td>-1.2200</td>
-      <td>-0.5620</td>
-      <td>0.937</td>
-      <td>-0.646</td>
-      <td>0.20700</td>
-      <td>-1.850</td>
-      <td>-0.1760</td>
-      <td>0.0513</td>
-    </tr>
-  </tbody>
-</table>
-<p>5 rows × 10999 columns</p>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>As seen in <code>en.list_data()</code>, other omics data are also available (e.g. transcriptomics, copy number variation, phoshoproteomics).</p>
-<p>The transcriptomics looks almost identical to the proteomics data, available in a pandas dataframe with the same convention. Each set of samples is consitent, meaning samples found in the endometrial proteomics data will be the same samples in all other endometrial dataframes.</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">transcriptomics</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">get_transcriptomics</span><span class="p">()</span>
-<span class="n">transcriptomics</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[8]:</div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th>Name</th>
-      <th>A1BG</th>
-      <th>A1BG-AS1</th>
-      <th>A1CF</th>
-      <th>A2M</th>
-      <th>A2M-AS1</th>
-      <th>A2ML1</th>
-      <th>A2MP1</th>
-      <th>A3GALT2</th>
-      <th>A4GALT</th>
-      <th>A4GNT</th>
-      <th>...</th>
-      <th>ZWILCH</th>
-      <th>ZWINT</th>
-      <th>ZXDA</th>
-      <th>ZXDB</th>
-      <th>ZXDC</th>
-      <th>ZYG11A</th>
-      <th>ZYG11B</th>
-      <th>ZYX</th>
-      <th>ZZEF1</th>
-      <th>ZZZ3</th>
-    </tr>
-    <tr>
-      <th>Patient_ID</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C3L-00006</th>
-      <td>4.02</td>
-      <td>2.16</td>
-      <td>3.27</td>
-      <td>13.39</td>
-      <td>5.88</td>
-      <td>6.79</td>
-      <td>1.55</td>
-      <td>0.97</td>
-      <td>10.34</td>
-      <td>1.96</td>
-      <td>...</td>
-      <td>11.06</td>
-      <td>10.73</td>
-      <td>8.40</td>
-      <td>9.78</td>
-      <td>10.88</td>
-      <td>5.93</td>
-      <td>11.52</td>
-      <td>10.23</td>
-      <td>11.50</td>
-      <td>11.47</td>
-    </tr>
-    <tr>
-      <th>C3L-00008</th>
-      <td>4.81</td>
-      <td>2.21</td>
-      <td>4.86</td>
-      <td>13.24</td>
-      <td>5.93</td>
-      <td>6.33</td>
-      <td>0.93</td>
-      <td>0.00</td>
-      <td>10.83</td>
-      <td>0.00</td>
-      <td>...</td>
-      <td>10.87</td>
-      <td>11.43</td>
-      <td>8.39</td>
-      <td>9.14</td>
-      <td>10.38</td>
-      <td>7.25</td>
-      <td>11.64</td>
-      <td>10.64</td>
-      <td>11.26</td>
-      <td>11.57</td>
-    </tr>
-    <tr>
-      <th>C3L-00032</th>
-      <td>6.24</td>
-      <td>6.43</td>
-      <td>3.68</td>
-      <td>14.32</td>
-      <td>6.53</td>
-      <td>9.42</td>
-      <td>2.79</td>
-      <td>0.00</td>
-      <td>10.98</td>
-      <td>2.13</td>
-      <td>...</td>
-      <td>10.06</td>
-      <td>10.13</td>
-      <td>8.35</td>
-      <td>9.27</td>
-      <td>10.46</td>
-      <td>6.85</td>
-      <td>11.60</td>
-      <td>10.21</td>
-      <td>11.51</td>
-      <td>11.09</td>
-    </tr>
-    <tr>
-      <th>C3L-00090</th>
-      <td>5.31</td>
-      <td>4.87</td>
-      <td>5.59</td>
-      <td>13.77</td>
-      <td>6.35</td>
-      <td>4.22</td>
-      <td>2.97</td>
-      <td>0.00</td>
-      <td>8.68</td>
-      <td>1.98</td>
-      <td>...</td>
-      <td>10.29</td>
-      <td>10.41</td>
-      <td>9.10</td>
-      <td>9.59</td>
-      <td>10.15</td>
-      <td>7.89</td>
-      <td>11.90</td>
-      <td>10.21</td>
-      <td>11.34</td>
-      <td>11.51</td>
-    </tr>
-    <tr>
-      <th>C3L-00098</th>
-      <td>9.84</td>
-      <td>8.83</td>
-      <td>7.00</td>
-      <td>13.12</td>
-      <td>6.49</td>
-      <td>6.83</td>
-      <td>1.80</td>
-      <td>0.00</td>
-      <td>11.42</td>
-      <td>3.28</td>
-      <td>...</td>
-      <td>10.36</td>
-      <td>11.24</td>
-      <td>8.60</td>
-      <td>9.44</td>
-      <td>11.80</td>
-      <td>9.32</td>
-      <td>11.97</td>
-      <td>9.77</td>
-      <td>11.37</td>
-      <td>12.35</td>
-    </tr>
-  </tbody>
-</table>
-<p>5 rows × 28057 columns</p>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Clinical-Data">Clinical Data<a class="anchor-link" href="#Clinical-Data">&#182;</a></h1><p>The clinical dataframe lists clinical information for the patient associated with each sample (e.g. age, race, diabetes status, tumor size).</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[9]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">clinical</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">get_clinical</span><span class="p">()</span>
-<span class="n">clinical</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[9]:</div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th>Name</th>
-      <th>Sample_ID</th>
-      <th>Sample_Tumor_Normal</th>
-      <th>Proteomics_Tumor_Normal</th>
-      <th>Country</th>
-      <th>Histologic_Grade_FIGO</th>
-      <th>Myometrial_invasion_Specify</th>
-      <th>Histologic_type</th>
-      <th>Treatment_naive</th>
-      <th>Tumor_purity</th>
-      <th>Path_Stage_Primary_Tumor-pT</th>
-      <th>...</th>
-      <th>Age</th>
-      <th>Diabetes</th>
-      <th>Race</th>
-      <th>Ethnicity</th>
-      <th>Gender</th>
-      <th>Tumor_Site</th>
-      <th>Tumor_Site_Other</th>
-      <th>Tumor_Focality</th>
-      <th>Tumor_Size_cm</th>
-      <th>Num_full_term_pregnancies</th>
-    </tr>
-    <tr>
-      <th>Patient_ID</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C3L-00006</th>
-      <td>S001</td>
-      <td>Tumor</td>
-      <td>Tumor</td>
-      <td>United States</td>
-      <td>FIGO grade 1</td>
-      <td>under 50 %</td>
-      <td>Endometrioid</td>
-      <td>YES</td>
-      <td>Normal</td>
-      <td>pT1a (FIGO IA)</td>
-      <td>...</td>
-      <td>64.0</td>
-      <td>No</td>
-      <td>White</td>
-      <td>Not-Hispanic or Latino</td>
-      <td>Female</td>
-      <td>Anterior endometrium</td>
-      <td>NaN</td>
-      <td>Unifocal</td>
-      <td>2.9</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <th>C3L-00008</th>
-      <td>S002</td>
-      <td>Tumor</td>
-      <td>Tumor</td>
-      <td>United States</td>
-      <td>FIGO grade 1</td>
-      <td>under 50 %</td>
-      <td>Endometrioid</td>
-      <td>YES</td>
-      <td>Normal</td>
-      <td>pT1a (FIGO IA)</td>
-      <td>...</td>
-      <td>58.0</td>
-      <td>No</td>
-      <td>White</td>
-      <td>Not-Hispanic or Latino</td>
-      <td>Female</td>
-      <td>Posterior endometrium</td>
-      <td>NaN</td>
-      <td>Unifocal</td>
-      <td>3.5</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <th>C3L-00032</th>
-      <td>S003</td>
-      <td>Tumor</td>
-      <td>Tumor</td>
-      <td>United States</td>
-      <td>FIGO grade 2</td>
-      <td>under 50 %</td>
-      <td>Endometrioid</td>
-      <td>YES</td>
-      <td>Normal</td>
-      <td>pT1a (FIGO IA)</td>
-      <td>...</td>
-      <td>50.0</td>
-      <td>Yes</td>
-      <td>White</td>
-      <td>Not-Hispanic or Latino</td>
-      <td>Female</td>
-      <td>Other, specify</td>
-      <td>Anterior and Posterior endometrium</td>
-      <td>Unifocal</td>
-      <td>4.5</td>
-      <td>4 or more</td>
-    </tr>
-    <tr>
-      <th>C3L-00090</th>
-      <td>S005</td>
-      <td>Tumor</td>
-      <td>Tumor</td>
-      <td>United States</td>
-      <td>FIGO grade 2</td>
-      <td>under 50 %</td>
-      <td>Endometrioid</td>
-      <td>YES</td>
-      <td>Normal</td>
-      <td>pT1a (FIGO IA)</td>
-      <td>...</td>
-      <td>75.0</td>
-      <td>No</td>
-      <td>White</td>
-      <td>Not-Hispanic or Latino</td>
-      <td>Female</td>
-      <td>Other, specify</td>
-      <td>Anterior and Posterior endometrium</td>
-      <td>Unifocal</td>
-      <td>3.5</td>
-      <td>4 or more</td>
-    </tr>
-    <tr>
-      <th>C3L-00098</th>
-      <td>S006</td>
-      <td>Tumor</td>
-      <td>Tumor</td>
-      <td>United States</td>
-      <td>NaN</td>
-      <td>under 50 %</td>
-      <td>Serous</td>
-      <td>YES</td>
-      <td>Normal</td>
-      <td>pT1a (FIGO IA)</td>
-      <td>...</td>
-      <td>63.0</td>
-      <td>No</td>
-      <td>White</td>
-      <td>Not-Hispanic or Latino</td>
-      <td>Female</td>
-      <td>Other, specify</td>
-      <td>Anterior  and Posterior endometrium</td>
-      <td>Unifocal</td>
-      <td>6.0</td>
-      <td>2</td>
-    </tr>
-  </tbody>
-</table>
-<p>5 rows × 27 columns</p>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>In addition to donating a tumor sample, some patients also had a normal sample taken for control and comparison. We can identify these samples by looking for samples marked "Normal" in the "Sample_Tumor_Normal" column, and whose Patient IDs are the same as the Patient IDs of tumor samples, but with a ".N" appended to the ID. For example, patient C3L-00006 provided both a tumor sample (marked C3L-00006) and a normal sample (marked C3L-00006.N). Note that the normal samples do not have many values in the clinical columns, because much of the information does not apply to non-tumor samples. Additionally, in cases where a column would have identical values for tumor and normal samples from the same patient (e.g., patient age and gender), the information is recorded only for the tumor sample.</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[10]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">clinical</span><span class="o">.</span><span class="n">loc</span><span class="p">[[</span><span class="s2">&quot;C3L-00006&quot;</span><span class="p">,</span><span class="s2">&quot;C3L-00361&quot;</span><span class="p">,</span><span class="s2">&quot;C3L-01246&quot;</span><span class="p">,</span> <span class="s2">&quot;C3L-00006.N&quot;</span><span class="p">,</span><span class="s2">&quot;C3L-00361.N&quot;</span><span class="p">,</span><span class="s2">&quot;C3L-01246.N&quot;</span><span class="p">]]</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[10]:</div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th>Name</th>
-      <th>Sample_ID</th>
-      <th>Sample_Tumor_Normal</th>
-      <th>Proteomics_Tumor_Normal</th>
-      <th>Country</th>
-      <th>Histologic_Grade_FIGO</th>
-      <th>Myometrial_invasion_Specify</th>
-      <th>Histologic_type</th>
-      <th>Treatment_naive</th>
-      <th>Tumor_purity</th>
-      <th>Path_Stage_Primary_Tumor-pT</th>
-      <th>...</th>
-      <th>Age</th>
-      <th>Diabetes</th>
-      <th>Race</th>
-      <th>Ethnicity</th>
-      <th>Gender</th>
-      <th>Tumor_Site</th>
-      <th>Tumor_Site_Other</th>
-      <th>Tumor_Focality</th>
-      <th>Tumor_Size_cm</th>
-      <th>Num_full_term_pregnancies</th>
-    </tr>
-    <tr>
-      <th>Patient_ID</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C3L-00006</th>
-      <td>S001</td>
-      <td>Tumor</td>
-      <td>Tumor</td>
-      <td>United States</td>
-      <td>FIGO grade 1</td>
-      <td>under 50 %</td>
-      <td>Endometrioid</td>
-      <td>YES</td>
-      <td>Normal</td>
-      <td>pT1a (FIGO IA)</td>
-      <td>...</td>
-      <td>64.0</td>
-      <td>No</td>
-      <td>White</td>
-      <td>Not-Hispanic or Latino</td>
-      <td>Female</td>
-      <td>Anterior endometrium</td>
-      <td>NaN</td>
-      <td>Unifocal</td>
-      <td>2.9</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <th>C3L-00361</th>
-      <td>S017</td>
-      <td>Tumor</td>
-      <td>Tumor</td>
-      <td>United States</td>
-      <td>FIGO grade 1</td>
-      <td>Not identified</td>
-      <td>Endometrioid</td>
-      <td>YES</td>
-      <td>Normal</td>
-      <td>pT1a (FIGO IA)</td>
-      <td>...</td>
-      <td>64.0</td>
-      <td>Yes</td>
-      <td>White</td>
-      <td>Not-Hispanic or Latino</td>
-      <td>Female</td>
-      <td>Anterior endometrium</td>
-      <td>NaN</td>
-      <td>Unifocal</td>
-      <td>2.7</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>C3L-01246</th>
-      <td>S042</td>
-      <td>Tumor</td>
-      <td>Tumor</td>
-      <td>Other_specify</td>
-      <td>NaN</td>
-      <td>under 50 %</td>
-      <td>Serous</td>
-      <td>YES</td>
-      <td>Normal</td>
-      <td>pT1a (FIGO IA)</td>
-      <td>...</td>
-      <td>62.0</td>
-      <td>No</td>
-      <td>White</td>
-      <td>Not reported</td>
-      <td>Female</td>
-      <td>Posterior endometrium</td>
-      <td>NaN</td>
-      <td>Unifocal</td>
-      <td>2.3</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <th>C3L-00006.N</th>
-      <td>S105</td>
-      <td>Normal</td>
-      <td>Adjacent_normal</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>C3L-00361.N</th>
-      <td>S106</td>
-      <td>Normal</td>
-      <td>Adjacent_normal</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>C3L-01246.N</th>
-      <td>S114</td>
-      <td>Normal</td>
-      <td>Adjacent_normal</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-<p>6 rows × 27 columns</p>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Mutation-data">Mutation data<a class="anchor-link" href="#Mutation-data">&#182;</a></h1><p>Each cancer dataset contains mutation data for the cohort. The data consists of all somatic mutations found for each sample (meaning there will be many lines for each sample). Each row lists the specific gene that was mutated, the type of mutation, and the location of the mutation. This data is a direct import of a MAF file.</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[11]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">somatic_mutations</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">get_somatic_mutation</span><span class="p">()</span>
-<span class="n">somatic_mutations</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[11]:</div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th>Name</th>
-      <th>Gene</th>
-      <th>Mutation</th>
-      <th>Location</th>
-    </tr>
-    <tr>
-      <th>Patient_ID</th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>C3L-00006</th>
-      <td>AAK1</td>
-      <td>Missense_Mutation</td>
-      <td>p.A592V</td>
-    </tr>
-    <tr>
-      <th>C3L-00006</th>
-      <td>AANAT</td>
-      <td>Missense_Mutation</td>
-      <td>p.R176W</td>
-    </tr>
-    <tr>
-      <th>C3L-00006</th>
-      <td>ABCA12</td>
-      <td>Frame_Shift_Del</td>
-      <td>p.N1671Ifs*4</td>
-    </tr>
-    <tr>
-      <th>C3L-00006</th>
-      <td>ABCC4</td>
-      <td>Missense_Mutation</td>
-      <td>p.R691H</td>
-    </tr>
-    <tr>
-      <th>C3L-00006</th>
-      <td>ABL1</td>
-      <td>Missense_Mutation</td>
-      <td>p.G273R</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Exporting-dataframes">Exporting dataframes<a class="anchor-link" href="#Exporting-dataframes">&#182;</a></h1><p>If you wish to export a dataframe to a file, simply call the dataframe's <code>to_csv</code> method, passing the path you wish to save the file to, and the value separator you want:</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[12]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">clinical</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">get_clinical</span><span class="p">()</span>
-<span class="n">clinical</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">path_or_buf</span><span class="o">=</span><span class="s2">&quot;clinical_dataframe.tsv&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Getting-help-with-a-dataset-or-function">Getting help with a dataset or function<a class="anchor-link" href="#Getting-help-with-a-dataset-or-function">&#182;</a></h1><p>To view the documentation for a dataset, pass it to the Python <code>help</code> function, e.g. <code>help(en)</code>. You can also view the documentation for just a specific function: <code>help(en.join_omics_to_omics)</code>.</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[13]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">help</span><span class="p">(</span><span class="n">en</span><span class="o">.</span><span class="n">join_omics_to_omics</span><span class="p">)</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
 
 <div class="jp-OutputArea-child">
 
@@ -15676,25 +14583,24 @@ Proteins: [&#39;A1BG&#39;, &#39;A2M&#39;, &#39;A2ML1&#39;, &#39;A4GALT&#39;, &#3
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
 
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Help on method join_omics_to_omics in module cptac.dataset:
-
-join_omics_to_omics(df1_name, df2_name, genes1=None, genes2=None, how=&#39;outer&#39;, quiet=False) method of cptac.endometrial.Endometrial instance
-    Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
-    
-    Parameters:
-    df1_name (str): Name of first omics dataframe to select columns from.
-    df2_name (str): Name of second omics dataframe to select columns from.
-    genes1 (str, or list or array-like of str, optional): Gene(s) for column(s) to select from df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
-    genes2 (str, or list or array-like of str, optional): Gene(s) for Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
-    how (str, optional): How to perform the join. Defaults to outer.
-    quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
-    
-    Returns:
-    pandas DataFrame: The selected columns from the two omics dataframes, joined into one dataframe.
-
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>cptac warning: The GBM dataset is under publication embargo until March 01, 2021. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until after the embargo date. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details. (C:\Users\humbe\miniconda3\lib\site-packages\ipykernel_launcher.py, line 1)
 </pre>
 </div>
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[4]:</div>
+
+
+
+
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
+<pre>&#39;1.0&#39;</pre>
+</div>
+
 </div>
 
 </div>

@@ -3,7 +3,7 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>usecase3_clinical_and_acetylation</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>usecase07_trans_genetic_effect</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 
 
@@ -14259,23 +14259,34 @@ a.anchor-link {
 
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Use-Case-3:-Associating-Clinical-Variables-with-Acetylation">Use Case 3: Associating Clinical Variables with Acetylation<a class="anchor-link" href="#Use-Case-3:-Associating-Clinical-Variables-with-Acetylation">&#182;</a></h1>
+<h1 id="Use-Case-7:-Trans-genetic-effects">Use Case 7: Trans genetic effects<a class="anchor-link" href="#Use-Case-7:-Trans-genetic-effects">&#182;</a></h1>
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>For this use case we will show how to analyze the acetylation data with a clinical attribute. We will use the clinical attribute "Histologic_type", but you can apply the processes shown here to many other clinical attributes. Our goal is to identify which acetylation sites differ significantly in frequency between non-tumor, serous and endometrial cells.</p>
+<p>We will explore <a href="https://en.wikipedia.org/wiki/Trans-acting">trans genetic effects</a>. This occurs when DNA mutation in one gene has an effect on a different gene. To fully understand the effect of DNA mutation, this use case will show how to find some of those downstream affected protiens using two prominent cancer genes: TP53 and ARID1A.</p>
 
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Step-1:-Import-Packages-and-Load-Data">Step 1: Import Packages and Load Data<a class="anchor-link" href="#Step-1:-Import-Packages-and-Load-Data">&#182;</a></h1>
+<h1 id="Part-I:-TP53">Part I: TP53<a class="anchor-link" href="#Part-I:-TP53">&#182;</a></h1>
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>We will start by importing the data analysis tools we need, importing the cptac package, and loading the Endometrial dataset.</p>
+<p>TP53 is a tumor suppressing gene that is very important in helping prevent mutation, as well as repairing damaged DNA in cells <a href="https://en.wikipedia.org/wiki/P53">(Wikipedia)</a>. Since TP53 has a well-documented set of interating proteins, we'll examine those to find trans effects.</p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="Step-1:-Import-Libraries">Step 1: Import Libraries<a class="anchor-link" href="#Step-1:-Import-Libraries">&#182;</a></h1>
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Here we will import standard python libraries used to analyze and visualize data as pandas dataframes, as well as our CPTAC data.</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -14287,14 +14298,12 @@ a.anchor-link {
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy.stats</span>
-<span class="kn">import</span> <span class="nn">statsmodels.stats.multitest</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
-<span class="kn">import</span> <span class="nn">math</span>
+
 <span class="kn">import</span> <span class="nn">cptac</span>
 <span class="kn">import</span> <span class="nn">cptac.utils</span> <span class="k">as</span> <span class="nn">ut</span>
 
-<span class="n">cptac</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;endometrial&quot;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;latest&quot;</span><span class="p">)</span>
 <span class="n">en</span> <span class="o">=</span> <span class="n">cptac</span><span class="o">.</span><span class="n">Endometrial</span><span class="p">()</span>
 </pre></div>
 
@@ -14326,50 +14335,33 @@ a.anchor-link {
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Step-2:-Choose-Clinical-Attribute-and-Join-Dataframes">Step 2: Choose Clinical Attribute and Join Dataframes<a class="anchor-link" href="#Step-2:-Choose-Clinical-Attribute-and-Join-Dataframes">&#182;</a></h1>
+<p>Our analysis here will be done with endometrial cancer, but can also be done using any of the other cancers in the CPTAC dataset.</p>
+
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>For this use case, we will use the 'Histologic_type' clinical attribute in order to find differences in acetylation sites between "endometrioid" and "serous" cancer cells.</p>
-
+<h1 id="Step-2:-Get-Interacting-Proteins">Step 2: Get Interacting Proteins<a class="anchor-link" href="#Step-2:-Get-Interacting-Proteins">&#182;</a></h1>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#Set desired attribute to variable &#39;clinical_attribute&#39;</span>
-<span class="n">clinical_attribute</span> <span class="o">=</span> <span class="s2">&quot;Histologic_type&quot;</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Here we will join our desired clinical attribute with our acetylation dataframe using the <code>en.join_metadata_to_omics</code> method.</p>
+<p>Now we will get a list of the proteins that are know to interact with TP53 directly. Our list comes from Bioplex, a process that identifies proteins in direct physical contact. The CPTAC package also has a method called get_interacting_proteins_bioplex, which returns a list of proteins that interact with our gene in this way.</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#Join attribute with acetylation dataframe</span>
-<span class="n">clinical_and_acetylation</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_metadata_to_omics</span><span class="p">(</span><span class="n">metadata_df_name</span><span class="o">=</span><span class="s2">&quot;clinical&quot;</span><span class="p">,</span> <span class="n">omics_df_name</span><span class="o">=</span><span class="s2">&quot;acetylproteomics&quot;</span><span class="p">,</span>
-                                                     <span class="n">metadata_cols</span><span class="o">=</span><span class="n">clinical_attribute</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">gene</span> <span class="o">=</span> <span class="s2">&quot;TP53&quot;</span>
+<span class="n">omics</span> <span class="o">=</span> <span class="s2">&quot;proteomics&quot;</span>
 
-<span class="c1"># Use the cptac.utils.reduce_multiindex function to combine the</span>
-<span class="c1"># multiple column levels, so it&#39;s easier to graph our data</span>
-<span class="n">clinical_and_acetylation</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">reduce_multiindex</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">clinical_and_acetylation</span><span class="p">,</span> <span class="n">flatten</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">interacting_proteins</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_interacting_proteins_bioplex</span><span class="p">(</span><span class="n">gene</span><span class="p">)</span>
 
-<span class="n">clinical_and_acetylation</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Interacting Proteins:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">interacting_proteins</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -14385,7 +14377,91 @@ a.anchor-link {
 <div class="jp-OutputArea-child">
 
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[3]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Interacting Proteins:
+[&#39;CELA2B&#39;, &#39;HNF4A&#39;, &#39;FAM175B&#39;, &#39;AURKA&#39;, &#39;GPR156&#39;, &#39;MDM4&#39;, &#39;CUL9&#39;, &#39;MDM2&#39;, &#39;FBXW7&#39;, &#39;RORC&#39;, &#39;HOMER3&#39;, &#39;CUL7&#39;, &#39;FAM111A&#39;]
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="Step-3:-Get-Omics-Data">Step 3: Get Omics Data<a class="anchor-link" href="#Step-3:-Get-Omics-Data">&#182;</a></h1>
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Now we create a new dataframe containing protein measurements for TP53 and its interacting proteins, calling en.join_omics_to_mutations. We note thqta if proteomfics data does not identify one of the genes in your request, the join method will throw a warning and fill with NAN (a missing value).</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">protdf</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_omics_to_mutations</span><span class="p">(</span><span class="n">mutations_genes</span><span class="o">=</span><span class="n">gene</span><span class="p">,</span> <span class="n">omics_df_name</span><span class="o">=</span><span class="n">omics</span><span class="p">,</span> <span class="n">omics_genes</span><span class="o">=</span><span class="n">interacting_proteins</span><span class="p">)</span>
+<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">protdf</span><span class="p">[</span><span class="s1">&#39;Sample_Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Tumor&#39;</span><span class="p">]</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>cptac warning: The following columns were not found in the proteomics dataframe, so they were inserted into joined table, but filled with NaN: CELA2B, FAM175B, FBXW7, GPR156, HNF4A, MDM2, MDM4, RORC (C:\Users\humbe\miniconda3\lib\site-packages\ipykernel_launcher.py, line 1)
+cptac warning: In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: 123 samples for the TP53 gene (C:\Users\humbe\miniconda3\lib\site-packages\ipykernel_launcher.py, line 1)
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">protdf</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[4]:</div>
 
 
 
@@ -14408,34 +14484,26 @@ a.anchor-link {
   <thead>
     <tr style="text-align: right;">
       <th>Name</th>
-      <th>Histologic_type</th>
-      <th>A2M_acetylproteomics_K1168</th>
-      <th>A2M_acetylproteomics_K1176</th>
-      <th>A2M_acetylproteomics_K135</th>
-      <th>A2M_acetylproteomics_K145</th>
-      <th>A2M_acetylproteomics_K516</th>
-      <th>A2M_acetylproteomics_K664</th>
-      <th>A2M_acetylproteomics_K682</th>
-      <th>AACS_acetylproteomics_K391</th>
-      <th>AAGAB_acetylproteomics_K290</th>
-      <th>...</th>
-      <th>ZSCAN31_acetylproteomics_K215</th>
-      <th>ZSCAN32_acetylproteomics_K659</th>
-      <th>ZW10_acetylproteomics_K634</th>
-      <th>ZYX_acetylproteomics_K24</th>
-      <th>ZYX_acetylproteomics_K25</th>
-      <th>ZYX_acetylproteomics_K265</th>
-      <th>ZYX_acetylproteomics_K272</th>
-      <th>ZYX_acetylproteomics_K279</th>
-      <th>ZYX_acetylproteomics_K533</th>
-      <th>ZZZ3_acetylproteomics_K117</th>
+      <th>CELA2B_proteomics</th>
+      <th>HNF4A_proteomics</th>
+      <th>FAM175B_proteomics</th>
+      <th>AURKA_proteomics</th>
+      <th>GPR156_proteomics</th>
+      <th>MDM4_proteomics</th>
+      <th>CUL9_proteomics</th>
+      <th>MDM2_proteomics</th>
+      <th>FBXW7_proteomics</th>
+      <th>RORC_proteomics</th>
+      <th>HOMER3_proteomics</th>
+      <th>CUL7_proteomics</th>
+      <th>FAM111A_proteomics</th>
+      <th>TP53_Mutation</th>
+      <th>TP53_Location</th>
+      <th>TP53_Mutation_Status</th>
+      <th>Sample_Status</th>
     </tr>
     <tr>
       <th>Patient_ID</th>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th></th>
       <th></th>
       <th></th>
       <th></th>
@@ -14458,127 +14526,106 @@ a.anchor-link {
   <tbody>
     <tr>
       <th>C3L-00006</th>
-      <td>Endometrioid</td>
-      <td>NaN</td>
-      <td>1.080</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>0.461</td>
-      <td>...</td>
+      <td>0.0355</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>-0.443</td>
+      <td>0.0408</td>
+      <td>0.363000</td>
+      <td>[Missense_Mutation]</td>
+      <td>[p.R248W]</td>
+      <td>Single_mutation</td>
+      <td>Tumor</td>
     </tr>
     <tr>
       <th>C3L-00008</th>
-      <td>Endometrioid</td>
-      <td>NaN</td>
-      <td>0.477</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
+      <td>0.311</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>0.1480</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>1.770</td>
-      <td>...</td>
-      <td>-0.104</td>
-      <td>-0.80300</td>
-      <td>NaN</td>
-      <td>-0.988</td>
-      <td>-0.343</td>
-      <td>-0.307</td>
-      <td>NaN</td>
-      <td>-0.0955</td>
-      <td>NaN</td>
-      <td>NaN</td>
+      <td>-0.897</td>
+      <td>-0.1430</td>
+      <td>0.601000</td>
+      <td>[Wildtype_Tumor]</td>
+      <td>[No_mutation]</td>
+      <td>Wildtype_Tumor</td>
+      <td>Tumor</td>
     </tr>
     <tr>
       <th>C3L-00032</th>
-      <td>Endometrioid</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.815</td>
-      <td>...</td>
+      <td>0.1130</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>-0.459</td>
-      <td>-1.170</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.7050</td>
-      <td>0.089</td>
-      <td>NaN</td>
+      <td>-0.451</td>
+      <td>0.0999</td>
+      <td>-0.280000</td>
+      <td>[Wildtype_Tumor]</td>
+      <td>[No_mutation]</td>
+      <td>Wildtype_Tumor</td>
+      <td>Tumor</td>
     </tr>
     <tr>
       <th>C3L-00090</th>
-      <td>Endometrioid</td>
-      <td>NaN</td>
-      <td>-0.608</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-0.919</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>...</td>
-      <td>-0.457</td>
-      <td>-0.00175</td>
-      <td>-0.33</td>
-      <td>NaN</td>
-      <td>-0.537</td>
+      <td>-0.798</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>-0.3700</td>
+      <td>0.1680</td>
       <td>NaN</td>
       <td>NaN</td>
+      <td>NaN</td>
+      <td>-0.034</td>
+      <td>-0.7460</td>
+      <td>0.066500</td>
+      <td>[Wildtype_Tumor]</td>
+      <td>[No_mutation]</td>
+      <td>Wildtype_Tumor</td>
+      <td>Tumor</td>
     </tr>
     <tr>
       <th>C3L-00098</th>
-      <td>Serous</td>
-      <td>NaN</td>
-      <td>1.630</td>
-      <td>NaN</td>
-      <td>2.4</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>1.26</td>
       <td>NaN</td>
-      <td>0.205</td>
-      <td>...</td>
-      <td>NaN</td>
-      <td>0.41100</td>
+      <td>3.110</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>-0.358</td>
+      <td>-0.2530</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>-0.9700</td>
       <td>NaN</td>
-      <td>NaN</td>
+      <td>-0.535</td>
+      <td>-0.1200</td>
+      <td>-0.000411</td>
+      <td>[Missense_Mutation]</td>
+      <td>[p.S241C]</td>
+      <td>Single_mutation</td>
+      <td>Tumor</td>
     </tr>
   </tbody>
 </table>
-<p>5 rows × 10863 columns</p>
 </div>
 </div>
 
@@ -14591,51 +14638,7 @@ a.anchor-link {
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Step-3:-Format-Dataframe-to-Compare-Acetylproteomic-Sites-Between-Histologic-Types">Step 3: Format Dataframe to Compare Acetylproteomic Sites Between Histologic Types<a class="anchor-link" href="#Step-3:-Format-Dataframe-to-Compare-Acetylproteomic-Sites-Between-Histologic-Types">&#182;</a></h1>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">clinical_attribute</span> <span class="o">=</span> <span class="s2">&quot;Histologic_type&quot;</span>
-<span class="c1">#Show possible variations of Histologic_type</span>
-<span class="n">clinical_and_acetylation</span><span class="p">[</span><span class="n">clinical_attribute</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[4]:</div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>array([&#39;Endometrioid&#39;, &#39;Serous&#39;, nan], dtype=object)</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>In this step, we will make two different dataframes for "Endometrioid" and "Serous" cancer types, as well as fill the NaN columns with "Non-Tumor."</p>
+<p>If you scroll the table abo ve all the way over to the right, you will see three columns for TP53 mutation. As a sample may have a complete set of mutations, these columns contain lists and the "Mutation_status" column says whether it is a single or multiple mutation. We want to simplify this column to have just two values, either "Mutated" or "Wildtype." Next, we remove a few unwanted columns.</p>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
@@ -14644,12 +14647,11 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#Make dataframes with only endometrioid and only serous data in order to compare </span>
-<span class="n">endom</span> <span class="o">=</span> <span class="n">clinical_and_acetylation</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">clinical_and_acetylation</span><span class="p">[</span><span class="n">clinical_attribute</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Endometrioid&quot;</span><span class="p">]</span>
-<span class="n">serous</span> <span class="o">=</span> <span class="n">clinical_and_acetylation</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">clinical_and_acetylation</span><span class="p">[</span><span class="n">clinical_attribute</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Serous&quot;</span><span class="p">]</span>
-<span class="c1">#Here is where we set the NaN values to &quot;Non_Tumor&quot;</span>
-<span class="n">clinical_and_acetylation</span><span class="p">[[</span><span class="n">clinical_attribute</span><span class="p">]]</span> <span class="o">=</span> <span class="n">clinical_and_acetylation</span><span class="p">[[</span><span class="n">clinical_attribute</span><span class="p">]]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span>
-    <span class="n">value</span><span class="o">=</span><span class="s2">&quot;Non_Tumor&quot;</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">protdf</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Mutation_Status&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;Wildtype_Tumor&#39;</span><span class="p">:</span>
+        <span class="n">protdf</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span><span class="s1">&#39;TP53 Mutation Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Mutated&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">protdf</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span><span class="s1">&#39;TP53 Mutation Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Wildtype&#39;</span>
 </pre></div>
 
      </div>
@@ -14657,36 +14659,16 @@ a.anchor-link {
 </div>
 </div>
 
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Now that we have our different dataframes, we want to make sure that the amount of data we are using for each site is significant. Since there are fewer patients with "serous" tumors than with "endometrioid," we will check to make sure that we have at least five values for each acetylation site that we are comparing that have a measurement of intensity for serous patients. We will remove every acetylation site from our dataframe that doesn't have at least five values among the serous patients.</p>
-
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#Remove every column that doesn&#39;t have at least 5 values among the serous patients</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Total Sites: &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">serous</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">sites_to_remove</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">serous</span><span class="o">.</span><span class="n">columns</span><span class="p">)):</span>
-    <span class="n">serous_site</span> <span class="o">=</span> <span class="n">serous</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">num</span><span class="p">]</span>
-    <span class="n">one_site</span> <span class="o">=</span> <span class="n">serous</span><span class="p">[</span><span class="n">serous_site</span><span class="p">]</span>
-    <span class="n">num_datapoints_ser</span> <span class="o">=</span> <span class="n">one_site</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">num_datapoints_ser</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
-        <span class="n">sites_to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">serous_site</span><span class="p">)</span>
-
-<span class="n">clinical_and_acetylation</span> <span class="o">=</span> <span class="n">clinical_and_acetylation</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">sites_to_remove</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
-
-<span class="c1">#Also remove non-tumor patients from our dataframe to use in comparison, as we want to compare only endometrioid and serous types</span>
-<span class="n">clinical_and_acetylation_comparison</span> <span class="o">=</span> <span class="n">clinical_and_acetylation</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">clinical_and_acetylation</span><span class="p">[</span><span class="s1">&#39;Histologic_type&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;Non_Tumor&#39;</span><span class="p">]</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Removed: &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sites_to_remove</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Remaining Sites: &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">clinical_and_acetylation_comparison</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Adjusted p-value cutoff will be: &quot;</span><span class="p">,</span> <span class="o">.</span><span class="mi">05</span><span class="o">/</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">clinical_and_acetylation_comparison</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Mutation&quot;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Location&quot;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Mutation_Status&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;Sample_Status&quot;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -14694,58 +14676,25 @@ a.anchor-link {
 </div>
 </div>
 
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Total Sites:  10862
-Removed:  6926
-Remaining Sites:  3936
-Adjusted p-value cutoff will be:  1.2703252032520325e-05
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Step-4:-Compare-Endometrioid-and-Serous-Values">Step 4: Compare Endometrioid and Serous Values<a class="anchor-link" href="#Step-4:-Compare-Endometrioid-and-Serous-Values">&#182;</a></h1>
+<h1 id="Step-4:-Do-T-tests">Step 4: Do T-tests<a class="anchor-link" href="#Step-4:-Do-T-tests">&#182;</a></h1>
 </div>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>We will now call the wrap_ttest method, which will loop through the data and compare endometrioid versus serous data for each acetylation site. If we find a site that is significantly different, we will add it to a dataframe, with its p-value. The default alpha used is .05, which will be adjusted to account for multiple testing using a bonferroni correction, dividing alpha by the number of comparison that will occur (the number of comparison columns).</p>
+<p>We take the column names, which are the interacting proteins, and create a list in order to run our t-tests for each protein individually.</p>
 
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#Make list of all remaining sites in dataframe to pass to wrap_ttest function</span>
-<span class="n">columns_to_compare</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">clinical_and_acetylation_comparison</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
-
-<span class="c1">#Remove the &quot;Histologic_type&quot; column (at index 0) from this list </span>
-<span class="n">columns_to_compare</span> <span class="o">=</span> <span class="n">columns_to_compare</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
-
-<span class="c1">#Perform ttest on each column in dataframe</span>
-<span class="n">significant_sites_df</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">wrap_ttest</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">clinical_and_acetylation_comparison</span><span class="p">,</span> <span class="n">label_column</span><span class="o">=</span><span class="s2">&quot;Histologic_type&quot;</span><span class="p">,</span> <span class="n">comparison_columns</span><span class="o">=</span><span class="n">columns_to_compare</span><span class="p">)</span>
-
-<span class="c1">#List significant results</span>
-<span class="n">significant_sites_df</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">col_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">protdf</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+<span class="n">col_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;TP53 Mutation Status&#39;</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -14753,141 +14702,13 @@ Adjusted p-value cutoff will be:  1.2703252032520325e-05
 </div>
 </div>
 
-<div class="jp-Cell-outputWrapper">
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[7]:</div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Comparison</th>
-      <th>P_Value</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>TBL1XR1_acetylproteomics_K102</td>
-      <td>2.896155e-08</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>FOXA2_acetylproteomics_K280</td>
-      <td>3.895704e-08</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>SRRT_acetylproteomics_K720</td>
-      <td>6.532244e-08</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>TOP2A_acetylproteomics_K1433</td>
-      <td>1.677067e-07</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>NCL_acetylproteomics_K398</td>
-      <td>3.077308e-07</td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>MEAF6_acetylproteomics_K69</td>
-      <td>5.336611e-07</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>JADE3_acetylproteomics_K32</td>
-      <td>9.009262e-07</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>NOP2_acetylproteomics_K91</td>
-      <td>2.099527e-06</td>
-    </tr>
-    <tr>
-      <th>8</th>
-      <td>TOP2A_acetylproteomics_K1422</td>
-      <td>2.623814e-06</td>
-    </tr>
-    <tr>
-      <th>9</th>
-      <td>MCRS1_acetylproteomics_K136</td>
-      <td>3.942592e-06</td>
-    </tr>
-    <tr>
-      <th>10</th>
-      <td>PRR15_acetylproteomics_K81</td>
-      <td>6.869845e-06</td>
-    </tr>
-    <tr>
-      <th>11</th>
-      <td>FUS_acetylproteomics_K332</td>
-      <td>9.090116e-06</td>
-    </tr>
-    <tr>
-      <th>12</th>
-      <td>SUPT16H_acetylproteomics_K674</td>
-      <td>9.347491e-06</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="Step-5:-Graph-Results">Step 5: Graph Results<a class="anchor-link" href="#Step-5:-Graph-Results">&#182;</a></h1>
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Now that we have eight acetylation sites that differ significantly between endometrioid and serous intensities, we will graph a couple of them using a boxplot and a stripplot in order to visually see the difference, as well as compare with normal cells.</p>
-
-</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">graphingSite</span> <span class="o">=</span> <span class="s1">&#39;FOXA2_acetylproteomics_K280&#39;</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">ttest_ind</span><span class="p">(</span><span class="n">endom</span><span class="p">[</span><span class="n">graphingSite</span><span class="p">],</span> <span class="n">serous</span><span class="p">[</span><span class="n">graphingSite</span><span class="p">]))</span>
-<span class="n">sns</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">clinical_attribute</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">graphingSite</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">clinical_and_acetylation</span><span class="p">,</span> <span class="n">showfliers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
-            <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Non_Tumor&quot;</span><span class="p">,</span> <span class="s2">&quot;Endometrioid&quot;</span><span class="p">,</span> <span class="s2">&quot;Serous&quot;</span><span class="p">])</span>
-<span class="n">sns</span><span class="o">.</span><span class="n">stripplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">clinical_attribute</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">graphingSite</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">clinical_and_acetylation</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;.3&#39;</span><span class="p">,</span> 
-              <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Non_Tumor&quot;</span><span class="p">,</span> <span class="s2">&quot;Endometrioid&quot;</span><span class="p">,</span> <span class="s2">&quot;Serous&quot;</span><span class="p">])</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">col_list</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -14907,57 +14728,34 @@ Adjusted p-value cutoff will be:  1.2703252032520325e-05
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Ttest_indResult(statistic=5.991702127182772, pvalue=3.89570439448459e-08)
+<pre>[&#39;CELA2B_proteomics&#39;, &#39;HNF4A_proteomics&#39;, &#39;FAM175B_proteomics&#39;, &#39;AURKA_proteomics&#39;, &#39;GPR156_proteomics&#39;, &#39;MDM4_proteomics&#39;, &#39;CUL9_proteomics&#39;, &#39;MDM2_proteomics&#39;, &#39;FBXW7_proteomics&#39;, &#39;RORC_proteomics&#39;, &#39;HOMER3_proteomics&#39;, &#39;CUL7_proteomics&#39;, &#39;FAM111A_proteomics&#39;]
 </pre>
 </div>
 </div>
 
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[8]:</div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>&lt;matplotlib.axes._subplots.AxesSubplot at 0x7fb9ae232650&gt;</pre>
-</div>
-
-</div>
-
-<div class="jp-OutputArea-child">
-
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedImage jp-OutputArea-output ">
-<img src="data:image/png;base64,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
-"
->
 </div>
 
 </div>
 
 </div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Now we call wrap_ttest, which is an accessory function in cptac.utils. It expects one column with a binary variable (this is why we crearted the 'TP53 Mutation Status' column earlier), and all other data as numeric. It will then run ttests on each column to determine if there is a statistically significant difference between the binary values. For us, it will identify if there are significantly different protein abundances between wildtype and mutated samples.</p>
 
 </div>
-
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[9]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">graphingSite</span> <span class="o">=</span> <span class="s1">&#39;TBL1XR1_acetylproteomics_K102&#39;</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">ttest_ind</span><span class="p">(</span><span class="n">endom</span><span class="p">[</span><span class="n">graphingSite</span><span class="p">],</span> <span class="n">serous</span><span class="p">[</span><span class="n">graphingSite</span><span class="p">]))</span>
-<span class="n">sns</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">clinical_attribute</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">graphingSite</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">clinical_and_acetylation</span><span class="p">,</span> <span class="n">showfliers</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> 
-            <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Non_Tumor&quot;</span><span class="p">,</span> <span class="s2">&quot;Endometrioid&quot;</span><span class="p">,</span> <span class="s2">&quot;Serous&quot;</span><span class="p">])</span>
-<span class="n">sns</span><span class="o">.</span><span class="n">stripplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">clinical_attribute</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">graphingSite</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">clinical_and_acetylation</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;.3&#39;</span><span class="p">,</span> 
-              <span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Non_Tumor&quot;</span><span class="p">,</span> <span class="s2">&quot;Endometrioid&quot;</span><span class="p">,</span> <span class="s2">&quot;Serous&quot;</span><span class="p">])</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Doing t-test comparisons</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">wrap_results</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">wrap_ttest</span><span class="p">(</span><span class="n">protdf</span><span class="p">,</span> <span class="s1">&#39;TP53 Mutation Status&#39;</span><span class="p">,</span> <span class="n">col_list</span><span class="p">)</span>
+<span class="c1">#This gives us back a dataframe with significant comparisons</span>
+
+<span class="k">if</span> <span class="n">wrap_results</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">wrap_results</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -14977,7 +14775,13 @@ Adjusted p-value cutoff will be:  1.2703252032520325e-05
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Ttest_indResult(statistic=-6.058405376720225, pvalue=2.8961545616585778e-08)
+<pre>Doing t-test comparisons
+
+         Comparison   P_Value
+0  AURKA_proteomics  0.000016
+
+
+
 </pre>
 </div>
 </div>
@@ -14985,13 +14789,58 @@ Adjusted p-value cutoff will be:  1.2703252032520325e-05
 <div class="jp-OutputArea-child">
 
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[9]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:152: RuntimeWarning: invalid value encountered in less_equal
+  reject = pvals &lt;= alphacBonf
+C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:256: RuntimeWarning: invalid value encountered in greater
+  pvals_corrected[pvals_corrected&gt;1] = 1
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Our t-test returned one protein whose levels were significantly changed by a mutation in TP53, Aurora Kinase, which has a known relationship with TP53 <a href="https://www.ncbi.nlm.nih.gov/pubmed/27933271">(link)</a>. Let's lot the data with Seaborn to show exactly how levels of aurora kinase change with our gene's mutation.</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[10]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">sns</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">protdf</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="s1">&#39;TP53 Mutation Status&#39;</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="s1">&#39;AURKA_proteomics&#39;</span><span class="p">,</span> <span class="n">showfliers</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">stripplot</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">protdf</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="s1">&#39;TP53 Mutation Status&#39;</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="s1">&#39;AURKA_proteomics&#39;</span><span class="p">,</span> <span class="n">jitter</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">dodge</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;.3&#39;</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[10]:</div>
 
 
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>&lt;matplotlib.axes._subplots.AxesSubplot at 0x7fb9aebd1810&gt;</pre>
+<pre>&lt;matplotlib.axes._subplots.AxesSubplot at 0x1b3e8cbaa88&gt;</pre>
 </div>
 
 </div>
@@ -15005,7 +14854,7 @@ Adjusted p-value cutoff will be:  1.2703252032520325e-05
 
 
 <div class="jp-RenderedImage jp-OutputArea-output ">
-<img src="data:image/png;base64,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
+<img src="data:image/png;base64,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
 "
 >
 </div>
@@ -15016,6 +14865,187 @@ Adjusted p-value cutoff will be:  1.2703252032520325e-05
 
 </div>
 
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>From this boxplot, we can see that there is a significant increase in aurora kinase levels with a mutation in TP53.</p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="Part-II:-Example-Using-ARID1A">Part II: Example Using ARID1A<a class="anchor-link" href="#Part-II:-Example-Using-ARID1A">&#182;</a></h1>
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>We will now look at ARID1A, which potentially affects the transcription of many genes through its function as a chromatin remodeling protein <a href="https://en.wikipedia.org/wiki/ARID1A">(Wikipedia)</a>.</p>
+
+</div>
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>In order to perform this analysis, we will use the same steps as we did earlier, only this time without separated code blocks. Because we are not sure which proteins might be affected, we will look for trans effects in all the proteomics data. Due to the high amount of comparisons, this will take a little bit of time. In the end, we will have a list of genes affected by ARID1A.</p>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[11]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">gene</span> <span class="o">=</span> <span class="s2">&quot;ARID1A&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Gene: &quot;</span><span class="p">,</span> <span class="n">gene</span><span class="p">)</span>
+
+<span class="c1"># Step 1: Create dataframe in order to do comparisons with wrap_ttest</span>
+<span class="n">protdf</span> <span class="o">=</span> <span class="n">en</span><span class="o">.</span><span class="n">join_omics_to_mutations</span><span class="p">(</span><span class="n">mutations_genes</span><span class="o">=</span><span class="p">[</span><span class="n">gene</span><span class="p">],</span> <span class="n">omics_df_name</span><span class="o">=</span><span class="n">omics</span><span class="p">)</span>
+<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">protdf</span><span class="p">[</span><span class="s1">&#39;Sample_Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Tumor&#39;</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">protdf</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Mutation_Status&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;Wildtype_Tumor&#39;</span><span class="p">:</span>
+        <span class="n">protdf</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span><span class="s1">&#39;ARID1A Mutation Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Mutated&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">protdf</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span><span class="s1">&#39;ARID1A Mutation Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Wildtype&#39;</span>
+
+        
+<span class="c1"># Step 2: Format the dataframe to set it up properly for our t-test</span>
+<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Mutation&quot;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Location&quot;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">gene</span><span class="o">+</span><span class="s2">&quot;_Mutation_Status&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">protdf</span> <span class="o">=</span> <span class="n">protdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;Sample_Status&quot;</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="c1">#Step 3: Make list of columns to be compared using t-tests</span>
+<span class="n">col_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">protdf</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+<span class="n">col_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;ARID1A Mutation Status&#39;</span><span class="p">)</span>
+
+    
+<span class="c1">#Step 4: Call wrap_ttest, pass in formatted dataframe, print results</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Doing t-test comparisons</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">wrap_results</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">wrap_ttest</span><span class="p">(</span><span class="n">protdf</span><span class="p">,</span> <span class="s1">&#39;ARID1A Mutation Status&#39;</span><span class="p">,</span> <span class="n">col_list</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">wrap_results</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">wrap_results</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>
+Gene:  ARID1A
+</pre>
+</div>
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>cptac warning: In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: 101 samples for the ARID1A gene (C:\Users\humbe\miniconda3\lib\site-packages\ipykernel_launcher.py, line 5)
+</pre>
+</div>
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Doing t-test comparisons
+
+</pre>
+</div>
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>C:\Users\humbe\miniconda3\lib\site-packages\numpy\core\fromnumeric.py:3584: RuntimeWarning: Degrees of freedom &lt;= 0 for slice
+  **kwargs)
+C:\Users\humbe\miniconda3\lib\site-packages\numpy\core\_methods.py:209: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+C:\Users\humbe\miniconda3\lib\site-packages\scipy\stats\_distn_infrastructure.py:903: RuntimeWarning: invalid value encountered in greater
+  return (a &lt; x) &amp; (x &lt; b)
+C:\Users\humbe\miniconda3\lib\site-packages\scipy\stats\_distn_infrastructure.py:903: RuntimeWarning: invalid value encountered in less
+  return (a &lt; x) &amp; (x &lt; b)
+C:\Users\humbe\miniconda3\lib\site-packages\scipy\stats\_distn_infrastructure.py:1912: RuntimeWarning: invalid value encountered in less_equal
+  cond2 = cond0 &amp; (x &lt;= _a)
+</pre>
+</div>
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>          Comparison       P_Value
+0  ARID1A_proteomics  1.025018e-10
+1   MAP1S_proteomics  1.010149e-07
+2    DPF2_proteomics  2.166609e-07
+3   KDM4B_proteomics  4.414547e-07
+4    RRM1_proteomics  4.455870e-07
+5  MAP7D3_proteomics  4.880890e-07
+6   CYTH3_proteomics  3.109396e-06
+7   CEP78_proteomics  3.749172e-06
+
+
+
+</pre>
+</div>
+</div>
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:152: RuntimeWarning: invalid value encountered in less_equal
+  reject = pvals &lt;= alphacBonf
+C:\Users\humbe\miniconda3\lib\site-packages\statsmodels\stats\multitest.py:256: RuntimeWarning: invalid value encountered in greater
+  pvals_corrected[pvals_corrected&gt;1] = 1
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Each of the proteins shown can be individually analyzed in the same manner that we showed above. The reason for the relatively small list of proteins shown here is that our wrap_ttest does Bonferroni correction, so the cutoff for "significance" is very strict. For further ideas about how to analyze larger lists of genes, refer to usecase 5.</p>
+
+</div>
 </div>
 </body>
 

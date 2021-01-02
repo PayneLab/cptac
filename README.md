@@ -1,4 +1,4 @@
-# cptac
+# `cptac`: Python packaging for CPTAC data
 This project is intended to facilitate accessing and interacting with cancer data from the National Cancer Institute CPTAC consortium, which characterizes and studies the proteogenomic landscape of tumors. These cancer studies are downloadable via our Python package as native dataframe objects and can therefore be integrated very quickly and easily with other Python-based data analysis tools. Follow our walkthrough tutorials for a demonstration of ways to use our system.
 
 Our package is publicly available <a href="https://pypi.org/project/cptac/">on the Python Package Index (PyPI)</a>. Setup instructions can be found in <a href="https://github.com/PayneLab/cptac/blob/master/docs/setup.md">docs/setup.md</a>. The quick answer is that this Python package is installed via pip and then is available to all your python software. At a command line enter the following:
