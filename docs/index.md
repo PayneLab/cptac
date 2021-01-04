@@ -3,7 +3,7 @@ This software provides easy access to cancer data from the National Cancer Insti
 ```
 pip install cptac
 ```
-See the Installation section below if you have further questions.
+See the [Installation section below](https://paynelab.github.io/cptac/#installation) if you have further questions.
 
 The package gives you the data as `pandas` `DataFrame` objects in Python. If you are using R, `reticulate` converts the tables to `data.frame` objects. By providing the tables natively in your programming environment, we eliminate the need for parsing and formatting, allowing you to quickly feed the data into whatever analysis code you have written. Follow our walkthrough tutorials and use cases for examples of how to use the software.
 
