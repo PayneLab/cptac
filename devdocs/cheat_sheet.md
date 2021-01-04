@@ -27,7 +27,7 @@ To install the PyPI version of cptac on your machine (less up to date):
 To run Jupyter Notebooks to look at Python Notebooks:
 1. Open your Anaconda prompt or terminal
 2. Activate your development environment
-3. Navigate to the directory with the Python notebooks you want to look at (for example, the cptac/docs folder if you want to look at the use cases and tutorials)
+3. Navigate to the directory with the Python notebooks you want to look at (for example, the cptac/notebooks folder if you want to look at the use cases and tutorials)
 4. Run this command: `jupyter notebook` (singular `notebook`, not `notebooks`)
 5. This will start a local Jupyter server in that terminal, and open the Jupyter interface in a tab of your default web browser.
 
