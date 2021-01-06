@@ -29,7 +29,7 @@ Our goal is that our documentation will make this software and data accessible b
 
 You can access the tutorials and use cases as static webpages using the links below. They were originally written in Python as interactive Jupyter notebooks, so if you want to run them interactively with Jupyter you can download the notebooks from the [notebooks folder](https://github.com/PayneLab/cptac/tree/master/notebooks) on the GitHub repository. If you are unfamiliar with Jupyter, follow the installation and usage instructions given [here](https://jupyter.org/install) on the Jupyter website. You will then be able to run our tutorials as interactive, exploratory data analyses. If you want to run them interactively without installing anything, please visit our Binder site which hosts the notebooks [here](https://mybinder.org/v2/gh/PayneLab/cptac/master?filepath=%2Fnotebooks).
 
-#### Tutorials
+### Tutorials
 - [Tutorial 1: CPTAC data introduction](https://paynelab.github.io/cptac/tutorial01_data_intro.html)
 - [Tutorial 2: Using pandas to work with cptac dataframes](https://paynelab.github.io/cptac/tutorial02_pandas.html)
 - [Tutorial 3: Joining dataframes with cptac](https://paynelab.github.io/cptac/tutorial03_joining_dataframes.html)
@@ -37,7 +37,7 @@ You can access the tutorials and use cases as static webpages using the links be
 - [Tutorial 5: How to keep up to date with new package and data releases](https://paynelab.github.io/cptac/tutorial05_updates.html)
 - [Tutorial 6: Easy integration with R](https://paynelab.github.io/cptac/tutorial06_cptac_in_R.html)
 
-#### Use cases
+### Use cases
 - [Use Case 1: Comparing transcriptomics and proteomics](https://paynelab.github.io/cptac/usecase01_omics.html)
 - [Use Case 2: Correlation between clinical attributes](https://paynelab.github.io/cptac/usecase02_clinical_attributes.html)
 - [Use Case 3: Associating clinical variables with omics data](https://paynelab.github.io/cptac/usecase03_clinical_and_acetylation.html)
