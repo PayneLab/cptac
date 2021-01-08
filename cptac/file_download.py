@@ -91,7 +91,6 @@ def download(dataset, version="latest", redownload=False):
     # Download the files
     password_protected_datasets = [
         "gbm",
-        "hnscc",
         "lscc",
         ]
     password = None
