@@ -230,9 +230,7 @@ def test_genotype_hnscc_KRAS():
     print_test_result(PASS)
 
 print("\nRunning tests:\n")
- 
-print("Testing getters...")
-ttest_genotype_ccrcc_KRAS()
+test_genotype_ccrcc_KRAS()
 test_genotype_gbm_KRAS()
 test_genotype_hnscc_KRAS()
 
