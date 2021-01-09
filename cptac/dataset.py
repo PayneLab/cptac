@@ -300,10 +300,13 @@ class Dataset:
                     mutations = "No_Mutation"
 
                 return mutations
-
-
+            
             cnv = self.get_CNV()
-            gene_cnv = cnv[["PTEN"]]
+            #drop the database index from ccrcc and brca
+            if isinstance(cnv.keys(), pd.core.indexes.multi.MultiIndex):
+                drop = ['Database_ID']
+                cnv = ut.reduce_multiindex(df=cnv, levels_to_drop=drop)       
+            gene_cnv = cnv[[mutations_genes]]
             mutation_col = gene_cnv.apply(add_del_and_amp_no_somatic, axis=1)
             df = gene_cnv.assign(Mutation = mutation_col)
             return df
