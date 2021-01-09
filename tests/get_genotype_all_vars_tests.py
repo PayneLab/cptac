@@ -229,6 +229,11 @@ def test_genotype_hnscc_KRAS():
     
     print_test_result(PASS)
 
+    
+k = cptac.Ccrcc()
+g = cptac.Gbm()
+h = cptac.Hnscc()
+
 print("\nRunning tests:\n")
 test_genotype_ccrcc_KRAS()
 test_genotype_gbm_KRAS()
