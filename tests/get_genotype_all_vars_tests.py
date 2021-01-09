@@ -114,8 +114,8 @@ def check_getter(df, exp_dim, exp_headers, coordinates, values):
 
 def test_genotype_ccrcc_KRAS():
     
-    # test when there is no data in the somatic mutations df
-    print('Running get_genotype_all_vars...')
+    # test when there is no data in the somatic mutations df for a gene
+    print('Running test_genotype_ccrcc_KRAS...')
     df = k.get_genotype_all_vars('KRAS')
     
     dimensions = (110, 2)
@@ -153,8 +153,8 @@ def test_genotype_ccrcc_KRAS():
     
 def test_genotype_gbm_KRAS():
     
-    # test when there is no data in the somatic mutations df
-    print('Running get_genotype_all_vars...')
+    # test when there is no data in the somatic mutations df for a gene
+    print('Running test_genotype_gbm_KRAS...')
     df = g.get_genotype_all_vars('KRAS')
     
     dimensions = (98, 2)
@@ -192,8 +192,8 @@ def test_genotype_gbm_KRAS():
     
     
 def test_genotype_hnscc_KRAS():
-    # test when there is no data in the somatic mutations df
-    print('Running get_genotype_all_vars...')
+    # test when there is no data in the somatic mutations df for a gene
+    print('Running test_genotype_hnscc_KRAS...')
     df = h.get_genotype_all_vars('KRAS')
     
     dimensions = (109, 2)
