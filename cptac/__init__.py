@@ -34,7 +34,7 @@ from .ovarian import Ovarian
 def list_datasets():
     """List all available datasets."""
     col_names = ["Description", "Data reuse status", "Publication link"]
-    col_index = pd.Index(data=col_names, name="Dataset name")
+    col_index = pd.Index(data=col_names)
     datasets = {
         "Brca": ["breast cancer", "no restrictions", "https://pubmed.ncbi.nlm.nih.gov/33212010/"],
         "Ccrcc": ["clear cell renal cell carcinoma (kidney)", "no restrictions", "https://pubmed.ncbi.nlm.nih.gov/31675502/"],
@@ -48,8 +48,8 @@ def list_datasets():
         }
     dataset_df = pd.DataFrame(data=datasets, index=col_index)
     dataset_df = dataset_df.transpose()
-    dataset_df.index.name = "" # Giving the index a name, even though it's an emtpy string, causes a space to be printed between the column names and the first row, which improves readability.
-    print(f"Available datasets:\n\n{dataset_df}")
+    dataset_df.index.name = "Dataset name"
+    return dataset_df
 
 def embargo():
     """Open CPTAC embargo details in web browser."""

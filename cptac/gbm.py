@@ -113,7 +113,7 @@ class Gbm(Dataset):
                 split_genes = df["site"].str.rsplit("-", n=1,expand=True)  # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
                 df = df.drop(columns="site")
                 df = df.assign(Site=split_genes[1])
-                df["Site"] = df["Site"].str.replace(r"k", r"")  # Get rid of all lowercase k delimeters in the sites
+                df["Site"] = df["Site"].str.replace(r"k", r"", regex=True)  # Get rid of all lowercase k delimeters in the sites
 
                 # Create the multiindex
                 df = df.rename(columns={
@@ -169,7 +169,7 @@ class Gbm(Dataset):
                 split_genes = df["site"].str.rsplit("-", n=1, expand=True) # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
                 df = df.drop(columns="site")
                 df = df.assign(Site=split_genes[1])
-                df["Site"] = df["Site"].str.replace(r"[sty]", r"") # Get rid of all lowercase s, t, and y delimeters in the sites
+                df["Site"] = df["Site"].str.replace(r"[sty]", r"", regex=True) # Get rid of all lowercase s, t, and y delimeters in the sites
 
                 if self._version == "1.0":
                     df = df.rename(columns={"gene": "Name", "peptide": "Peptide"})

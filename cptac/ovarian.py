@@ -107,7 +107,7 @@ class Ovarian(Dataset):
                     split_genes = df["site"].str.rsplit("-", n=1, expand=True) # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
                     df = df.drop(columns=["hgnc_symbol", "site"]) # hgnc_symbol is a duplicate of split_genes[0], and site is now in split_genes and will be re-inserted differently
                     df = df.assign(Name=split_genes[0], Site=split_genes[1])
-                    df["Site"] = df["Site"].str.replace(r"[sty]", r"") # Get rid of all lowercase s, t, and y delimeters in the sites
+                    df["Site"] = df["Site"].str.replace(r"[sty]", r"", regex=True) # Get rid of all lowercase s, t, and y delimeters in the sites
                     df = df.rename(columns={"refseq_peptide": "Database_ID"})
                     df = df.set_index(["Name", "Site", "Peptide", "Database_ID"]) # Turn these columns into a multiindex
 

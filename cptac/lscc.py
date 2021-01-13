@@ -111,7 +111,7 @@ class Lscc(Dataset):
                 df = df[gene_filter]
 
                 # Prepare some columns we'll need later for the multiindex
-                df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "") # Get rid of all lowercase delimeters and whitespace in the sites
+                df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "", regex=True) # Get rid of all lowercase delimeters and whitespace in the sites
                 df = df.rename(columns={
                 "geneSymbol": "Name",
                 "variableSites": "Site",
@@ -346,7 +346,7 @@ class Lscc(Dataset):
                 df = df[gene_filter]
 
                 # Prepare some columns we'll need later for the multiindex
-                df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "") # Get rid of all lowercase delimeters and whitespace in the sites
+                df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "", regex=True) # Get rid of all lowercase delimeters and whitespace in the sites
                 df = df.rename(columns={
                     "geneSymbol": "Name",
                     "variableSites": "Site",
@@ -417,7 +417,7 @@ class Lscc(Dataset):
                 gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
                 # Prepare some columns we'll need later for the multiindex
-                df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "") # Get rid of all lowercase delimeters and whitespace in the sites
+                df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "", regex=True) # Get rid of all lowercase delimeters and whitespace in the sites
                 df = df.rename(columns={
                     "geneSymbol": "Name",
                     "variableSites": "Site",
@@ -504,8 +504,8 @@ class Lscc(Dataset):
             df = df.reset_index()
 
             # Replace all '.' with '-'
-            df["Patient_ID"] = df["Patient_ID"].str.replace(r"\.", "-")
-            df["Patient_ID"] = df["Patient_ID"].str.replace(r"-N$", ".N") # If there's a "-N" at the end, it's part of the normal identifier, which we want to actually be ".N"
+            df["Patient_ID"] = df["Patient_ID"].str.replace(r"\.", "-", regex=True)
+            df["Patient_ID"] = df["Patient_ID"].str.replace(r"-N$", ".N", regex=True) # If there's a "-N" at the end, it's part of the normal identifier, which we want to actually be ".N"
 
             # Set the index back to Patient_ID
             df = df.set_index("Patient_ID")

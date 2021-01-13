@@ -16,6 +16,9 @@ import bs4
 from .file_tools import *
 from .exceptions import NoInternetError
 
+USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
+HEADERS = {'User-Agent': USER_AGENT}
+
 def download(dataset, version="latest", redownload=False):
     """Download data files for the specified datasets. Defaults to downloading latest version on server.
 
@@ -89,19 +92,10 @@ def download(dataset, version="latest", redownload=False):
         files_to_download = list(version_index.keys())
 
     # Download the files
-    password_protected_datasets = [
-        "gbm",
-        "lscc",
-        ]
     password = None
-
     total_files = len(files_to_download)
-    for data_file in files_to_download:
 
-        if (dataset in password_protected_datasets) and (password is None):
-            password = getpass.getpass(prompt=f'Password for {dataset} dataset: ') # We manually specify the prompt parameter so it shows up in Jupyter Notebooks
-            print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
-            print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
+    for data_file in files_to_download:
 
         file_index = version_index.get(data_file)
         server_hash = file_index.get("hash")
@@ -113,7 +107,10 @@ def download(dataset, version="latest", redownload=False):
         downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
 
         while downloaded_path == "wrong_password":
-            password = getpass.getpass(prompt="Wrong password. Try again: ")
+            if password is None:
+                password = getpass.getpass(prompt=f'Password for {dataset} dataset: ') # We manually specify the prompt parameter so it shows up in Jupyter Notebooks
+            else:
+                password = getpass.getpass(prompt="Wrong password. Try again: ")
             print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
             print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
 
@@ -176,7 +173,7 @@ def download_text(url):
     str: The downloaded text.
     """
     try:
-        response = requests.get(url, allow_redirects=True)
+        response = requests.get(url, headers=HEADERS, allow_redirects=True)
         response.raise_for_status() # Raises a requests HTTPError if the response code was unsuccessful
     except requests.RequestException: # Parent class for all exceptions in the requests module
         raise NoInternetError("Insufficient internet. Check your internet connection.") from None
@@ -213,7 +210,7 @@ def download_file(url, path, server_hash, password=None, file_message=None, file
     for i in range(2):
         try:
             if password is None:
-                response = requests.get(url, allow_redirects=True)
+                response = requests.get(url, headers=HEADERS, allow_redirects=True)
             else: # The file is password protected
                 with requests.Session() as session: # Use a session object to save cookies
                     # Construct the urls for our GET and POST requests
@@ -221,7 +218,7 @@ def download_file(url, path, server_hash, password=None, file_message=None, file
                     post_url = get_url.replace("https://byu.box.com/shared", "https://byu.app.box.com/public")
 
                     # Send initial GET request and parse the request token out of the response
-                    get_response = session.get(get_url) 
+                    get_response = session.get(get_url, headers=HEADERS) 
                     soup = bs4.BeautifulSoup(get_response.text, "html.parser")
                     token_tag = soup.find(id="request_token")
                     token = token_tag.get("value")
@@ -230,7 +227,7 @@ def download_file(url, path, server_hash, password=None, file_message=None, file
                     payload = {
                         'password': password,
                         'request_token': token}
-                    response = session.post(post_url, data=payload)
+                    response = session.post(post_url, headers=HEADERS, data=payload)
 
             response.raise_for_status() # Raises a requests.HTTPError if the response code was unsuccessful
         except requests.RequestException: # Parent class for all exceptions in the requests module

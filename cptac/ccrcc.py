@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 import os
 import warnings
+
 from .dataset import Dataset
 from .dataframe_tools import *
 from .exceptions import FailedReindexWarning, ReindexMapError
@@ -151,9 +152,12 @@ class Ccrcc(Dataset):
                 self._data["proteomics"] = df
             
             elif file_name == "Clinical Table S1.xlsx":
-                df = pd.read_excel(file_path, sheet_name="ccrcc_clinical_characteristics", index_col=0) # This file has multiple sheets, but we only want the one
+                df = pd.\
+                    read_excel(file_path, sheet_name="ccrcc_clinical_characteristics", index_col=0).\
+                    dropna(how="all", axis=0).\
+                    dropna(how="all", axis=1)
                 df.index.name = "Patient_ID" # The index is currently "case_id", but we call that "Patient_ID"
-                clinical_dfs["authoritative_clinical"] = df.copy()
+                clinical_dfs["authoritative_clinical"] = df
             
             elif file_name == "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz":
                 df = pd.read_csv(file_path, sep='\t', dtype={"PUBMED":object}) # "PUBMED" column has mixed types, so we specify object as the dtype to prevent a warning from printing. We don't actually use the column, so that's all we need to do.
@@ -217,17 +221,28 @@ class Ccrcc(Dataset):
                 self._data["transcriptomics"] = df
             
             elif file_name == "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx":
-                clinical_sheets = pd.read_excel(file_path, # This file has multiple sheets, but we only need the ones specified on the next line.
-                    sheet_name=['Patient_Clinical_Attributes', 'Other_Medical_Information', 'Specimen_Attributes'],
-                    index_col=0,
-                    usecols=lambda x: x != "tumor_code") # Don't load the tumor_code column in any of them--it's just "CCRCC" for every row.
+
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore", "Unknown extension is not supported and will be removed") # This warning is just due to some formatting on the spreadsheet. We don't need to worry about it.
+                    clinical_sheets = pd.read_excel(file_path,
+                        sheet_name=['Patient_Clinical_Attributes', 'Other_Medical_Information', 'Specimen_Attributes'],
+                        index_col=0,
+                        usecols=lambda x: x != "tumor_code") # Don't load the tumor_code column in any of them--it's just "CCRCC" for every row.
 
                 for sheet, df in clinical_sheets.items(): # Put them in the clinical_dfs dictionary for processing later
                     df.index.name = "Patient_ID" # The indices are currently "case_id", but we call that "Patient_ID"
-                    clinical_dfs[sheet] = df.copy()
+                    clinical_dfs[sheet] = df
 
             elif file_name == "Table S7.xlsx":
-                immune_groups = pd.read_excel(file_path, sheet_name="xCell Signatures", index_col=0).transpose()
+                immune_groups = pd.\
+                    read_excel(
+                        file_path, 
+                        sheet_name="xCell Signatures", 
+                        index_col = 0, 
+                        header=None,
+                        skiprows=range(0, 3)
+                    ).\
+                    transpose()
                 immune_groups = immune_groups[["Samples", "Immune Group"]] # We only need these columns
                 immune_groups = immune_groups.set_index("Samples")
 
@@ -277,7 +292,7 @@ class Ccrcc(Dataset):
 
         medical_info = clinical_dfs["Other_Medical_Information"] # We're going to join one column from this to the clinical dataframe, and later take some other columns to make a medical_history dataframe
         medication_col = medical_info["medication_name"]
-        medication_col = medication_col.str.replace("|", ",")
+        medication_col = medication_col.str.replace("|", ",", regex=False)
         clinical = clinical.assign(patient_medications=medication_col) # Add it in as a new "patient_medications" column
         clinical = clinical.drop(columns=["MS.Directory.Name", "Batch", "Data.Set", "TMT.Channel", "Mass.Spectrometer", "Mass.Spectrometer.Operator", "Set.A", "Set.B", "tissue_type"]) # tissue_type column is a duplicate of Sample_Tumor_Normal
 

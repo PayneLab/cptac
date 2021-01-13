@@ -68,7 +68,7 @@ class Brca(Dataset):
                 df = df[df["GeneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for GeneSymbol, so we'll use that to filter them out.
 
                 # Prepare some columns we'll need later for the multiindex
-                df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "") # Get rid of all lowercase delimeters and whitespace in the sites
+                df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "", regex=True) # Get rid of all lowercase delimeters and whitespace in the sites
                 df = df.rename(columns={
                     "GeneSymbol": "Name",
                     "variableSites": "Site",
@@ -113,7 +113,7 @@ class Brca(Dataset):
                 df = df[df["GeneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for GeneSymbol, so we'll use that to filter them out.
 
                 # Prepare some columns we'll need later for the multiindex
-                df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "") # Get rid of all lowercase delimeters and whitespace in the sites
+                df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "", regex=True) # Get rid of all lowercase delimeters and whitespace in the sites
                 df = df.rename(columns={
                     "GeneSymbol": "Name",
                     "variableSites": "Site",

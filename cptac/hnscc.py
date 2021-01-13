@@ -86,8 +86,8 @@ class Hnscc(Dataset):
                 df = df.transpose()
 
                 # Reformat patient ids
-                df.index = df.index.str.replace(r'-T$', '', 1)
-                df.index = df.index.str.replace(r'-N$', '.N', 1)
+                df.index = df.index.str.replace(r'-T$', '', 1, regex=True)
+                df.index = df.index.str.replace(r'-N$', '.N', 1, regex=True)
 
                 self._data["miRNA"] = df
 
@@ -103,11 +103,11 @@ class Hnscc(Dataset):
                 df.columns.name=None
 
                 if self._version == "0.1":
-                    df.index = df.index.str.replace(r'\.', '-', 1)
-                    df.index = df.index.str.replace(r'\.T$', '', 1)
+                    df.index = df.index.str.replace(r'\.', '-', 1, regex=True)
+                    df.index = df.index.str.replace(r'\.T$', '', 1, regex=True)
                 elif self._version == "2.0":
-                        df.index = df.index.str.replace(r'-T$', '', 1)
-                        df.index = df.index.str.replace(r'-N$', '.N', 1)
+                        df.index = df.index.str.replace(r'-T$', '', 1, regex=True)
+                        df.index = df.index.str.replace(r'-N$', '.N', 1, regex=True)
 
                 df.index.name = "Patient_ID"
                 self._data["transcriptomics"] = df
@@ -120,12 +120,12 @@ class Hnscc(Dataset):
                 df.columns.name=None
 
                 if self._version == "0.1":
-                    df.index = df.index.str.replace(r'\.', '-', 1) # We want all the patientIDs to have the the format C3L-00977, and these have the form C3L.00977.N, so we need to replace the first "." with a "-"
-                    df.index = df.index.str.replace(r'\.T$', '', 1)
+                    df.index = df.index.str.replace(r'\.', '-', 1, regex=True) # We want all the patientIDs to have the the format C3L-00977, and these have the form C3L.00977.N, so we need to replace the first "." with a "-"
+                    df.index = df.index.str.replace(r'\.T$', '', 1, regex=True)
 
                 elif self._version == "2.0":
-                    df.index = df.index.str.replace(r'-T$', '', 1)
-                    df.index = df.index.str.replace(r'-N$', '.N', 1)
+                    df.index = df.index.str.replace(r'-T$', '', 1, regex=True)
+                    df.index = df.index.str.replace(r'-N$', '.N', 1, regex=True)
 
                 df.index.name = "Patient_ID"
                 self._data["circular_RNA"] = df
@@ -202,9 +202,9 @@ class Hnscc(Dataset):
                 df.index.name = "Patient_ID"
 
                 if self._version == "2.0":
-                    df.index = df.index.str.replace(r'-T$', '', 1)
-                    df.index = df.index.str.replace(r'-N$', '.N', 1)
-                    df.index = df.index.str.replace(r'-C$', '.C', 1) #-C is cored NAT samples
+                    df.index = df.index.str.replace(r'-T$', '', 1, regex=True)
+                    df.index = df.index.str.replace(r'-N$', '.N', 1, regex=True)
+                    df.index = df.index.str.replace(r'-C$', '.C', 1, regex=True) #-C is cored NAT samples
 
                 # Once the files are formatted correctly load them into self._data
                 if file_name == "Proteomics_DIA_Gene_level_Normal.cct.gz":
@@ -240,9 +240,9 @@ class Hnscc(Dataset):
                 df = df.set_index(["Name", "Site", "Peptide", "Database_ID"]) # This will create a multiindex from these columns, in this order.
                 df = df.sort_index()
                 df = df.transpose()
-                df.index = df.index.str.replace(r'-T$', '', 1)
-                df.index = df.index.str.replace(r'-N$', '.N', 1)
-                df.index = df.index.str.replace(r'-C$', '.C', 1) #-C is cored NAT samples
+                df.index = df.index.str.replace(r'-T$', '', 1, regex=True)
+                df.index = df.index.str.replace(r'-N$', '.N', 1, regex=True)
+                df.index = df.index.str.replace(r'-C$', '.C', 1, regex=True) #-C is cored NAT samples
                 df = df.sort_index()
                 self._data["phosphoproteomics"] = df
 
