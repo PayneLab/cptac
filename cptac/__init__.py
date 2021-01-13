@@ -12,6 +12,7 @@
 import pandas as pd
 import webbrowser
 import os.path as path
+import io
 import sys
 import warnings
 
@@ -33,23 +34,15 @@ from .ovarian import Ovarian
 
 def list_datasets():
     """List all available datasets."""
-    col_names = ["Description", "Data reuse status", "Publication link"]
-    col_index = pd.Index(data=col_names)
-    datasets = {
-        "Brca": ["breast cancer", "no restrictions", "https://pubmed.ncbi.nlm.nih.gov/33212010/"],
-        "Ccrcc": ["clear cell renal cell carcinoma (kidney)", "no restrictions", "https://pubmed.ncbi.nlm.nih.gov/31675502/"],
-        "Colon": ["colorectal cancer", "no restrictions", "https://pubmed.ncbi.nlm.nih.gov/31031003/"],
-        "Endometrial": ["endometrial carcinoma (uterine)", "no restrictions", "https://pubmed.ncbi.nlm.nih.gov/32059776/"],
-        "Gbm": ["glioblastoma", "password access only", "unpublished"],
-        "Hnscc": ["head and neck", "password access only", "unpublished"],
-        "Lscc": ["lung squamous cell carcinoma", "password access only", "unpublished"],
-        "Luad": ["lung adenocarcinoma", "no restrictions", "https://pubmed.ncbi.nlm.nih.gov/32649874/"],
-        "Ovarian": ["high grade serous ovarian cancer", "no restrictions", "https://pubmed.ncbi.nlm.nih.gov/27372738/"],
-        }
-    dataset_df = pd.DataFrame(data=datasets, index=col_index)
-    dataset_df = dataset_df.transpose()
-    dataset_df.index.name = "Dataset name"
-    return dataset_df
+
+    dataset_list_url = "https://byu.box.com/shared/static/5vwsvgu8fyzao0pb7rx8lt26huofcdax.tsv"
+
+    try:
+        dataset_list_text = _download_text(dataset_list_url)
+    except NoInternetError:
+        raise NoInternetError("Insufficient internet to download available dataset info. Check your internet connection.") from None
+
+    return pd.read_csv(io.StringIO(dataset_list_text), sep="\t", index_col=0)
 
 def embargo():
     """Open CPTAC embargo details in web browser."""
@@ -100,4 +93,3 @@ else:
     local_version = version()
     if remote_version != local_version:
         warnings.warn(f"Your version of cptac ({local_version}) is out-of-date. Latest is {remote_version}. Please run 'pip install --upgrade cptac' to update it.", OldPackageVersionWarning, stacklevel=2)
-
