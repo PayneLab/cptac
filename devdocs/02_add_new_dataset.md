@@ -40,7 +40,9 @@
     1. The name of the class for the new dataset should be the dataset's name or acronym in UpperCamelCase. For example, the endometrial dataset's class is `Endometrial`; the BRCA dataset's class is `Brca`; and the ccRCC dataset's class is `Ccrcc`.
     2. See child_dataset_template.py for more info.
 3. At the top of `cptac/__init__.py`, add a line to import the dataset class from its file, using the lowercase file name and the UpperCamelCase dataset name (e.g. `from .ccrcc import Ccrcc`)
-4. Add the dataset and its associated info to cptac.list_datasets()
+4. Update metadata:
+    1. In the cptac/file_download.py file, add the lowercase acronym for the dataset to the list of all datasets, which list is named `datasets`, at the beginning of the `download` function.
+    2. On Box, update the metadata table located at CPTAC/cptac/datasets.tsv with the info for the new dataset.
 5. Make sure all dfs in `self._valid_metatdata_dfs` and `self._valid_omics_dfs` in dataset.py are valid as metadata or omics dfs, respectively, for the utilities functions. If not, override those lists for the dataset class.
 6. Add the new dataset name to the list of all datasets at the very beginning of the `download` function in `cptac/file_download.py` (located within the `if` statement that handles the case where the user passes `"all"` for the `dataset` parameter).
 7. If the dataset is password protected, add it to the `password_protected_datasets` list in the `download` function in the `cptac/file_download.py` file. Also make sure it has a password access only warning at the end of its `__init__` function.
