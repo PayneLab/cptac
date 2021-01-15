@@ -9,9 +9,19 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from .pdcluad import PdcLuad
+
 class PancanLuad(PancanDataset):
 
     def __init__(self, versions="latest", no_internet=False):
         """Load all the data sources with LUAD data and provide an interface to them."""
 
-        super().__init__(cancer_type="luad", versions=versions, no_internet=no_internet)
+        super().__init__(cancer_type="pancanluad", versions=versions, no_internet=no_internet)
+
+        def get_version(source):
+            if versions == "latest":
+                return versions
+            else:
+                return versions[source]
+
+        self._datasets["pdc"] = PdcLuad(no_internet, version=get_version("pdc"))

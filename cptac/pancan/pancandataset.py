@@ -17,9 +17,11 @@ class PancanDataset:
 
     def __init__(self, cancer_type, versions, no_internet):
         """Initialize variables for a PancanDataset object."""
-        # Assumed instance variables:
-        # self._datasets = {}
 
+        self._cancer_type = cancer_type
+        self._datasets = {} # Child class __init__ needs to fill this
+
+    # Data getters
     def get_clinical(self, source, tissue_type="both"):
         """Get the clinical dataframe from the specified data source."""
         return self._get_dataframe("clinical", source, tissue_type)
@@ -28,6 +30,10 @@ class PancanDataset:
         """Get the proteomics dataframe from the specified data source."""
         return self._get_dataframe("clinical", source, tissue_type)
 
+    # Help functions
+    def get_cancer_type(self)
+        return self._cancer_type
+
     # "Private" methods
     def _get_dataframe(self, name, source, tissue_type="both"):
         """Check that a given dataframe from a given source exists, and return a copy if it does."""
@@ -35,4 +41,4 @@ class PancanDataset:
         if source in self._datasets.keys():
             return self._datasets[source]._get_dataframe(name, tissue_type)
         else:
-            raise DataTypeNotInSourceError(f"{name} dataframe not available from source {source}.")
+            raise DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")

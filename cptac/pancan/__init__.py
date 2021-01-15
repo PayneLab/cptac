@@ -12,14 +12,3 @@
 import pandas as pd
 
 from .downloadpdc import _pdc_download_cancer_type
-
-def list_datasets():
-    """List all available datasets."""
-    col_names = ["Description", "Data reuse status", "Publication link"]
-    col_index = pd.Index(data=col_names, name="Dataset name")
-    datasets = {
-        }
-    dataset_df = pd.DataFrame(data=datasets, index=col_index)
-    dataset_df = dataset_df.transpose()
-    dataset_df.index.name = "" # Giving the index a name, even though it's an emtpy string, causes a space to be printed between the column names and the first row, which improves readability.
-    print(f"Available datasets:\n\n{dataset_df}")

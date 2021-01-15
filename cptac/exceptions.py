@@ -75,6 +75,10 @@ class PancanError(CptacError):
     """Base class for cptac.pancan specific exceptions."""
     pass
 
+class DataSourceNotFoundError(PancanError):
+    """They requested a data source that we don't have."""
+    pass
+
 class DataTypeNotInSourceError(PancanError):
     """The source they requested does not have the data type they requested."""
     pass
