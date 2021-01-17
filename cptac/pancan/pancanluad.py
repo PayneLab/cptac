@@ -14,4 +14,4 @@ class PancanLuad(PancanDataset):
     def __init__(self, versions="latest", no_internet=False):
         """Load all the data sources with LUAD data and provide an interface to them."""
 
-        super().__init__(cancer_type="luad", versions=versions, no_internet=no_internet)
+        super().__init__(cancer_type="pancanluad", versions=versions, no_internet=no_internet)
