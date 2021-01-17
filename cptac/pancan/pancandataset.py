@@ -17,6 +17,7 @@ class PancanDataset:
 
     def __init__(self, cancer_type, versions, no_internet):
         """Initialize variables for a PancanDataset object."""
+        pass
         # Assumed instance variables:
         # self._datasets = {}
 
