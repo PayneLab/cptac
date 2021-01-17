@@ -9,6 +9,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from .pancandataset import PancanDataset
 from .bcmbrca import BcmBrca
 
 class PancanBrca(PancanDataset):
@@ -18,4 +19,10 @@ class PancanBrca(PancanDataset):
 
         super().__init__(cancer_type="pancanbrca", versions=versions, no_internet=no_internet)
 
-        self._datasets["bcm"] = BcmBrca(no_internet=no_internet, version=
+        def get_version(source):
+            if versions == "latest":
+                return versions
+            else:
+                return versions[source]
+
+        self._datasets["bcm"] = BcmBrca(no_internet=no_internet, version=get_version("bcm"))

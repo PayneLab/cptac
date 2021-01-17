@@ -28,10 +28,14 @@ class PancanDataset:
 
     def get_proteomics(self, source, tissue_type="both"):
         """Get the proteomics dataframe from the specified data source."""
-        return self._get_dataframe("clinical", source, tissue_type)
+        return self._get_dataframe("proteomics", source, tissue_type)
+
+    def get_transcriptomics(self, source, tissue_type="both"):
+        """Get the proteomics dataframe from the specified data source."""
+        return self._get_dataframe("transcriptomics", source, tissue_type)
 
     # Help functions
-    def get_cancer_type(self)
+    def get_cancer_type(self):
         return self._cancer_type
 
     # "Private" methods
@@ -41,4 +45,4 @@ class PancanDataset:
         if source in self._datasets.keys():
             return self._datasets[source]._get_dataframe(name, tissue_type)
         else:
-            raise DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
+            raise ex.DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")

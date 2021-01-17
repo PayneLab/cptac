@@ -15,12 +15,12 @@ import os
 import warnings
 import datetime
 
-from cptac.dataset import DataSet
+from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class BcmBrca(DataSet):
+class BcmBrca(Dataset):
 
     def __init__(self, no_internet, version):
         """Load all of the bcmbrca dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -30,7 +30,7 @@ class BcmBrca(DataSet):
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
 
-        # Set some needed variables, and pass them to the parent DataSet class __init__ function
+        # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
         valid_versions = ["0.0"]
@@ -55,26 +55,30 @@ class BcmBrca(DataSet):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
+            if file_name == "BRCA-gene_RSEM_tumor_normal_UQ_log2(x+1)_BCM.txt.gz":
+                df = pd.read_csv(file_path, sep="\t")
+                self._data["transcriptomics"] = df
+
             ###FILL: Insert if/elif statements to parse all data files. Example:
             ###START EXAMPLE CODE###############################################
-            if file_name == "awesome_omics_data.tsv": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.drop(columns=["columns", "we", "don't", "want"])
-                df = df.do_some_formatting_thing()
-
-                df = df.sort_index()
-                df = df.transpose()
-                self._data["awesomeomics"] = df
-
-            elif file_name == "other_data_file.tsv":
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.drop(columns=["columns", "we", "don't", "want"])
-                df = df.super_crazy_dataframe_formatting_function()
-                df = df.even_crazier()
-
-                df = df.sort_index()
-                df = df.transpose()
-                self._data["lessawesomeomics"] = df
+#            if file_name == "awesome_omics_data.tsv": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
+#                df = pd.read_csv(file_path, sep='\t', index_col=0)
+#                df = df.drop(columns=["columns", "we", "don't", "want"])
+#                df = df.do_some_formatting_thing()
+#
+#                df = df.sort_index()
+#                df = df.transpose()
+#                self._data["awesomeomics"] = df
+#
+#            elif file_name == "other_data_file.tsv":
+#                df = pd.read_csv(file_path, sep='\t', index_col=0)
+#                df = df.drop(columns=["columns", "we", "don't", "want"])
+#                df = df.super_crazy_dataframe_formatting_function()
+#                df = df.even_crazier()
+#
+#                df = df.sort_index()
+#                df = df.transpose()
+#                self._data["lessawesomeomics"] = df
 
             ###END EXAMPLE CODE#################################################
 
@@ -91,11 +95,11 @@ class BcmBrca(DataSet):
         ### table, so we excluded the followup table from the master index since
         ### there wasn't any point in creating empty representative rows for
         ### those samples just because they existed in the followup table.
-        master_index = unionize_indices(self._data) 
+#        master_index = unionize_indices(self._data) 
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        new_clinical = self._data["clinical"]
-        new_clinical = new_clinical.reindex(master_index)
+#        new_clinical = self._data["clinical"]
+#        new_clinical = new_clinical.reindex(master_index)
 
         # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample was a tumor or normal sample. Use a function from dataframe_tools to generate it.
 
@@ -108,13 +112,13 @@ class BcmBrca(DataSet):
         ### the  generate_sample_status_col function when you call it. See 
         ### cptac/dataframe_tools.py for further function documentation.
         ###START EXAMPLE CODE###################################################
-        sample_status_col = generate_sample_status_col(new_clinical, normal_test=lambda sample: sample[0] == 'N')
+#        sample_status_col = generate_sample_status_col(new_clinical, normal_test=lambda sample: sample[0] == 'N')
         ###END EXAMPLE CODE#####################################################
 
-        new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
+#        new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
-        self._data['clinical'] = new_clinical
+#        self._data['clinical'] = new_clinical
 
         # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. 
         
@@ -129,13 +133,13 @@ class BcmBrca(DataSet):
         ### the end. See cptac/dataframe_tools.py for further function
         ### documentation.
         ###START EXAMPLE CODE###################################################
-        self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
+#        self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
         ###END EXAMPLE CODE#####################################################
 
         # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-        self._data = sort_all_rows(self._data)
+#        self._data = sort_all_rows(self._data)
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
-        self._data = standardize_axes_names(self._data)
+#        self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
