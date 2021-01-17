@@ -28,10 +28,17 @@ def get_dataset_path(dataset):
     path_here = os.path.abspath(os.path.dirname(__file__))
     dataset_dir = f"data_{dataset}"
     dataset_path = os.path.join(path_here, dataset_dir)
+
     if os.path.isdir(dataset_path):
         return dataset_path
+        
     else:
-        raise InvalidParameterError(f"{dataset} is not a valid dataset.")
+        pancan_dir = "pancan"
+        dataset_path = os.path.join(path_here, pancan_dir, dataset_dir)
+        if os.path.isdir(dataset_path):
+            return dataset_path
+        else:
+            raise InvalidParameterError(f"{dataset} is not a valid dataset.")
 
 def validate_version(version, dataset, use_context, valid_versions=None):
     """Parse and validate a given version number. If version is "latest", check that index and installed latest match.
