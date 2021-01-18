@@ -8,7 +8,12 @@ include cptac/data_hnscc/index_urls.tsv
 include cptac/data_lscc/index_urls.tsv
 include cptac/data_luad/index_urls.tsv
 include cptac/data_ovarian/index_urls.tsv
+
 include cptac/pancan/data_bcmbrca/index_urls.tsv
+include cptac/pancan/data_broadbrca/index_urls.tsv
+include cptac/pancan/data_umichbrca/index_urls.tsv
+include cptac/pancan/data_washubrca/index_urls.tsv
+
 include cptac/utils/data/BioPlex_293T_Network_10K_Dec_2019.tsv.gz
 include cptac/utils/data/Uniprot_Proteome.tsv.gz
 include cptac/utils/data/WikiPathwaysDataframe.tsv.gz
