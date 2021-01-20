@@ -11,6 +11,7 @@ include cptac/data_ovarian/index_urls.tsv
 
 include cptac/pancan/data_bcmbrca/index_urls.tsv
 include cptac/pancan/data_broadbrca/index_urls.tsv
+include cptac/pancan/data_mssmclinical/index_urls.tsv
 include cptac/pancan/data_umichbrca/index_urls.tsv
 include cptac/pancan/data_washubrca/index_urls.tsv
 

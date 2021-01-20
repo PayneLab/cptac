@@ -22,15 +22,15 @@ class PancanDataset:
         self._datasets = {} # Child class __init__ needs to fill this
 
     # Data getters
-    def get_clinical(self, source, tissue_type="both"):
+    def get_clinical(self, source, tissue_type="both", imputed=False):
         """Get the clinical dataframe from the specified data source."""
         return self._get_dataframe("clinical", source, tissue_type)
 
-    def get_proteomics(self, source, tissue_type="both"):
+    def get_proteomics(self, source, tissue_type="both", imputed=False):
         """Get the proteomics dataframe from the specified data source."""
         return self._get_dataframe("proteomics", source, tissue_type)
 
-    def get_transcriptomics(self, source, tissue_type="both"):
+    def get_transcriptomics(self, source, tissue_type="both", imputed=False):
         """Get the proteomics dataframe from the specified data source."""
         return self._get_dataframe("transcriptomics", source, tissue_type)
 
@@ -39,8 +39,11 @@ class PancanDataset:
         return self._cancer_type
 
     # "Private" methods
-    def _get_dataframe(self, name, source, tissue_type="both"):
+    def _get_dataframe(self, name, source, tissue_type, imputed):
         """Check that a given dataframe from a given source exists, and return a copy if it does."""
+
+        if imputed:
+            name = name + "_imputed"
 
         if source in self._datasets.keys():
             return self._datasets[source]._get_dataframe(name, tissue_type)
