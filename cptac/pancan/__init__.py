@@ -9,5 +9,5 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from .downloadpdc import _pdc_download_cancer_type
+from .pdcdownload import _pdc_download_cancer_type
 from .pancanbrca import PancanBrca
