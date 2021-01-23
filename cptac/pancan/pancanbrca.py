@@ -10,8 +10,8 @@
 #   limitations under the License.
 
 from .pancandataset import PancanDataset
-from .bcmbrca import BcmBrca
 from .mssmclinical import MssmClinical
+from .bcmbrca import BcmBrca
 from .umichbrca import UmichBrca
 
 
@@ -30,6 +30,6 @@ class PancanBrca(PancanDataset):
             
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"))
         self._datasets["bcm"] = BcmBrca(no_internet=no_internet, version=get_version("bcm"))
-        self._datasets["umich"] = MssmClinical(no_internet=no_internet, version=get_version("umich"))
+        self._datasets["umich"] = UmichBrca(no_internet=no_internet, version=get_version("umich"))
         
         

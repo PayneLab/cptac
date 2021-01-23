@@ -37,13 +37,13 @@ class UmichBrca(Dataset):
 
         data_files = {
             "0.0": [
-                "S039_BCprospective_observed_0920.tsv"
-                "S039_BCprospective_imputed_0920.tsv"
+                "S039_BCprospective_observed_0920.tsv.gz",
+                "S039_BCprospective_imputed_0920.tsv.gz"
             ]
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="bcmbrca", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="umichbrca", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -56,37 +56,15 @@ class UmichBrca(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-            if file_name == "S039_BCprospective_observed_0920.tsv":
+            if file_name == "S039_BCprospective_observed_0920.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
                 self._data["proteomics"] = df
                 
-            if file_name == "S039_BCprospective_imputed_0920.tsv":
+            if file_name == "S039_BCprospective_imputed_0920.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                self._data["proteomics"] = df
+                self._data["proteomics_imputed"] = df
 
-            ###FILL: Insert if/elif statements to parse all data files. Example:
-            ###START EXAMPLE CODE###############################################
-#            if file_name == "awesome_omics_data.tsv": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
-#                df = pd.read_csv(file_path, sep='\t', index_col=0)
-#                df = df.drop(columns=["columns", "we", "don't", "want"])
-#                df = df.do_some_formatting_thing()
-#
-#                df = df.sort_index()
-#                df = df.transpose()
-#                self._data["awesomeomics"] = df
-#
-#            elif file_name == "other_data_file.tsv":
-#                df = pd.read_csv(file_path, sep='\t', index_col=0)
-#                df = df.drop(columns=["columns", "we", "don't", "want"])
-#                df = df.super_crazy_dataframe_formatting_function()
-#                df = df.even_crazier()
-#
-#                df = df.sort_index()
-#                df = df.transpose()
-#                self._data["lessawesomeomics"] = df
-
-            ###END EXAMPLE CODE#################################################
-
+          
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
