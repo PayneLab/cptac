@@ -20,10 +20,10 @@ from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class UmichBrca(Dataset):
+class MssmClinical(Dataset):
 
     def __init__(self, no_internet, version):
-        """Load all of the umichbrca dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+        """Load all of the mssmclinical dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
@@ -37,12 +37,12 @@ class UmichBrca(Dataset):
 
         data_files = {
             "0.0": [
-                "clinical_Pan-cancer.Dec2020.tsv"
+                "clinical_Pan-cancer.Dec2020.tsv.gz"
             ]
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="umichbrca", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="mssmclinical", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -55,7 +55,7 @@ class UmichBrca(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-            if file_name == "clinical_Pan-cancer.Dec2020.tsv":
+            if file_name == "clinical_Pan-cancer.Dec2020.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.loc[df['tumor_code'] == 'BR']
                 df = df.set_index("case_id")
@@ -67,9 +67,7 @@ class UmichBrca(Dataset):
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
-        
-
-        
+       
         # Separate out demographic, general_medical_history, cancer_diagnosis, and followup dfs
         all_clinical = self._data["clinical"]
         demographic_df = all_clinical[['discovery_study', 'discovery_study/type_of_analyzed_samples', 'consent/age', 
@@ -160,7 +158,8 @@ class UmichBrca(Dataset):
         categories = {'demographic': ['consent/', 'medical_history/'], 'general_medical_history':['cancer_history/',
                       'general_medical_history/', 'medications/'], 'cancer_diagnosis': ['baseline/', 
                       'cptac_path/', 'procurement/'], 'followup': ['follow-up/']}
-                
+        
+        # remove general categories from column labels
         for df_name in categories.keys():
             df = self._data[df_name]
             for c in categories[df_name]:
