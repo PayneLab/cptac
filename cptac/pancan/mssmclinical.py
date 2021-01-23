@@ -57,7 +57,7 @@ class MssmClinical(Dataset):
 
             if file_name == "clinical_Pan-cancer.Dec2020.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.loc[df['tumor_code'] == 'BR']
+                df = df.loc[df['tumor_code'] == 'BR'] # pass cancer_name in ## fix
                 df = df.set_index("case_id")
                 df.index.name = 'Patient_ID'
                 df = df.sort_values(by=["Patient_ID"])
@@ -96,12 +96,12 @@ class MssmClinical(Dataset):
 
         self._data['demographic'] = demographic_df
             
-        general_medical_history_df = all_clinical[['general_medical_history/medical_condition',
+        general_medical_df = all_clinical[['general_medical_history/medical_condition',
                                          'general_medical_history/history_of_treatment',
                                          'general_medical_history/history_source', 
                                          'medications/medication_name_vitamins_supplements', 
                                           'medications/history_source']]
-        self._data['general_medical_history'] = general_medical_history_df
+        self._data['general_medical'] = general_medical_df
             
         cancer_diagnosis_df = all_clinical[['baseline/tumor_site', 'baseline/tumor_site_other', 'baseline/tumor_laterality',
                                'baseline/tumor_focality', 'baseline/tumor_size_cm', 'baseline/histologic_type',
@@ -155,7 +155,7 @@ class MssmClinical(Dataset):
                        'follow-up/cause_of_death', 'follow-up/days_from_date_of_initial_pathologic_diagnosis_to_date_of_death']]
         self._data['followup'] =followup_df
         
-        categories = {'demographic': ['consent/', 'medical_history/'], 'general_medical_history':['cancer_history/',
+        categories = {'demographic': ['consent/', 'medical_history/'], 'general_medical':['cancer_history/',
                       'general_medical_history/', 'medications/'], 'cancer_diagnosis': ['baseline/', 
                       'cptac_path/', 'procurement/'], 'followup': ['follow-up/']}
         
