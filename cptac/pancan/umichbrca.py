@@ -58,12 +58,20 @@ class UmichBrca(Dataset):
 
             if file_name == "S039_BCprospective_observed_0920.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
+                df = df.transpose()
+                df.index.name = 'Patient_ID'
+                df.columns.name = 'Name'
+                df = df.sort_values(by=["Patient_ID"])
                 self._data["proteomics"] = df
                 
             if file_name == "S039_BCprospective_imputed_0920.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
+                df = df.transpose()
+                df.index.name = 'Patient_ID'
+                df.columns.name = 'Name'
+                df = df.sort_values(by=["Patient_ID"])
                 self._data["proteomics_imputed"] = df
-
+                
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
