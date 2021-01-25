@@ -3,7 +3,7 @@
 1. Make sure to update:
     1. cptac/version.py
     2. Development status in setup.py
-    3. Dependency requirements in setup.py--match whatever versions you have in your current dev environment, especially for pandas. We also list a few dependencies in README.md for the user's convenience.
+    3. Dependency requirements in setup.py. For now, Google Colabs doesn't support Python 3.7, but pandas stopped officially supporting Python 3.6 as of 1.2.0. So far the only issue we've seen though is that if you have xlrd>=2.0.0 but pandas<=1.1.5, you won't be able to read .xlsx files. So, for now we're capping xlrd at 1.2.0, and everything should be fine.
 2. Make sure that if you have updated any datasets, the package can still load the old versions.
 3. Use `grep -rn set_trace .` to make sure there are no files with breakpoints in them
 4. Make sure that any finished edits on the dev branch have been merged into the master branch--see [05_HOW_TO_ADD_CODE.md](05_HOW_TO_ADD_CODE.md) for details. (But if there are edits on dev that aren't ready to be released, then make sure to not merge them in.)
