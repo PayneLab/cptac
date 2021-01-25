@@ -16,8 +16,9 @@ cptac/data_hnscc/*
 cptac/data_lscc/*
 cptac/data_luad/*
 cptac/data_ovarian/*
-cptac/pancan/data_broadbrca/*
 cptac/pancan/data_bcmbrca/*
+cptac/pancan/data_broadbrca/*
+cptac/pancan/data_mssmclinical/*
 cptac/pancan/data_umichbrca/*
 cptac/pancan/data_washubrca/*
 
@@ -35,7 +36,8 @@ cptac/utils/data/hgnc_protein_families.tsv
 !cptac/data_lscc/index_urls.tsv
 !cptac/data_luad/index_urls.tsv
 !cptac/data_ovarian/index_urls.tsv
-!cptac/pancan/data_broadbrca/index_urls.tsv
 !cptac/pancan/data_bcmbrca/index_urls.tsv
+!cptac/pancan/data_broadbrca/index_urls.tsv
+!cptac/pancan/data_mssmclinical/index_urls.tsv
 !cptac/pancan/data_umichbrca/index_urls.tsv
 !cptac/pancan/data_washubrca/index_urls.tsv

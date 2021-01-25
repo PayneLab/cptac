@@ -35,7 +35,7 @@ setup(name='cptac',
 		'urllib3>=1.24.2',
 		'openpyxl>=2.6.0',
 		'packaging>=19.2',
-		'xlrd>=1.2.0',
+		'xlrd==1.2.0',
 		'statsmodels>=0.10.0',
 	],
 	classifiers=[
