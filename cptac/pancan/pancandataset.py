@@ -24,15 +24,31 @@ class PancanDataset:
     # Data getters
     def get_clinical(self, source, tissue_type="both", imputed=False):
         """Get the clinical dataframe from the specified data source."""
-        return self._get_dataframe("clinical", source, tissue_type)
+        return self._get_dataframe("clinical", source, tissue_type, imputed=imputed)
+    
+    def get_demographic(self, source, tissue_type="both", imputed=False):
+        """Get the demographic dataframe from the specified data source."""
+        return self._get_dataframe("demographic", source, tissue_type, imputed=imputed)
+    
+    def get_general_medical(self, source, tissue_type="both", imputed=False):
+        """Get the general_medical dataframe from the specified data source."""
+        return self._get_dataframe("general_medical", source, tissue_type, imputed=imputed)
+    
+    def get_cancer_diagnosis(self, source, tissue_type="both", imputed=False):
+        """Get the cancer_diagnosis dataframe from the specified data source."""
+        return self._get_dataframe("cancer_diagnosis", source, tissue_type, imputed=imputed)
+    
+    def get_followup(self, source, tissue_type="both", imputed=False):
+        """Get the followup dataframe from the specified data source."""
+        return self._get_dataframe("followup", source, tissue_type, imputed=imputed)
 
     def get_proteomics(self, source, tissue_type="both", imputed=False):
         """Get the proteomics dataframe from the specified data source."""
-        return self._get_dataframe("proteomics", source, tissue_type)
+        return self._get_dataframe("proteomics", source, tissue_type, imputed=imputed)
 
     def get_transcriptomics(self, source, tissue_type="both", imputed=False):
         """Get the proteomics dataframe from the specified data source."""
-        return self._get_dataframe("transcriptomics", source, tissue_type)
+        return self._get_dataframe("transcriptomics", source, tissue_type, imputed=imputed)
 
     # Help functions
     def get_cancer_type(self):
