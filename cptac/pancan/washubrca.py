@@ -20,7 +20,7 @@ from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class BcmBrca(Dataset):
+class WashuBrca(Dataset):
 
     def __init__(self, no_internet, version):
         """Load all of the bcmbrca dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -37,12 +37,13 @@ class BcmBrca(Dataset):
 
         data_files = {
             "0.0": [
-                "BRCA-gene_RSEM_tumor_normal_UQ_log2(x+1)_BCM.txt.gz"
+                "BR_tumor_RNA-Seq_Expr_WashU_FPKM.tsv",
+                "BR_prospective.dnp.annotated.exonic.maf"
             ]
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="bcmbrca", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="washubrca", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -55,33 +56,25 @@ class BcmBrca(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-            if file_name == "BRCA-gene_RSEM_tumor_normal_UQ_log2(x+1)_BCM.txt.gz":
+            if file_name == "BR_tumor_RNA-Seq_Expr_WashU_FPKM.tsv":
                 df = pd.read_csv(file_path, sep="\t")
+                df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"])
+                df = df.T
+                df.index.name = "Patient_ID"
+                df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
                 self._data["transcriptomics"] = df
 
-            ###FILL: Insert if/elif statements to parse all data files. Example:
-            ###START EXAMPLE CODE###############################################
-#            if file_name == "awesome_omics_data.tsv": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
-#                df = pd.read_csv(file_path, sep='\t', index_col=0)
-#                df = df.drop(columns=["columns", "we", "don't", "want"])
-#                df = df.do_some_formatting_thing()
+            elif file_name == "BR_prospective.dnp.annotated.exonic.maf": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
+                df = pd.read_csv(file_path, sep='\t', index_col=0)           
+                df = df[['Patient_ID','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
+                df = df.rename(columns={
+                     "Hugo_Symbol":"Gene",
+                     "Variant_Classification":"Mutation",
+                     "HGVSp_Short":"Location"}) # Rename the columns we want to keep to the appropriate names
+                df = df.set_index("Patient_ID")
+                df.index = df.index.str.replace(r"_T", "", regex=True) #remove label for tumor samples
 #
-#                df = df.sort_index()
-#                df = df.transpose()
-#                self._data["awesomeomics"] = df
-#
-#            elif file_name == "other_data_file.tsv":
-#                df = pd.read_csv(file_path, sep='\t', index_col=0)
-#                df = df.drop(columns=["columns", "we", "don't", "want"])
-#                df = df.super_crazy_dataframe_formatting_function()
-#                df = df.even_crazier()
-#
-#                df = df.sort_index()
-#                df = df.transpose()
-#                self._data["lessawesomeomics"] = df
-
-            ###END EXAMPLE CODE#################################################
-
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
