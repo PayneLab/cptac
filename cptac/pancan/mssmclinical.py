@@ -22,7 +22,7 @@ from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, Re
 
 class MssmClinical(Dataset):
 
-    def __init__(self, no_internet, version):
+    def __init__(self, no_internet, version, filter_type): # added cancer_type
         """Load all of the mssmclinical dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:
@@ -42,7 +42,7 @@ class MssmClinical(Dataset):
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="mssmclinical", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type='mssmclinical', version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet) # changed 'mssmclinical' to cancer_type
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -54,10 +54,16 @@ class MssmClinical(Dataset):
 
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
+            
+            # Get tumor_code
+            tumor_codes = {'pancanbrca': 'BR', 'pancanccrcc':'CCRCC', 
+                           'pancanendometrial':'UCEC','pancangbm':'GBM','pancanhnscc':'HNSCC',
+                           'pancanlscc': 'LSCC','pancanluad':'LUAD', 'pancanpda':'PDA',
+                           'pancanhcc':'HCC','pancancolon':'CO','pancanovarian':'OV'}
 
             if file_name == "clinical_Pan-cancer.Dec2020.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.loc[df['tumor_code'] == 'BR'] # pass cancer_name in ## fix
+                df = df.loc[df['tumor_code'] == tumor_codes[filter_type]] # changed 'BR' 
                 df = df.set_index("case_id")
                 df.index.name = 'Patient_ID'
                 df = df.sort_values(by=["Patient_ID"])
@@ -101,7 +107,12 @@ class MssmClinical(Dataset):
                                          'general_medical_history/history_source', 
                                          'medications/medication_name_vitamins_supplements', 
                                           'medications/history_source']]
-        self._data['general_medical'] = general_medical_df
+        # include general_medical if it's not empty
+        general_medical_df = general_medical_df.dropna(how='all')
+        if len(general_medical_df.index) != 0: 
+            self._data['general_medical'] = general_medical_df
+        else:
+            print('no data for general_medical')
             
         cancer_diagnosis_df = all_clinical[['baseline/tumor_site', 'baseline/tumor_site_other', 'baseline/tumor_laterality',
                                'baseline/tumor_focality', 'baseline/tumor_size_cm', 'baseline/histologic_type',
@@ -155,14 +166,22 @@ class MssmClinical(Dataset):
                        'follow-up/cause_of_death', 'follow-up/days_from_date_of_initial_pathologic_diagnosis_to_date_of_death']]
         self._data['followup'] =followup_df
         
-        categories = {'demographic': ['consent/', 'medical_history/'], 'general_medical':['cancer_history/',
-                      'general_medical_history/', 'medications/'], 'cancer_diagnosis': ['baseline/', 
+        categories = {'demographic': ['consent/', 'medical_history/'], 'cancer_diagnosis': ['baseline/', 
                       'cptac_path/', 'procurement/'], 'followup': ['follow-up/']}
+        
+        gm = {'general_medical':['cancer_history/',
+                      'general_medical_history/', 'medications/']}
         
         # remove general categories from column labels
         for df_name in categories.keys():
             df = self._data[df_name]
             for c in categories[df_name]:
+                df.columns = df.columns.str.replace(c, "")
+                self._data[df_name] = df
+                
+        if len(general_medical_df.index) != 0:
+            df = self._data['general_medical']
+            for c in gm['general_medical']:
                 df.columns = df.columns.str.replace(c, "")
                 self._data[df_name] = df
         
