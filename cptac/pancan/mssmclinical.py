@@ -63,7 +63,7 @@ class MssmClinical(Dataset):
 
             if file_name == "clinical_Pan-cancer.Dec2020.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.loc[df['tumor_code'] == tumor_codes[filter_type]] # changed 'BR' 
+                df = df.loc[df['tumor_code'] == tumor_codes[filter_type]] 
                 df = df.set_index("case_id")
                 df.index.name = 'Patient_ID'
                 df = df.sort_values(by=["Patient_ID"])
@@ -74,7 +74,7 @@ class MssmClinical(Dataset):
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
        
-        # Separate out demographic, general_medical_history, cancer_diagnosis, and followup dfs
+        # Separate out demographic, previous_cancer, medical_conditions, cancer_diagnosis, and followup dfs
         all_clinical = self._data["clinical"]
         demographic_df = all_clinical[['discovery_study', 'discovery_study/type_of_analyzed_samples', 'consent/age', 
                           'consent/sex', 'consent/race', 'consent/ethnicity', 'consent/ethnicity_race_ancestry_identified',
@@ -85,7 +85,9 @@ class MssmClinical(Dataset):
                           'consent/difficulty_concentrating_remembering_or_making_decisions',
                           'consent/difficulty_walking_or_climbing_stairs', 'consent/difficulty_dressing_or_bathing',
                           'consent/difficulty_doing_errands', 'consent/consent_form_signed', 'consent/case_stopped',
-                          'medical_history/history_of_cancer', 'medical_history/alcohol_consumption', 
+                          'medications/medication_name_vitamins_supplements', 'medications/history_source',
+                          'medical_history/height_at_time_of_surgery_cm', 'medical_history/weight_at_time_of_surgery_kg',
+                          'medical_history/bmi', 'medical_history/history_of_cancer', 'medical_history/alcohol_consumption', 
                           'medical_history/tobacco_smoking_history', 
                           'medical_history/age_at_which_the_participant_started_smoking',
                           'medical_history/age_at_which_the_participant_stopped_smoking', 
@@ -93,27 +95,34 @@ class MssmClinical(Dataset):
                           'medical_history/number_of_pack_years_smoked', 
                           'medical_history/was_the_participant_exposed_to_secondhand_smoke',
                           'medical_history/exposure_to_secondhand_smoke_in_household_during_participants_childhood',
-                          'medical_history/exposure_to_secondhand_smoke_in_participants_current_household',    'medical_history/number_of_years_participant_has_consumed_more_than_2_drinks_per_day_for_men_and_more_than_1_drink_per_day_for_women']] 
-                # all_clinical[[
-                #'''cancer_history/cancer_type
-                #cancer_history/history_source
-                #cancer_history/history_of_any_treatment
-                #cancer_history/medical_record_documentation_of_this_history_of_cancer_and_treatment'''
-
+                          'medical_history/exposure_to_secondhand_smoke_in_participants_current_household',    'medical_history/number_of_years_participant_has_consumed_more_than_2_drinks_per_day_for_men_and_more_than_1_drink_per_day_for_women']]         
         self._data['demographic'] = demographic_df
+        
+        # Create previous_cancer df
+        previous_cancer_df = all_clinical[['cancer_history/cancer_type', 'cancer_history/history_source', 
+                                        'cancer_history/history_of_any_treatment',
+                                        'cancer_history/medical_record_documentation_of_this_history_of_cancer_and_treatment']]
+        # include previous_cancer if it's not empty
+        previous_cancer_df = previous_cancer_df.dropna(how='all')
+        if len(previous_cancer_df.index) != 0: 
+            self._data['previous_cancer'] = previous_cancer_df
+        #else:
+        #    print('no data for previous_cancer for', tumor_codes[filter_type])
             
-        general_medical_df = all_clinical[['general_medical_history/medical_condition',
+        
+        # Create medical_conditions df
+        medical_conditions_df = all_clinical[['general_medical_history/medical_condition',
                                          'general_medical_history/history_of_treatment',
-                                         'general_medical_history/history_source', 
-                                         'medications/medication_name_vitamins_supplements', 
-                                          'medications/history_source']]
+                                         'general_medical_history/history_source']]
         # include general_medical if it's not empty
-        general_medical_df = general_medical_df.dropna(how='all')
-        if len(general_medical_df.index) != 0: 
-            self._data['general_medical'] = general_medical_df
-        else:
-            print('no data for general_medical')
+        medical_conditions_df = medical_conditions_df.dropna(how='all')
+        if len(medical_conditions_df.index) != 0: 
+            self._data['medical_conditions'] = medical_conditions_df
+        #else:
+        #    print('no data for medical_conditions for', tumor_codes[filter_type])
             
+            
+        # Create cancer_diagnosis df    
         cancer_diagnosis_df = all_clinical[['baseline/tumor_site', 'baseline/tumor_site_other', 'baseline/tumor_laterality',
                                'baseline/tumor_focality', 'baseline/tumor_size_cm', 'baseline/histologic_type',
                                'cptac_path/histologic_grade', 'baseline/tumor_necrosis', 'baseline/margin_status',
@@ -137,7 +146,8 @@ class MssmClinical(Dataset):
                                'Recurrence-free survival', 'Overall survial', 'Recurrence status (1, yes; 0, no)',
                                'Survial status (1, dead; 0, alive)']]
         self._data['cancer_diagnosis'] = cancer_diagnosis_df # Maps dataframe name to dataframe (self._data)
-            
+         
+        # Create followup df
         followup_df = all_clinical[['follow-up/follow_up_period','follow-up/is_this_patient_lost_to_follow-up',
                        'follow-up/vital_status_at_date_of_last_contact', 
                        'follow-up/days_from_date_of_initial_pathologic_diagnosis_to_date_of_last_contact',
@@ -166,10 +176,11 @@ class MssmClinical(Dataset):
                        'follow-up/cause_of_death', 'follow-up/days_from_date_of_initial_pathologic_diagnosis_to_date_of_death']]
         self._data['followup'] =followup_df
         
-        categories = {'demographic': ['consent/', 'medical_history/'], 'cancer_diagnosis': ['baseline/', 
-                      'cptac_path/', 'procurement/'], 'followup': ['follow-up/']}
+        categories = {'demographic': ['consent/', 'medications/', 'medical_history/'], 
+                      'cancer_diagnosis': ['baseline/', 'cptac_path/', 'procurement/'], 
+                      'followup': ['follow-up/']} 
         
-        gm = {'general_medical':['cancer_history/',
+        mc = {'medical_conditions':['cancer_history/',
                       'general_medical_history/', 'medications/']}
         
         # remove general categories from column labels
@@ -179,12 +190,33 @@ class MssmClinical(Dataset):
                 df.columns = df.columns.str.replace(c, "")
                 self._data[df_name] = df
                 
-        if len(general_medical_df.index) != 0:
-            df = self._data['general_medical']
-            for c in gm['general_medical']:
+        if len(medical_conditions_df.index) != 0:
+            df = self._data['medical_conditions']
+            for c in mc['medical_conditions']:
                 df.columns = df.columns.str.replace(c, "")
-                self._data[df_name] = df
-        
+                df = df.assign(medical_condition = df.medical_condition.str.split("|"))
+                df = df.assign(history_of_treatment = df.history_of_treatment.str.split("|"))
+                df = df.assign(history_source = df.history_source.str.split("|"))
+                exploded_df = df.apply(pd.Series.explode) # explode 
+                self._data['medical_conditions'] = exploded_df
+                
+        if len(previous_cancer_df.index) != 0:
+            pc = self._data['previous_cancer']
+            pc.columns = pc.columns.str.replace('cancer_history/', "")
+            pc = pc.assign(cancer_type = pc.cancer_type.str.split("|"))
+            pc = pc.assign(history_source = pc.history_source.str.split("|"))
+            pc = pc.assign(history_of_any_treatment = pc.history_of_any_treatment.str.split("|"))
+            pc = pc.assign(medical_record_documentation_of_this_history_of_cancer_and_treatment = 
+                           pc.medical_record_documentation_of_this_history_of_cancer_and_treatment.str.split("|"))
+            exploded_pc = pc.apply(pd.Series.explode)
+            self._data['previous_cancer'] = exploded_pc
+            
+        # make lists for vals in medication cols
+        dem = self._data['demographic'] 
+        dem = dem.assign(medication_name_vitamins_supplements = dem.medication_name_vitamins_supplements.str.split("|"))
+        dem = dem.assign(history_source = dem.history_source.str.split("|"))
+        dem = dem.rename(columns={'history_source':'med_history_source'}) # ?? ok to rename?
+        self._data['demographic'] = dem
         
         
         

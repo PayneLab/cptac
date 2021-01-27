@@ -30,9 +30,13 @@ class PancanDataset:
         """Get the demographic dataframe from the specified data source."""
         return self._get_dataframe("demographic", source, tissue_type, imputed=imputed)
     
-    def get_general_medical(self, source, tissue_type="both", imputed=False):
-        """Get the general_medical dataframe from the specified data source."""
-        return self._get_dataframe("general_medical", source, tissue_type, imputed=imputed)
+    def get_medical_conditions(self, source, tissue_type="both", imputed=False):
+        """Get the medical_conditions dataframe from the specified data source."""
+        return self._get_dataframe("medical_conditions", source, tissue_type, imputed=imputed)
+    
+    def get_previous_cancer(self, source, tissue_type="both", imputed=False):
+        """Get the previous_cancer dataframe from the specified data source."""
+        return self._get_dataframe("previous_cancer", source, tissue_type, imputed=imputed)
     
     def get_cancer_diagnosis(self, source, tissue_type="both", imputed=False):
         """Get the cancer_diagnosis dataframe from the specified data source."""
