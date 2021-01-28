@@ -180,9 +180,6 @@ class MssmClinical(Dataset):
                       'cancer_diagnosis': ['baseline/', 'cptac_path/', 'procurement/'], 
                       'followup': ['follow-up/']} 
         
-        mc = {'medical_conditions':['cancer_history/',
-                      'general_medical_history/', 'medications/']}
-        
         # remove general categories from column labels
         for df_name in categories.keys():
             df = self._data[df_name]
@@ -192,13 +189,12 @@ class MssmClinical(Dataset):
                 
         if len(medical_conditions_df.index) != 0:
             df = self._data['medical_conditions']
-            for c in mc['medical_conditions']:
-                df.columns = df.columns.str.replace(c, "")
-                df = df.assign(medical_condition = df.medical_condition.str.split("|"))
-                df = df.assign(history_of_treatment = df.history_of_treatment.str.split("|"))
-                df = df.assign(history_source = df.history_source.str.split("|"))
-                exploded_df = df.apply(pd.Series.explode) # explode 
-                self._data['medical_conditions'] = exploded_df
+            df.columns = df.columns.str.replace("general_medical_history/", "")
+            df = df.assign(medical_condition = df.medical_condition.str.split("|"))
+            df = df.assign(history_of_treatment = df.history_of_treatment.str.split("|"))
+            df = df.assign(history_source = df.history_source.str.split("|"))
+            exploded_df = df.apply(pd.Series.explode) # explode 
+            self._data['medical_conditions'] = exploded_df
                 
         if len(previous_cancer_df.index) != 0:
             pc = self._data['previous_cancer']
