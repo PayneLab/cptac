@@ -20,7 +20,7 @@ from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class WashuBrca(Dataset):
+class WashuCcrcc(Dataset):
 
     def __init__(self, no_internet, version):
         """Load all of the bcmbrca dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -37,13 +37,13 @@ class WashuBrca(Dataset):
 
         data_files = {
             "0.0": [
-                "BR_tumor_RNA-Seq_Expr_WashU_FPKM.tsv",
-                "BR_prospective.dnp.annotated.exonic.maf"
+                "ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
+                "ccRCC_discovery.dnp.annotated.exonic.maf"
             ]
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="washubrca", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="washuccrcc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -56,16 +56,25 @@ class WashuBrca(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-            if file_name == "BR_tumor_RNA-Seq_Expr_WashU_FPKM.tsv":
+            if file_name == "ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
                 df = df.set_index(["Name", "Database_ID"])
                 df = df.T
                 df.index.name = "Patient_ID"
                 df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
-                self._data["transcriptomics"] = df
+                self._data["transcriptomics_tumor"] = df
+                
+            if file_name == "ccRCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
+                df = pd.read_csv(file_path, sep="\t")
+                df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"])
+                df = df.T
+                df.index.name = "Patient_ID"
+                df.index = df.index.str.replace(r"-A", ".N", regex=True) #remove label for tumor samples
+                self._data["transcriptomics_normal"] = df
 
-            elif file_name == "BR_prospective.dnp.annotated.exonic.maf": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
+            elif file_name == "ccRCC_discovery.dnp.annotated.exonic.maf": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t', index_col=0)           
                 df = df[['Patient_ID','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
                 df = df.rename(columns={
@@ -74,6 +83,16 @@ class WashuBrca(Dataset):
                      "HGVSp_Short":"Location"}) # Rename the columns we want to keep to the appropriate names
                 df = df.set_index("Patient_ID")
                 df.index = df.index.str.replace(r"_T", "", regex=True) #remove label for tumor samples
+                
+                
+            # Combine the two proteomics dataframes
+            rna_tumor = self._data.get("transcriptomics_tumor")
+            rna_normal = self._data.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
+            rna_combined = rna_tumor.append(rna_normal)
+            self._data["transcriptomics"] = rna_combined
+            del self._data["transcriptomics_tumor"]
+            del self._data["transcriptomics_normal"]
+
 #
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
