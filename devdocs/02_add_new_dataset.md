@@ -24,7 +24,7 @@
 10. Within the cptac/cptac directory in the copy of the git repository on your local machine, create a directory for the dataset, with the format `data_[dataset]`, e.g. `data_endometrial`.
 11. Within that directory, create a file called `index_urls.tsv`. The first line of this file should have the name of the index file (`index.txt`), followed by a tab, followed by the direct download link for the index file. The second line of this file should have the name of the index hash file (`index_hash.txt`), followed by a tab, followed by the direct download link for the index hash file. There must be no extra whitespace on either line.
 12. Add index urls file to the MANIFEST.in file, which is in the same directory as setup.py
-13. Add dataset's data folder to the .gitignore, which is in the same directory as setup.py, but use and exclamation point to include the index_urls.tsv file (see existing entries in the .gitignore for examples)
+13. Add dataset's data folder to the .gitignore, which is in the same directory as setup.py, but use an exclamation point to include the index_urls.tsv file (see existing entries in the .gitignore for examples)
 
 
 
