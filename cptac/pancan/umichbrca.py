@@ -62,6 +62,19 @@ class UmichBrca(Dataset):
                 df.index.name = 'Patient_ID'
                 df.columns.name = 'Name'
                 df = df.sort_values(by=["Patient_ID"])
+                
+                # average replicates
+                replicate_df = df[df.index.str.contains('#')]
+                patient_ids = pd.Series(replicate_df.index)
+                ids = patient_ids.replace('#\d', '', regex=True)
+                id_list = list(set(ids)) #id_list contains only patient_IDs of replicates (without #s)
+                
+                for patient_ID in id_list:
+                    id_df = df[df.index.str.contains(patient_ID)] # slice out replicates for a single patient
+                    vals = list(id_df.mean(axis=0)) 
+                    df.loc[patient_ID] = vals # add new row to original df with averages of replicates 
+                
+                df = df[~ df.index.str.contains('#')] # drop unaveraged replicate cols (averaged rows are kept)
                 self._data["proteomics"] = df
                 
             if file_name == "S039_BCprospective_imputed_0920.tsv.gz":
