@@ -31,6 +31,7 @@ from .hnscc import Hnscc
 from .lscc import Lscc
 from .luad import Luad
 from .ovarian import Ovarian
+from .pdac import Pdac
 
 def list_datasets():
     """List all available datasets."""

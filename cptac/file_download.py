@@ -43,6 +43,7 @@ def download(dataset, version="latest", redownload=False):
             "lscc",
             "luad",
             "ovarian",
+            "pdac",
         ]
 
         overall_result = True
