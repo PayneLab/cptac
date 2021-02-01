@@ -95,9 +95,6 @@ class Pdac(Dataset):
             if file_name == "clinical_table_140.tsv.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.sort_index()
-                df = df.transpose()
-                df = df.set_index("Patient_ID")
-                df = df.transpose()
                 self._data["clinical"] = df
 
             elif file_name == "meta_table_140.tsv.gz":
@@ -171,11 +168,11 @@ class Pdac(Dataset):
         ### table, so we excluded the followup table from the master index since
         ### there wasn't any point in creating empty representative rows for
         ### those samples just because they existed in the followup table.
-        master_index = unionize_indices(self._data) 
+        #master_index = unionize_indices(self._data) 
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        new_clinical = self._data["clinical"]
-        new_clinical = new_clinical.reindex(master_index)
+        #new_clinical = self._data["clinical"]
+        #new_clinical = new_clinical.reindex(master_index)
 
         # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample was a tumor or normal sample. Use a function from dataframe_tools to generate it.
 
@@ -188,13 +185,13 @@ class Pdac(Dataset):
         ### the  generate_sample_status_col function when you call it. See 
         ### cptac/dataframe_tools.py for further function documentation.
         ###START EXAMPLE CODE###################################################
-        sample_status_col = generate_sample_status_col(new_clinical, normal_test=lambda sample: sample[0] == 'N')
+        #sample_status_col = generate_sample_status_col(new_clinical, normal_test=lambda sample: sample[0] == 'N')
         ###END EXAMPLE CODE#####################################################
 
-        new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
+        #new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
-        self._data['clinical'] = new_clinical
+        # self._data['clinical'] = new_clinical
 
         # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. 
         
@@ -209,28 +206,18 @@ class Pdac(Dataset):
         ### the end. See cptac/dataframe_tools.py for further function
         ### documentation.
         ###START EXAMPLE CODE###################################################
-        self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
+        #self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
         ###END EXAMPLE CODE#####################################################
 
         # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-        self._data = sort_all_rows(self._data)
+        # self._data = sort_all_rows(self._data)
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
-        self._data = standardize_axes_names(self._data)
+        #self._data = standardize_axes_names(self._data)
 
-        print(" " * len(formatting_msg), end='\r') # Erase the formatting message
+        #print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 
-        ###FILL: If the dataset is not under publication embargo, you can remove
-        ### the code block below. If it is password protected, still remove
-        ### this warning, and instead keep the password protection warning
-        ### below.
-        # Print data embargo warning, if the date hasn't passed yet.
-        today = datetime.date.today()
-        # TODO: Input the actual embargo date
-        embargo_date = datetime.date(year=2022, month=1, day=1)
-        if today < embargo_date:
-            warnings.warn("The pdac dataset is under publication embargo until Jan 1, 2022. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until after the embargo date. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details.", PublicationEmbargoWarning, stacklevel=2)
-
+        
         ###FILL: If the dataset is not password access only, remove the message
         ### below. If it's under publication embargo, still remove this
         ### warning, and keep the above warning about publication embargo.
