@@ -96,13 +96,12 @@ class Pdac(Dataset):
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.sort_index()
                 df = df.transpose()
-                self._data[df_name] = df
+                df = df.set_index("Patient_ID")
+                df = df.transpose()
+                self._data["clinical"] = df
 
             elif file_name == "meta_table_140.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.drop(columns=["columns", "we", "don't", "want"])
-                df = df.super_crazy_dataframe_formatting_function()
-                df = df.even_crazier()
 
                 df = df.sort_index()
                 df = df.transpose()
@@ -110,70 +109,49 @@ class Pdac(Dataset):
 
             elif file_name == "mRNA_RSEM_UQ_log2_Normal.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.drop(columns=["columns", "we", "don't", "want"])
-                df = df.super_crazy_dataframe_formatting_function()
-                df = df.even_crazier()
-
+                
                 df = df.sort_index()
                 df = df.transpose()
                 self._data[df_name] = df
 
             elif file_name == "mRNA_RSEM_UQ_log2_Tumor.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.drop(columns=["columns", "we", "don't", "want"])
-                df = df.super_crazy_dataframe_formatting_function()
-                df = df.even_crazier()
-
+                
                 df = df.sort_index()
                 df = df.transpose()
                 self._data[df_name] = df
 
             elif file_name == "PDAC_mutation.maf.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.drop(columns=["columns", "we", "don't", "want"])
-                df = df.super_crazy_dataframe_formatting_function()
-                df = df.even_crazier()
-
+               
                 df = df.sort_index()
                 df = df.transpose()
                 self._data[df_name] = df
 
             elif file_name == "phosphoproteomics_site_level_MD_abundance_normal.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.drop(columns=["columns", "we", "don't", "want"])
-                df = df.super_crazy_dataframe_formatting_function()
-                df = df.even_crazier()
-
+                
                 df = df.sort_index()
                 df = df.transpose()
                 self._data[df_name] = df
 
             elif file_name == "phosphoproteomics_site_level_MD_abundance_tumor.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.drop(columns=["columns", "we", "don't", "want"])
-                df = df.super_crazy_dataframe_formatting_function()
-                df = df.even_crazier()
-
+                
                 df = df.sort_index()
                 df = df.transpose()
                 self._data[df_name] = df
         
             elif file_name == "proteomics_gene_level_MD_abundance_normal.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.drop(columns=["columns", "we", "don't", "want"])
-                df = df.super_crazy_dataframe_formatting_function()
-                df = df.even_crazier()
-
+                
                 df = df.sort_index()
                 df = df.transpose()
                 self._data[df_name] = df
 
             elif file_name == "proteomics_gene_level_MD_abundance_tumor.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.drop(columns=["columns", "we", "don't", "want"])
-                df = df.super_crazy_dataframe_formatting_function()
-                df = df.even_crazier()
-
+                
                 df = df.sort_index()
                 df = df.transpose()
                 self._data[df_name] = df
@@ -248,9 +226,10 @@ class Pdac(Dataset):
         ### below.
         # Print data embargo warning, if the date hasn't passed yet.
         today = datetime.date.today()
-        embargo_date = datetime.date(year="""FILL: Insert embargo year""", month="""FILL: Insert embargo month""", day="""FILL: Insert embargo day""")
+        # TODO: Input the actual embargo date
+        embargo_date = datetime.date(year=2022, month=1, day=1)
         if today < embargo_date:
-            warnings.warn("The ###FILL: Insert dataset name### dataset is under publication embargo until ###FILL: Insert embargo date###. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until after the embargo date. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details.", PublicationEmbargoWarning, stacklevel=2)
+            warnings.warn("The pdac dataset is under publication embargo until Jan 1, 2022. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until after the embargo date. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details.", PublicationEmbargoWarning, stacklevel=2)
 
         ###FILL: If the dataset is not password access only, remove the message
         ### below. If it's under publication embargo, still remove this
