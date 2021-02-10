@@ -14,6 +14,29 @@ import numpy as np
 import warnings
 from .exceptions import CptacDevError, ReindexMapError, FailedReindexWarning
 
+
+def average_replicates(df):
+    """Return a df with one row for each patient_ID (all replicates for a patient are averaged)
+
+    Parameters:
+    df (pandas.DataFrame): The df containing replicates (duplicate entries for a patient_ID.
+    
+    Returns:
+    pandas.DataFrame: df with with replicate rows averaged and one row for each patient_ID.
+    """
+    replicate_df = df[df.index.str.contains('#')]
+    patient_ids = pd.Series(replicate_df.index)
+    ids = patient_ids.replace('#\d', '', regex=True)
+    id_list = list(set(ids)) #id_list contains only patient_IDs of replicates (without #s)
+
+    for patient_ID in id_list:
+        id_df = df[df.index.str.contains(patient_ID)] # slice out replicates for a single patient
+        vals = list(id_df.mean(axis=0)) 
+        df.loc[patient_ID] = vals # add new row to original df with averages of replicates 
+
+    df = df[~ df.index.str.contains('#')] # drop unaveraged replicate cols (averaged rows are kept)
+    return df
+
 def unionize_indices(dataset, exclude=[]):
     """Return a union of all indices in a dataset, without duplicates.
 
