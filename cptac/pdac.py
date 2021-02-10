@@ -130,14 +130,14 @@ class Pdac(Dataset):
                 
                 df = df.sort_index()
                 df = df.transpose()
-                self._data[df_name] = df
+                self._data["phosphoproteomics"] = df
 
             elif file_name == "phosphoproteomics_site_level_MD_abundance_tumor.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
-                
+                #df = df["site"].str.rsplit("-", n=1, expand=True)
                 df = df.sort_index()
                 df = df.transpose()
-                self._data[df_name] = df
+                self._data["phosphoproteomics"] = df
         
             elif file_name == "proteomics_gene_level_MD_abundance_normal.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
