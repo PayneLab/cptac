@@ -173,18 +173,34 @@ class Pdac(Dataset):
                     self._data["phosphoproteomics"] = df_tumor
         
             elif file_name == "proteomics_gene_level_MD_abundance_normal.cct.gz":
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
-                
-                df = df.sort_index()
-                df = df.transpose()
-                self._data[df_name] = df
+                df_normal = pd.read_csv(file_path, sep='\t', index_col=0)
+                df_normal = df_normal.sort_index()
+                df_normal = df_normal.transpose()
+                df_normal["Sample_Tumor_Normal"] = "Normal"
+                df_normal = df_normal.rename(index=lambda s: "N" + s)
+
+                # merge tumor and normal if tumor data has already been read
+                if "proteomics" in self._data:
+                    df_tumor = self._data["proteomics"]
+                    df_combined = pd.concat([df_normal, df_tumor])
+                    self._data[df_name] = df_combined
+                else:
+                    self._data["proteomics"] = df_normal
 
             elif file_name == "proteomics_gene_level_MD_abundance_tumor.cct.gz":
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
-                
-                df = df.sort_index()
-                df = df.transpose()
+                df_tumor = pd.read_csv(file_path, sep='\t', index_col=0)
+                df_tumor = df_tumor.sort_index()
+                df_tumor = df_tumor.transpose()
+                df_tumor["Sample_Tumor_Normal"] = "Tumor"
                 self._data[df_name] = df
+
+                # merge tumor and normal if normal data has already been read
+                if "proteomics" in self._data:
+                    df_normal = self._data["proteomics"]
+                    df_combined = pd.concat([df_normal, df_tumor])
+                    self._data[df_name] = df_combined
+                else:
+                    self._data["proteomics"] = df_tumor
 
             ###END EXAMPLE CODE#################################################
 
