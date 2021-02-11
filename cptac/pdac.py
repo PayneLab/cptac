@@ -121,7 +121,6 @@ class Pdac(Dataset):
 
             elif file_name == "mRNA_RSEM_UQ_log2_Tumor.cct.gz":
                 # create df for tumor data
-                file_name = "mRNA_RSEM_UQ_log2_Tumor.cct.gz"
                 df_tumor = pd.read_csv(file_path, sep='\t', index_col=0)
                 df_tumor = df_tumor.sort_index()
                 df_tumor = df_tumor.transpose()
@@ -140,21 +139,38 @@ class Pdac(Dataset):
                
                 df = df.sort_index()
                 df = df.transpose()
-                self._data[df_name] = df
+                self._data["df_name"] = df
 
             elif file_name == "phosphoproteomics_site_level_MD_abundance_normal.cct.gz":
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
-                
-                df = df.sort_index()
-                df = df.transpose()
-                self._data["phosphoproteomics"] = df
+                # create df form normal data
+                df_normal = pd.read_csv(file_path, sep='\t', index_col=0)
+                df_normal = df_normal.sort_index()
+                df_normal = df_normal.transpose()
+                df_normal["Sample_Tumor_Normal"] = "Normal"
+                df_normal = df_normal.rename(index=lambda s: "N" + s)
+
+                # merge tumor and normal if tumor data has already been read
+                if "phosphoproteomics" in self._data:
+                    df_tumor = self._data["phosphoproteomics"]
+                    df_combined = pd.concat([df_normal, df_tumor])
+                    self._data["phosphoproteomics"] = df_combined
+                else:
+                    self._data["phosphoproteomics"] = df_normal
 
             elif file_name == "phosphoproteomics_site_level_MD_abundance_tumor.cct.gz":
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df_tumor = pd.read_csv(file_path, sep='\t', index_col=0)
                 #df = df["site"].str.rsplit("-", n=1, expand=True)
-                df = df.sort_index()
-                df = df.transpose()
-                self._data["phosphoproteomics"] = df
+                df_tumor = df_tumor.sort_index()
+                df_tumor = df_tumor.transpose()
+                df_tumor["Sample_Tumor_Normal"] = "Tumor"
+                
+                # merge tumor and normal if normal data has already been read
+                if "phosphoproteomics" in self._data:
+                    df_normal = self._data["phosphoproteomics"]
+                    df_combined = pd.concat([df_normal, df_tumor])
+                    self._data["phosphoproteomics"] = df_combined
+                else:
+                    self._data["phosphoproteomics"] = df_tumor
         
             elif file_name == "proteomics_gene_level_MD_abundance_normal.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
