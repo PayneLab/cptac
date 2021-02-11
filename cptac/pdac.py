@@ -88,7 +88,7 @@ class Pdac(Dataset):
 
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
-            df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
+            mark_normal = lambda s: s + ".N"
 
             ###FILL: Insert if/elif statements to parse all data files. Example:
             ###START EXAMPLE CODE###############################################
@@ -108,8 +108,7 @@ class Pdac(Dataset):
                 df_normal = df_normal.sort_index()
                 df_normal = df_normal.transpose()
                 df_normal["Sample_Tumor_Normal"] = "Normal"
-                df_normal = df_normal.rename(index=lambda s: "N" + s)
-                # df_normal.apply(self.mark_normal, axis=1)
+                df_normal = df_normal.rename(index=mark_normal)
                 
                 # merge tumor and normal if tumor data has already been read
                 if "transcriptomics" in self._data:
@@ -136,18 +135,25 @@ class Pdac(Dataset):
 
             elif file_name == "PDAC_mutation.maf.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
-               
+                
                 df = df.sort_index()
                 df = df.transpose()
-                self._data["df_name"] = df
+                self._data["somatic_mutation"] = df
 
             elif file_name == "phosphoproteomics_site_level_MD_abundance_normal.cct.gz":
                 # create df form normal data
-                df_normal = pd.read_csv(file_path, sep='\t', index_col=0)
+                df_normal = pd.read_csv(file_path, sep='\t')
+                column_split = df_normal["Index"].str.rsplit("_", n=1, expand=True)
+                df_normal = df_normal.assign(
+                    Site = column_split[1],
+                    Database_ID = column_split[0]
+                )
+                df_normal = df_normal.drop(columns="Index")
+                df_normal = df_normal.set_index(["Gene", "Site", "Peptide", "Database_ID"])
                 df_normal = df_normal.sort_index()
                 df_normal = df_normal.transpose()
                 df_normal["Sample_Tumor_Normal"] = "Normal"
-                df_normal = df_normal.rename(index=lambda s: "N" + s)
+                df_normal = df_normal.rename(index=mark_normal)
 
                 # merge tumor and normal if tumor data has already been read
                 if "phosphoproteomics" in self._data:
@@ -158,8 +164,14 @@ class Pdac(Dataset):
                     self._data["phosphoproteomics"] = df_normal
 
             elif file_name == "phosphoproteomics_site_level_MD_abundance_tumor.cct.gz":
-                df_tumor = pd.read_csv(file_path, sep='\t', index_col=0)
-                #df = df["site"].str.rsplit("-", n=1, expand=True)
+                df_tumor = pd.read_csv(file_path, sep='\t')
+                column_split = df_tumor["Index"].str.rsplit("_", n=1, expand=True)
+                df_tumor = df_tumor.assign(
+                    Site = column_split[1],
+                    Database_ID = column_split[0]
+                )
+                df_tumor = df_tumor.drop(columns="Index")
+                df_tumor = df_tumor.set_index(["Gene", "Site", "Peptide", "Database_ID"])
                 df_tumor = df_tumor.sort_index()
                 df_tumor = df_tumor.transpose()
                 df_tumor["Sample_Tumor_Normal"] = "Tumor"
@@ -177,28 +189,28 @@ class Pdac(Dataset):
                 df_normal = df_normal.sort_index()
                 df_normal = df_normal.transpose()
                 df_normal["Sample_Tumor_Normal"] = "Normal"
-                df_normal = df_normal.rename(index=lambda s: "N" + s)
+                df_normal = df_normal.rename(index=mark_normal)
 
                 # merge tumor and normal if tumor data has already been read
                 if "proteomics" in self._data:
                     df_tumor = self._data["proteomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
-                    self._data[df_name] = df_combined
+                    self._data["proteomics"] = df_combined
                 else:
                     self._data["proteomics"] = df_normal
 
             elif file_name == "proteomics_gene_level_MD_abundance_tumor.cct.gz":
+                print('Found proteomics tumor')
                 df_tumor = pd.read_csv(file_path, sep='\t', index_col=0)
                 df_tumor = df_tumor.sort_index()
                 df_tumor = df_tumor.transpose()
                 df_tumor["Sample_Tumor_Normal"] = "Tumor"
-                self._data[df_name] = df
 
                 # merge tumor and normal if normal data has already been read
                 if "proteomics" in self._data:
                     df_normal = self._data["proteomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
-                    self._data[df_name] = df_combined
+                    self._data["proteomics"] = df_combined
                 else:
                     self._data["proteomics"] = df_tumor
 
@@ -272,7 +284,3 @@ class Pdac(Dataset):
         ### warning, and keep the above warning about publication embargo.
         # Print password access only warning
         warnings.warn("The pdac data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)
-
-    def mark_normal(self, index):
-        if index["Sample_Tumor_Normal"] == "Normal":
-            index.add_prefix('N')
