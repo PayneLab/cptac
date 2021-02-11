@@ -134,10 +134,9 @@ class Pdac(Dataset):
                     self._data["transcriptomics"] = df_tumor
 
             elif file_name == "PDAC_mutation.maf.gz":
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
-                
+                df = pd.read_csv(file_path, sep='\t')
+                df = df[["Hugo_Symbol", "Variant_Classification", "HGVSp_Short", "Tumor_Sample_Barcode"]]
                 df = df.sort_index()
-                df = df.transpose()
                 self._data["somatic_mutation"] = df
 
             elif file_name == "phosphoproteomics_site_level_MD_abundance_normal.cct.gz":
