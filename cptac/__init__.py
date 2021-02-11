@@ -62,6 +62,7 @@ def version():
 
 def how_to_cite():
     """Give instructions for citing CPTAC datasets."""
+    print("For use of the cptac Python data API, please cite our publication: https://www.biorxiv.org/content/10.1101/2020.11.16.385427v1")
     print("For instructions on how to cite a specific dataset, please call its how_to_cite method, e.g. cptac.Endometrial().how_to_cite()")
 
 # Helper functions for handling exceptions and warnings

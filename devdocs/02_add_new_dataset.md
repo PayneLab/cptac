@@ -64,9 +64,7 @@ Here is an example of a table with a multi level column index:
 ![multiindexed_df](imgs/multiindexed_df.png)
 
 
-These tables conform to these requirements
-
-
+These tables conform to these requirements:
 
 *   Each column represents a particular variable. For omics tables, each column represents a gene/protein/etc. For metadata tables, each column represents a clinical variable (age, weight, etc.).
 *   Each row represents a specific sample.
@@ -79,7 +77,7 @@ These tables conform to these requirements
     *   Exception: The somatic_mutation dataframe will have multiple rows for each sample, so it will have duplicate index values.
         *   Some metadata dataframes, such as the treatment dataframe in Ovarian or medical_history dataframe in Ccrcc, may also have multiple rows for each sample. If so, they will need to be excluded from join functions. Check the _valid_omics_dfs and _valid_metadata_dfs lists and make sure that tables with duplicate index values aren't included in either of those lists.
     *   There may be duplicate column headers. If that's the case, you'll probably need to use additional identifiers to uniquely identify each column. We use a multi-level column index to accomplish this (see the 00_why_we_did_what_we_done document for more details).
-    *   If you have duplicated samples, either there are multiple rows for each patient (as in the treatment or somatic_mutation dataframes), or you need to prepend an 'N' to the Patient_IDs of the normal samples.
+    *   If you have duplicated samples, either there are multiple rows for each patient (as in the treatment or somatic_mutation dataframes), or you need to append a '.N' to the Patient_IDs of the normal samples.
 *   Index and column names are standardized:
     *   The value of df.index.name is "Patient_ID" for all tables.
     *   For dataframes with single-level column indices, the value of df.columns.name is "Name".
