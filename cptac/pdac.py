@@ -108,6 +108,7 @@ class Pdac(Dataset):
                 df_normal = df_normal.sort_index()
                 df_normal = df_normal.transpose()
                 df_normal["Sample_Tumor_Normal"] = "Normal"
+                df_normal = df_normal.rename(index=lambda s: "N" + s)
                 # df_normal.apply(self.mark_normal, axis=1)
                 
                 # merge tumor and normal if tumor data has already been read
