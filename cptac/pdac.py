@@ -108,6 +108,7 @@ class Pdac(Dataset):
                 df_normal = df_normal.sort_index()
                 df_normal = df_normal.transpose()
                 df_normal["Sample_Tumor_Normal"] = "Normal"
+                # df_normal.apply(self.mark_normal, axis=1)
                 
                 # merge tumor and normal if tumor data has already been read
                 if "transcriptomics" in self._data:
@@ -238,3 +239,7 @@ class Pdac(Dataset):
         ### warning, and keep the above warning about publication embargo.
         # Print password access only warning
         warnings.warn("The pdac data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)
+
+    def mark_normal(self, index):
+        if index["Sample_Tumor_Normal"] == "Normal":
+            index.add_prefix('N')
