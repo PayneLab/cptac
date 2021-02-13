@@ -94,6 +94,7 @@ class Pdac(Dataset):
             ###START EXAMPLE CODE###############################################
             if file_name == "clinical_table_140.tsv.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.rename_axis("Patient_ID", axis="index")
                 df = df.sort_index()
                 self._data["clinical"] = df
 
@@ -138,6 +139,7 @@ class Pdac(Dataset):
                 df = df[["Hugo_Symbol", "Variant_Classification", "HGVSp_Short", "Tumor_Sample_Barcode"]]
                 df = df.sort_index()
                 self._data["somatic_mutation"] = df
+                # TODO: Check why there are duplicates in this table
 
             elif file_name == "phosphoproteomics_site_level_MD_abundance_normal.cct.gz":
                 # create df form normal data
