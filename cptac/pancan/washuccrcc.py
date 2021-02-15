@@ -84,20 +84,22 @@ class WashuCcrcc(Dataset):
                 df = df.set_index("Patient_ID")
                 df.index = df.index.str.replace(r"_T", "", regex=True) #remove label for tumor samples
                 
-                
-            # Combine the two proteomics dataframes
-            rna_tumor = self._data.get("transcriptomics_tumor")
-            rna_normal = self._data.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
-            rna_combined = rna_tumor.append(rna_normal)
-            self._data["transcriptomics"] = rna_combined
-            del self._data["transcriptomics_tumor"]
-            del self._data["transcriptomics_normal"]
+            
+       
 
-#
+
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
-
+            
+        # Combine the two proteomics dataframes
+        rna_tumor = self._data.get("transcriptomics_tumor")
+        rna_normal = self._data.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
+        rna_combined = rna_tumor.append(rna_normal)
+        self._data["transcriptomics"] = rna_combined
+        del self._data["transcriptomics_tumor"]
+        del self._data["transcriptomics_normal"]
+        
         # Get a union of all dataframes' indices, with duplicates removed
         ###FILL: If there are any tables whose index values you don't want
         ### included in the master index, pass them to the optional 'exclude'

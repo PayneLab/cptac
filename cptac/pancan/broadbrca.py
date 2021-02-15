@@ -80,7 +80,17 @@ class WashuBrca(Dataset):
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
-        
+        # Get a union of all dataframes' indices, with duplicates removed
+        ###FILL: If there are any tables whose index values you don't want
+        ### included in the master index, pass them to the optional 'exclude'
+        ### parameter of the unionize_indices function. This was useful, for
+        ### example, when some datasets' followup data files included samples
+        ### from cohorts that weren't in any data tables besides the followup
+        ### table, so we excluded the followup table from the master index since
+        ### there wasn't any point in creating empty representative rows for
+        ### those samples just because they existed in the followup table.
+#        master_index = unionize_indices(self._data) 
+
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
 #        new_clinical = self._data["clinical"]
 #        new_clinical = new_clinical.reindex(master_index)

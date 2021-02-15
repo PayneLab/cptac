@@ -20,7 +20,7 @@ from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class BcmBrca(Dataset):
+class BcmGbm(Dataset):
 
     def __init__(self, no_internet, version):
         """Load all of the bcmbrca dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -37,8 +37,9 @@ class BcmBrca(Dataset):
 
         data_files = {
             "0.0": [
-                "BRCA-gene_RSEM_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
-                "gencode.v34.basic.annotation-mapping.txt"
+                "GBM-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt",
+                "gencode.v34.basic.annotation-mapping.txt",
+                "GBM-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt"
             ]
         }
 
@@ -56,7 +57,7 @@ class BcmBrca(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-            if file_name == "BRCA-gene_RSEM_tumor_normal_UQ_log2(x+1)_BCM.txt.gz":
+            if file_name == "GBM-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt":
                 df = pd.read_csv(file_path, sep="\t")
                 df.index.name = 'gene'
                 self._data["transcriptomics"] = df
@@ -68,8 +69,14 @@ class BcmBrca(Dataset):
                 df = df.drop_duplicates()
                 self.data["gene_key"] = df 
             
-        
-        
+            if file_name == "GBM-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt":
+                df = df.rename_axis('INDEX').reset_index()
+                df[["circ","chrom","start","end","gene"]] = df.INDEX.str.split('_', expand=True)
+                df["circ_chromosome"] = df["circ"] +"_" + df["chrom"]
+                df = df.set_index('gene')
+                self.data["circ_rna"] = df
+            
+           
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
@@ -87,55 +94,28 @@ class BcmBrca(Dataset):
         transcript = transcript.set_index(["Name", "Database_ID"])
         transcript = transcript.sort_index() #alphabetize
         transcript = transcript.T
+        transcript.index = transcript.index.str.replace(r"_T", "", regex=True)
         del self._data["transcriptomics"] #ask if I need this step?
         self.data["transcriptomic"] = transcript
         
-
-
-
-        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-#        new_clinical = self._data["clinical"]
-#        new_clinical = new_clinical.reindex(master_index)
-
-        # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample was a tumor or normal sample. Use a function from dataframe_tools to generate it.
-
-        ###FILL: Your dataset should have some way that it marks the Patient IDs
-        ### of normal samples. The example code below is for a dataset that
-        ### marks them by putting an 'N' at the beginning of each one. You will
-        ### need to write a lambda function that takes a given Patient_ID string
-        ### and returns a bool indicating whether it corresponds to a normal
-        ### sample. Pass that lambda function to the 'normal_test' parameter of
-        ### the  generate_sample_status_col function when you call it. See 
-        ### cptac/dataframe_tools.py for further function documentation.
-        ###START EXAMPLE CODE###################################################
-#        sample_status_col = generate_sample_status_col(new_clinical, normal_test=lambda sample: sample[0] == 'N')
-        ###END EXAMPLE CODE#####################################################
-
-#        new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
-
-        # Replace the clinical dataframe in the data dictionary with our new and improved version!
-#        self._data['clinical'] = new_clinical
-
-        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. 
+        # Add gene names to circular RNA data 
+        circRNA = self.data["circ_rna"]
+        gene_key = self.data["gene_key"]
         
-        ###FILL: You will need to pass the proper parameters to correctly
-        ### reformat the patient IDs in your dataset. The standard format is to
-        ### have the string '.N' appended to the end of the normal patient IDs,
-        ### e.g. the  normal patient ID corresponding to C3L-00378 would be
-        ### C3L-00378.N (this way we can easily match two samples from the same
-        ### patient). The example code below is for a dataset where all the
-        ### normal samples have  an "N" prepended to the patient IDs. The
-        ### reformat_normal_patient_ids function erases that and puts a ".N" at
-        ### the end. See cptac/dataframe_tools.py for further function
-        ### documentation.
-        ###START EXAMPLE CODE###################################################
-#        self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
-        ###END EXAMPLE CODE#####################################################
+        df = gene_key.join(circRNA, how = "inner")
+        df = df.reset_index()
+        df = df.rename(columns= {"gene_name": "Name","gene":"Database_ID"}) # change names to match cptac package
+        df = df.set_index(["Name","circ_chromosome", "start","end","Database_ID"]) #create multi-index
+        df.drop(['INDEX', 'circ', 
+                'chrom'], axis=1, inplace=True) 
+        df = df.sort_index()
+        df = df.T
+        df.index = df.index.str.replace(r"_T", "", regex=True) # remove Tumor label. All samples are tumor samples
+        del self._data["circ_rna"]
+        self.data["circ_rna"] = df
+      
 
-        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-#        self._data = sort_all_rows(self._data)
 
-        # Call function from dataframe_tools.py to standardize the names of the index and column axes
-#        self._data = standardize_axes_names(self._data)
+       
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
