@@ -132,6 +132,18 @@ class FileNotUpdatedWarning(CptacWarning):
     """A file they wanted to update wasn't updated."""
     pass
 
+class StatsWarning(CptacWarning):
+    """Statistics-related warnings."""
+    pass
+
+class StDevWarning(StatsWarning):
+    """Warning about standard deviation."""
+    pass
+
+class PvalWarning(StatsWarning):
+    """Some warning related to p values."""
+    pass
+
 # Developer-directed exceptions
 class CptacDevError(Exception):
     """For exceptions that are probably the developer's fault."""

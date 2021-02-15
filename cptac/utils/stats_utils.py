@@ -14,8 +14,9 @@ import numpy as np
 import scipy.stats
 import statsmodels.stats.multitest
 import operator
+import warnings
 
-from cptac.exceptions import InvalidParameterError
+from cptac.exceptions import InvalidParameterError, PvalWarning, StDevWarning
 
 '''
 @Param df:
@@ -52,6 +53,9 @@ from cptac.exceptions import InvalidParameterError
     Returns corrected pvalues if True,
     Returns uncorrected pvalues if False 
 
+@Param quiet (default=False):
+    Whether to silence cptac-generated warnings.
+
 @Return:
     A pandas dataframe of column names and corresponding p-values which were determined to be significant in
     the comparison, sorted by significance (smallest p-values at the head). The 2 columns of the dataframe are
@@ -70,7 +74,7 @@ The resulting p-values will be corrected for multiple testing, using a specified
 the significant results will be returned as a dataframe, sorted by p-value.
 '''
 
-def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, equal_var=True, return_all=False, correction_method='bonferroni', mincount=3, pval_return_corrected=True):
+def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, equal_var=True, return_all=False, correction_method='bonferroni', mincount=3, pval_return_corrected=True, quiet=False):
     try:
         '''Verify precondition that label column exists and has exactly 2 unique values'''
         label_values = df[label_column].unique()
@@ -102,14 +106,24 @@ def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, equal_var=T
             elif len(partition2[column].dropna(axis=0)) <= mincount:
                 continue
             else:
+
+                group1 = partition1[column].dropna(axis=0)
+                group2 = partition2[column].dropna(axis=0)
+
+                if (np.std(group1) == 0 or np.std(group2) == 0) and not quiet:
+                    warnings.warn(f"At least one group for column {column} had a standard deviation of zero.", StDevWarning)
+
                 stat, pval = scipy.stats.ttest_ind(
-                    a=partition1[column].dropna(axis=0),
-                    b=partition2[column].dropna(axis=0), 
+                    a=group1,
+                    b=group2, 
                     equal_var=equal_var
                 )
 
-                comparisons.append(column)
-                pvals.append(pval)
+                if pd.notna(pval):
+                    comparisons.append(column)
+                    pvals.append(pval)
+                elif not quiet:
+                    warnings.warn(f"pval for column {column} was NaN. pval dropped.", PvalWarning)
 
         if len(pvals) == 0: # None of the groups had enough members to pass the mincount
             raise InvalidParameterError("No groups had enough members to pass mincount; no tests run.")
