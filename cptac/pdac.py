@@ -107,6 +107,12 @@ class Pdac(Dataset):
                 df.columns.name = "Name"
                 self._data["derived_molecular"] = df
 
+            elif file_name == "microRNA_TPM_log2_Normal.cct.gz":
+                pass
+
+            elif file_name == "microRNA_TPM_log2_Tormal.cct.gz":
+                pass
+
             elif file_name == "mRNA_RSEM_UQ_log2_Normal.cct.gz":
                 # create df for normal data
                 df_normal = pd.read_csv(file_path, sep='\t', index_col=0)
@@ -172,6 +178,7 @@ class Pdac(Dataset):
                     df_tumor = self._data["phosphoproteomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
                     df_combined.index.name = "Patient_ID"
+                    #df_combined = df_combined.rename({"Gene":"Name"})
                     self._data["phosphoproteomics"] = df_combined
                 else:
                     self._data["phosphoproteomics"] = df_normal
@@ -185,7 +192,6 @@ class Pdac(Dataset):
                 )
                 df_tumor = df_tumor.drop(columns="Index")
                 df_tumor = df_tumor.set_index(["Gene", "Site", "Peptide", "Database_ID"])
-                df = df.rename({"Gene" : "Name"})
                 df_tumor = df_tumor.sort_index()
                 df_tumor = df_tumor.transpose()
                 df_tumor["Sample_Tumor_Normal"] = "Tumor"
@@ -195,6 +201,7 @@ class Pdac(Dataset):
                     df_normal = self._data["phosphoproteomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
                     df_combined.index.name = "Patient_ID"
+                    #df_combined = df_combined.rename({"Gene" : "Name"})
                     self._data["phosphoproteomics"] = df_combined
                 else:
                     self._data["phosphoproteomics"] = df_tumor
@@ -232,6 +239,15 @@ class Pdac(Dataset):
                     self._data["proteomics"] = df_combined
                 else:
                     self._data["proteomics"] = df_tumor
+
+            elif file_name == "RNA_fusion_unfiltered_normal.tsv.gz":
+                pass
+
+            elif file_name == "RNA_fusion_unfiltered_tumor.tsv.gz":
+                pass
+
+            elif file_name == "SCNA_log2_gene_level.cct.gz":
+                pass
 
             ###END EXAMPLE CODE#################################################
 
