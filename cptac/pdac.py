@@ -97,12 +97,14 @@ class Pdac(Dataset):
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.rename_axis("Patient_ID", axis="index")
                 df = df.sort_index()
+                df.columns.name = "Name"
                 self._data["clinical"] = df
 
             elif file_name == "meta_table_140.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.sort_index()
                 df.index.name = "Patient_ID"
+                df.columns.name = "Name"
                 self._data["derived_molecular"] = df
 
             elif file_name == "mRNA_RSEM_UQ_log2_Normal.cct.gz":
@@ -118,6 +120,7 @@ class Pdac(Dataset):
                     df_tumor = self._data["transcriptomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
                     df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
                     self._data["transcriptomics"] = df_combined
                 else:
                     self._data["transcriptomics"] = df_normal
@@ -134,6 +137,7 @@ class Pdac(Dataset):
                     df_normal = self._data["transcriptomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
                     df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
                     self._data["transcriptomics"] = df_combined
                 else:
                     self._data["transcriptomics"] = df_tumor
@@ -145,6 +149,7 @@ class Pdac(Dataset):
                 df = df.sort_values(by=["Patient_ID", "Gene"])
                 df = df.set_index("Patient_ID")
                 df = df.rename(index=remove_type_tag)
+                df.columns.name = "Name"
                 self._data["somatic_mutation"] = df
 
             elif file_name == "phosphoproteomics_site_level_MD_abundance_normal.cct.gz":
@@ -180,6 +185,7 @@ class Pdac(Dataset):
                 )
                 df_tumor = df_tumor.drop(columns="Index")
                 df_tumor = df_tumor.set_index(["Gene", "Site", "Peptide", "Database_ID"])
+                df = df.rename({"Gene" : "Name"})
                 df_tumor = df_tumor.sort_index()
                 df_tumor = df_tumor.transpose()
                 df_tumor["Sample_Tumor_Normal"] = "Tumor"
@@ -205,6 +211,7 @@ class Pdac(Dataset):
                     df_tumor = self._data["proteomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
                     df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
                     self._data["proteomics"] = df_combined
                 else:
                     self._data["proteomics"] = df_normal
@@ -221,6 +228,7 @@ class Pdac(Dataset):
                     df_normal = self._data["proteomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
                     df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
                     self._data["proteomics"] = df_combined
                 else:
                     self._data["proteomics"] = df_tumor
