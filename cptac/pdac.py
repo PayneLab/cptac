@@ -166,6 +166,7 @@ class Pdac(Dataset):
                 if "phosphoproteomics" in self._data:
                     df_tumor = self._data["phosphoproteomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
                     self._data["phosphoproteomics"] = df_combined
                 else:
                     self._data["phosphoproteomics"] = df_normal
@@ -187,6 +188,7 @@ class Pdac(Dataset):
                 if "phosphoproteomics" in self._data:
                     df_normal = self._data["phosphoproteomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
                     self._data["phosphoproteomics"] = df_combined
                 else:
                     self._data["phosphoproteomics"] = df_tumor
@@ -202,6 +204,7 @@ class Pdac(Dataset):
                 if "proteomics" in self._data:
                     df_tumor = self._data["proteomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
                     self._data["proteomics"] = df_combined
                 else:
                     self._data["proteomics"] = df_normal
@@ -217,6 +220,7 @@ class Pdac(Dataset):
                 if "proteomics" in self._data:
                     df_normal = self._data["proteomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
                     self._data["proteomics"] = df_combined
                 else:
                     self._data["proteomics"] = df_tumor
