@@ -89,6 +89,7 @@ class Pdac(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
             mark_normal = lambda s: s + ".N"
+            remove_type_tag = lambda s: s[:-2]
 
             ###FILL: Insert if/elif statements to parse all data files. Example:
             ###START EXAMPLE CODE###############################################
@@ -101,6 +102,7 @@ class Pdac(Dataset):
             elif file_name == "meta_table_140.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.sort_index()
+                df.index.name = "Patient_ID"
                 self._data["derived_molecular"] = df
 
             elif file_name == "mRNA_RSEM_UQ_log2_Normal.cct.gz":
@@ -115,6 +117,7 @@ class Pdac(Dataset):
                 if "transcriptomics" in self._data:
                     df_tumor = self._data["transcriptomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
                     self._data["transcriptomics"] = df_combined
                 else:
                     self._data["transcriptomics"] = df_normal
@@ -130,6 +133,7 @@ class Pdac(Dataset):
                 if "transcriptomics" in self._data:
                     df_normal = self._data["transcriptomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
                     self._data["transcriptomics"] = df_combined
                 else:
                     self._data["transcriptomics"] = df_tumor
@@ -137,9 +141,11 @@ class Pdac(Dataset):
             elif file_name == "PDAC_mutation.maf.gz":
                 df = pd.read_csv(file_path, sep='\t')
                 df = df[["Hugo_Symbol", "Variant_Classification", "HGVSp_Short", "Tumor_Sample_Barcode"]]
-                df = df.sort_index()
+                df = df.rename({"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
+                df = df.sort_values(by=["Patient_ID", "Gene"])
+                df = df.set_index("Patient_ID")
+                df = df.rename(index=remove_type_tag)
                 self._data["somatic_mutation"] = df
-                # TODO: Check why there are duplicates in this table
 
             elif file_name == "phosphoproteomics_site_level_MD_abundance_normal.cct.gz":
                 # create df form normal data
