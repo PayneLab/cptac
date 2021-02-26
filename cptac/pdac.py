@@ -65,6 +65,8 @@ class Pdac(Dataset):
         data_files = {
             "1.0": [
             "clinical_table_140.tsv.gz",
+            "microRNA_TPM_log2_Normal.cct.gz",
+            "microRNA_TPM_log2_Tumor.cct.gz",
             "meta_table_140.tsv.gz",
             "mRNA_RSEM_UQ_log2_Normal.cct.gz",
             "mRNA_RSEM_UQ_log2_Tumor.cct.gz",
@@ -72,7 +74,10 @@ class Pdac(Dataset):
             "phosphoproteomics_site_level_MD_abundance_normal.cct.gz",
             "phosphoproteomics_site_level_MD_abundance_tumor.cct.gz",
             "proteomics_gene_level_MD_abundance_normal.cct.gz",
-            "proteomics_gene_level_MD_abundance_tumor.cct.gz"],
+            "proteomics_gene_level_MD_abundance_tumor.cct.gz",
+            "RNA_fusion_unfiltered_normal.tsv.gz",
+            "RNA_fusion_unfiltered_tumor.tsv.gz",
+            "SCNA_log2_gene_level.cct.gz"],
         }
 
         # Call the parent class __init__ function
@@ -109,12 +114,13 @@ class Pdac(Dataset):
 
             elif file_name == "microRNA_TPM_log2_Normal.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df.sort_index()
+                df = df.transpose()
+                df = df.sort_index()
                 df.index.name = "Patient_ID"
                 self._data["miRNA"] = df
 
 
-            elif file_name == "microRNA_TPM_log2_Tormal.cct.gz":
+            elif file_name == "microRNA_TPM_log2_Tumor.cct.gz":
                 pass
                 #self._data["miRNA"] = df
 
