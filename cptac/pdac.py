@@ -275,13 +275,35 @@ class Pdac(Dataset):
                     self._data["proteomics"] = df_tumor
 
             elif file_name == "RNA_fusion_unfiltered_normal.tsv.gz":
-                pass
-                #self._data["gene_fusion"] = df
+                df_normal = pd.read_csv(file_path, sep='\t', index_col=0)
+                df_normal = df_normal.rename(columns={"Sample": "Patient_ID"})
+                df_normal = df_normal.set_index("Patient_ID")
+                df_normal = df_normal.rename(index=mark_normal)
+                df_normal["Sample_Tumor_Normal"] = "Normal"
 
+                if "gene_fusion" in self._data:
+                    df_tumor = self._data ["gene_fusion"]
+                    df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
+                    self._data["gene_fusion"] = df_combined
+                else:
+                    self._data["gene_fusion"] = df_normal
 
             elif file_name == "RNA_fusion_unfiltered_tumor.tsv.gz":
-                pass
-                #self._data["gene_fusion"] = df
+                df_tumor = pd.read_csv(file_path, sep='\t', index_col=0)
+                df_tumor = df_tumor.rename(columns={"Sample": "Patient_ID"})
+                df_tumor = df_tumor.set_index("Patient_ID")
+                df_tumor["Sample_Tumor_Normal"] = "Tumor"
+
+                if "gene_fusion" in self._data:
+                    df_normal = self._data ["gene_fusion"]
+                    df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
+                    self._data["gene_fusion"] = df_combined
+                else:
+                    self._data["gene_fusion"] = df_tumor
 
             elif file_name == "SCNA_log2_gene_level.cct.gz":
                 pass
