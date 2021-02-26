@@ -113,16 +113,37 @@ class Pdac(Dataset):
                 self._data["derived_molecular"] = df
 
             elif file_name == "microRNA_TPM_log2_Normal.cct.gz":
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.transpose()
-                df = df.sort_index()
-                df.index.name = "Patient_ID"
-                self._data["miRNA"] = df
+                df_normal = pd.read_csv(file_path, sep='\t', index_col=0)
+                df_normal = df_normal.sort_index()
+                df_normal = df_normal.transpose()
+                df_normal["Sample_Tumor_Normal"] = "Normal"
+                df_normal = df_normal.rename(index=mark_normal)
 
+                # merge tumor and normal if tumor data has already been read
+                if "miRNA" in self._data:
+                    df_tumor = self._data["miRNA"]
+                    df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
+                    self._data["miRNA"] = df_combined
+                else:
+                    self._data["miRNA"] = df_normal
 
             elif file_name == "microRNA_TPM_log2_Tumor.cct.gz":
-                pass
-                #self._data["miRNA"] = df
+                df_tumor = pd.read_csv(file_path, sep='\t', index_col=0)
+                df_tumor = df_tumor.sort_index()
+                df_tumor = df_tumor.transpose()
+                df_tumor["Sample_Tumor_Normal"] = "Tumor"
+
+                # merge tumor and normal if normal data has already been read
+                if "miRNA" in self._data:
+                    df_normal = self._data["miRNA"]
+                    df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
+                    self._data["miRNA"] = df_combined
+                else:
+                    self._data["miRNA"] = df_tumor
 
             elif file_name == "mRNA_RSEM_UQ_log2_Normal.cct.gz":
                 # create df for normal data
