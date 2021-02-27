@@ -306,8 +306,11 @@ class Pdac(Dataset):
                     self._data["gene_fusion"] = df_tumor
 
             elif file_name == "SCNA_log2_gene_level.cct.gz":
-                pass
-                #self._data["CNV"] = df
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.transpose()
+                df.columns.name = "Name"
+                df.index.name = "Patient_ID"
+                self._data["CNV"] = df
 
             ###END EXAMPLE CODE#################################################
 
