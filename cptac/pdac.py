@@ -103,6 +103,7 @@ class Pdac(Dataset):
                 df = df.rename_axis("Patient_ID", axis="index")
                 df = df.sort_index()
                 df.columns.name = "Name"
+                df["Sample_Tumor_Normal"] = "Tumor"
                 self._data["clinical"] = df
 
             elif file_name == "meta_table_140.tsv.gz":
@@ -327,11 +328,11 @@ class Pdac(Dataset):
         ### table, so we excluded the followup table from the master index since
         ### there wasn't any point in creating empty representative rows for
         ### those samples just because they existed in the followup table.
-        #master_index = unionize_indices(self._data) 
+        master_index = unionize_indices(self._data) 
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        #new_clinical = self._data["clinical"]
-        #new_clinical = new_clinical.reindex(master_index)
+        new_clinical = self._data["clinical"]
+        new_clinical = new_clinical.reindex(master_index)
 
         # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample was a tumor or normal sample. Use a function from dataframe_tools to generate it.
 
@@ -350,7 +351,7 @@ class Pdac(Dataset):
         #new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
-        # self._data['clinical'] = new_clinical
+        self._data['clinical'] = new_clinical
 
         # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. 
         
