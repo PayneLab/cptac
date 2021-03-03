@@ -33,10 +33,10 @@ class UmichBrca(Dataset):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        valid_versions = ["0.0"]
+        valid_versions = ["1.0"]
 
         data_files = {
-            "0.0": [
+            "1.0": [
                 "S039_BCprospective_observed_0920.tsv.gz",
                 "S039_BCprospective_imputed_0920.tsv.gz"
             ]
