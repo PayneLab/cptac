@@ -96,8 +96,6 @@ class Pdac(Dataset):
             mark_normal = lambda s: s + ".N"
             remove_type_tag = lambda s: s[:-2]
 
-            ###FILL: Insert if/elif statements to parse all data files. Example:
-            ###START EXAMPLE CODE###############################################
             if file_name == "clinical_table_140.tsv.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.rename_axis("Patient_ID", axis="index")
@@ -313,7 +311,6 @@ class Pdac(Dataset):
                 df.index.name = "Patient_ID"
                 self._data["CNV"] = df
 
-            ###END EXAMPLE CODE#################################################
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
