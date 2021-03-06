@@ -83,6 +83,10 @@ class DataTypeNotInSourceError(PancanError):
     """The source they requested does not have the data type they requested."""
     pass
 
+class PdcDownloadError(PancanError):
+    """There was a problem downloading data from the Proteomic Data Commons."""
+    pass
+
 # Warnings
 class CptacWarning(UserWarning):
     """Base class for all warnings we'll generate."""

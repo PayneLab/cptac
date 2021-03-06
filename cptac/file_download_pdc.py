@@ -15,7 +15,7 @@ import requests
 import shutil
 import warnings
 
-from .exceptions import DatasetAlreadyInstalledWarning, InvalidParameterError, NoInternetError
+from .exceptions import DatasetAlreadyInstalledWarning, InvalidParameterError, NoInternetError, PdcDownloadError
 
 def pdc_download(dataset, version, redownload):
     """Download data for the specified cancer type from the PDC."""
@@ -109,8 +109,6 @@ def pdc_download(dataset, version, redownload):
     master_clin = pd.DataFrame()
 
     for data_type in dataset_ids.keys():
-
-        print(data_type)
 
         # Append the clinical dataframe
         clin = _download_study_clin(dataset_ids[data_type])
@@ -211,7 +209,7 @@ def _download_study_quant(pdc_study_id):
     if result_df.shape[1] != 0:
         result_df = result_df.set_index(result_df.columns[0]).transpose()
     else:
-        print(f"MISSING: {pdc_study_id} quant")
+        raise PdcDownloadError(f"quantDataMatrix table returned for PDC study ID {pdc_study_id} was empty.")
 
     return result_df
 
