@@ -23,6 +23,7 @@ cptac/pancan/data_broadbrca/*
 cptac/pancan/data_mssmclinical/*
 cptac/pancan/data_umichbrca/*
 cptac/pancan/data_washubrca/*
+cptac/pancan/data_pdc*
 
 # Exclude files that are downloaded by utils functions
 cptac/utils/data/corum_protein_complexes.tsv.zip

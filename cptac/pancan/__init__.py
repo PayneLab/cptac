@@ -11,5 +11,5 @@
 
 from .file_download import download
 
-from .pdcdownload import _pdc_download_cancer_type
+from .pdcbrca import PdcBrca
 from .pancanbrca import PancanBrca

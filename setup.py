@@ -1,7 +1,6 @@
 from setuptools import setup
 import os.path as path
 
-
 # Get the path to our current directory
 path_here = path.abspath(path.dirname(__file__))
 

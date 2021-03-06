@@ -132,6 +132,10 @@ class FileNotUpdatedWarning(CptacWarning):
     """A file they wanted to update wasn't updated."""
     pass
 
+class DatasetAlreadyInstalledWarning(CptacWarning):
+    """The dataset was already installed, and they didn't want to redownload it."""
+    pass
+
 class StatsWarning(CptacWarning):
     """Statistics-related warnings."""
     pass

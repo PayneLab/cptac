@@ -13,8 +13,9 @@ import os
 import requests
 import getpass
 import bs4
+from .file_download_pdc import pdc_download
 from .file_tools import *
-from .exceptions import NoInternetError
+from .exceptions import InvalidParameterError, NoInternetError
 
 # Some websites don't like requests from sources without a user agent. Let's preempt that issue.
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
@@ -31,6 +32,13 @@ def download(dataset, version="latest", redownload=False):
     Returns:
     bool: Indicates whether download was successful.
     """
+
+    dataset = dataset.lower()
+
+    # If it's a PDC dataset, we call a different method to do that.
+    if dataset.startswith("pdc"):
+        return pdc_download(dataset, version=version, redownload=redownload)
+
     # Process the optional "all" parameter
     if dataset == "all":
         datasets = [
@@ -54,7 +62,6 @@ def download(dataset, version="latest", redownload=False):
         return overall_result
 
     # Get our dataset path
-    dataset = dataset.lower()
     dataset_path = get_dataset_path(dataset)
 
     # Update the index

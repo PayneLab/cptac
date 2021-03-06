@@ -27,7 +27,7 @@ class Dataset:
     the same function calls exist for cptac.Endometrial, cptac.Colon, etc.
     """
 
-    def __init__(self, cancer_type, version, valid_versions, data_files, no_internet):
+    def __init__(self, cancer_type, version, valid_versions, data_files, no_internet, attempt_update_index=True):
         """Initialize variables for a Dataset object.
 
         Parameters:
@@ -40,7 +40,7 @@ class Dataset:
         self._cancer_type = cancer_type.lower()
 
         # Update the index, if possible and desired.
-        if not no_internet:
+        if attempt_update_index and not no_internet:
             try:
                 update_index(self._cancer_type)
             except NoInternetError:
