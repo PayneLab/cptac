@@ -18,6 +18,56 @@ import warnings
 import cptac
 from cptac.exceptions import DatasetAlreadyInstalledWarning, InvalidParameterError, NoInternetError, PdcDownloadError
 
+STUDY_IDS_MAP = {
+    "pdcbrca": {
+        "acetylome": "PDC000239", # Prospective Breast BI Acetylome
+        "phosphoproteome": "PDC000121", # Prospective BRCA Phosphoproteome S039-2
+        "proteome": "PDC000120", # Prospective BRCA Proteome S039-1
+    },
+    "pdcccrcc": {
+        "phosphoproteome": "PDC000128", # CPTAC CCRCC Discovery Study - Phosphoproteme S044-2
+        "proteome": "PDC000127", # CPTAC CCRCC Discovery Study - Proteome S044-1
+    },
+    "pdccoad": {
+        "phosphoproteome": "PDC000117", # Prospective COAD Phosphoproteome S037-3
+        "proteome": "PDC000116", # Prospective COAD Proteome S037-2
+    },
+    "pdcgbm": {
+        "acetylome": "PDC000245", # CPTAC GBM Discovery Study - Acetylome
+        "phosphoproteome": "PDC000205", # CPTAC GBM Discovery Study - Phosphoproteome
+        "proteome": "PDC000204", # CPTAC GBM Discovery Study - Proteome
+    },
+    "pdchnscc": {
+        "phosphoproteome": "PDC000222", # CPTAC HNSCC Discovery Study - Phosphoproteome
+        "proteome": "PDC000221", # CPTAC HNSCC Discovery Study - Proteome
+    },
+    "pdclscc": {
+        "acetylome": "PDC000233", # CPTAC LSCC Discovery Study - Acetylome
+        "phosphoproteome": "PDC000232", # CPTAC LSCC Discovery Study - Phosphoproteome
+        "proteome": "PDC000234", # CPTAC LSCC Discovery Study - Proteome
+        "ubiquitylome": "PDC000237", # CPTAC LSCC Discovery Study - Ubiquitylome
+    },
+    "pdcluad": {
+        "acetylome": "PDC000224", # CPTAC LUAD Discovery Study - Acetylome
+        "phosphoproteome": "PDC000149", # CPTAC LUAD Discovery Study - Phosphoproteome
+        "proteome": "PDC000153", # CPTAC LUAD Discovery Study - Proteome
+    },
+    "pdcov": {
+        "phosphoproteome": "PDC000119", # Prospective OV Phosphoproteome S038-3
+        "proteome": "PDC000118", # Prospective OV Proteome S038-2
+    },
+    "pdcpda": {
+        "proteome": "PDC000270", # CPTAC PDA Discovery Study - Proteome
+        "phosphoproteome": "PDC000271", # CPTAC PDA Discovery Study - Phosphoproteome
+    },
+    "pdcucec": {
+        "acetylome": "PDC000226", # CPTAC UCEC Discovery Study - Acetylome
+        "phosphoproteome": "PDC000126", # UCEC Discovery - Phosphoproteome S043-2
+        "proteome": "PDC000125", # UCEC Discovery - Proteome S043-1
+    },
+}
+
+
 def download(dataset, version="latest", redownload=False):
 
     if dataset.startswith("pdc"):
@@ -31,67 +81,55 @@ def download(dataset, version="latest", redownload=False):
     else:
         raise InvalidParameterError(f"{dataset} is not a valid dataset.")
 
-def download_pdc_id(id):
-    """Download a PDC dataset by its PDC study id."""
-    pass
+def download_pdc_id(pdc_id):
+    """Download a PDC dataset by its PDC study id.
+    
+    Returns:
+    pandas.DataFrame: The clinical table for the study id.
+    pandas.DataFrame: The quantitative table for the study id.
+    """
+
+    # Download the clinical table
+    clin = _download_study_clin(pdc_id).set_index("case_submitter_id")
+
+    # The the biospecimenPerStudy table, which has both patient IDs and aliquot IDs
+    bio = _download_study_biospecimen(pdc_id).\
+    set_index("aliquot_submitter_id").\
+    sort_index()
+
+    # Get the quantitative data table
+    quant = _download_study_quant(pdc_id)
+
+    # Join the patient IDs from the biospecimenPerStudy table into the quant table
+    quant = quant.\
+    assign(aliquot_submitter_id=quant.iloc[:, 0].str.split(":", n=1, expand=True)[1]).\
+    drop(columns=quant.columns[0]).\
+    set_index("aliquot_submitter_id").\
+    sort_index()
+
+    quant = bio.\
+    join(quant, how="right").\
+    reset_index().\
+    set_index(["case_submitter_id", "aliquot_submitter_id"])
+
+    return clin, quant
+
+def list_pdc_datasets():
+    for dataset in STUDY_IDS_MAP.keys():
+        print(f"{dataset}:")
+        for data_type in STUDY_IDS_MAP[dataset].keys():
+            print(f"\t{data_type}: {STUDY_IDS_MAP[dataset][data_type]}")
+
+# Helper functions
     
 def _pdc_download(dataset, version, redownload):
     """Download data for the specified cancer type from the PDC."""
-
-    study_ids_map = {
-        "pdcbrca": {
-            "acetylome": "PDC000239", # Prospective Breast BI Acetylome
-            "phosphoproteome": "PDC000121", # Prospective BRCA Phosphoproteome S039-2
-            "proteome": "PDC000120", # Prospective BRCA Proteome S039-1
-        },
-        "pdcccrcc": {
-            "phosphoproteome": "PDC000128", # CPTAC CCRCC Discovery Study - Phosphoproteme S044-2
-            "proteome": "PDC000127", # CPTAC CCRCC Discovery Study - Proteome S044-1
-        },
-        "pdccoad": {
-            "phosphoproteome": "PDC000117", # Prospective COAD Phosphoproteome S037-3
-            "proteome": "PDC000116", # Prospective COAD Proteome S037-2
-        },
-        "pdcgbm": {
-            "acetylome": "PDC000245", # CPTAC GBM Discovery Study - Acetylome
-            "phosphoproteome": "PDC000205", # CPTAC GBM Discovery Study - Phosphoproteome
-            "proteome": "PDC000204", # CPTAC GBM Discovery Study - Proteome
-        },
-        "pdchnscc": {
-            "phosphoproteome": "PDC000222", # CPTAC HNSCC Discovery Study - Phosphoproteome
-            "proteome": "PDC000221", # CPTAC HNSCC Discovery Study - Proteome
-        },
-        "pdclscc": {
-            "acetylome": "PDC000233", # CPTAC LSCC Discovery Study - Acetylome
-            "phosphoproteome": "PDC000232", # CPTAC LSCC Discovery Study - Phosphoproteome
-            "proteome": "PDC000234", # CPTAC LSCC Discovery Study - Proteome
-            "ubiquitylome": "PDC000237", # CPTAC LSCC Discovery Study - Ubiquitylome
-        },
-        "pdcluad": {
-            "acetylome": "PDC000224", # CPTAC LUAD Discovery Study - Acetylome
-            "phosphoproteome": "PDC000149", # CPTAC LUAD Discovery Study - Phosphoproteome
-            "proteome": "PDC000153", # CPTAC LUAD Discovery Study - Proteome
-        },
-        "pdcov": {
-            "phosphoproteome": "PDC000119", # Prospective OV Phosphoproteome S038-3
-            "proteome": "PDC000118", # Prospective OV Proteome S038-2
-        },
-        "pdcpda": {
-            "proteome": "PDC000270", # CPTAC PDA Discovery Study - Proteome
-            "phosphoproteome": "PDC000271", # CPTAC PDA Discovery Study - Phosphoproteome
-        },
-        "pdcucec": {
-            "acetylome": "PDC000226", # CPTAC UCEC Discovery Study - Acetylome
-            "phosphoproteome": "PDC000126", # UCEC Discovery - Phosphoproteome S043-2
-            "proteome": "PDC000125", # UCEC Discovery - Proteome S043-1
-        },
-    }
 
     dataset = str.lower(dataset)
 
     if dataset == "pdcall":
         overall_result = True
-        for dataset in study_ids_map.keys():
+        for dataset in STUDY_IDS_MAP.keys():
             if not pdc_download(dataset, version, redownload):
                 overall_result = False
 
@@ -100,10 +138,10 @@ def _pdc_download(dataset, version, redownload):
     if not dataset.startswith("pdc"):
         raise InvalidParameterError(f"pdc_download function can only be used for PDC datasets, which start with the prefix 'pdc'. You tried to download '{dataset}'.")
 
-    if dataset not in study_ids_map.keys():
-        raise InvalidParameterError(f"PDC dataset must be one of the following:\n{list(study_ids_map.keys())}\nYou passed '{dataset}'.")
+    if dataset not in STUDY_IDS_MAP.keys():
+        raise InvalidParameterError(f"PDC dataset must be one of the following:\n{list(STUDY_IDS_MAP.keys())}\nYou passed '{dataset}'.")
 
-    dataset_ids = study_ids_map[dataset]
+    dataset_ids = STUDY_IDS_MAP[dataset]
 
     # Get the directory to where to store the data, and see if it exists
     path_here = os.path.abspath(os.path.dirname(__file__))
@@ -115,8 +153,7 @@ def _pdc_download(dataset, version, redownload):
         if redownload:
             shutil.rmtree(cancer_dir)
         else:
-            warnings.warn(f"The {dataset} dataset has been downloaded previously. If you wish to erase the existing download and re-download it, pass 'redownload=True'.", DatasetAlreadyInstalledWarning, stacklevel=4)
-
+            print(f"The {dataset} dataset has been downloaded previously. If you wish to erase the existing download and re-download it, pass 'redownload=True'.")
             return True
 
     os.mkdir(cancer_dir)
@@ -128,32 +165,17 @@ def _pdc_download(dataset, version, redownload):
 
     for data_type in dataset_ids.keys():
 
+        # Get the clinical and quantitative tables for the study ID
+        clin, quant = download_pdc_id(dataset_ids[data_type])
+
         # Append the clinical dataframe
-        clin = _download_study_clin(dataset_ids[data_type])
         master_clin = master_clin.append(clin)
-
-        # Get the quantDataMatrix table, then join in patient IDs from the biospecimenPerStudy table
-        bio = _download_study_biospecimen(dataset_ids[data_type]).\
-        set_index("aliquot_submitter_id").\
-        sort_index()
-
-        quant = _download_study_quant(dataset_ids[data_type])
-
-        quant = quant.\
-        assign(aliquot_submitter_id=quant.iloc[:, 0].str.split(":", n=1, expand=True)[1]).\
-        drop(columns=quant.columns[0]).\
-        set_index("aliquot_submitter_id").\
-        sort_index()
-
-        quant = bio.join(quant, how="right")
 
         # Save the quantitative table
         quant.to_csv(os.path.join(data_dir, f"{data_type}.tsv.gz"), sep="\t")
 
     # Drop any duplicated rows in combined clinical table, then save it too
-    master_clin = master_clin.\
-    set_index("case_submitter_id").\
-    drop_duplicates(keep="first")
+    master_clin = master_clin.drop_duplicates(keep="first")
 
     master_clin.to_csv(os.path.join(data_dir, "clinical.tsv.gz"), sep="\t")
 
@@ -246,7 +268,7 @@ def _query_pdc(query):
     return response.json()
 
 def _check_ids_match(ids_map):
-    """Check that the ids in the download function's study_ids_map match up."""
+    """Check that the ids in the download function's STUDY_IDS_MAP match up."""
     
     for cancer in ids_map.values():
         for data in cancer.values():
