@@ -65,6 +65,8 @@ class Pdac(Dataset):
         data_files = {
             "1.0": [
             "clinical_table_140.tsv.gz",
+            "microRNA_TPM_log2_Normal.cct.gz",
+            "microRNA_TPM_log2_Tumor.cct.gz",
             "meta_table_140.tsv.gz",
             "mRNA_RSEM_UQ_log2_Normal.cct.gz",
             "mRNA_RSEM_UQ_log2_Tumor.cct.gz",
@@ -72,7 +74,10 @@ class Pdac(Dataset):
             "phosphoproteomics_site_level_MD_abundance_normal.cct.gz",
             "phosphoproteomics_site_level_MD_abundance_tumor.cct.gz",
             "proteomics_gene_level_MD_abundance_normal.cct.gz",
-            "proteomics_gene_level_MD_abundance_tumor.cct.gz"],
+            "proteomics_gene_level_MD_abundance_tumor.cct.gz",
+            "RNA_fusion_unfiltered_normal.tsv.gz",
+            "RNA_fusion_unfiltered_tumor.tsv.gz",
+            "SCNA_log2_gene_level.cct.gz"],
         }
 
         # Call the parent class __init__ function
@@ -89,19 +94,55 @@ class Pdac(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
             mark_normal = lambda s: s + ".N"
+            remove_type_tag = lambda s: s[:-2]
 
-            ###FILL: Insert if/elif statements to parse all data files. Example:
-            ###START EXAMPLE CODE###############################################
             if file_name == "clinical_table_140.tsv.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.rename_axis("Patient_ID", axis="index")
                 df = df.sort_index()
+                df.columns.name = "Name"
+                df["Sample_Tumor_Normal"] = "Tumor"
                 self._data["clinical"] = df
 
             elif file_name == "meta_table_140.tsv.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.sort_index()
+                df.index.name = "Patient_ID"
+                df.columns.name = "Name"
                 self._data["derived_molecular"] = df
+
+            elif file_name == "microRNA_TPM_log2_Normal.cct.gz":
+                df_normal = pd.read_csv(file_path, sep='\t', index_col=0)
+                df_normal = df_normal.sort_index()
+                df_normal = df_normal.transpose()
+                df_normal["Sample_Tumor_Normal"] = "Normal"
+                df_normal = df_normal.rename(index=mark_normal)
+
+                # merge tumor and normal if tumor data has already been read
+                if "miRNA" in self._data:
+                    df_tumor = self._data["miRNA"]
+                    df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
+                    self._data["miRNA"] = df_combined
+                else:
+                    self._data["miRNA"] = df_normal
+
+            elif file_name == "microRNA_TPM_log2_Tumor.cct.gz":
+                df_tumor = pd.read_csv(file_path, sep='\t', index_col=0)
+                df_tumor = df_tumor.sort_index()
+                df_tumor = df_tumor.transpose()
+                df_tumor["Sample_Tumor_Normal"] = "Tumor"
+
+                # merge tumor and normal if normal data has already been read
+                if "miRNA" in self._data:
+                    df_normal = self._data["miRNA"]
+                    df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
+                    self._data["miRNA"] = df_combined
+                else:
+                    self._data["miRNA"] = df_tumor
 
             elif file_name == "mRNA_RSEM_UQ_log2_Normal.cct.gz":
                 # create df for normal data
@@ -115,6 +156,8 @@ class Pdac(Dataset):
                 if "transcriptomics" in self._data:
                     df_tumor = self._data["transcriptomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
                     self._data["transcriptomics"] = df_combined
                 else:
                     self._data["transcriptomics"] = df_normal
@@ -130,6 +173,8 @@ class Pdac(Dataset):
                 if "transcriptomics" in self._data:
                     df_normal = self._data["transcriptomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
                     self._data["transcriptomics"] = df_combined
                 else:
                     self._data["transcriptomics"] = df_tumor
@@ -137,9 +182,12 @@ class Pdac(Dataset):
             elif file_name == "PDAC_mutation.maf.gz":
                 df = pd.read_csv(file_path, sep='\t')
                 df = df[["Hugo_Symbol", "Variant_Classification", "HGVSp_Short", "Tumor_Sample_Barcode"]]
-                df = df.sort_index()
+                df = df.rename({"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
+                df = df.sort_values(by=["Patient_ID", "Gene"])
+                df = df.set_index("Patient_ID")
+                df = df.rename(index=remove_type_tag)
+                df.columns.name = "Name"
                 self._data["somatic_mutation"] = df
-                # TODO: Check why there are duplicates in this table
 
             elif file_name == "phosphoproteomics_site_level_MD_abundance_normal.cct.gz":
                 # create df form normal data
@@ -150,7 +198,8 @@ class Pdac(Dataset):
                     Database_ID = column_split[0]
                 )
                 df_normal = df_normal.drop(columns="Index")
-                df_normal = df_normal.set_index(["Gene", "Site", "Peptide", "Database_ID"])
+                df_normal = df_normal.rename(columns={"Gene":"Name"})
+                df_normal = df_normal.set_index(["Name", "Site", "Peptide", "Database_ID"])
                 df_normal = df_normal.sort_index()
                 df_normal = df_normal.transpose()
                 df_normal["Sample_Tumor_Normal"] = "Normal"
@@ -160,6 +209,8 @@ class Pdac(Dataset):
                 if "phosphoproteomics" in self._data:
                     df_tumor = self._data["phosphoproteomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
+                    #df_combined.columns.name = "Name"
                     self._data["phosphoproteomics"] = df_combined
                 else:
                     self._data["phosphoproteomics"] = df_normal
@@ -172,7 +223,8 @@ class Pdac(Dataset):
                     Database_ID = column_split[0]
                 )
                 df_tumor = df_tumor.drop(columns="Index")
-                df_tumor = df_tumor.set_index(["Gene", "Site", "Peptide", "Database_ID"])
+                df_tumor = df_tumor.rename(columns={"Gene":"Name"})
+                df_tumor = df_tumor.set_index(["Name", "Site", "Peptide", "Database_ID"])
                 df_tumor = df_tumor.sort_index()
                 df_tumor = df_tumor.transpose()
                 df_tumor["Sample_Tumor_Normal"] = "Tumor"
@@ -181,6 +233,8 @@ class Pdac(Dataset):
                 if "phosphoproteomics" in self._data:
                     df_normal = self._data["phosphoproteomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
+                    #df_combined.columns.name = "Name"
                     self._data["phosphoproteomics"] = df_combined
                 else:
                     self._data["phosphoproteomics"] = df_tumor
@@ -196,6 +250,8 @@ class Pdac(Dataset):
                 if "proteomics" in self._data:
                     df_tumor = self._data["proteomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
                     self._data["proteomics"] = df_combined
                 else:
                     self._data["proteomics"] = df_normal
@@ -211,77 +267,72 @@ class Pdac(Dataset):
                 if "proteomics" in self._data:
                     df_normal = self._data["proteomics"]
                     df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
                     self._data["proteomics"] = df_combined
                 else:
                     self._data["proteomics"] = df_tumor
 
-            ###END EXAMPLE CODE#################################################
+            elif file_name == "RNA_fusion_unfiltered_normal.tsv.gz":
+                df_normal = pd.read_csv(file_path, sep='\t', index_col=0)
+                df_normal = df_normal.rename(columns={"Sample": "Patient_ID"})
+                df_normal = df_normal.set_index("Patient_ID")
+                df_normal = df_normal.rename(index=mark_normal)
+                df_normal["Sample_Tumor_Normal"] = "Normal"
+
+                if "gene_fusion" in self._data:
+                    df_tumor = self._data ["gene_fusion"]
+                    df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
+                    self._data["gene_fusion"] = df_combined
+                else:
+                    self._data["gene_fusion"] = df_normal
+
+            elif file_name == "RNA_fusion_unfiltered_tumor.tsv.gz":
+                df_tumor = pd.read_csv(file_path, sep='\t', index_col=0)
+                df_tumor = df_tumor.rename(columns={"Sample": "Patient_ID"})
+                df_tumor = df_tumor.set_index("Patient_ID")
+                df_tumor["Sample_Tumor_Normal"] = "Tumor"
+
+                if "gene_fusion" in self._data:
+                    df_normal = self._data ["gene_fusion"]
+                    df_combined = pd.concat([df_normal, df_tumor])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
+                    self._data["gene_fusion"] = df_combined
+                else:
+                    self._data["gene_fusion"] = df_tumor
+
+            elif file_name == "SCNA_log2_gene_level.cct.gz":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.transpose()
+                df.columns.name = "Name"
+                df.index.name = "Patient_ID"
+                self._data["CNV"] = df
+
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
         # Get a union of all dataframes' indices, with duplicates removed
-        ###FILL: If there are any tables whose index values you don't want
-        ### included in the master index, pass them to the optional 'exclude'
-        ### parameter of the unionize_indices function. This was useful, for
-        ### example, when some datasets' followup data files included samples
-        ### from cohorts that weren't in any data tables besides the followup
-        ### table, so we excluded the followup table from the master index since
-        ### there wasn't any point in creating empty representative rows for
-        ### those samples just because they existed in the followup table.
-        #master_index = unionize_indices(self._data) 
+        master_index = unionize_indices(self._data) 
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        #new_clinical = self._data["clinical"]
-        #new_clinical = new_clinical.reindex(master_index)
-
-        # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample was a tumor or normal sample. Use a function from dataframe_tools to generate it.
-
-        ###FILL: Your dataset should have some way that it marks the Patient IDs
-        ### of normal samples. The example code below is for a dataset that
-        ### marks them by putting an 'N' at the beginning of each one. You will
-        ### need to write a lambda function that takes a given Patient_ID string
-        ### and returns a bool indicating whether it corresponds to a normal
-        ### sample. Pass that lambda function to the 'normal_test' parameter of
-        ### the  generate_sample_status_col function when you call it. See 
-        ### cptac/dataframe_tools.py for further function documentation.
-        ###START EXAMPLE CODE###################################################
-        #sample_status_col = generate_sample_status_col(new_clinical, normal_test=lambda sample: sample[0] == 'N')
-        ###END EXAMPLE CODE#####################################################
-
-        #new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
+        new_clinical = self._data["clinical"]
+        new_clinical = new_clinical.reindex(master_index)
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
-        # self._data['clinical'] = new_clinical
-
-        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. 
-        
-        ###FILL: You will need to pass the proper parameters to correctly
-        ### reformat the patient IDs in your dataset. The standard format is to
-        ### have the string '.N' appended to the end of the normal patient IDs,
-        ### e.g. the  normal patient ID corresponding to C3L-00378 would be
-        ### C3L-00378.N (this way we can easily match two samples from the same
-        ### patient). The example code below is for a dataset where all the
-        ### normal samples have  an "N" prepended to the patient IDs. The
-        ### reformat_normal_patient_ids function erases that and puts a ".N" at
-        ### the end. See cptac/dataframe_tools.py for further function
-        ### documentation.
-        ###START EXAMPLE CODE###################################################
-        #self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
-        ###END EXAMPLE CODE#####################################################
+        self._data['clinical'] = new_clinical
 
         # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-        # self._data = sort_all_rows(self._data)
+        self._data = sort_all_rows(self._data)
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
-        #self._data = standardize_axes_names(self._data)
+        self._data = standardize_axes_names(self._data)
 
-        #print(" " * len(formatting_msg), end='\r') # Erase the formatting message
+        print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 
-        
-        ###FILL: If the dataset is not password access only, remove the message
-        ### below. If it's under publication embargo, still remove this
-        ### warning, and keep the above warning about publication embargo.
         # Print password access only warning
         warnings.warn("The pdac data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)

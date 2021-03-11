@@ -19,11 +19,10 @@ from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
+class PdcOv(Dataset):
 
-class WashuCcrcc(Dataset):
-
-    def __init__(self, no_internet, version):
-        """Load all of the bcmbrca dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+    def __init__(self, version="latest", no_internet=False):
+        """Load all of the dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
@@ -33,17 +32,18 @@ class WashuCcrcc(Dataset):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        valid_versions = ["1.0"]
+        valid_versions = ["0.0"]
 
         data_files = {
-            "1.0": [
-                "ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
-                "ccRCC_discovery.dnp.annotated.exonic.maf"
+            "0.0": [
+                "clinical.tsv.gz",
+                "phosphoproteome.tsv.gz",
+                "proteome.tsv.gz",
             ]
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="washuccrcc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="pdcov", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet, attempt_update_index=False)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -56,50 +56,46 @@ class WashuCcrcc(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-            if file_name == "ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
-                df = pd.read_csv(file_path, sep="\t")
-                df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
-                df = df.set_index(["Name", "Database_ID"])
-                df = df.T
-                df.index.name = "Patient_ID"
-                df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
-                self._data["transcriptomics_tumor"] = df
-                
-            if file_name == "ccRCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
-                df = pd.read_csv(file_path, sep="\t")
-                df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
-                df = df.set_index(["Name", "Database_ID"])
-                df = df.T
-                df.index.name = "Patient_ID"
-                df.index = df.index.str.replace(r"-A", ".N", regex=True) #remove label for tumor samples
-                self._data["transcriptomics_normal"] = df
+            if file_name == "clinical.tsv.gz":
+                df = pd.read_csv(file_path, sep="\t", index_col=0)
+                self._data["clinical"] = df
 
-            elif file_name == "ccRCC_discovery.dnp.annotated.exonic.maf": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
-                df = pd.read_csv(file_path, sep='\t', index_col=0)           
-                df = df[['Patient_ID','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
-                df = df.rename(columns={
-                     "Hugo_Symbol":"Gene",
-                     "Variant_Classification":"Mutation",
-                     "HGVSp_Short":"Location"}) # Rename the columns we want to keep to the appropriate names
-                df = df.set_index("Patient_ID")
-                df.index = df.index.str.replace(r"_T", "", regex=True) #remove label for tumor samples
-                
-            
-       
+            if file_name == "phosphoproteome.tsv.gz":
+                df = pd.read_csv(file_path, sep="\t")
+                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
+                self._data["phosphoproteomics"] = df
 
+            if file_name == "proteome.tsv.gz":
+                df = pd.read_csv(file_path, sep="\t")
+                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
+                self._data["proteomics"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
-            
-        # Combine the two proteomics dataframes
-        rna_tumor = self._data.get("transcriptomics_tumor")
-        rna_normal = self._data.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
-        rna_combined = rna_tumor.append(rna_normal)
-        self._data["transcriptomics"] = rna_combined
-        del self._data["transcriptomics_tumor"]
-        del self._data["transcriptomics_normal"]
-        
+
+
+        # NOTE: The code below will not work properly until you have all the 
+        # dataframes formatted properly and loaded into the self._data
+        # dictionary. That's why they're commented out for now. Go ahead and
+        # uncomment them when all the data tables are ready. Note that some of
+        # the lines are marked as just examples, though, and you'll still need
+        # to adapt them to your specific situation.
+
+        # ALSO: This section makes use of several useful functions from the
+        # dataframe_tools.py file, such as "unionize_indices",
+        # "generate_sample_status_col", and so on. If you want more information
+        # about these functions, open that file and look at the docstring at
+        # the beginning of each functions, which is a triple-quoted string that
+        # gives an overview of what the function does, a description of what
+        # each parameter should be, and a description of the returned value. If
+        # you're using a function in a Jupyter Notebook or Python interpreter,
+        # you can also get the docstring using the Python "help" function, which
+        # just checks if the function has a docstring and then prints it if it
+        # does. An example usage would be "help(reformat_normal_patient_ids)".
+        # You can use the help function for any function from any library, not
+        # just cptac; docstrings are a common standard.
+
         # Get a union of all dataframes' indices, with duplicates removed
         ###FILL: If there are any tables whose index values you don't want
         ### included in the master index, pass them to the optional 'exclude'
@@ -109,11 +105,13 @@ class WashuCcrcc(Dataset):
         ### table, so we excluded the followup table from the master index since
         ### there wasn't any point in creating empty representative rows for
         ### those samples just because they existed in the followup table.
-#        master_index = unionize_indices(self._data) 
+
+        # master_index = unionize_indices(self._data) 
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-#        new_clinical = self._data["clinical"]
-#        new_clinical = new_clinical.reindex(master_index)
+
+        # new_clinical = self._data["clinical"]
+        # new_clinical = new_clinical.reindex(master_index)
 
         # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample was a tumor or normal sample. Use a function from dataframe_tools to generate it.
 
@@ -126,18 +124,31 @@ class WashuCcrcc(Dataset):
         ### the  generate_sample_status_col function when you call it. See 
         ### cptac/dataframe_tools.py for further function documentation.
         ###START EXAMPLE CODE###################################################
-#        sample_status_col = generate_sample_status_col(new_clinical, normal_test=lambda sample: sample[0] == 'N')
+
+        # sample_status_col = generate_sample_status_col(new_clinical, normal_test=lambda sample: sample[0] == 'N')
+
         ###END EXAMPLE CODE#####################################################
 
-#        new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
+        # new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
-#        self._data['clinical'] = new_clinical
+        # self._data['clinical'] = new_clinical
 
         # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. 
         
-        ###FILL: You will need to pass the proper parameters to correctly
-        ### reformat the patient IDs in your dataset. The standard format is to
+        ###FILL: You may need to use the code below to reformat the patient IDs
+        ### in your dataset. This applies if all of the normal samples are
+        ### already marked in the original data files in some way, but just not
+        ### in the way we want (e.g. they have an "N" at the beginning of the
+        ### sample ID, instead of a ".N" at the end). Be aware that the case
+        ### with some datasets such as PDAC is different; instead of the normal
+        ### samples already being marked, just not in the way we want, they're
+        ### actually contained in a separate table, with no special marking on
+        ### the sample ids. In those cases you wouldn't use the
+        ### reformat_normal_patient_ids function, and would instead just mark
+        ### the samples in the normal tables with the ".N" before appending them
+        ### to the tumor tables.
+        ### If you do use this function: the standard normal ID format is to
         ### have the string '.N' appended to the end of the normal patient IDs,
         ### e.g. the  normal patient ID corresponding to C3L-00378 would be
         ### C3L-00378.N (this way we can easily match two samples from the same
@@ -147,13 +158,13 @@ class WashuCcrcc(Dataset):
         ### the end. See cptac/dataframe_tools.py for further function
         ### documentation.
         ###START EXAMPLE CODE###################################################
-#        self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
+        # self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
         ###END EXAMPLE CODE#####################################################
 
         # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-#        self._data = sort_all_rows(self._data)
+        # self._data = sort_all_rows(self._data)
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
-#        self._data = standardize_axes_names(self._data)
+        # self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

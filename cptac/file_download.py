@@ -31,6 +31,9 @@ def download(dataset, version="latest", redownload=False):
     Returns:
     bool: Indicates whether download was successful.
     """
+
+    dataset = dataset.lower()
+
     # Process the optional "all" parameter
     if dataset == "all":
         datasets = [
@@ -54,7 +57,6 @@ def download(dataset, version="latest", redownload=False):
         return overall_result
 
     # Get our dataset path
-    dataset = dataset.lower()
     dataset_path = get_dataset_path(dataset)
 
     # Update the index
