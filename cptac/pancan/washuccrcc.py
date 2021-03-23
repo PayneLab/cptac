@@ -38,7 +38,10 @@ class WashuCcrcc(Dataset):
         data_files = {
             "1.0": [
                 "ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
-                "ccRCC_discovery.dnp.annotated.exonic.maf"
+                "ccRCC_discovery.dnp.annotated.exonic.maf",
+                "ccRCC_total_miRNA_combined.tsv",
+                "CIBERSORT.Output_Abs_ccRCC.txt",
+                "ccRCC_xCell"
             ]
         }
 
@@ -85,7 +88,33 @@ class WashuCcrcc(Dataset):
                 df.index = df.index.str.replace(r"_T", "", regex=True) #remove label for tumor samples
                 
             
-       
+            # miRNA
+            elif file_name == "EC_total_miRNA_combined.tsv": # 'NA' vals in file taken care of with default pd.read_csv
+                df = pd.read_csv(file_path, sep = '\t', index_col=['Name', 'ID', 'Alias'])
+                df = df.transpose()
+                df.index = df.index.str.replace('.T$','') # remove label for tumor samples
+                df.index = df.index.str.replace('.A$','.N') # change label for normal samples
+                df.index = df.index.set_names('Patient_ID')
+                self._data["miRNA"] = df
+                
+            # cibersort
+            elif file_name == "CIBERSORT.Output_Abs_EC.txt": # 'NA' vals in file taken care of with default pd.read_csv
+                df = pd.read_csv(file_path, sep = '\t', index_col = 0) # na_vals 'NA' already default for read_csv
+                df.index.name = 'Patient_ID'
+                df.columns.name = 'Name'
+                df.index = df.index.str.replace(r'-T$', '', regex=True)  #remove label for tumor samples
+                df.index = df.index.str.replace(r'-A$', '.N', regex=True) # change label for normal samples
+                self._data["cibersort"] = df
+
+            # xCell
+            if file_name == "EC_xCell":
+                df = pd.read_csv(file_path, sep = '\t', index_col = 0) # 'NA' vals in file taken care of with default pd.read_csv
+                df = df.transpose()
+                df.columns.name = 'Name'
+                df.index.name = 'Patient_ID'
+                df.index = df.index.str.replace(r'-T$', '', regex=True) # remove label for tumor samples
+                df.index = df.index.str.replace(r'-A$', '.N', regex=True) # change label for normal samples
+                self._data["xcell"] = df
 
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message

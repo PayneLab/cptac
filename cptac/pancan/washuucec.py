@@ -37,7 +37,12 @@ class WashuUcec(Dataset):
 
         data_files = {
             "1.0": [
-                "EC_total_miRNA_combined.tsv"
+                "ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
+                "ccRCC_discovery.dnp.annotated.exonic.maf",
+                "EC_total_miRNA_combined.tsv",
+                "CIBERSORT.Output_Abs_EC.txt",
+                "EC_xCell"
+                
             ]
         }
 
@@ -54,23 +59,64 @@ class WashuUcec(Dataset):
 
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
+            
+            if file_name == "ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
+                df = pd.read_csv(file_path, sep="\t")
+                df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"])
+                df = df.T
+                df.index.name = "Patient_ID"
+                df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
+                self._data["transcriptomics_tumor"] = df
+                
+            if file_name == "ccRCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
+                df = pd.read_csv(file_path, sep="\t")
+                df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"])
+                df = df.T
+                df.index.name = "Patient_ID"
+                df.index = df.index.str.replace(r"-A", ".N", regex=True) #remove label for tumor samples
+                self._data["transcriptomics_normal"] = df
 
-            if file_name == "EC_total_miRNA_combined.tsv":
+            elif file_name == "ccRCC_discovery.dnp.annotated.exonic.maf": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
+                df = pd.read_csv(file_path, sep='\t', index_col=0)           
+                df = df[['Patient_ID','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
+                df = df.rename(columns={
+                     "Hugo_Symbol":"Gene",
+                     "Variant_Classification":"Mutation",
+                     "HGVSp_Short":"Location"}) # Rename the columns we want to keep to the appropriate names
+                df = df.set_index("Patient_ID")
+                df.index = df.index.str.replace(r"_T", "", regex=True) #remove label for tumor samples
+
+            # miRNA
+            elif file_name == "EC_total_miRNA_combined.tsv": # 'NA' vals in file taken care of with default pd.read_csv
                 df = pd.read_csv(file_path, sep = '\t', index_col=['Name', 'ID', 'Alias'])
                 df = df.transpose()
-                df.index = df.index.str.replace('.T$','')
-                df.index = df.index.str.replace('.A$','.N')
+                df.index = df.index.str.replace('.T$','') # remove label for tumor samples
+                df.index = df.index.str.replace('.A$','.N') # change label for normal samples
                 df.index = df.index.set_names('Patient_ID')
                 self._data["miRNA"] = df
                 
-                
-            elif file_name == "EC_xCell.txt":
-                df = pd.read_csv(file_path, sep = '\t')
+            # cibersort
+            elif file_name == "CIBERSORT.Output_Abs_EC.txt": # 'NA' vals in file taken care of with default pd.read_csv
+                df = pd.read_csv(file_path, sep = '\t', index_col = 0) # na_vals 'NA' already default for read_csv
+                df.index.name = 'Patient_ID'
+                df.columns.name = 'Name'
+                df.index = df.index.str.replace(r'-T$', '', regex=True)  #remove label for tumor samples
+                df.index = df.index.str.replace(r'-A$', '.N', regex=True) # change label for normal samples
                 self._data["cibersort"] = df
+
+            # xCell
+            if file_name == "EC_xCell":
+                df = pd.read_csv(file_path, sep = '\t', index_col = 0) # 'NA' vals in file taken care of with default pd.read_csv
+                df = df.transpose()
+                df.columns.name = 'Name'
+                df.index.name = 'Patient_ID'
+                df.index = df.index.str.replace(r'-T$', '', regex=True) # remove label for tumor samples
+                df.index = df.index.str.replace(r'-A$', '.N', regex=True) # change label for normal samples
+                self._data["xcell"] = df
                 
-            elif file_name == "EC_xCell.txt":
-                df = pd.read_csv(file_path, sep = '\t')
-                self._data["xCell"] = df
+             
                 
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
