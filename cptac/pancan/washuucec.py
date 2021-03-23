@@ -37,8 +37,8 @@ class WashuUcec(Dataset):
 
         data_files = {
             "1.0": [
-                "ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
-                "ccRCC_discovery.dnp.annotated.exonic.maf",
+                "EC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
+                "EC_discovery.dnp.annotated.exonic.maf",
                 "EC_total_miRNA_combined.tsv",
                 "CIBERSORT.Output_Abs_EC.txt",
                 "EC_xCell"
@@ -47,7 +47,7 @@ class WashuUcec(Dataset):
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="washubrca", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="washuucec", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -60,7 +60,7 @@ class WashuUcec(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
             
-            if file_name == "ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
+            if file_name == "EC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
                 df = df.set_index(["Name", "Database_ID"])
@@ -69,7 +69,7 @@ class WashuUcec(Dataset):
                 df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
                 self._data["transcriptomics_tumor"] = df
                 
-            if file_name == "ccRCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
+            if file_name == "EC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
                 df = df.set_index(["Name", "Database_ID"])
@@ -78,7 +78,7 @@ class WashuUcec(Dataset):
                 df.index = df.index.str.replace(r"-A", ".N", regex=True) #remove label for tumor samples
                 self._data["transcriptomics_normal"] = df
 
-            elif file_name == "ccRCC_discovery.dnp.annotated.exonic.maf": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
+            elif file_name == "EC_discovery.dnp.annotated.exonic.maf": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t', index_col=0)           
                 df = df[['Patient_ID','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
                 df = df.rename(columns={
@@ -107,7 +107,7 @@ class WashuUcec(Dataset):
                 self._data["cibersort"] = df
 
             # xCell
-            if file_name == "EC_xCell":
+            elif file_name == "EC_xCell":
                 df = pd.read_csv(file_path, sep = '\t', index_col = 0) # 'NA' vals in file taken care of with default pd.read_csv
                 df = df.transpose()
                 df.columns.name = 'Name'

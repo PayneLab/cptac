@@ -89,7 +89,7 @@ class WashuBrca(Dataset):
                 self._data["cibersort"] = df
 
             # xCell
-            if file_name == "EC_xCell":
+            elif file_name == "EC_xCell":
                 df = pd.read_csv(file_path, sep = '\t', index_col = 0) # 'NA' vals in file taken care of with default pd.read_csv
                 df = df.transpose()
                 df.columns.name = 'Name'
