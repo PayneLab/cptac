@@ -70,6 +70,8 @@ STUDY_IDS_MAP = {
 
 def download(dataset, version="latest", redownload=False):
 
+    dataset = dataset.lower()
+
     if dataset.startswith("pdc"):
         _pdc_download(dataset, version=version, redownload=redownload)
     elif dataset == "pancanbrca":
@@ -116,7 +118,7 @@ def download_pdc_id(pdc_id):
 
 def list_pdc_datasets():
     for dataset in STUDY_IDS_MAP.keys():
-        print(f"{dataset}:")
+        print(f"Pdc{dataset[3:].title()}:")
         for data_type in STUDY_IDS_MAP[dataset].keys():
             print(f"\t{data_type}: {STUDY_IDS_MAP[dataset][data_type]}")
 
