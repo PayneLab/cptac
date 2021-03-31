@@ -80,11 +80,17 @@ def download(dataset, version="latest", redownload=False):
         box_token = get_box_token()
     
         if dataset == "pancanbrca":
-            cptac.download("bcmbrca", version=version, redownload=redownload, box_auth=True, box_token=box_token)
-            cptac.download("broadbrca", version=version, redownload=redownload, box_auth=True, box_token=box_token)
-            cptac.download("mssmclinical", version=version, redownload=redownload, box_auth=True, box_token=box_token)
-            cptac.download("umichbrca", version=version, redownload=redownload, box_auth=True, box_token=box_token)
-            cptac.download("washubrca", version=version, redownload=redownload, box_auth=True, box_token=box_token)
+
+            sources = [
+                "bcmbrca",
+                "broadbrca",
+                "mssmclinical",
+                "umichbrca",
+                "washubrca",
+            ]
+
+            for source in sources:
+                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
         else:
             raise InvalidParameterError(f"{dataset} is not a valid dataset.")
 
