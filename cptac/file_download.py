@@ -9,10 +9,17 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from flask import Flask, cli, request
+from multiprocessing import Pipe, Process
+
+import webbrowser
+import time
+import logging
 import os
 import requests
 import getpass
 import bs4
+
 from .file_tools import *
 from .exceptions import NoInternetError
 
@@ -20,13 +27,15 @@ from .exceptions import NoInternetError
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
 HEADERS = {'User-Agent': USER_AGENT}
 
-def download(dataset, version="latest", redownload=False):
+def download(dataset, version="latest", redownload=False, box_auth=False, box_token=None):
     """Download data files for the specified datasets. Defaults to downloading latest version on server.
 
     Parameters:
     dataset (str): The name of the dataset to download data for, or "all" to download data for all datasets
     version (str, optional): Which version of the data files to download. Defaults to latest on server.
     redownload (bool, optional): Whether to redownload the data files, even if that version of the data is already downloaded. Default False.
+    box_auth (bool, optional): Whether to download the files using Box file IDs and OAuth2 authentication. Default False.
+    box_token (str, optional): The OAuth2 token for Box, if already generated. Default None.
 
     Returns:
     bool: Indicates whether download was successful.
@@ -99,6 +108,9 @@ def download(dataset, version="latest", redownload=False):
     password = None
     total_files = len(files_to_download)
 
+    if box_auth and box_token is None:
+        box_token = get_box_token()
+
     for data_file in files_to_download:
 
         file_index = version_index.get(data_file)
@@ -108,7 +120,7 @@ def download(dataset, version="latest", redownload=False):
         file_path = os.path.join(version_path, data_file)
         file_number = files_to_download.index(data_file) + 1
 
-        downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
+        downloaded_path = download_file(file_url, file_path, server_hash, password=password, box_token=box_token, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
 
         while downloaded_path == "wrong_password":
             if password is None:
@@ -118,7 +130,8 @@ def download(dataset, version="latest", redownload=False):
             print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
             print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
 
-            downloaded_path = download_file(file_url, file_path, server_hash, password=password, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
+            downloaded_path = download_file(file_url, file_path, server_hash, password=password, box_token=box_token, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
+
     return True
 
 def update_index(dataset):
@@ -164,6 +177,7 @@ def update_index(dataset):
         local_index_hash = hash_file(index_path)
         if local_index_hash == server_index_hash:
             return True
+
     # If we get here, something apparently went wrong with the download.
     raise NoInternetError("Insufficient internet. Check your internet connection.")
 
@@ -185,7 +199,7 @@ def download_text(url):
     text = response.text.strip()
     return text
 
-def download_file(url, path, server_hash, password=None, file_message=None, file_number=None, total_files=None): 
+def download_file(url, path, server_hash, password=None, box_token=None, file_message=None, file_number=None, total_files=None): 
     """Download a file from a given url to the specified location.
 
     Parameters:
@@ -193,6 +207,7 @@ def download_file(url, path, server_hash, password=None, file_message=None, file
     path (str): The path to the file (not just the directory) to save the file to on the local machine.
     server_hash (str): The hash for the file, to check it against. If check fails, try download one more time, then throw an exception.
     password (str, optional): If the file is password protected, the password for it. Unneeded otherwise.
+    box_token (str, optional): The OAuth2 token for Box, if we're downloading a file that needs that. Default of None ignores that option.
     file_message (str, optional): Identifing message about the file, to be printed while it's downloading. Default None will cause the full file name to be printed.
     file_number (int, optional): Which file this is in a batch of files, if you want to print a "File 1/15", "File 2/15", etc. sort of message. Must also pass total_files parameter.
     total_files (int, optional): The total number of files in the download batch, if you're printing that. Must also pass file_number parameter.
@@ -213,8 +228,15 @@ def download_file(url, path, server_hash, password=None, file_message=None, file
 
     for i in range(2):
         try:
-            if password is None:
+            if box_token is not None: # We are using Box OAuth2
+                download_url = f"https://api.box.com/2.0/files/{url}/content/" # url is actually file ID
+                headers = dict(HEADERS)
+                headers["Authorization"] = f"Bearer {box_token}"
+                response = requests.get(download_url, headers=headers)
+
+            elif password is None: # No password or OAuth2
                 response = requests.get(url, headers=HEADERS, allow_redirects=True)
+
             else: # The file is password protected
                 with requests.Session() as session: # Use a session object to save cookies
                     # Construct the urls for our GET and POST requests
@@ -246,3 +268,69 @@ def download_file(url, path, server_hash, password=None, file_message=None, file
         elif response.text.strip().startswith("<!DOCTYPE html>"): # The password was wrong, so we just got a webpage
             print(" " * len(download_msg), end='\r') # Erase the downloading message
             return "wrong_password"
+
+def get_box_token():
+
+    app = Flask(__name__)
+
+    # Don't show starting message from server
+    cli.show_server_banner = lambda *_: None
+
+    # Don't show logs from server
+    log = logging.getLogger('werkzeug')
+    log.disabled = True
+
+    # Set up a way to share key from the server process back to the main process
+    parent_conn, child_conn = Pipe()
+
+    # Fetch access token and make authenticated request
+    @app.route('/receive')
+    def receive():
+
+        # Get the temporary access code
+        code = request.args.get('code')
+
+        # Send back to the parent process
+        child_conn.send(code)
+
+        return "Authentication successful. You can close this window."
+
+    # Set up authentication parameters
+    base_url = "https://account.box.com/api/oauth2/authorize"
+    client_id = "kztczhjoq3oes38yywuyfp4t9tu11it8"
+    client_secret = "a5xNE1qj4Z4H3BSJEDVfzbxtmxID6iKY"
+    login_url = f"{base_url}?client_id={client_id}&response_type=code"
+
+    # Start the server
+    server = Process(target=app.run, kwargs={"port": "8003"})
+    server.start()
+
+    # Send the user to the "Grant access" page
+    webbrowser.open(login_url)
+    print("Please login to Box on the webpage that was just opened and grant access for cptac to download files through your account. If you accidentally closed the browser window, press Ctrl+C and call the download function again.")
+
+    # Get the temporary access code from the server on the child process
+    temp_code = parent_conn.recv()
+
+    # Give the browswer time to grab the response page
+    time.sleep(1)
+
+    # End the server process
+    server.terminate()
+    server.join()
+    server.close()
+
+    # Use the temporary access code to get the long term access token
+    token_url = "https://api.box.com/oauth2/token";
+
+    params = {
+       'grant_type': 'authorization_code',
+       'code': temp_code,
+       'client_id': client_id,
+       'client_secret': client_secret,
+    }
+
+    auth_resp = requests.post(token_url, data=params)
+    access_token = auth_resp.json()["access_token"]
+
+    return access_token

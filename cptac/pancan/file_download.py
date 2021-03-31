@@ -16,6 +16,7 @@ import shutil
 import warnings
 
 import cptac
+from cptac.file_download import get_box_token
 from cptac.exceptions import DatasetAlreadyInstalledWarning, InvalidParameterError, NoInternetError, PdcDownloadError
 
 STUDY_IDS_MAP = {
@@ -74,14 +75,18 @@ def download(dataset, version="latest", redownload=False):
 
     if dataset.startswith("pdc"):
         _pdc_download(dataset, version=version, redownload=redownload)
-    elif dataset == "pancanbrca":
-        cptac.download("bcmbrca", version=version, redownload=redownload)
-        cptac.download("broadbrca", version=version, redownload=redownload)
-        cptac.download("mssmclinical", version=version, redownload=redownload)
-        cptac.download("umichbrca", version=version, redownload=redownload)
-        cptac.download("washubrca", version=version, redownload=redownload)
+
     else:
-        raise InvalidParameterError(f"{dataset} is not a valid dataset.")
+        box_token = get_box_token()
+    
+        if dataset == "pancanbrca":
+            cptac.download("bcmbrca", version=version, redownload=redownload, box_auth=True, box_token=box_token)
+            cptac.download("broadbrca", version=version, redownload=redownload, box_auth=True, box_token=box_token)
+            cptac.download("mssmclinical", version=version, redownload=redownload, box_auth=True, box_token=box_token)
+            cptac.download("umichbrca", version=version, redownload=redownload, box_auth=True, box_token=box_token)
+            cptac.download("washubrca", version=version, redownload=redownload, box_auth=True, box_token=box_token)
+        else:
+            raise InvalidParameterError(f"{dataset} is not a valid dataset.")
 
 def download_pdc_id(pdc_id):
     """Download a PDC dataset by its PDC study id.

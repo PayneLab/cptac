@@ -169,12 +169,13 @@ def get_index(dataset):
             index[version] = {}
         else:
             line_list = line.split('\t')
-            file_name = line_list[0]
-            file_hash = line_list[1]
-            file_url = line_list[2]
-            index[version][file_name] = {}
-            index[version][file_name]["hash"] = file_hash
-            index[version][file_name]["url"] = file_url
+            if len(line_list) > 1:
+                file_name = line_list[0]
+                file_hash = line_list[1]
+                file_url = line_list[2]
+                index[version][file_name] = {}
+                index[version][file_name]["hash"] = file_hash
+                index[version][file_name]["url"] = file_url
     return index
 
 def parse_tsv_dict(path):
