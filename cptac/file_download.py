@@ -269,9 +269,24 @@ def download_file(url, path, server_hash, password=None, box_token=None, file_me
             print(" " * len(download_msg), end='\r') # Erase the downloading message
             return "wrong_password"
 
-def get_box_token():
+# Set up a localhost server to receive access token
+app = Flask(__name__)
 
-    app = Flask(__name__)
+# Set up a way to share key from the child server process back to the main process
+parent_conn, child_conn = Pipe()
+
+@app.route('/receive')
+def receive():
+
+    # Get the temporary access code
+    code = request.args.get('code')
+
+    # Send back to the parent process
+    child_conn.send(code)
+
+    return "Authentication successful. You can close this window."
+
+def get_box_token():
 
     # Don't show starting message from server
     cli.show_server_banner = lambda *_: None
@@ -279,21 +294,6 @@ def get_box_token():
     # Don't show logs from server
     log = logging.getLogger('werkzeug')
     log.disabled = True
-
-    # Set up a way to share key from the server process back to the main process
-    parent_conn, child_conn = Pipe()
-
-    # Fetch access token and make authenticated request
-    @app.route('/receive')
-    def receive():
-
-        # Get the temporary access code
-        code = request.args.get('code')
-
-        # Send back to the parent process
-        child_conn.send(code)
-
-        return "Authentication successful. You can close this window."
 
     # Set up authentication parameters
     base_url = "https://account.box.com/api/oauth2/authorize"
