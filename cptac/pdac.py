@@ -87,7 +87,6 @@ class Pdac(Dataset):
                 df_normal = pd.read_csv(file_path, sep='\t', index_col=0)
                 df_normal = df_normal.sort_index()
                 df_normal = df_normal.transpose()
-                df_normal["Sample_Tumor_Normal"] = "Normal"
                 df_normal = df_normal.rename(index=mark_normal)
 
                 # merge tumor and normal if tumor data has already been read
@@ -104,7 +103,6 @@ class Pdac(Dataset):
                 df_tumor = pd.read_csv(file_path, sep='\t', index_col=0)
                 df_tumor = df_tumor.sort_index()
                 df_tumor = df_tumor.transpose()
-                df_tumor["Sample_Tumor_Normal"] = "Tumor"
 
                 # merge tumor and normal if normal data has already been read
                 if "miRNA" in self._data:
@@ -121,7 +119,6 @@ class Pdac(Dataset):
                 df_normal = pd.read_csv(file_path, sep='\t', index_col=0)
                 df_normal = df_normal.sort_index()
                 df_normal = df_normal.transpose()
-                df_normal["Sample_Tumor_Normal"] = "Normal"
                 df_normal = df_normal.rename(index=mark_normal)
                 
                 # merge tumor and normal if tumor data has already been read
@@ -139,7 +136,6 @@ class Pdac(Dataset):
                 df_tumor = pd.read_csv(file_path, sep='\t', index_col=0)
                 df_tumor = df_tumor.sort_index()
                 df_tumor = df_tumor.transpose()
-                df_tumor["Sample_Tumor_Normal"] = "Tumor"
 
                 # merge tumor and normal if normal data has already been read
                 if "transcriptomics" in self._data:
@@ -174,7 +170,6 @@ class Pdac(Dataset):
                 df_normal = df_normal.set_index(["Name", "Site", "Peptide", "Database_ID"])
                 df_normal = df_normal.sort_index()
                 df_normal = df_normal.transpose()
-                df_normal["Sample_Tumor_Normal"] = "Normal"
                 df_normal = df_normal.rename(index=mark_normal)
 
                 # merge tumor and normal if tumor data has already been read
@@ -199,7 +194,6 @@ class Pdac(Dataset):
                 df_tumor = df_tumor.set_index(["Name", "Site", "Peptide", "Database_ID"])
                 df_tumor = df_tumor.sort_index()
                 df_tumor = df_tumor.transpose()
-                df_tumor["Sample_Tumor_Normal"] = "Tumor"
                 
                 # merge tumor and normal if normal data has already been read
                 if "phosphoproteomics" in self._data:
@@ -215,7 +209,6 @@ class Pdac(Dataset):
                 df_normal = pd.read_csv(file_path, sep='\t', index_col=0)
                 df_normal = df_normal.sort_index()
                 df_normal = df_normal.transpose()
-                df_normal["Sample_Tumor_Normal"] = "Normal"
                 df_normal = df_normal.rename(index=mark_normal)
 
                 # merge tumor and normal if tumor data has already been read
@@ -232,7 +225,6 @@ class Pdac(Dataset):
                 df_tumor = pd.read_csv(file_path, sep='\t', index_col=0)
                 df_tumor = df_tumor.sort_index()
                 df_tumor = df_tumor.transpose()
-                df_tumor["Sample_Tumor_Normal"] = "Tumor"
 
                 # merge tumor and normal if normal data has already been read
                 if "proteomics" in self._data:
@@ -249,7 +241,6 @@ class Pdac(Dataset):
                 df_normal = df_normal.rename(columns={"Sample": "Patient_ID"})
                 df_normal = df_normal.set_index("Patient_ID")
                 df_normal = df_normal.rename(index=mark_normal)
-                df_normal["Sample_Tumor_Normal"] = "Normal"
 
                 if "gene_fusion" in self._data:
                     df_tumor = self._data ["gene_fusion"]
@@ -264,7 +255,6 @@ class Pdac(Dataset):
                 df_tumor = pd.read_csv(file_path, sep='\t', index_col=0)
                 df_tumor = df_tumor.rename(columns={"Sample": "Patient_ID"})
                 df_tumor = df_tumor.set_index("Patient_ID")
-                df_tumor["Sample_Tumor_Normal"] = "Tumor"
 
                 if "gene_fusion" in self._data:
                     df_normal = self._data ["gene_fusion"]
