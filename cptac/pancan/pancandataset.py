@@ -57,6 +57,11 @@ class PancanDataset:
     # Help functions
     def get_cancer_type(self):
         return self._cancer_type
+    
+    def list_sources(self):
+        for source in self._datasets.keys():
+            print(source)
+        return('True')
 
     # "Private" methods
     def _get_dataframe(self, name, source, tissue_type, imputed):
