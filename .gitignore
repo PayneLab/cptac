@@ -23,6 +23,7 @@ cptac/pancan/data_broadbrca/*
 cptac/pancan/data_mssmclinical/*
 cptac/pancan/data_umichbrca/*
 cptac/pancan/data_washubrca/*
+cptac/pancan/data_washugbm/*
 cptac/pancan/data_pdc*
 
 # Exclude files that are downloaded by utils functions
@@ -46,3 +47,4 @@ cptac/utils/data/hgnc_protein_families.tsv
 !cptac/pancan/data_mssmclinical/index_urls.tsv
 !cptac/pancan/data_umichbrca/index_urls.tsv
 !cptac/pancan/data_washubrca/index_urls.tsv
+!cptac/pancan/data_washugbm/index_urls.tsv
