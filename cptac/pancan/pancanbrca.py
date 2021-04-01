@@ -14,6 +14,13 @@ from .mssmclinical import MssmClinical
 from .bcmbrca import BcmBrca
 from .umichbrca import UmichBrca
 
+SOURCES = [
+    "bcmbrca",
+    "broadbrca",
+    "mssmclinical",
+    "umichbrca",
+    "washubrca",
+]
 
 class PancanBrca(PancanDataset):
 

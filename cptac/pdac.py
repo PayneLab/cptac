@@ -19,33 +19,6 @@ from .dataset import Dataset
 from .dataframe_tools import *
 from .exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
-
-################################################################################
-# HOW TO USE THIS TEMPLATE FILE
-#
-# To make a class for a new dataset, copy this file and fill in the indicated
-# sections, as described below.
-#
-# This file has sections marked with the word FILL, usually in triple quotes or
-# preceded by three hashtags (###). To adapt this file for a new dataset,
-# replace all of those marked fields with the proper values for your dataset.
-# Additionally, there are some example code sections marked with START EXAMPLE 
-# CODE and END EXAMPLE CODE. You need to replace the example code with the
-# proper code for processing your dataset.
-#
-# This file uses dataframe processing functions imported from
-# cptac/dataframe_tools.py. For more information on how to use those functions,
-# you can read their docstrings in that file.
-#
-# If there's something confusing about this file, look at the files for existing
-# datasets to provide examples of how this file would actually be implemented.
-# If the new dataset you're adding has something weird that isn't addressed in
-# this file, check the other datasets to see if any of them deal with a similar
-# issue.
-################################################################################
-
-###FILL: Put in the actual name/acronym for the cancer type as the class name in the line below, in UpperCamelCase.
-### For example, the endometrial dataset's class is called Endometrial; the BRCA dataset's class is called Brca; and the ccRCC dataset's class is called Ccrcc.
 class Pdac(Dataset):
 
     def __init__(self, version="latest", no_internet=False):
@@ -61,7 +34,6 @@ class Pdac(Dataset):
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
         valid_versions = ["1.0"]
 
-        ###FILL: Insert actual data files below
         data_files = {
             "1.0": [
             "clinical_table_140.tsv.gz",
@@ -257,7 +229,6 @@ class Pdac(Dataset):
                     self._data["proteomics"] = df_normal
 
             elif file_name == "proteomics_gene_level_MD_abundance_tumor.cct.gz":
-                print('Found proteomics tumor')
                 df_tumor = pd.read_csv(file_path, sep='\t', index_col=0)
                 df_tumor = df_tumor.sort_index()
                 df_tumor = df_tumor.transpose()

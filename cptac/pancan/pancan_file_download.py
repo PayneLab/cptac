@@ -19,6 +19,8 @@ import cptac
 from cptac.file_download import get_box_token
 from cptac.exceptions import DatasetAlreadyInstalledWarning, InvalidParameterError, NoInternetError, PdcDownloadError
 
+from .pancanbrca import SOURCES as BRCA_SOURCES
+
 STUDY_IDS_MAP = {
     "pdcbrca": {
         "acetylome": "PDC000239", # Prospective Breast BI Acetylome
@@ -69,7 +71,7 @@ STUDY_IDS_MAP = {
 }
 
 
-def download(dataset, version="latest", redownload=False):
+def pancan_download(dataset, version="latest", redownload=False):
 
     dataset = dataset.lower()
 
@@ -81,15 +83,7 @@ def download(dataset, version="latest", redownload=False):
     
         if dataset == "pancanbrca":
 
-            sources = [
-                "bcmbrca",
-                "broadbrca",
-                "mssmclinical",
-                "umichbrca",
-                "washubrca",
-            ]
-
-            for source in sources:
+            for source in BRCA_SOURCES:
                 cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
         else:
             raise InvalidParameterError(f"{dataset} is not a valid dataset.")
