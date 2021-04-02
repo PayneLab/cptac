@@ -12,12 +12,12 @@
 from .pancandataset import PancanDataset
 from .mssmclinical import MssmClinical
 #from .bcmhnscc import BcmHnscc
-#from .umichhnscc import UmichHnscc
+from .umichhnscc import UmichHnscc
 from .washuhnscc import WashuHnscc
 
 SOURCES = [
     "mssmclinical",
-#     "umichgbm",
+    "umichgbm",
     "washuhnscc",
 ]
 
@@ -35,7 +35,7 @@ class PancanHnscc(PancanDataset):
                 return versions[source]
             
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancanhnscc')
-        self._datasets["bcm"] = BcmHnscc(no_internet=no_internet, version=get_version("bcm"))
+        #self._datasets["bcm"] = BcmHnscc(no_internet=no_internet, version=get_version("bcm"))
         self._datasets["umich"] = UmichHnscc(no_internet=no_internet, version=get_version("umich"))
         
         

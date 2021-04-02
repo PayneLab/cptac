@@ -20,10 +20,10 @@ from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class UmichGbm(Dataset):
+class UmichLscc(Dataset):
 
     def __init__(self, no_internet, version):
-        """Load all of the umichgbm dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+        """Load all of the umichlscc dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
@@ -43,7 +43,7 @@ class UmichGbm(Dataset):
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="umichgbm", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="umichlscc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -68,20 +68,28 @@ class UmichGbm(Dataset):
                 df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
-
-                
-                drop_cols = ['RefInt_01Pool', 'RefInt_02Pool', 'RefInt_03Pool', 'RefInt_04Pool',
-                             'RefInt_05Pool', 'RefInt_06Pool', 'RefInt_07Pool', 'RefInt_08Pool',
-                             'RefInt_09Pool', 'RefInt_10Pool', 'RefInt_11Pool']
     
+                drop_cols = ['LUAD-Global-CR-pool1', 'LSCC-Tumor-ONLY-CR', 'JHU-HNSCC-CR',
+                   'LUAD-Global-CR-pool-1', 'LSCC-Tumor-ONLY-CR.1', 'JHU-HNSCC-CR.1',
+                   'LUAD-Global-CR-pool-2', 'JHU-HNSCC-CR.2', 'RefInt_LSCC-Global-CR',
+                   'RefInt_LSCC-Global-CR.1', 'RefInt_LSCC-Global-CR.2',
+                   'RefInt_LSCC-Global-CR.3', 'RefInt_LSCC-Global-CR.4',
+                   'RefInt_LSCC-Global-CR.5', 'RefInt_LSCC-Global-CR.6',
+                   'RefInt_LSCC-Global-CR.7', 'RefInt_LSCC-Global-CR.8',
+                   'RefInt_LSCC-Global-CR.9', 'RefInt_LSCC-Global-CR.10',
+                   'RefInt_LSCC-Global-CR.11', 'RefInt_LSCC-Global-CR.12',
+                   'RefInt_LSCC-Global-CR.13', 'RefInt_LSCC-Global-CR.14',
+                   'RefInt_LSCC-Global-CR.15', 'RefInt_LSCC-Global-CR.16',
+                   'RefInt_LSCC-Global-CR.17', 'RefInt_LSCC-Global-CR.18',
+                   'RefInt_LSCC-Global-CR.19', 'RefInt_LSCC-Global-CR.20',
+                   'RefInt_LSCC-Global-CR.21']
+
                 # Drop quality control and ref intensity cols
                 df = df.drop(drop_cols, axis = 'index')
-                
                 '''
                 # Get Patient_IDs
                 # slice mapping_df to include cancer specific aliquot_IDs 
                 index_list = list(df.index)
-                mapping_df = self._data["map_ids"]
                 cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(index_list)]
                 # Create dictionary with aliquot_ID as keys and patient_ID as values
                 matched_ids = {}
@@ -92,15 +100,14 @@ class UmichGbm(Dataset):
                 df = df.set_index('Patient_ID')'''
 
                 # Sort values
-                normal = df.loc[df.index.str.contains('^PT-')]
+                normal = df.loc[df.index.str.contains('.N$')]
                 normal = normal.sort_values(by=["Patient_ID"])
-                normal.index = normal.index +'.N' # append .N to normal IDs
-                tumor = df.loc[~ df.index.str.contains('^PT-')]
+                tumor = df.loc[~ df.index.str.contains('.N$')]
                 tumor = tumor.sort_values(by=["Patient_ID"])
 
                 all_df = tumor.append(normal)
                 self._data["proteomics"] = all_df
-            
+
             '''
             if file_name == "S039_BCprospective_observed_0920.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")

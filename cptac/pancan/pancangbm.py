@@ -35,7 +35,7 @@ class PancanGbm(PancanDataset):
                 return versions[source]
             
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancangbm')
-        self._datasets["bcm"] = BcmGbm(no_internet=no_internet, version=get_version("bcm"))
+        #self._datasets["bcm"] = BcmGbm(no_internet=no_internet, version=get_version("bcm"))
         self._datasets["umich"] = UmichGbm(no_internet=no_internet, version=get_version("umich"))
         
         

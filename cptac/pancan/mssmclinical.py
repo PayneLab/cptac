@@ -37,7 +37,8 @@ class MssmClinical(Dataset):
 
         data_files = {
             "1.0": [
-                "clinical_Pan-cancer.Dec2020.tsv.gz"
+                "clinical_Pan-cancer.Dec2020.tsv.gz",
+                "aliquot_to_patient_ID.tsv" # mapping file
             ]
         }
 
@@ -68,6 +69,10 @@ class MssmClinical(Dataset):
                 df.index.name = 'Patient_ID'
                 df = df.sort_values(by=["Patient_ID"])
                 self._data["clinical"] = df
+                
+            elif file_name == "aliquot_to_patient_ID.tsv":
+                mapping_df = pd.read_csv(file_path, sep = "\t")
+                self._data["map_ids"] = mapping_df
                 
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message

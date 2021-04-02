@@ -20,10 +20,10 @@ from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class UmichGbm(Dataset):
+class UmichHnscc(Dataset):
 
     def __init__(self, no_internet, version):
-        """Load all of the umichgbm dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+        """Load all of the umichhnscc dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
@@ -43,7 +43,7 @@ class UmichGbm(Dataset):
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="umichgbm", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="umichhnscc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -65,37 +65,32 @@ class UmichGbm(Dataset):
                 df = df.set_index(['Proteins', 'Database_ID']) # set multiindex
                 df = df.transpose()
                 ref_intensities = df.loc["ReferenceIntensity"] # Get reference intensities to use to calculate ratios 
-                df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values
+                df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values 
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
 
-                
-                drop_cols = ['RefInt_01Pool', 'RefInt_02Pool', 'RefInt_03Pool', 'RefInt_04Pool',
-                             'RefInt_05Pool', 'RefInt_06Pool', 'RefInt_07Pool', 'RefInt_08Pool',
-                             'RefInt_09Pool', 'RefInt_10Pool', 'RefInt_11Pool']
+                drop_cols = ['128C', 'QC2', 'QC3', 'QC4', '129N', 'LungTumor1', 'Pooled-sample14',
+                   'LungTumor2', 'QC6', 'LungTumor3', 'Pooled-sample17', 'QC7',
+                   'Pooled-sample19', 'QC9', 'RefInt_pool01', 'RefInt_pool02',
+                   'RefInt_pool03', 'RefInt_pool04', 'RefInt_pool05', 'RefInt_pool06',
+                   'RefInt_pool07', 'RefInt_pool08', 'RefInt_pool09', 'RefInt_pool10',
+                   'RefInt_pool11', 'RefInt_pool12', 'RefInt_pool13', 'RefInt_pool14',
+                   'RefInt_pool15', 'RefInt_pool16', 'RefInt_pool17', 'RefInt_pool18',
+                   'RefInt_pool19', 'RefInt_pool20'] # has -C ("C3L-00994-C")
     
                 # Drop quality control and ref intensity cols
                 df = df.drop(drop_cols, axis = 'index')
-                
-                '''
-                # Get Patient_IDs
-                # slice mapping_df to include cancer specific aliquot_IDs 
-                index_list = list(df.index)
-                mapping_df = self._data["map_ids"]
-                cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(index_list)]
-                # Create dictionary with aliquot_ID as keys and patient_ID as values
-                matched_ids = {}
-                for i, row in cancer_df.iterrows():
-                    matched_ids[row['aliquot_ID']] = row['patient_ID']
-                df = df.reset_index()
-                df = df.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
-                df = df.set_index('Patient_ID')'''
+
+                # duplicates are averaged
+                df = average_replicates(df, common = '-duplicate', to_drop = '-[NT]-duplicate.*')
+
+                df.index = df.index.str.replace('-T$','')
+                df.index = df.index.str.replace('-N$','.N')
 
                 # Sort values
-                normal = df.loc[df.index.str.contains('^PT-')]
+                normal = df.loc[df.index.str.contains('.N$')]
                 normal = normal.sort_values(by=["Patient_ID"])
-                normal.index = normal.index +'.N' # append .N to normal IDs
-                tumor = df.loc[~ df.index.str.contains('^PT-')]
+                tumor = df.loc[~ df.index.str.contains('.N$')]
                 tumor = tumor.sort_values(by=["Patient_ID"])
 
                 all_df = tumor.append(normal)
