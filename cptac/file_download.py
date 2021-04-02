@@ -10,7 +10,8 @@
 #   limitations under the License.
 
 from flask import Flask, cli, request
-from multiprocessing import Pipe, Process
+from multiprocessing import Process
+from pathlib import Path
 
 import webbrowser
 import time
@@ -26,6 +27,10 @@ from .exceptions import NoInternetError
 # Some websites don't like requests from sources without a user agent. Let's preempt that issue.
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
 HEADERS = {'User-Agent': USER_AGENT}
+
+# For a rudimentary data sharing between processes
+LOCK_NAME = "lock.tmp"
+CODE_FILE_NAME = "code.tmp"
 
 def download(dataset, version="latest", redownload=False, box_auth=False, box_token=None):
     """Download data files for the specified datasets. Defaults to downloading latest version on server.
@@ -288,17 +293,21 @@ def get_box_token():
     # Set up a localhost server to receive access token
     app = Flask(__name__)
 
-    # Set up a way to share key from the child server process back to the main process
-    parent_conn, child_conn = Pipe()
-
     @app.route('/receive')
     def receive():
 
         # Get the temporary access code
         code = request.args.get('code')
 
-        # Send back to the parent process
-        child_conn.send(code)
+        # Create our "lock flag" file
+        Path(LOCK_NAME).touch()
+
+        # Save the code
+        with open(CODE_FILE_NAME, "w") as code_file:
+            code_file.write(code)
+
+        # Remove lock flag
+        os.remove(LOCK_NAME)
 
         return "Authentication successful. You can close this window."
 
@@ -312,7 +321,14 @@ def get_box_token():
     print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so later on we can clear the password prompt
 
     # Get the temporary access code from the server on the child process
-    temp_code = parent_conn.recv()
+    temp_code = None
+    while temp_code is None:
+        if os.path.isfile(CODE_FILE_NAME) and not os.path.isfile(LOCK_NAME):
+            with open(CODE_FILE_NAME) as code_file:
+                temp_code = code_file.read()
+            os.remove(CODE_FILE_NAME)
+        else:
+            time.sleep(1)
 
     # Give the browswer time to grab the response page
     time.sleep(1)
