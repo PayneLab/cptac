@@ -14,3 +14,11 @@ from .pancan_file_download import pancan_download, download_pdc_id, list_pdc_dat
 from .pdcbrca import PdcBrca
 from .pdcccrcc import PdcCcrcc
 from .pancanbrca import PancanBrca
+from .pancangbm import PancanGbm
+from .pancanhnscc import PancanHnscc
+from .pancanlscc import PancanLscc
+from .pancanluad import PancanLuad
+from .pancanucec import PancanUcec
+from .pancancoad import PancanCoad
+from .pancanov import PancanOv
+from .pancanccrcc import PancanCcrcc

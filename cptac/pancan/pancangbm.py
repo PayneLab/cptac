@@ -12,12 +12,12 @@
 from .pancandataset import PancanDataset
 from .mssmclinical import MssmClinical
 #from .bcmgbm import BcmGbm
-#from .umichgbm import UmichGbm
+from .umichgbm import UmichGbm
 from .washugbm import WashuGbm
 
 SOURCES = [
     "mssmclinical",
-#     "umichgbm",
+    "umichgbm",
     "washugbm",
 ]
 

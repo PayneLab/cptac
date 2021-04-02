@@ -20,7 +20,7 @@ from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class UmichBrca(Dataset):
+class UmichGbm(Dataset):
 
     def __init__(self, no_internet, version):
         """Load all of the umichbrca dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -36,9 +36,9 @@ class UmichBrca(Dataset):
         valid_versions = ["1.0"]
 
         data_files = {
-            "1.0": [
-                "S039_BCprospective_observed_0920.tsv.gz",
-                "S039_BCprospective_imputed_0920.tsv.gz"
+            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv"
+                #"S039_BCprospective_observed_0920.tsv.gz",
+                #"S039_BCprospective_imputed_0920.tsv.gz"
             ]
         }
 
@@ -56,6 +56,50 @@ class UmichBrca(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
+            
+            #gbm
+            if file_name == file_name:
+                df = pd.read_csv(file_path, sep = "\t") 
+                df = df.drop(columns = ['MaxPepProb', 'NumberPSM']) 
+                df.Index = df.Index.apply(lambda x: x.split('|')[5]) # Get gene name from position in list of gene identifiers
+                df = df.rename(columns = {'Index':'Proteins', 'Gene':'Database_ID'})
+                df = df.set_index(['Proteins', 'Database_ID']) # set multiindex
+                df = df.transpose()
+                ref_intensities = df.loc["ReferenceIntensity"] # Get reference intensities to use to calculate ratios 
+                df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values, to get ratios
+                df = df.iloc[1:,:] # drop ReferenceIntensity row 
+                df.index.name = 'Patient_ID'
+
+                drop_cols = ['RefInt_01Pool', 'RefInt_02Pool', 'RefInt_03Pool', 'RefInt_04Pool',
+                             'RefInt_05Pool', 'RefInt_06Pool', 'RefInt_07Pool', 'RefInt_08Pool',
+                             'RefInt_09Pool', 'RefInt_10Pool', 'RefInt_11Pool']
+    
+                # Drop quality control and ref intensity cols
+                df = df.drop(drop_cols, axis = 'index')
+
+                # Get Patient_IDs
+                # slice mapping_df to include cancer specific aliquot_IDs 
+                index_list = list(df.index)
+                cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(index_list)]
+                # Create dictionary with aliquot_ID as keys and patient_ID as values
+                matched_ids = {}
+                for i, row in cancer_df.iterrows():
+                    matched_ids[row['aliquot_ID']] = row['patient_ID']
+                df = df.reset_index()
+                df = df.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
+                df = df.set_index('Patient_ID')
+
+                # Sort values
+                normal = df.loc[df.index.str.contains('^PT-')]
+                normal = normal.sort_values(by=["Patient_ID"])
+                normal.index = normal.index +'.N' # append .N to normal IDs
+                tumor = df.loc[~ df.index.str.contains('^PT-')]
+                tumor = tumor.sort_values(by=["Patient_ID"])
+
+                all_df = tumor.append(normal)
+                self._data["proteomics_imputed"] = all_df
+            
+            '''
             if file_name == "S039_BCprospective_observed_0920.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.transpose()
@@ -72,7 +116,7 @@ class UmichBrca(Dataset):
                 df.columns.name = 'Name'
                 df = average_replicates(df)
                 df = df.sort_values(by=["Patient_ID"])
-                self._data["proteomics_imputed"] = df
+                self._data["proteomics_imputed"] = df'''
                 
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
