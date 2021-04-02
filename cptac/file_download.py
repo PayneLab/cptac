@@ -269,6 +269,9 @@ def download_file(url, path, server_hash, password=None, box_token=None, file_me
             print(" " * len(download_msg), end='\r') # Erase the downloading message
             return "wrong_password"
 
+# Manually set the multiprocessing spawn method to avoid problems
+set_start_method("fork")
+
 # Set up a way to share key from the server process back to the main process
 parent_conn, child_conn = Pipe()
 
@@ -302,7 +305,6 @@ def get_box_token():
     login_url = f"{base_url}?client_id={client_id}&response_type=code"
 
     # Start the server
-    set_start_method("fork")
     server = Process(target=app.run, kwargs={"port": "8003"})
     server.start()
 
