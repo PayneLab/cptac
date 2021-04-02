@@ -130,7 +130,7 @@ class WashuCcrcc(Dataset):
         rna_combined = rna_tumor.append(rna_normal)
         self._data["transcriptomics"] = rna_combined
         del self._data["transcriptomics_tumor"]
-        del self._data["transcriptomics_normal"]
+        #del self._data["transcriptomics_normal"]
         
         # Get a union of all dataframes' indices, with duplicates removed
         ###FILL: If there are any tables whose index values you don't want
