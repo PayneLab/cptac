@@ -20,10 +20,10 @@ from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class UmichLuad(Dataset):
+class UmichUcec(Dataset):
 
     def __init__(self, no_internet, version):
-        """Load all of the umichluad dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+        """Load all of the umichucec dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
@@ -43,7 +43,7 @@ class UmichLuad(Dataset):
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="umichluad", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="umichucec", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -69,20 +69,17 @@ class UmichLuad(Dataset):
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
 
-                drop_cols = ['TumorOnlyIR01', 'NormalOnlyIR02', 'TumorOnlyIR03', 'NormalOnlyIR04',
-                   'CPT0148080004.1','NormalOnlyIR', 'TumorOnlyIR14',
-                   'TaiwaneseIR19', 'TumorOnlyIR21', 'TaiwaneseIR22', 'CPT0146580004.1',
-                   'NormalOnlyIR25', 'RefInt_pool01', 'RefInt_pool02', 'RefInt_pool03',
-                   'RefInt_pool04', 'RefInt_pool05', 'RefInt_pool06', 'RefInt_pool07',
-                   'RefInt_pool08', 'RefInt_pool09', 'RefInt_pool10', 'RefInt_pool11',
-                   'RefInt_pool12', 'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15',
-                   'RefInt_pool16', 'RefInt_pool17', 'RefInt_pool18', 'RefInt_pool19',
-                   'RefInt_pool20', 'RefInt_pool21', 'RefInt_pool22', 'RefInt_pool23',
-                   'RefInt_pool24', 'RefInt_pool25']
+                drop_cols = ['NX1', 'NX2', 'NX3', 'NX4', 'NX5', 'NX6', 'NX7', 'NX8', 'NX9', 'NX12',
+                   'NX17', 'NX13', 'NX14', 'NX10', 'NX16', 'NX18', 'NX11', 'NX15',
+                   'RefInt_pool01', 'RefInt_pool02', 'RefInt_pool03', 'RefInt_pool04',
+                   'RefInt_pool05', 'RefInt_pool06', 'RefInt_pool07', 'RefInt_pool08',
+                   'RefInt_pool09', 'RefInt_pool10', 'RefInt_pool11', 'RefInt_pool12',
+                   'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15', 'RefInt_pool16',
+                   'RefInt_pool17']
 
                 # Drop quality control and ref intensity cols
                 df = df.drop(drop_cols, axis = 'index')
-                
+
                 '''
                 # Get Patient_IDs
                 # slice mapping_df to include cancer specific aliquot_IDs 

@@ -20,10 +20,10 @@ from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class UmichLuad(Dataset):
+class UmichCoad(Dataset):
 
     def __init__(self, no_internet, version):
-        """Load all of the umichluad dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+        """Load all of the umichcoad dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
@@ -43,7 +43,7 @@ class UmichLuad(Dataset):
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="umichluad", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="umichcoad", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -59,7 +59,7 @@ class UmichLuad(Dataset):
             
             if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
-                df = df.drop(columns = ['MaxPepProb', 'NumberPSM']) 
+                df = df.drop(columns = ['MaxPepProb', 'NumberPSM']) #index is protein identifier (duplicate)
                 df.Index = df.Index.apply(lambda x: x.split('|')[5]) # Get gene name from position in list of gene identifiers
                 df = df.rename(columns = {'Index':'Proteins', 'Gene':'Database_ID'})
                 df = df.set_index(['Proteins', 'Database_ID']) # set multiindex
@@ -69,40 +69,39 @@ class UmichLuad(Dataset):
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
 
-                drop_cols = ['TumorOnlyIR01', 'NormalOnlyIR02', 'TumorOnlyIR03', 'NormalOnlyIR04',
-                   'CPT0148080004.1','NormalOnlyIR', 'TumorOnlyIR14',
-                   'TaiwaneseIR19', 'TumorOnlyIR21', 'TaiwaneseIR22', 'CPT0146580004.1',
-                   'NormalOnlyIR25', 'RefInt_pool01', 'RefInt_pool02', 'RefInt_pool03',
-                   'RefInt_pool04', 'RefInt_pool05', 'RefInt_pool06', 'RefInt_pool07',
-                   'RefInt_pool08', 'RefInt_pool09', 'RefInt_pool10', 'RefInt_pool11',
-                   'RefInt_pool12', 'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15',
-                   'RefInt_pool16', 'RefInt_pool17', 'RefInt_pool18', 'RefInt_pool19',
-                   'RefInt_pool20', 'RefInt_pool21', 'RefInt_pool22', 'RefInt_pool23',
-                   'RefInt_pool24', 'RefInt_pool25']
+                drop_cols = ['colonRef22-2', 'RefInt_ColonRef01', 'RefInt_ColonRef02',
+                   'RefInt_ColonRef03', 'RefInt_ColonRef04', 'RefInt_ColonRef05',
+                   'RefInt_ColonRef06', 'RefInt_ColonRef07', 'RefInt_ColonRef08',
+                   'RefInt_ColonRef09', 'RefInt_ColonRef10', 'RefInt_ColonRef11',
+                   'RefInt_ColonRef12', 'RefInt_ColonRef13', 'RefInt_ColonRef14',
+                   'RefInt_ColonRef15', 'RefInt_ColonRef16', 'RefInt_ColonRef17',
+                   'RefInt_ColonRef18', 'RefInt_ColonRef19', 'RefInt_ColonRef20',
+                   'RefInt_ColonRef21', 'RefInt_ColonRef22-1']
 
-                # Drop quality control and ref intensity cols
+                # Drop qauality control and ref intensity cols
                 df = df.drop(drop_cols, axis = 'index')
-                
+
                 '''
                 # Get Patient_IDs
-                # slice mapping_df to include cancer specific aliquot_IDs 
                 index_list = list(df.index)
-                cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(index_list)]
-                # Create dictionary with aliquot_ID as keys and patient_ID as values
+                co_map = co_map.loc[co_map['index'].isin(index_list)]
                 matched_ids = {}
-                for i, row in cancer_df.iterrows():
-                    matched_ids[row['aliquot_ID']] = row['patient_ID']
+                for i, row in co_map.iterrows():
+                    matched_ids[row['index']] = row['sample']
+
                 df = df.reset_index()
                 df = df.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
-                df = df.set_index('Patient_ID')'''
+                df = df.set_index('Patient_ID')
+                df.index = df.index.str.replace('-T$','')
+                df.index = df.index.str.replace('-N$','.N')'''
 
-                # Sort values
+                # Sort
                 normal = df.loc[df.index.str.contains('.N$')]
                 normal = normal.sort_values(by=["Patient_ID"])
                 tumor = df.loc[~ df.index.str.contains('.N$')]
                 tumor = tumor.sort_values(by=["Patient_ID"])
 
-                all_df = tumor.append(normal)
+                all_df = tumor.append(normal) 
                 self._data["proteomics"] = all_df
 
             '''

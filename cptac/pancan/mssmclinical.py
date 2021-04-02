@@ -58,9 +58,9 @@ class MssmClinical(Dataset):
             
             # Get tumor_code
             tumor_codes = {'pancanbrca': 'BR', 'pancanccrcc':'CCRCC', 
-                           'pancanendometrial':'UCEC','pancangbm':'GBM','pancanhnscc':'HNSCC',
+                           'pancanucec':'UCEC','pancangbm':'GBM','pancanhnscc':'HNSCC',
                            'pancanlscc': 'LSCC','pancanluad':'LUAD', 'pancanpda':'PDA',
-                           'pancanhcc':'HCC','pancancolon':'CO','pancanovarian':'OV'}
+                           'pancanhcc':'HCC','pancancoad':'CO','pancanov':'OV'}
 
             if file_name == "clinical_Pan-cancer.Dec2020.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")

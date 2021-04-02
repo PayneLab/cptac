@@ -18,7 +18,7 @@ from .pancangbm import PancanGbm
 from .pancanhnscc import PancanHnscc
 from .pancanlscc import PancanLscc
 from .pancanluad import PancanLuad
-#from .pancanucec import PancanUcec
-#from .pancancoad import PancanCoad
+from .pancanucec import PancanUcec
+from .pancancoad import PancanCoad
 #from .pancanov import PancanOv
 #from .pancanccrcc import PancanCcrcc
