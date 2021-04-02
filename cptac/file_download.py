@@ -269,80 +269,73 @@ def download_file(url, path, server_hash, password=None, box_token=None, file_me
             print(" " * len(download_msg), end='\r') # Erase the downloading message
             return "wrong_password"
 
-# Set up a localhost server to receive access token
-app = Flask(__name__)
 
-class BoxAuth():
+def get_box_token():
 
-    def __init__(self):
+    # Don't show starting message from server
+    cli.show_server_banner = lambda *_: None
 
-        # Set up a way to share key from the child server process back to the main process
-        self.parent_conn, self.child_conn = Pipe()
+    # Don't show logs from server
+    log = logging.getLogger('werkzeug')
+    log.disabled = True
 
-    def get_token(self):
+    # Set up authentication parameters
+    base_url = "https://account.box.com/api/oauth2/authorize"
+    client_id = "kztczhjoq3oes38yywuyfp4t9tu11it8"
+    client_secret = "a5xNE1qj4Z4H3BSJEDVfzbxtmxID6iKY"
+    login_url = f"{base_url}?client_id={client_id}&response_type=code"
 
-        # Don't show starting message from server
-        cli.show_server_banner = lambda *_: None
+    # Set up a localhost server to receive access token
+    app = Flask(__name__)
 
-        # Don't show logs from server
-        log = logging.getLogger('werkzeug')
-        log.disabled = True
+    # Set up a way to share key from the child server process back to the main process
+    parent_conn, child_conn = Pipe()
 
-        # Set up authentication parameters
-        base_url = "https://account.box.com/api/oauth2/authorize"
-        client_id = "kztczhjoq3oes38yywuyfp4t9tu11it8"
-        client_secret = "a5xNE1qj4Z4H3BSJEDVfzbxtmxID6iKY"
-        login_url = f"{base_url}?client_id={client_id}&response_type=code"
+    @app.route('/receive')
+    def receive():
 
-        # Start the server
-        server = Process(target=app.run, kwargs={"port": "8003"})
-        server.start()
+        # Get the temporary access code
+        code = request.args.get('code')
 
-        # Send the user to the "Grant access" page
-        webbrowser.open(login_url)
-        print("Please login to Box on the webpage that was just opened and grant access for cptac to download files through your account. If you accidentally closed the browser window, press Ctrl+C and call the download function again.")
-        print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so later on we can clear the password prompt
+        # Send back to the parent process
+        child_conn.send(code)
 
-        # Get the temporary access code from the server on the child process
-        temp_code = self.parent_conn.recv()
+        return "Authentication successful. You can close this window."
 
-        # Give the browswer time to grab the response page
-        time.sleep(1)
+    # Start the server
+    server = Process(target=app.run, kwargs={"port": "8003"})
+    server.start()
 
-        # End the server process
-        server.terminate()
-        server.join()
-        server.close()
+    # Send the user to the "Grant access" page
+    webbrowser.open(login_url)
+    print("Please login to Box on the webpage that was just opened and grant access for cptac to download files through your account. If you accidentally closed the browser window, press Ctrl+C and call the download function again.")
+    print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so later on we can clear the password prompt
 
-        # Clean up console text
-        print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
+    # Get the temporary access code from the server on the child process
+    temp_code = parent_conn.recv()
 
-        # Use the temporary access code to get the long term access token
-        token_url = "https://api.box.com/oauth2/token";
+    # Give the browswer time to grab the response page
+    time.sleep(1)
 
-        params = {
-           'grant_type': 'authorization_code',
-           'code': temp_code,
-           'client_id': client_id,
-           'client_secret': client_secret,
-        }
+    # End the server process
+    server.terminate()
+    server.join()
+    server.close()
 
-        auth_resp = requests.post(token_url, data=params)
-        access_token = auth_resp.json()["access_token"]
+    # Clean up console text
+    print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
 
-        return access_token
+    # Use the temporary access code to get the long term access token
+    token_url = "https://api.box.com/oauth2/token";
 
-boxauth = BoxAuth()
+    params = {
+       'grant_type': 'authorization_code',
+       'code': temp_code,
+       'client_id': client_id,
+       'client_secret': client_secret,
+    }
 
-@app.route('/receive')
-def receive():
+    auth_resp = requests.post(token_url, data=params)
+    access_token = auth_resp.json()["access_token"]
 
-    # Get the temporary access code
-    code = request.args.get('code')
-
-    # Send back to the parent process
-    boxauth.child_conn.send(code)
-
-    return "Authentication successful. You can close this window."
-
-get_box_token = boxauth.get_token
+    return access_token

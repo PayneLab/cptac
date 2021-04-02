@@ -93,11 +93,11 @@ def pancan_download(dataset, version="latest", redownload=False):
             for source in BRCA_SOURCES:
                 cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
        
-        if dataset == "pancanccrcc":
+        elif dataset == "pancanccrcc":
             for source in CCRCC_SOURCES:
                 cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
        
-        if dataset == "pancancoad":
+        elif dataset == "pancancoad":
             for source in COAD_SOURCES:
                 cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
        
@@ -105,23 +105,23 @@ def pancan_download(dataset, version="latest", redownload=False):
             for source in GBM_SOURCES:
                 cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
 
-        if dataset == "pancanhnscc":
+        elif dataset == "pancanhnscc":
             for source in HNSCC_SOURCES:
                 cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
        
-        if dataset == "pancanlscc":
+        elif dataset == "pancanlscc":
             for source in LSCC_SOURCES:
                 cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
        
-        if dataset == "pancanluad":
+        elif dataset == "pancanluad":
             for source in LUAD_SOURCES:
                 cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
        
-        if dataset == "pancanov":
+        elif dataset == "pancanov":
             for source in OV_SOURCES:
                 cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
        
-        if dataset == "pancanucec":
+        elif dataset == "pancanucec":
             for source in UCEC_SOURCES:
                 cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
        
