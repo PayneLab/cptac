@@ -10,13 +10,45 @@ include cptac/data_luad/index_urls.tsv
 include cptac/data_ovarian/index_urls.tsv
 include cptac/data_pdac/index_urls.tsv
 
-include cptac/pancan/data_bcmbrca/index_urls.tsv
-include cptac/pancan/data_broadbrca/index_urls.tsv
-include cptac/pancan/data_mssmclinical/index_urls.tsv
-include cptac/pancan/data_umichbrca/index_urls.tsv
-include cptac/pancan/data_washubrca/index_urls.tsv
-include cptac/pancan/data_washugbm/index_urls.tsv
-
 include cptac/utils/data/BioPlex_293T_Network_10K_Dec_2019.tsv.gz
 include cptac/utils/data/Uniprot_Proteome.tsv.gz
 include cptac/utils/data/WikiPathwaysDataframe.tsv.gz
+
+include cptac/pancan/data_mssmclinical/index_urls.tsv
+
+include cptac/pancan/data_bcmbrca/index_urls.tsv
+include cptac/pancan/data_broadbrca/index_urls.tsv
+include cptac/pancan/data_umichbrca/index_urls.tsv
+include cptac/pancan/data_washubrca/index_urls.tsv
+
+include cptac/pancan/data_bcmccrcc/index_urls.tsv
+include cptac/pancan/data_umichccrcc/index_urls.tsv
+include cptac/pancan/data_washuccrcc/index_urls.tsv
+
+include cptac/pancan/data_bcmcoad/index_urls.tsv
+include cptac/pancan/data_umichcoad/index_urls.tsv
+include cptac/pancan/data_washucoad/index_urls.tsv
+
+include cptac/pancan/data_bcmgbm/index_urls.tsv
+include cptac/pancan/data_umichgbm/index_urls.tsv
+include cptac/pancan/data_washugbm/index_urls.tsv
+
+include cptac/pancan/data_bcmhnscc/index_urls.tsv
+include cptac/pancan/data_umichhnscc/index_urls.tsv
+include cptac/pancan/data_washuhnscc/index_urls.tsv
+
+include cptac/pancan/data_bcmlscc/index_urls.tsv
+include cptac/pancan/data_umichlscc/index_urls.tsv
+include cptac/pancan/data_washulscc/index_urls.tsv
+
+include cptac/pancan/data_bcmluad/index_urls.tsv
+include cptac/pancan/data_umichluad/index_urls.tsv
+include cptac/pancan/data_washuluad/index_urls.tsv
+
+include cptac/pancan/data_bcmov/index_urls.tsv
+include cptac/pancan/data_umichov/index_urls.tsv
+include cptac/pancan/data_washuov/index_urls.tsv
+
+include cptac/pancan/data_bcmucec/index_urls.tsv
+include cptac/pancan/data_umichucec/index_urls.tsv
+include cptac/pancan/data_washuucec/index_urls.tsv

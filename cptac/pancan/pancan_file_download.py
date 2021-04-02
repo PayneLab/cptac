@@ -20,7 +20,14 @@ from cptac.file_download import get_box_token
 from cptac.exceptions import DatasetAlreadyInstalledWarning, InvalidParameterError, NoInternetError, PdcDownloadError
 
 from .pancanbrca import SOURCES as BRCA_SOURCES
+from .pancanccrcc import SOURCES as CCRCC_SOURCES
+from .pancancoad import SOURCES as COAD_SOURCES
 from .pancangbm import SOURCES as GBM_SOURCES
+from .pancanhnscc import SOURCES as HNSCC_SOURCES
+from .pancanlscc import SOURCES as LSCC_SOURCES
+from .pancanluad import SOURCES as LUAD_SOURCES
+from .pancanov import SOURCES as OV_SOURCES
+from .pancanucec import SOURCES as UCEC_SOURCES
 
 STUDY_IDS_MAP = {
     "pdcbrca": {
@@ -83,14 +90,41 @@ def pancan_download(dataset, version="latest", redownload=False):
         box_token = get_box_token()
     
         if dataset == "pancanbrca":
-
             for source in BRCA_SOURCES:
                 cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
        
+        if dataset == "pancanccrcc":
+            for source in CCRCC_SOURCES:
+                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
+       
+        if dataset == "pancancoad":
+            for source in COAD_SOURCES:
+                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
+       
         elif dataset == "pancangbm":
-
             for source in GBM_SOURCES:
                 cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
+
+        if dataset == "pancanhnscc":
+            for source in HNSCC_SOURCES:
+                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
+       
+        if dataset == "pancanlscc":
+            for source in LSCC_SOURCES:
+                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
+       
+        if dataset == "pancanluad":
+            for source in LUAD_SOURCES:
+                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
+       
+        if dataset == "pancanov":
+            for source in OV_SOURCES:
+                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
+       
+        if dataset == "pancanucec":
+            for source in UCEC_SOURCES:
+                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
+       
         else:
             raise InvalidParameterError(f"{dataset} is not a valid dataset.")
 
