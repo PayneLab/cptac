@@ -78,15 +78,18 @@ class WashuCcrcc(Dataset):
                 self._data["transcriptomics_normal"] = df
 
             elif file_name == "ccRCC_discovery.dnp.annotated.exonic.maf": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
-                df = pd.read_csv(file_path, sep='\t', index_col=0)           
-                df = df[['Patient_ID','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
-                df = df.rename(columns={
-                     "Hugo_Symbol":"Gene",
-                     "Variant_Classification":"Mutation",
-                     "HGVSp_Short":"Location"}) # Rename the columns we want to keep to the appropriate names
+                df = pd.read_csv(file_path, sep='\t')           
+                df = df.rename(columns={"Tumor_Sample_Barcode": "Patient_ID",
+                                "Gene":"Gene_Database_ID",
+                                 "Hugo_Symbol":"Gene",
+                                 "Transcript_ID":"Database_ID",
+                                 "Variant_Classification":"Mutation",
+                                 "HGVSp_Short":"Location"}) 
+                df = df[['Patient_ID','Gene','Mutation','Location','Database_ID']]
                 df = df.set_index("Patient_ID")
-                df.index = df.index.str.replace(r"_T", "", regex=True) #remove label for tumor samples
-                
+                #remove label for tumor samples. (All samples are tumors and have _T label)
+                df.index = df.index.str.replace(r"_T", "", regex=True)
+                self._data["somatic_mutation"] = df
             
             # miRNA
             elif file_name == "EC_total_miRNA_combined.tsv": # 'NA' vals in file taken care of with default pd.read_csv
