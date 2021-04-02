@@ -10,7 +10,7 @@
 #   limitations under the License.
 
 from flask import Flask, cli, request
-from multiprocessing import Process
+from multiprocessing import Process, set_start_method
 from pathlib import Path
 
 import webbrowser
@@ -274,6 +274,27 @@ def download_file(url, path, server_hash, password=None, box_token=None, file_me
             print(" " * len(download_msg), end='\r') # Erase the downloading message
             return "wrong_password"
 
+# Set up a localhost server to receive access token
+app = Flask(__name__)
+
+@app.route('/receive')
+def receive():
+
+    # Get the temporary access code
+    code = request.args.get('code')
+
+    # Create our "lock flag" file
+    Path(LOCK_NAME).touch()
+
+    # Save the code
+    with open(CODE_FILE_NAME, "w") as code_file:
+        code_file.write(code)
+
+    # Remove lock flag
+    os.remove(LOCK_NAME)
+
+    return "Authentication successful. You can close this window."
+
 
 def get_box_token():
 
@@ -290,28 +311,8 @@ def get_box_token():
     client_secret = "a5xNE1qj4Z4H3BSJEDVfzbxtmxID6iKY"
     login_url = f"{base_url}?client_id={client_id}&response_type=code"
 
-    # Set up a localhost server to receive access token
-    app = Flask(__name__)
-
-    @app.route('/receive')
-    def receive():
-
-        # Get the temporary access code
-        code = request.args.get('code')
-
-        # Create our "lock flag" file
-        Path(LOCK_NAME).touch()
-
-        # Save the code
-        with open(CODE_FILE_NAME, "w") as code_file:
-            code_file.write(code)
-
-        # Remove lock flag
-        os.remove(LOCK_NAME)
-
-        return "Authentication successful. You can close this window."
-
     # Start the server
+    set_start_method("fork")
     server = Process(target=app.run, kwargs={"port": "8003"})
     server.start()
 
