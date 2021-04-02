@@ -37,7 +37,7 @@ class BcmBrca(Dataset):
 
         data_files = {
             "1.0": [
-                "BRCA-gene_RSEM_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
+                "BRCA-gene_RSEM_tumor_normal_UQ_log2(x+1)_BCM.txt", 
                 "gencode.v34.basic.annotation-mapping.txt"
             ]
         }
@@ -75,7 +75,7 @@ class BcmBrca(Dataset):
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
-        
+     
         # Add gene names to transcriptomic data 
         
         prot = self._data["transcriptomics"]

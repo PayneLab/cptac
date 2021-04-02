@@ -37,7 +37,7 @@ class WashuBrca(Dataset):
 
         data_files = {
             "1.0": [
-                "BR_tumor_RNA-Seq_Expr_WashU_FPKM.tsv",
+                "BR_tumor_RNA-Seq_Expr_WashU_FPKM.tsv", 
                 "BR_prospective.dnp.annotated.exonic.maf",
                 #"BR_total_miRNA_combined.tsv",  no file on box yet
                 "CIBERSORT.Output_Abs_BR.txt",

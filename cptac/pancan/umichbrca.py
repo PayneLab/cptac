@@ -36,10 +36,9 @@ class UmichBrca(Dataset):
         valid_versions = ["1.0"]
 
         data_files = {
-            "1.0": [
+            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv"
                 #"S039_BCprospective_observed_0920.tsv.gz",
-                #"S039_BCprospective_imputed_0920.tsv.gz",
-                "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv"
+                #"S039_BCprospective_imputed_0920.tsv.gz"
             ]
         }
 
@@ -56,28 +55,9 @@ class UmichBrca(Dataset):
 
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
-
-            '''
-            if file_name == "S039_BCprospective_observed_0920.tsv.gz":
-                df = pd.read_csv(file_path, sep="\t")
-                df = df.transpose()
-                df.index.name = 'Patient_ID'
-                df.columns.name = 'Name'
-                df = average_replicates(df)
-                df = df.sort_values(by=["Patient_ID"])
-                self._data["proteomics"] = df  
-                
-            elif file_name == "S039_BCprospective_imputed_0920.tsv.gz":
-                df = pd.read_csv(file_path, sep="\t")
-                df = df.transpose()
-                df.index.name = 'Patient_ID'
-                df.columns.name = 'Name'
-                df = average_replicates(df)
-                df = df.sort_values(by=["Patient_ID"])
-                self._data["proteomics_imputed"] = df'''
                 
             #Proteomics
-            if file_name == "_Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
+            if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
                 df = df.drop(columns = ['MaxPepProb', 'NumberPSM']) 
                 df.Index = df.Index.apply(lambda x: x.split('|')[5]) # Get gene name from position in list of gene identifiers
@@ -100,7 +80,7 @@ class UmichBrca(Dataset):
                 df = df.drop(drop_cols, axis = 'index')
 
                 # Since cptac brca has no normal samples, the duplicates are treated as replicates
-                #df = average_replicates(df)
+                df = average_replicates(df)
 
                 # Sort values
                 normal = df.loc[df.index.str.contains('.N$')]
@@ -109,7 +89,26 @@ class UmichBrca(Dataset):
                 tumor = tumor.sort_values(by=["Patient_ID"])
 
                 all_df = tumor.append(normal)
-                self._data["proteomics"] = df
+                self._data["proteomics"] = all_df
+                
+            '''
+            if file_name == "S039_BCprospective_observed_0920.tsv.gz":
+                df = pd.read_csv(file_path, sep="\t")
+                df = df.transpose()
+                df.index.name = 'Patient_ID'
+                df.columns.name = 'Name'
+                df = average_replicates(df)
+                df = df.sort_values(by=["Patient_ID"])
+                self._data["proteomics"] = df  
+                
+            elif file_name == "S039_BCprospective_imputed_0920.tsv.gz":
+                df = pd.read_csv(file_path, sep="\t")
+                df = df.transpose()
+                df.index.name = 'Patient_ID'
+                df.columns.name = 'Name'
+                df = average_replicates(df)
+                df = df.sort_values(by=["Patient_ID"])
+                self._data["proteomics_imputed"] = df'''
                 
                 
           

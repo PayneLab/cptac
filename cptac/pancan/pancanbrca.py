@@ -36,7 +36,7 @@ class PancanBrca(PancanDataset):
                 return versions[source]
             
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancanbrca')
-        self._datasets["bcm"] = BcmBrca(no_internet=no_internet, version=get_version("bcm"))
+        #self._datasets["bcm"] = BcmBrca(no_internet=no_internet, version=get_version("bcm"))
         self._datasets["umich"] = UmichBrca(no_internet=no_internet, version=get_version("umich"))
         
         

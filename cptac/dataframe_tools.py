@@ -15,18 +15,20 @@ import warnings
 from .exceptions import CptacDevError, ReindexMapError, FailedReindexWarning
 
 
-def average_replicates(df):
-    """Return a df with one row for each patient_ID (all replicates for a patient are averaged)
+def average_replicates(df, common = '\.', to_drop = '\.\d$'):
+    """Returns a df with one row for each patient_ID (all replicates for a patient are averaged)
 
     Parameters:
-    df (pandas.DataFrame): The df containing replicates (duplicate entries for a patient_ID.
+    df (pandas.DataFrame): The df containing replicates (duplicate entries for the same tissue_type).
+    common: regex string that is common between replicates (identifies duplicate entries)
+    to_drop: regex string to drop to find each patient_ID that has replicates (used to slice out all replicates)
     
     Returns:
     pandas.DataFrame: df with with replicate rows averaged and one row for each patient_ID.
     """
-    replicate_df = df[df.index.str.contains('#')]
-    patient_ids = pd.Series(replicate_df.index)
-    ids = patient_ids.replace('#\d', '', regex=True)
+    replicate_df = df[df.index.str.contains(common)]
+    patient_ids = pd.Series(replicate_df.index) # create series of replicate IDs to prep removing appended ".i"
+    ids = patient_ids.replace(to_drop, '', regex=True)
     id_list = list(set(ids)) #id_list contains only patient_IDs of replicates (without #s)
 
     for patient_ID in id_list:
@@ -34,7 +36,7 @@ def average_replicates(df):
         vals = list(id_df.mean(axis=0)) 
         df.loc[patient_ID] = vals # add new row to original df with averages of replicates 
 
-    df = df[~ df.index.str.contains('#')] # drop unaveraged replicate cols (averaged rows are kept)
+    df = df[~ df.index.str.contains(common)] # drop unaveraged replicate cols (averaged rows are kept)
     return df
 
 def unionize_indices(dataset, exclude=[]):
