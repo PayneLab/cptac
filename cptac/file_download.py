@@ -10,7 +10,7 @@
 #   limitations under the License.
 
 from flask import Flask, cli, request
-from multiprocessing import Process
+from multiprocessing import Process, set_start_method
 from pathlib import Path
 
 import webbrowser
@@ -312,6 +312,7 @@ def get_box_token():
     login_url = f"{base_url}?client_id={client_id}&response_type=code"
 
     # Start the server
+    set_start_method("fork")
     server = Process(target=app.run, kwargs={"port": "8003"})
     server.start()
 
