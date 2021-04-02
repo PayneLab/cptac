@@ -38,10 +38,10 @@ class WashuCcrcc(Dataset):
         data_files = {
             "1.0": [
                 "ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
-                "ccRCC_discovery.dnp.annotated.exonic.maf",
+                "ccRCC_discovery.dnp.annotated.exonic.maf.gz",
                 "ccRCC_total_miRNA_combined.tsv",
                 "CIBERSORT.Output_Abs_ccRCC.txt",
-                "ccRCC_xCell"
+                "ccRCC_xCell.txt"
             ]
         }
 
@@ -77,7 +77,7 @@ class WashuCcrcc(Dataset):
                 df.index = df.index.str.replace(r"-A", ".N", regex=True) #remove label for tumor samples
                 self._data["transcriptomics_normal"] = df
 
-            elif file_name == "ccRCC_discovery.dnp.annotated.exonic.maf": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
+            elif file_name == "ccRCC_discovery.dnp.annotated.exonic.maf.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t')           
                 df = df.rename(columns={"Tumor_Sample_Barcode": "Patient_ID",
                                 "Gene":"Gene_Database_ID",
@@ -110,7 +110,7 @@ class WashuCcrcc(Dataset):
                 self._data["cibersort"] = df
 
             # xCell
-            elif file_name == "EC_xCell":
+            elif file_name == "EC_xCell.txt":
                 df = pd.read_csv(file_path, sep = '\t', index_col = 0) # 'NA' vals in file taken care of with default pd.read_csv
                 df = df.transpose()
                 df.columns.name = 'Name'
@@ -119,7 +119,7 @@ class WashuCcrcc(Dataset):
                 df.index = df.index.str.replace(r'-A$', '.N', regex=True) # change label for normal samples
                 self._data["xcell"] = df
 
-
+          
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
