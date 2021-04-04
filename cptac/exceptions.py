@@ -50,6 +50,10 @@ class MissingFileError(FileError):
     """A data file was missing."""
     pass
 
+class DownloadFailedError(FileError):
+    """A file download failed."""
+    pass
+
 class DataError(CptacError):
     """Something was wrong with the data."""
     pass

@@ -21,7 +21,7 @@ import getpass
 import bs4
 
 from .file_tools import *
-from .exceptions import NoInternetError
+from .exceptions import NoInternetError, DownloadFailedError
 
 # Some websites don't like requests from sources without a user agent. Let's preempt that issue.
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
@@ -256,8 +256,7 @@ def download_file(url, path, server_hash, password=None, box_token=None, file_me
                     response = session.post(post_url, headers=HEADERS, data=payload)
 
             response.raise_for_status() # Raises a requests.HTTPError if the response code was unsuccessful
-        except requests.RequestException as e: # Parent class for all exceptions in the requests module
-            print(e)
+        except requests.RequestException: # Parent class for all exceptions in the requests module
             raise NoInternetError("Insufficient internet. Check your internet connection.") from None
             
         local_hash = hash_bytes(response.content)
@@ -269,6 +268,10 @@ def download_file(url, path, server_hash, password=None, box_token=None, file_me
         elif response.text.strip().startswith("<!DOCTYPE html>"): # The password was wrong, so we just got a webpage
             print(" " * len(download_msg), end='\r') # Erase the downloading message
             return "wrong_password"
+
+    # If we get to this point, the download failed.
+    file_name = path.split(os.sep)[-1]
+    raise DownloadFailedError(f"Download failed for {file_name}.")
 
 # Manually set the multiprocessing spawn method to avoid problems
 set_start_method("fork")
