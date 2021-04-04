@@ -256,7 +256,8 @@ def download_file(url, path, server_hash, password=None, box_token=None, file_me
                     response = session.post(post_url, headers=HEADERS, data=payload)
 
             response.raise_for_status() # Raises a requests.HTTPError if the response code was unsuccessful
-        except requests.RequestException: # Parent class for all exceptions in the requests module
+        except requests.RequestException as e: # Parent class for all exceptions in the requests module
+            print(e)
             raise NoInternetError("Insufficient internet. Check your internet connection.") from None
             
         local_hash = hash_bytes(response.content)

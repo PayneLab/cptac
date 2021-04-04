@@ -81,7 +81,7 @@ def _warning_displayer(message, category, filename, lineno, file=None, line=None
     else:
         default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
 
-sys.excepthook = _exception_handler # Set our custom exception hook
+#sys.excepthook = _exception_handler # Set our custom exception hook
 warnings.showwarning = _warning_displayer # And our custom warning displayer
 warnings.simplefilter("always", category=CptacWarning) # Edit the warnings filter to show multiple occurences of cptac-generated warnings
 
