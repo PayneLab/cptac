@@ -37,11 +37,11 @@ class WashuBrca(Dataset):
 
         data_files = {
             "1.0": [
-                "BR_tumor_RNA-Seq_Expr_WashU_FPKM.tsv", 
-                "BR_prospective.dnp.annotated.exonic.maf",
+                "BR_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz", 
+                "BR_prospective.dnp.annotated.exonic.addrecovercases.maf.gz",
                 #"BR_total_miRNA_combined.tsv",  no file on box yet
-                "CIBERSORT.Output_Abs_BR.txt",
-                "BR_xCell"
+                #"CIBERSORT.Output_Abs_BR.txt",
+                "BR_xCell.txt"
             ]
         }
 
@@ -59,7 +59,7 @@ class WashuBrca(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-            if file_name == "BR_tumor_RNA-Seq_Expr_WashU_FPKM.tsv":
+            if file_name == "BR_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
                 df = df.set_index(["Name", "Database_ID"])
@@ -68,7 +68,7 @@ class WashuBrca(Dataset):
                 df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
                 self._data["transcriptomics"] = df
 
-            elif file_name == "BR_prospective.dnp.annotated.exonic.maf": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
+            elif file_name == "BR_prospective.dnp.annotated.exonic.addrecovercases.maf.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t')    
                 # Rename the columns we want to keep to the appropriate names
                 df = df.rename(columns={"Tumor_Sample_Barcode": "Patient_ID",
@@ -83,18 +83,9 @@ class WashuBrca(Dataset):
                 df.index = df.index.str.replace(r"_T", "", regex=True)  
               
                 self._data["somatic_mutation"] = df
-                  
-            # cibersort
-            elif file_name == "CIBERSORT.Output_Abs_EC.txt": # 'NA' vals in file taken care of with default pd.read_csv
-                df = pd.read_csv(file_path, sep = '\t', index_col = 0) # na_vals 'NA' already default for read_csv
-                df.index.name = 'Patient_ID'
-                df.columns.name = 'Name'
-                df.index = df.index.str.replace(r'-T$', '', regex=True)  #remove label for tumor samples
-                df.index = df.index.str.replace(r'-A$', '.N', regex=True) # change label for normal samples
-                self._data["cibersort"] = df
-
+        
             # xCell
-            elif file_name == "EC_xCell":
+            elif file_name == "EC_xCell.txt":
                 df = pd.read_csv(file_path, sep = '\t', index_col = 0) # 'NA' vals in file taken care of with default pd.read_csv
                 df = df.transpose()
                 df.columns.name = 'Name'

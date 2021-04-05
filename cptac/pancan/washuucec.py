@@ -40,8 +40,8 @@ class WashuUcec(Dataset):
                 "EC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
                 "EC_discovery.dnp.annotated.exonic.maf.gz",
                 "EC_total_miRNA_combined.tsv",
-                "CIBERSORT.Output_Abs_EC.txt",
-                "EC_xCell"
+             #   "CIBERSORT.Output_Abs_EC.txt",
+                "EC_xCell.txt"
                 
             ]
         }
@@ -103,7 +103,7 @@ class WashuUcec(Dataset):
                 self._data["miRNA"] = df
             
             # xCell
-            elif file_name == "EC_xCell":
+            elif file_name == "EC_xCell.txt":
                 df = pd.read_csv(file_path, sep = '\t', index_col = 0) # 'NA' vals in file taken care of with default pd.read_csv
                 df = df.transpose()
                 df.columns.name = 'Name'
