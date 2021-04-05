@@ -38,7 +38,6 @@ class UmichCcrcc(Dataset):
         data_files = {
             "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
                     "aliquot_to_patient_ID.tsv"
-                    #"aliquot_to_patient_ID.tsv"
                 #"S039_BCprospective_observed_0920.tsv.gz",
                 #"S039_BCprospective_imputed_0920.tsv.gz"
             ]
@@ -71,16 +70,13 @@ class UmichCcrcc(Dataset):
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
     
-                '''# Drop quality control and ref intensity cols
-                drop_cols = ['NCI7-1', 'QC1', 'QC2', 'QC3', 'NCI7-2', 'NCI7-3', 'QC4', 'NCI7-4',
-                           'NCI7-5', 'QC5', 'QC6', 'QC7', 'QC8', 'RefInt_pool01', 'RefInt_pool02',
-                           'RefInt_pool03', 'RefInt_pool04', 'RefInt_pool05', 'RefInt_pool06',
-                           'RefInt_pool07', 'RefInt_pool08', 'RefInt_pool09', 'RefInt_pool10',
-                           'RefInt_pool11', 'RefInt_pool12', 'RefInt_pool13', 'RefInt_pool14',
-                           'RefInt_pool15', 'RefInt_pool16', 'RefInt_pool17', 'RefInt_pool18',
-                           'RefInt_pool19', 'RefInt_pool20', 'RefInt_pool21', 'RefInt_pool22',
-                           'RefInt_pool23']
-                df = df.drop(drop_cols, axis = 'index')'''
+                # Drop quality control and ref intensity cols
+                drop_cols = ['NCI7-1','NCI7-2','NCI7-3','NCI7-4','NCI7-5', 'QC1', 'QC2', 'QC3', 'QC4', 'QC5', 'QC6', 'QC7', 
+                            'QC8', 'RefInt_pool01', 'RefInt_pool02', 'RefInt_pool03', 'RefInt_pool04', 'RefInt_pool05', 
+                            'RefInt_pool06', 'RefInt_pool07', 'RefInt_pool08', 'RefInt_pool09', 'RefInt_pool10', 'RefInt_pool11', 
+                            'RefInt_pool12', 'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15', 'RefInt_pool16', 'RefInt_pool17', 
+                            'RefInt_pool18', 'RefInt_pool19', 'RefInt_pool20', 'RefInt_pool21', 'RefInt_pool22', 'RefInt_pool23']
+                df = df.drop(drop_cols, axis = 'index')
                 self._data["proteomics"] = df
                 
             elif file_name == "aliquot_to_patient_ID.tsv":
