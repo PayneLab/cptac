@@ -23,7 +23,7 @@ from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, Re
 class UmichCcrcc(Dataset):
 
     def __init__(self, no_internet, version):
-        """Load all of the umichgbm dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+        """Load all of the umichccrcc dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
@@ -36,7 +36,8 @@ class UmichCcrcc(Dataset):
         valid_versions = ["1.0"]
 
         data_files = {
-            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv"
+            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
+                    "aliquot_to_patient_ID.tsv"
                     #"aliquot_to_patient_ID.tsv"
                 #"S039_BCprospective_observed_0920.tsv.gz",
                 #"S039_BCprospective_imputed_0920.tsv.gz"
@@ -80,22 +81,14 @@ class UmichCcrcc(Dataset):
                            'RefInt_pool19', 'RefInt_pool20', 'RefInt_pool21', 'RefInt_pool22',
                            'RefInt_pool23']
                 df = df.drop(drop_cols, axis = 'index')'''
-
-                # Sort values
-                normal = df.loc[df.index.str.contains('.N$', regex = True)]
-                normal = normal.sort_values(by=["Patient_ID"])
-                tumor = df.loc[~ df.index.str.contains('.N$', regex = True)]
-                tumor = tumor.sort_values(by=["Patient_ID"])
-
-                all_df = tumor.append(normal)
-                self._data["proteomics"] = all_df
-            '''   
+                self._data["proteomics"] = df
+                
             elif file_name == "aliquot_to_patient_ID.tsv":
                 df = pd.read_csv(file_path, sep = "\t")
                 self._data["map_ids"] = df
-                
+
             
-            
+            '''
             elif file_name == "S039_BCprospective_observed_0920.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.transpose()
@@ -112,14 +105,15 @@ class UmichCcrcc(Dataset):
                 df.columns.name = 'Name'
                 df = average_replicates(df)
                 df = df.sort_values(by=["Patient_ID"])
-                self._data["proteomics_imputed"] = df
+                self._data["proteomics_imputed"] = df'''
             
         
-        # Get Patient_IDs for Proteomics
+        # Proteomics
+        # Get Patient_IDs
         # slice mapping_df to include cancer specific aliquot_IDs 
         prot = self._data["proteomics"]
-        index_list = list(prot.index)
         mapping_df = self._data["map_ids"]
+        index_list = list(prot.index)
         cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(index_list)]
         # Create dictionary with aliquot_ID as keys and patient_ID as values
         matched_ids = {}
@@ -128,7 +122,14 @@ class UmichCcrcc(Dataset):
         prot = prot.reset_index()
         prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
         prot = prot.set_index('Patient_ID')
-        self._data["proteomics"] = prot'''
+
+        # Sort values
+        normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = prot.loc[~ prot.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)
+        self._data["proteomics"] = all_prot
                 
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message

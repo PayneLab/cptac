@@ -36,8 +36,8 @@ class UmichOv(Dataset):
         valid_versions = ["1.0"]
 
         data_files = {
-            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv"
-                  #  "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv"
+            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
+                    "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv"
                 #"S039_BCprospective_observed_0920.tsv.gz",
                 #"S039_BCprospective_imputed_0920.tsv.gz"
             ]
@@ -79,24 +79,16 @@ class UmichOv(Dataset):
                            'RefInt_PNNL-JHU-Ref-9', 'RefInt_PNNL-JHU-Ref-10',
                            'RefInt_PNNL-JHU-Ref-11', 'RefInt_PNNL-JHU-Ref-12']
                 df = df.drop(drop_cols, axis = 'index')
-
-                # Sort
-                normal = df.loc[df.index.str.contains('.N$', regex = True)]
-                normal = normal.sort_values(by=["Patient_ID"])
-                tumor = df.loc[~ df.index.str.contains('.N$', regex = True)]
-                tumor = tumor.sort_values(by=["Patient_ID"])
-
-                all_df = tumor.append(normal)
-                self._data["proteomics"] = all_df
+                self._data["proteomics"] = df
                 
-            '''elif file_name == "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv":
+            elif file_name == "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv":
                 ov_map = pd.read_csv(file_path, sep = ",", index_col = 0)
                 ov_map = ov_map[['sample']].reset_index()
                 ov_map = ov_map.replace("#",".", regex = True)
                 self._data["map_ids"] = ov_map
                 
             
-            
+            '''
             elif file_name == "S039_BCprospective_observed_0920.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.transpose()
@@ -113,23 +105,31 @@ class UmichOv(Dataset):
                 df.columns.name = 'Name'
                 df = average_replicates(df)
                 df = df.sort_values(by=["Patient_ID"])
-                self._data["proteomics_imputed"] = df
+                self._data["proteomics_imputed"] = df'''
             
-        
-        # Get Patient_IDs for Proteomics
+        # Proteomics
+        # Get Patient_IDs
         # slice mapping_df to include cancer specific aliquot_IDs 
         prot = self._data["proteomics"]
         index_list = list(prot.index)
         mapping_df = self._data["map_ids"]
-        cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(index_list)]
+        cancer_df = mapping_df.loc[mapping_df['index'].isin(index_list)]
         # Create dictionary with aliquot_ID as keys and patient_ID as values
         matched_ids = {}
         for i, row in cancer_df.iterrows():
-            matched_ids[row['aliquot_ID']] = row['patient_ID']
+            matched_ids[row['index']] = row['sample']
         prot = prot.reset_index()
         prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
         prot = prot.set_index('Patient_ID')
-        self._data["proteomics"] = prot'''
+        prot.index = prot.index.str.replace('-T$','', regex = True)
+        prot.index = prot.index.str.replace('-N$','.N', regex = True)        
+        # Sort
+        normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = prot.loc[~ prot.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)  
+        self._data["proteomics"] = all_prot
                 
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message

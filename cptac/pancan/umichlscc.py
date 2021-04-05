@@ -36,7 +36,8 @@ class UmichLscc(Dataset):
         valid_versions = ["1.0"]
 
         data_files = {
-            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv"
+            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
+                    "aliquot_to_patient_ID.tsv"
                 #"S039_BCprospective_observed_0920.tsv.gz",
                 #"S039_BCprospective_imputed_0920.tsv.gz"
             ]
@@ -68,7 +69,8 @@ class UmichLscc(Dataset):
                 df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
-    
+
+                # Drop quality control and ref intensity cols
                 drop_cols = ['LUAD-Global-CR-pool1', 'LSCC-Tumor-ONLY-CR', 'JHU-HNSCC-CR',
                    'LUAD-Global-CR-pool-1', 'LSCC-Tumor-ONLY-CR.1', 'JHU-HNSCC-CR.1',
                    'LUAD-Global-CR-pool-2', 'JHU-HNSCC-CR.2', 'RefInt_LSCC-Global-CR',
@@ -83,30 +85,12 @@ class UmichLscc(Dataset):
                    'RefInt_LSCC-Global-CR.17', 'RefInt_LSCC-Global-CR.18',
                    'RefInt_LSCC-Global-CR.19', 'RefInt_LSCC-Global-CR.20',
                    'RefInt_LSCC-Global-CR.21']
-
-                # Drop quality control and ref intensity cols
                 df = df.drop(drop_cols, axis = 'index')
-                '''
-                # Get Patient_IDs
-                # slice mapping_df to include cancer specific aliquot_IDs 
-                index_list = list(df.index)
-                cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(index_list)]
-                # Create dictionary with aliquot_ID as keys and patient_ID as values
-                matched_ids = {}
-                for i, row in cancer_df.iterrows():
-                    matched_ids[row['aliquot_ID']] = row['patient_ID']
-                df = df.reset_index()
-                df = df.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
-                df = df.set_index('Patient_ID')'''
-
-                # Sort values
-                normal = df.loc[df.index.str.contains('.N$')]
-                normal = normal.sort_values(by=["Patient_ID"])
-                tumor = df.loc[~ df.index.str.contains('.N$')]
-                tumor = tumor.sort_values(by=["Patient_ID"])
-
-                all_df = tumor.append(normal)
-                self._data["proteomics"] = all_df
+                self._data["proteomics"] = df
+            
+            elif file_name == "aliquot_to_patient_ID.tsv":
+                df = pd.read_csv(file_path, sep = "\t")
+                self._data["map_ids"] = df
 
             '''
             if file_name == "S039_BCprospective_observed_0920.tsv.gz":
@@ -126,6 +110,30 @@ class UmichLscc(Dataset):
                 df = average_replicates(df)
                 df = df.sort_values(by=["Patient_ID"])
                 self._data["proteomics_imputed"] = df'''
+            
+            
+        # Proteomics
+        # Get Patient_IDs
+        # slice mapping_df to include cancer specific aliquot_IDs 
+        prot = self._data["proteomics"]
+        mapping_df = self._data["map_ids"]
+        index_list = list(prot.index)
+        cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(index_list)]
+        # Create dictionary with aliquot_ID as keys and patient_ID as values
+        matched_ids = {}
+        for i, row in cancer_df.iterrows():
+            matched_ids[row['aliquot_ID']] = row['patient_ID']
+        prot = prot.reset_index()
+        prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
+        prot = prot.set_index('Patient_ID')
+
+        # Sort values
+        normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = prot.loc[~ prot.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)
+        self._data["proteomics"] = all_prot
                 
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message

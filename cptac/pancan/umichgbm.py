@@ -75,16 +75,7 @@ class UmichGbm(Dataset):
                              'RefInt_05Pool', 'RefInt_06Pool', 'RefInt_07Pool', 'RefInt_08Pool',
                              'RefInt_09Pool', 'RefInt_10Pool', 'RefInt_11Pool']
                 df = df.drop(drop_cols, axis = 'index')
-
-                # Sort values
-                normal = df.loc[df.index.str.contains('^PT-')]
-                normal = normal.sort_values(by=["Patient_ID"])
-                normal.index = normal.index +'.N' # append .N to normal IDs
-                tumor = df.loc[~ df.index.str.contains('^PT-')]
-                tumor = tumor.sort_values(by=["Patient_ID"])
-
-                all_df = tumor.append(normal)
-                self._data["proteomics"] = all_df
+                self._data["proteomics"] = df
                 
             elif file_name == "aliquot_to_patient_ID.tsv":
                 df = pd.read_csv(file_path, sep = "\t")
@@ -110,12 +101,12 @@ class UmichGbm(Dataset):
                 df = df.sort_values(by=["Patient_ID"])
                 self._data["proteomics_imputed"] = df'''
             
-        
-        # Get Patient_IDs for Proteomics
+        # Proteomics
+        # Get Patient_IDs 
         # slice mapping_df to include cancer specific aliquot_IDs 
         prot = self._data["proteomics"]
-        index_list = list(prot.index)
         mapping_df = self._data["map_ids"]
+        index_list = list(prot.index)
         cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(index_list)]
         # Create dictionary with aliquot_ID as keys and patient_ID as values
         matched_ids = {}
@@ -124,7 +115,15 @@ class UmichGbm(Dataset):
         prot = prot.reset_index()
         prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
         prot = prot.set_index('Patient_ID')
-        self._data["proteomics"] = prot
+        
+        # Sort values
+        normal = prot.loc[prot.index.str.contains('^PT-', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        normal.index = normal.index +'.N' # append .N to normal IDs
+        tumor = prot.loc[~ prot.index.str.contains('^PT-', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)
+        self._data["proteomics"] = all_prot
                 
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message

@@ -36,7 +36,8 @@ class UmichLuad(Dataset):
         valid_versions = ["1.0"]
 
         data_files = {
-            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv"
+            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
+                    "aliquot_to_patient_ID.tsv"
                 #"S039_BCprospective_observed_0920.tsv.gz",
                 #"S039_BCprospective_imputed_0920.tsv.gz"
             ]
@@ -69,6 +70,7 @@ class UmichLuad(Dataset):
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
 
+                # Drop quality control and ref intensity cols
                 drop_cols = ['TumorOnlyIR01', 'NormalOnlyIR02', 'TumorOnlyIR03', 'NormalOnlyIR04',
                    'CPT0148080004.1','NormalOnlyIR', 'TumorOnlyIR14',
                    'TaiwaneseIR19', 'TumorOnlyIR21', 'TaiwaneseIR22', 'CPT0146580004.1',
@@ -79,31 +81,12 @@ class UmichLuad(Dataset):
                    'RefInt_pool16', 'RefInt_pool17', 'RefInt_pool18', 'RefInt_pool19',
                    'RefInt_pool20', 'RefInt_pool21', 'RefInt_pool22', 'RefInt_pool23',
                    'RefInt_pool24', 'RefInt_pool25']
-
-                # Drop quality control and ref intensity cols
                 df = df.drop(drop_cols, axis = 'index')
+                self._data["proteomics"] = df
                 
-                '''
-                # Get Patient_IDs
-                # slice mapping_df to include cancer specific aliquot_IDs 
-                index_list = list(df.index)
-                cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(index_list)]
-                # Create dictionary with aliquot_ID as keys and patient_ID as values
-                matched_ids = {}
-                for i, row in cancer_df.iterrows():
-                    matched_ids[row['aliquot_ID']] = row['patient_ID']
-                df = df.reset_index()
-                df = df.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
-                df = df.set_index('Patient_ID')'''
-
-                # Sort values
-                normal = df.loc[df.index.str.contains('.N$')]
-                normal = normal.sort_values(by=["Patient_ID"])
-                tumor = df.loc[~ df.index.str.contains('.N$')]
-                tumor = tumor.sort_values(by=["Patient_ID"])
-
-                all_df = tumor.append(normal)
-                self._data["proteomics"] = all_df
+            elif file_name == "aliquot_to_patient_ID.tsv":
+                df = pd.read_csv(file_path, sep = "\t")
+                self._data["map_ids"] = df
 
             '''
             if file_name == "S039_BCprospective_observed_0920.tsv.gz":
@@ -125,6 +108,30 @@ class UmichLuad(Dataset):
                 self._data["proteomics_imputed"] = df'''
                 
           
+        # Proteomics
+        # Get Patient_IDs
+        # slice mapping_df to include cancer specific aliquot_IDs 
+        prot = self._data["proteomics"]
+        mapping_df = self._data["map_ids"]
+        index_list = list(prot.index)
+        cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(index_list)]
+        # Create dictionary with aliquot_ID as keys and patient_ID as values
+        matched_ids = {}
+        for i, row in cancer_df.iterrows():
+            matched_ids[row['aliquot_ID']] = row['patient_ID']
+        prot = prot.reset_index()
+        prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
+        prot = prot.set_index('Patient_ID')
+
+        # Sort values
+        normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = prot.loc[~ prot.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)
+        self._data["proteomics"] = all_prot
+        
+        
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
