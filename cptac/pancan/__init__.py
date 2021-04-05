@@ -20,5 +20,5 @@ from .pancanlscc import PancanLscc
 from .pancanluad import PancanLuad
 from .pancanucec import PancanUcec
 from .pancancoad import PancanCoad
-#from .pancanov import PancanOv
-#from .pancanccrcc import PancanCcrcc
+from .pancanov import PancanOv
+from .pancanccrcc import PancanCcrcc

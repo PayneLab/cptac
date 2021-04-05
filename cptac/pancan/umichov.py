@@ -20,10 +20,10 @@ from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class UmichGbm(Dataset):
+class UmichOv(Dataset):
 
     def __init__(self, no_internet, version):
-        """Load all of the umichgbm dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+        """Load all of the umichov dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
@@ -36,15 +36,15 @@ class UmichGbm(Dataset):
         valid_versions = ["1.0"]
 
         data_files = {
-            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
-                    "aliquot_to_patient_ID.tsv"
+            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv"
+                  #  "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv"
                 #"S039_BCprospective_observed_0920.tsv.gz",
                 #"S039_BCprospective_imputed_0920.tsv.gz"
             ]
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="umichgbm", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="umichov", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -71,27 +71,32 @@ class UmichGbm(Dataset):
                 df.index.name = 'Patient_ID'
     
                 # Drop quality control and ref intensity cols
-                drop_cols = ['RefInt_01Pool', 'RefInt_02Pool', 'RefInt_03Pool', 'RefInt_04Pool',
-                             'RefInt_05Pool', 'RefInt_06Pool', 'RefInt_07Pool', 'RefInt_08Pool',
-                             'RefInt_09Pool', 'RefInt_10Pool', 'RefInt_11Pool']
+                drop_cols = ['JHU-QC', 'JHU-QC.1', 'JHU-QC.2', 'JHU-QC.3', 'JHU-QC.4',
+                           'RefInt_PNNL-JHU-Ref-1', 'RefInt_PNNL-JHU-Ref-2',
+                           'RefInt_PNNL-JHU-Ref-3', 'RefInt_PNNL-JHU-Ref-4',
+                           'RefInt_PNNL-JHU-Ref-5', 'RefInt_PNNL-JHU-Ref-6',
+                           'RefInt_PNNL-JHU-Ref-7', 'RefInt_PNNL-JHU-Ref-8',
+                           'RefInt_PNNL-JHU-Ref-9', 'RefInt_PNNL-JHU-Ref-10',
+                           'RefInt_PNNL-JHU-Ref-11', 'RefInt_PNNL-JHU-Ref-12']
                 df = df.drop(drop_cols, axis = 'index')
 
-                # Sort values
-                normal = df.loc[df.index.str.contains('^PT-')]
+                # Sort
+                normal = df.loc[df.index.str.contains('.N$', regex = True)]
                 normal = normal.sort_values(by=["Patient_ID"])
-                normal.index = normal.index +'.N' # append .N to normal IDs
-                tumor = df.loc[~ df.index.str.contains('^PT-')]
+                tumor = df.loc[~ df.index.str.contains('.N$', regex = True)]
                 tumor = tumor.sort_values(by=["Patient_ID"])
 
                 all_df = tumor.append(normal)
                 self._data["proteomics"] = all_df
                 
-            elif file_name == "aliquot_to_patient_ID.tsv":
-                df = pd.read_csv(file_path, sep = "\t")
-                self._data["map_ids"] = df
+            '''elif file_name == "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv":
+                ov_map = pd.read_csv(file_path, sep = ",", index_col = 0)
+                ov_map = ov_map[['sample']].reset_index()
+                ov_map = ov_map.replace("#",".", regex = True)
+                self._data["map_ids"] = ov_map
                 
             
-            '''
+            
             elif file_name == "S039_BCprospective_observed_0920.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.transpose()
@@ -108,7 +113,7 @@ class UmichGbm(Dataset):
                 df.columns.name = 'Name'
                 df = average_replicates(df)
                 df = df.sort_values(by=["Patient_ID"])
-                self._data["proteomics_imputed"] = df'''
+                self._data["proteomics_imputed"] = df
             
         
         # Get Patient_IDs for Proteomics
@@ -124,7 +129,7 @@ class UmichGbm(Dataset):
         prot = prot.reset_index()
         prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
         prot = prot.set_index('Patient_ID')
-        self._data["proteomics"] = prot
+        self._data["proteomics"] = prot'''
                 
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
