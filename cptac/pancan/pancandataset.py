@@ -51,8 +51,12 @@ class PancanDataset:
         return self._get_dataframe("proteomics", source, tissue_type, imputed=imputed)
 
     def get_transcriptomics(self, source, tissue_type="both", imputed=False):
-        """Get the proteomics dataframe from the specified data source."""
+        """Get the transcriptomics dataframe from the specified data source."""
         return self._get_dataframe("transcriptomics", source, tissue_type, imputed=imputed)
+
+    def get_somatic_mutation(self, source, tissue_type="both", imputed=False):
+        """Get the somatic mutation dataframe from the specified data source."""
+        return self._get_dataframe("somatic_mutation", source, tissue_type, imputed=imputed)
 
     # Help functions
     def get_cancer_type(self):
