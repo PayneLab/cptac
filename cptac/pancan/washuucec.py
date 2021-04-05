@@ -38,7 +38,7 @@ class WashuUcec(Dataset):
         data_files = {
             "1.0": [
                 "EC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
-                "EC_discovery.dnp.annotated.exonic.maf",
+                "EC_discovery.dnp.annotated.exonic.maf.gz",
                 "EC_total_miRNA_combined.tsv",
                 "CIBERSORT.Output_Abs_EC.txt",
                 "EC_xCell"
@@ -78,7 +78,7 @@ class WashuUcec(Dataset):
                 df.index = df.index.str.replace(r"-A", ".N", regex=True) #remove label for tumor samples
                 self._data["transcriptomics_normal"] = df
 
-            elif file_name == "EC_discovery.dnp.annotated.exonic.maf": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
+            elif file_name == "EC_discovery.dnp.annotated.exonic.maf.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t')    
                 # Rename the columns we want to keep to the appropriate names
                 df = df.rename(columns={"Tumor_Sample_Barcode": "Patient_ID",
@@ -101,16 +101,7 @@ class WashuUcec(Dataset):
                 df.index = df.index.str.replace('.A$','.N') # change label for normal samples
                 df.index = df.index.set_names('Patient_ID')
                 self._data["miRNA"] = df
-                
-            # cibersort
-            elif file_name == "CIBERSORT.Output_Abs_EC.txt": # 'NA' vals in file taken care of with default pd.read_csv
-                df = pd.read_csv(file_path, sep = '\t', index_col = 0) # na_vals 'NA' already default for read_csv
-                df.index.name = 'Patient_ID'
-                df.columns.name = 'Name'
-                df.index = df.index.str.replace(r'-T$', '', regex=True)  #remove label for tumor samples
-                df.index = df.index.str.replace(r'-A$', '.N', regex=True) # change label for normal samples
-                self._data["cibersort"] = df
-
+            
             # xCell
             elif file_name == "EC_xCell":
                 df = pd.read_csv(file_path, sep = '\t', index_col = 0) # 'NA' vals in file taken care of with default pd.read_csv
