@@ -63,9 +63,11 @@ class WashuBrca(Dataset):
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
                 df = df.set_index(["Name", "Database_ID"])
+                df = df.sort_index()
                 df = df.T
                 df.index.name = "Patient_ID"
-                df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
+                #remove label for tumor samples. All samples are tumors 
+                df.index = df.index.str.replace(r"-T", "", regex=True) 
                 self._data["transcriptomics"] = df
 
             elif file_name == "BR_prospective.dnp.annotated.exonic.addrecovercases.maf.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
