@@ -82,15 +82,15 @@ class UmichHnscc(Dataset):
                 df = df.drop(drop_cols, axis = 'index')
 
                 # duplicates are averaged
-                df = average_replicates(df, common = '-duplicate', to_drop = '-[NT]-duplicate.*')
+                df = average_replicates(df, common = '-duplicate', to_drop = '-duplicate.*')
 
                 df.index = df.index.str.replace('-T$','', regex = True)
                 df.index = df.index.str.replace('-N$','.N', regex = True)
 
                 # Sort values
-                normal = df.loc[df.index.str.contains('.N$')]
+                normal = df.loc[df.index.str.contains('\.N$', regex = True)]
                 normal = normal.sort_values(by=["Patient_ID"])
-                tumor = df.loc[~ df.index.str.contains('.N$')]
+                tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
                 tumor = tumor.sort_values(by=["Patient_ID"])
 
                 all_df = tumor.append(normal)
