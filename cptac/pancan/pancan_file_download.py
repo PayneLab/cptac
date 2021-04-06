@@ -137,7 +137,9 @@ def download_pdc_id(pdc_id):
     """
 
     # Download the clinical table
-    clin = _download_study_clin(pdc_id).set_index("case_submitter_id")
+    clin = _download_study_clin(pdc_id).\
+    set_index("case_submitter_id").\
+    sort_index()
 
     # The the biospecimenPerStudy table, which has both patient IDs and aliquot IDs
     bio = _download_study_biospecimen(pdc_id).\
@@ -157,7 +159,8 @@ def download_pdc_id(pdc_id):
     quant = bio.\
     join(quant, how="right").\
     reset_index().\
-    set_index(["case_submitter_id", "aliquot_submitter_id"])
+    set_index(["case_submitter_id", "aliquot_submitter_id"]).\
+    sort_index()
 
     return clin, quant
 

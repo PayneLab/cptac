@@ -12,6 +12,7 @@
 from .pancandataset import PancanDataset
 from .mssmclinical import MssmClinical
 #from .bcmgbm import BcmGbm
+from .pdcgbm import PdcGbm
 from .umichgbm import UmichGbm
 from .washugbm import WashuGbm
 
@@ -36,5 +37,6 @@ class PancanGbm(PancanDataset):
             
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancangbm')
         #self._datasets["bcm"] = BcmGbm(no_internet=no_internet, version=get_version("bcm"))
+        self._datasets["pdc"] = PdcGbm(no_internet=no_internet, version=get_version("pdc"))
         self._datasets["umich"] = UmichGbm(no_internet=no_internet, version=get_version("umich"))
         self._datasets["washu"] = WashuGbm(no_internet=no_internet, version=get_version("washu"))

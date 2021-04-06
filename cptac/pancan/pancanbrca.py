@@ -12,7 +12,9 @@
 from .pancandataset import PancanDataset
 from .mssmclinical import MssmClinical
 from .bcmbrca import BcmBrca
+from .pdcbrca import PdcBrca
 from .umichbrca import UmichBrca
+from .washubrca import WashuBrca
 
 SOURCES = [
     "bcmbrca",
@@ -37,6 +39,6 @@ class PancanBrca(PancanDataset):
             
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancanbrca')
         #self._datasets["bcm"] = BcmBrca(no_internet=no_internet, version=get_version("bcm"))
+        self._datasets["pdc"] = PdcBrca(no_internet=no_internet, version=get_version("pdc"))
         self._datasets["umich"] = UmichBrca(no_internet=no_internet, version=get_version("umich"))
-        
-        
+        self._datasets["washu"] = WashuBrca(no_internet=no_internet, version=get_version("washu"))

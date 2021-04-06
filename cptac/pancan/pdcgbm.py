@@ -73,7 +73,14 @@ class PdcGbm(Dataset):
 
             if file_name == "proteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
+
+                # Temp cleanup
+                df = df.\
+                drop(columns="aliquot_submitter_id").\
+                rename(columns={"case_submitter_id": "Patient_ID"}).\
+                set_index("Patient_ID")
+
+                # df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["proteomics"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
