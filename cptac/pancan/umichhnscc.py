@@ -76,7 +76,8 @@ class UmichHnscc(Dataset):
                    'RefInt_pool07', 'RefInt_pool08', 'RefInt_pool09', 'RefInt_pool10',
                    'RefInt_pool11', 'RefInt_pool12', 'RefInt_pool13', 'RefInt_pool14',
                    'RefInt_pool15', 'RefInt_pool16', 'RefInt_pool17', 'RefInt_pool18',
-                   'RefInt_pool19', 'RefInt_pool20'] # has -C ("C3L-00994-C")
+                   'RefInt_pool19', 'RefInt_pool20', 'C3L-00994-C', 'C3L-02617-C', 
+                   'C3L-04350-C', 'C3L-05257-C', 'C3N-01757-C', 'C3N-03042-C'] # ok to drop -C ?
     
                 # Drop quality control and ref intensity cols
                 df = df.drop(drop_cols, axis = 'index')
