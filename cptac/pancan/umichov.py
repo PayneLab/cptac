@@ -122,7 +122,18 @@ class UmichOv(Dataset):
         prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
         prot = prot.set_index('Patient_ID')
         prot.index = prot.index.str.replace('-T$','', regex = True)
-        prot.index = prot.index.str.replace('-N$','.N', regex = True)        
+        prot.index = prot.index.str.replace('-N$','.N', regex = True)   
+        
+        
+        # average duplicates - CHECK really duplicates (some blanks in file are normal, 
+        # but no blanks in file for these ids)
+        replicate_IDs = ['01OV029', '15OV001', '17OV002']
+        for rep in replicate_IDs:
+            id_df = prot[prot.index.str.contains(rep)] 
+            vals = list(id_df.mean(axis=0)) # average replicates and store in list 
+            prot = prot.drop(index = rep) # drop both replicates so can add new row with averages
+            prot.loc[rep] = vals
+        
         # Sort
         normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
         normal = normal.sort_values(by=["Patient_ID"])

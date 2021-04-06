@@ -69,7 +69,7 @@ class UmichUcec(Dataset):
                 df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
-                '''
+                
                 # Drop quality control and ref intensity cols
                 drop_cols = ['NX1', 'NX2', 'NX3', 'NX4', 'NX5', 'NX6', 'NX7', 'NX8', 'NX9', 'NX12',
                    'NX17', 'NX13', 'NX14', 'NX10', 'NX16', 'NX18', 'NX11', 'NX15',
@@ -78,7 +78,7 @@ class UmichUcec(Dataset):
                    'RefInt_pool09', 'RefInt_pool10', 'RefInt_pool11', 'RefInt_pool12',
                    'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15', 'RefInt_pool16',
                    'RefInt_pool17']
-                df = df.drop(drop_cols, axis = 'index')'''
+                df = df.drop(drop_cols, axis = 'index')
                 self._data["proteomics"] = df
                 
             elif file_name == "aliquot_to_patient_ID.tsv":
@@ -118,6 +118,12 @@ class UmichUcec(Dataset):
         prot = prot.reset_index()
         prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
         prot = prot.set_index('Patient_ID')
+        
+        # C3N-01825 comes from two tumor aliquots, so we average these 
+        id_df = prot[prot.index.str.contains('C3N-01825')] 
+        vals = list(id_df.mean(axis=0)) # average replicates and store in list 
+        prot = prot.drop(index = 'C3N-01825') # drop both replicates so can add new row with averages
+        prot.loc['C3N-01825'] = vals 
 
         # Sort values
         normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
