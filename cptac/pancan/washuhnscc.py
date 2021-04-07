@@ -38,6 +38,8 @@ class WashuHnscc(Dataset):
         data_files = {
             "1.0": [
                 "HNSCC_discovery.dnp.annotated.exonic.maf.gz",
+                "HNSCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
+                "HNSCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz"
               
             ]
         }
@@ -73,8 +75,37 @@ class WashuHnscc(Dataset):
                 df.index = df.index.str.replace(r"_T", "", regex=True)  
               
                 self._data["somatic_mutation"] = df
-                  
+              
+            if file_name == "HNSCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
+                    df_norm = pd.read_csv(file_path, sep='\t')
+                    #change names to universal package names
+                    df_norm = df_norm.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})  
+                    df_norm = df_norm.set_index(["Name", "Database_ID"])
+                    df_norm = df_norm.sort_index()
+                    df_norm = df_norm.T #transpose
+                    df_norm.index.name = "Patient_ID"
+                    df_norm.index = df_norm.index.str.replace(r"-A", ".N", regex=True) #remove label for tumor samples
+                    self._data["transcriptomics_norm"] = df_norm
+                    
+            if file_name == "HNSCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
+                    df = pd.read_csv(file_path, sep='\t')
+                    #change names to universal package names
+                    df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
+                    df = df.set_index(["Name", "Database_ID"])
+                    df = df.sort_index()
+                    df = df.T #transpose 
+                    df.index.name = "Patient_ID"
+                    df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
+                    self._data["transcriptomics_tumor"] = df
+                    
+        # combine and create transcriptomic dataframe            
+        rna_tumor = self._data.get("transcriptomics_tumor")
+        rna_normal = self._data.get("transcriptomics_norm") # Normal entries are already marked with 'N' on the end of the ID
+        rna_combined = rna_tumor.append(rna_normal)
+        self._data["transcriptomics"] = rna_combined
+        del self._data["transcriptomics_tumor"]
         
+
 #
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."

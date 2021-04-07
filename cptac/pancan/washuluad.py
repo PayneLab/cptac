@@ -38,6 +38,8 @@ class WashuLuad(Dataset):
         data_files = {
             "1.0": [
                 "LUAD_discovery.dnp.annotated.exonic.maf.gz",
+                "LUAD_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
+                "LUAD_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz"
               
             ]
         }
@@ -56,7 +58,6 @@ class WashuLuad(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-            
 
             if file_name == "LUAD_discovery.dnp.annotated.exonic.maf.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t')    
@@ -73,7 +74,34 @@ class WashuLuad(Dataset):
                 df.index = df.index.str.replace(r"_T", "", regex=True)  
               
                 self._data["somatic_mutation"] = df
-                  
+                
+            if file_name == "LUAD_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
+                df = pd.read_csv(file_path, sep="\t")
+                df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"])
+                df = df.sort_index()
+                df = df.T
+                df.index.name = "Patient_ID"
+                df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
+                self._data["transcriptomics_tumor"] = df
+                
+            if file_name == "LUAD_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
+                df = pd.read_csv(file_path, sep="\t")
+                df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"])
+                df = df.sort_index()
+                df = df.T
+                df.index.name = "Patient_ID"
+                df.index = df.index.str.replace(r"-A", ".N", regex=True) #remove label for tumor samples
+                self._data["transcriptomics_normal"] = df    
+         
+        # Combine the two transcriptomics dataframes
+        rna_tumor = self._data.get("transcriptomics_tumor")
+        rna_normal = self._data.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
+        rna_combined = rna_tumor.append(rna_normal)
+        self._data["transcriptomics"] = rna_combined
+        del self._data["transcriptomics_tumor"]
+        del self._data["transcriptomics_normal"]      
         
 #
         print(' ' * len(loading_msg), end='\r') # Erase the loading message

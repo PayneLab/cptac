@@ -38,6 +38,7 @@ class WashuCoad(Dataset):
         data_files = {
             "1.0": [
                 "CO_prospective.dnp.annotated.exonic.addrecovercases.maf.gz",
+                "CO_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz"
               
             ]
         }
@@ -74,7 +75,16 @@ class WashuCoad(Dataset):
               
                 self._data["somatic_mutation"] = df
                   
-        
+            if file_name == "CO_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
+                df = pd.read_csv(file_path, sep="\t")
+                df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"])
+                df = df.sort_index()
+                df = df.T
+                df.index.name = "Patient_ID"
+                #remove label for tumor samples. All samples are tumors 
+                df.index = df.index.str.replace(r"-T", "", regex=True) 
+                self._data["transcriptomics"] = df
 #
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."

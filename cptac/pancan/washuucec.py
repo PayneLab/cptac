@@ -38,6 +38,7 @@ class WashuUcec(Dataset):
         data_files = {
             "1.0": [
                 "EC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
+                "EC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
                 "EC_discovery.dnp.annotated.exonic.maf.gz",
                 "EC_total_miRNA_combined.tsv",
              #   "CIBERSORT.Output_Abs_EC.txt",
@@ -64,6 +65,7 @@ class WashuUcec(Dataset):
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
                 df = df.set_index(["Name", "Database_ID"])
+                df = df.sort_index()
                 df = df.T
                 df.index.name = "Patient_ID"
                 df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
@@ -73,6 +75,7 @@ class WashuUcec(Dataset):
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
                 df = df.set_index(["Name", "Database_ID"])
+                df = df.sort_index()
                 df = df.T
                 df.index.name = "Patient_ID"
                 df.index = df.index.str.replace(r"-A", ".N", regex=True) #remove label for tumor samples
@@ -112,7 +115,13 @@ class WashuUcec(Dataset):
                 df.index = df.index.str.replace(r'-A$', '.N', regex=True) # change label for normal samples
                 self._data["xcell"] = df
                 
-             
+        # Combine the two transcriptomics dataframes
+        rna_tumor = self._data.get("transcriptomics_tumor")
+        rna_normal = self._data.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
+        rna_combined = rna_tumor.append(rna_normal)
+        self._data["transcriptomics"] = rna_combined
+        del self._data["transcriptomics_tumor"]
+        #del self._data["transcriptomics_normal"]   
                 
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
