@@ -12,6 +12,7 @@
 from .pancandataset import PancanDataset
 from .mssmclinical import MssmClinical
 from .umichov import UmichOv
+from .washuov import WashuOv
 
 SOURCES = [
     "bcmov",
@@ -35,3 +36,4 @@ class PancanOv(PancanDataset):
             
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancanov')
         self._datasets["umich"] = UmichOv(no_internet=no_internet, version=get_version("umich"))
+        self._datasets["washu"] = WashuOv(no_internet=no_internet, version=get_version("washu"))

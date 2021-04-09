@@ -37,5 +37,6 @@ class PancanHnscc(PancanDataset):
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancanhnscc')
         #self._datasets["bcm"] = BcmHnscc(no_internet=no_internet, version=get_version("bcm"))
         self._datasets["umich"] = UmichHnscc(no_internet=no_internet, version=get_version("umich"))
+        self._datasets["washu"] = WashuHnscc(no_internet=no_internet, version=get_version("washu"))
         
         

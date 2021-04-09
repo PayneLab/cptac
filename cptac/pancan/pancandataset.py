@@ -57,6 +57,14 @@ class PancanDataset:
     def get_somatic_mutation(self, source, tissue_type="both", imputed=False):
         """Get the somatic mutation dataframe from the specified data source."""
         return self._get_dataframe("somatic_mutation", source, tissue_type, imputed=imputed)
+    
+    def get_miRNA(self, source, miRNA_type = 'total', tissue_type="both", imputed=False):
+        """Get miRNA dataframe from the specified data source."""
+        return self._get_dataframe(miRNA_type+'_miRNA', source, tissue_type, imputed=imputed)
+    
+    def get_deconvolution(self, source, decon_type, tissue_type="both", imputed=False):
+        """Get a deconvolution dataframe from the specified data source."""
+        return self._get_dataframe(decon_type, source, tissue_type, imputed=imputed)
 
     # Help functions
     def get_cancer_type(self):

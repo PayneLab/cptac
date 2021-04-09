@@ -12,6 +12,7 @@
 from .pancandataset import PancanDataset
 from .mssmclinical import MssmClinical
 from .umichucec import UmichUcec
+from .washuucec import WashuUcec
 
 SOURCES = [
     "bcmucec",
@@ -35,3 +36,4 @@ class PancanUcec(PancanDataset):
             
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancanucec')
         self._datasets["umich"] = UmichUcec(no_internet=no_internet, version=get_version("umich"))
+        self._datasets["washu"] = WashuUcec(no_internet=no_internet, version=get_version("washu"))

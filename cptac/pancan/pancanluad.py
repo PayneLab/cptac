@@ -12,6 +12,7 @@
 from .pancandataset import PancanDataset
 from .mssmclinical import MssmClinical
 from .umichluad import UmichLuad
+from .washuluad import WashuLuad
 
 SOURCES = [
     "bcmluad",
@@ -35,3 +36,4 @@ class PancanLuad(PancanDataset):
             
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancanluad')
         self._datasets["umich"] = UmichLuad(no_internet=no_internet, version=get_version("umich"))
+        self._datasets["washu"] = WashuLuad(no_internet=no_internet, version=get_version("washu"))

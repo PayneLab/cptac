@@ -12,6 +12,7 @@
 from .pancandataset import PancanDataset
 from .mssmclinical import MssmClinical
 from .umichccrcc import UmichCcrcc
+from .washuccrcc import WashuCcrcc
 
 SOURCES = [
     "bcmccrcc",
@@ -35,3 +36,4 @@ class PancanCcrcc(PancanDataset):
             
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancanccrcc')
         self._datasets["umich"] = UmichCcrcc(no_internet=no_internet, version=get_version("umich"))
+        self._datasets["washu"] = WashuCcrcc(no_internet=no_internet, version=get_version("washu"))

@@ -21,7 +21,7 @@ SOURCES = [
     "broadbrca",
     "mssmclinical",
     "umichbrca",
-    "washubrca",
+    "washubrca"
 ]
 
 class PancanBrca(PancanDataset):
