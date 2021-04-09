@@ -20,6 +20,7 @@ SOURCES = [
     "mssmclinical",
     "umichgbm",
     "washugbm",
+    "pdcgbm"
 ]
 
 class PancanGbm(PancanDataset):

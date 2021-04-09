@@ -40,7 +40,9 @@ class WashuCcrcc(Dataset):
                 "ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
                 "ccRCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
                 "ccRCC_discovery.dnp.annotated.exonic.maf.gz",
-                "ccRCC_total_miRNA_combined.tsv",
+                "ccRCC_precursor_miRNA_combined.tsv",
+                "ccRCC_mature_miRNA_combined.tsv",                
+                "ccRCC_total_miRNA_combined.tsv",               
                 "CIBERSORT.Output_Abs_ccRCC.txt",
                 "ccRCC_xCell.txt"
             ]
@@ -94,33 +96,40 @@ class WashuCcrcc(Dataset):
                 df.index = df.index.str.replace(r"_T", "", regex=True)
                 self._data["somatic_mutation"] = df
             
-            # miRNA
-            elif file_name == "EC_total_miRNA_combined.tsv": # 'NA' vals in file taken care of with default pd.read_csv
-                df = pd.read_csv(file_path, sep = '\t', index_col=['Name', 'ID', 'Alias'])
+            elif 'miRNA_combined' in file_name:
+                miRNA_type = file_name.split('_')[1] # get type of miRNA data (precursor, mature, or total)
+                if miRNA_type == 'mature':
+                    df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias', 'Derives_from'])
+                else:
+                    df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
                 df = df.transpose()
-                df.index = df.index.str.replace('.T$','') # remove label for tumor samples
-                df.index = df.index.str.replace('.A$','.N') # change label for normal samples
-                df.index = df.index.set_names('Patient_ID')
-                self._data["miRNA"] = df
+                df.index = df.index.str.replace('\.T$','', regex = True)
+                df.index = df.index.str.replace('\.A$','.N', regex = True)
+                df.index.name = 'Patient_ID'                
+                # Sort
+                normal = df.loc[df.index.str.contains('\.N$', regex =True)]
+                normal = normal.sort_values(by=["Patient_ID"])
+                tumor = df.loc[~ df.index.str.contains('\.N$', regex =True)]
+                tumor = tumor.sort_values(by=["Patient_ID"])
+                all_df = tumor.append(normal)
+                self._data[miRNA_type+'_miRNA'] = all_df
                 
-            # cibersort
-            elif file_name == "CIBERSORT.Output_Abs_EC.txt": # 'NA' vals in file taken care of with default pd.read_csv
-                df = pd.read_csv(file_path, sep = '\t', index_col = 0) # na_vals 'NA' already default for read_csv
-                df.index.name = 'Patient_ID'
-                df.columns.name = 'Name'
-                df.index = df.index.str.replace(r'-T$', '', regex=True)  #remove label for tumor samples
-                df.index = df.index.str.replace(r'-A$', '.N', regex=True) # change label for normal samples
-                self._data["cibersort"] = df
-
-            # xCell
-            elif file_name == "EC_xCell.txt":
-                df = pd.read_csv(file_path, sep = '\t', index_col = 0) # 'NA' vals in file taken care of with default pd.read_csv
+            elif file_name == "ccRCC_xCell.txt":
+                df = pd.read_csv(file_path, sep = '\t', index_col = 0) 
                 df = df.transpose()
                 df.columns.name = 'Name'
                 df.index.name = 'Patient_ID'
                 df.index = df.index.str.replace(r'-T$', '', regex=True) # remove label for tumor samples
                 df.index = df.index.str.replace(r'-A$', '.N', regex=True) # change label for normal samples
                 self._data["xcell"] = df
+                
+            elif file_name == "CIBERSORT.Output_Abs_ccRCC.txt":
+                df = pd.read_csv(file_path, sep = '\t', index_col = 0) 
+                df.index.name = 'Patient_ID'
+                df.columns.name = 'Name'
+                df.index = df.index.str.replace(r'-T$', '', regex=True) 
+                df.index = df.index.str.replace(r'-A$', '.N', regex=True)
+                self._data["cibersort"] = df
 
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message

@@ -105,7 +105,6 @@ class WashuLuad(Dataset):
                 miRNA_type = file_name.split('_')[1] # get type of miRNA data (precursor, mature, or total)
                 if miRNA_type == 'mature':
                     df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias', 'Derives_from'])
-                    print(miRNA_type)
                 else:
                     df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
                 df = df.transpose()
