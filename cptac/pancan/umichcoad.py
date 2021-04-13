@@ -36,7 +36,8 @@ class UmichCoad(Dataset):
         valid_versions = ["1.0"]
 
         data_files = {
-            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv"
+            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
+                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv"
                 #"S039_BCprospective_observed_0920.tsv.gz",
                 #"S039_BCprospective_imputed_0920.tsv.gz"
             ]
@@ -103,6 +104,33 @@ class UmichCoad(Dataset):
 
                 all_df = tumor.append(normal) 
                 self._data["proteomics"] = all_df
+                
+                
+            elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
+                df = pd.read_csv(file_path, sep = "\t") 
+                df[['Protein_ID','Transcript_ID',"Database_ID","Havana_gene","Havana_transcript","Transcript","Name","Site"]] = df.Index.str.split("\\|",expand=True)
+                df[['num1','num2',"num3","num4","num5","Site"]] = df.Site.str.split("_",expand=True) 
+                df = df[df['Site'].notna()] # only keep columns with phospho site 
+                df = df.set_index(["Name","Database_ID","Peptide","Site"]) 
+                #drop columns not needed in df 
+                df.drop([ 'Gene', "Index","num1","num2","num3","num4","num5","Havana_gene","Havana_transcript","MaxPepProb","Protein_ID","Transcript_ID","Transcript"], axis=1, inplace=True)
+                
+                df = df.T #transpose df 
+                ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
+                df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values, to get ratios
+                df = df.iloc[1:,:] # drop ReferenceIntensity row 
+                drop_cols = ['colonRef22-2', 'RefInt_ColonRef01', 'RefInt_ColonRef02',
+                   'RefInt_ColonRef03', 'RefInt_ColonRef04', 'RefInt_ColonRef05',
+                   'RefInt_ColonRef06', 'RefInt_ColonRef07', 'RefInt_ColonRef08',
+                   'RefInt_ColonRef09', 'RefInt_ColonRef10', 'RefInt_ColonRef11',
+                   'RefInt_ColonRef12', 'RefInt_ColonRef13', 'RefInt_ColonRef14',
+                   'RefInt_ColonRef15', 'RefInt_ColonRef16', 'RefInt_ColonRef17',
+                   'RefInt_ColonRef18', 'RefInt_ColonRef19', 'RefInt_ColonRef20',
+                   'RefInt_ColonRef21', 'RefInt_ColonRef22-1']
+
+                # Drop qauality control and ref intensity cols
+                df = df.drop(drop_cols, axis = 'index')
+                self._data["phosphoproteomics"] = df
 
             '''
             if file_name == "S039_BCprospective_observed_0920.tsv.gz":

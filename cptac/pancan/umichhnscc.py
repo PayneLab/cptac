@@ -36,7 +36,8 @@ class UmichHnscc(Dataset):
         valid_versions = ["1.0"]
 
         data_files = {
-            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv"
+            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
+                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv"
                 #"S039_BCprospective_observed_0920.tsv.gz",
                 #"S039_BCprospective_imputed_0920.tsv.gz"
             ]
@@ -96,6 +97,38 @@ class UmichHnscc(Dataset):
 
                 all_df = tumor.append(normal)
                 self._data["proteomics"] = all_df
+                
+                
+            elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
+                df = pd.read_csv(file_path, sep = "\t") 
+                df[['Protein_ID','Transcript_ID',"Database_ID","Havana_gene","Havana_transcript","Transcript","Name","Site"]] = df.Index.str.split("\\|",expand=True)
+                df[['num1','num2',"num3","num4","num5","Site"]] = df.Site.str.split("_",expand=True) 
+                df = df[df['Site'].notna()] # only keep columns with phospho site 
+                df = df.set_index(["Name","Database_ID","Peptide","Site"]) 
+                #drop columns not needed in df 
+                df.drop([ 'Gene', "Index","num1","num2","num3","num4","num5","Havana_gene","Havana_transcript","MaxPepProb","Protein_ID","Transcript_ID","Transcript"], axis=1, inplace=True)
+                
+                df = df.T #transpose df 
+                ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
+                df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values, to get ratios
+                df = df.iloc[1:,:] # drop ReferenceIntensity row 
+
+                df.index = df.index.str.replace(r"-T", "", regex=True)
+                df.index = df.index.str.replace(r"-A", ".N", regex=True)
+                drop_cols_phos = ['128C','QC2','QC3','QC4','129N','LungTumor1','Pooled-sample14','LungTumor2', 'QC6',
+                                  'LungTumor3','Pooled-sample17','QC7','Pooled-sample19','QC9','RefInt_pool01','RefInt_pool02', 'RefInt_pool03','RefInt_pool04','RefInt_pool05','RefInt_pool06','RefInt_pool07','RefInt_pool08','RefInt_pool09',
+ 'RefInt_pool10','RefInt_pool11','RefInt_pool12','RefInt_pool13','RefInt_pool14','RefInt_pool15','RefInt_pool16','RefInt_pool17',
+ 'RefInt_pool18','RefInt_pool19','RefInt_pool20','C3L-00994-C', 'C3L-02617-C', 
+                   'C3L-04350-C', 'C3L-05257-C', 'C3N-01757-C', 'C3N-03042-C']
+              # Drop quality control and ref intensity cols
+                df = df.drop(drop_cols_phos, axis = 'index')
+              # duplicates are averaged
+                df = average_replicates(df, common = '-duplicate', to_drop = '-duplicate.*')
+
+                df.index = df.index.str.replace('-T$','', regex = True)
+                df.index = df.index.str.replace('-N$','.N', regex = True)
+                
+                self._data["phosphoproteomics"] = df
             
             '''
             if file_name == "S039_BCprospective_observed_0920.tsv.gz":

@@ -37,7 +37,8 @@ class UmichOv(Dataset):
 
         data_files = {
             "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
-                    "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv"
+                    "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv",
+                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv"
                 #"S039_BCprospective_observed_0920.tsv.gz",
                 #"S039_BCprospective_imputed_0920.tsv.gz"
             ]
@@ -87,7 +88,16 @@ class UmichOv(Dataset):
                 ov_map = ov_map.replace("#",".", regex = True)
                 self._data["map_ids"] = ov_map
                 
-            
+            elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
+                df = pd.read_csv(file_path, sep = "\t") 
+                df[['Protein_ID','Transcript_ID',"Database_ID","Havana_gene","Havana_transcript","Transcript","Name","Site"]] = df.Index.str.split("\\|",expand=True)
+                df[['num1','num2',"num3","num4","num5","Site"]] = df.Site.str.split("_",expand=True) 
+                df = df[df['Site'].notna()] # only keep columns with phospho site 
+                df = df.set_index(["Name","Database_ID","Peptide","Site"]) 
+                #drop columns not needed in df 
+                df.drop([ 'Gene', "Index","num1","num2","num3","num4","num5","Havana_gene","Havana_transcript","MaxPepProb","Protein_ID","Transcript_ID","Transcript"], axis=1, inplace=True)
+                self._data["phosphoproteomics"] = df
+
             '''
             elif file_name == "S039_BCprospective_observed_0920.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
@@ -142,7 +152,43 @@ class UmichOv(Dataset):
         all_prot = tumor.append(normal)  
         self._data["proteomics"] = all_prot
                 
-          
+        
+        ## phosphoproteomics 
+        phos = self._data["phosphoproteomics"]
+        ovmap = self._data["map_ids"]
+        ovmap = ovmap.set_index("index")
+        ovmap_dict = ovmap.to_dict()["sample"]
+        
+        phos = phos.rename(columns = ovmap_dict)# rename NAT ID columns with .N 
+        phos = phos.T #transpose df 
+        ref_intensities = phos.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
+        phos = phos.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values, to get ratios
+        phos = phos.iloc[1:,:] # drop ReferenceIntensity row 
+        
+        phos.index = phos.index.str.replace('-T$','', regex = True)
+        phos.index = phos.index.str.replace('-N$','.N', regex = True)
+        
+        drop_cols_phos = ['JHU-QC','JHU-QC-1-Q','JHU-QC-2-Q','JHU-QC-3-Q','JHU-QC-4-Q','RefInt_PNNL-JHU-Ref-1-R',
+ 'RefInt_PNNL-JHU-Ref-2-R','RefInt_PNNL-JHU-Ref-3-R','RefInt_PNNL-JHU-Ref-4-R','RefInt_PNNL-JHU-Ref-5-R',
+ 'RefInt_PNNL-JHU-Ref-6-R','RefInt_PNNL-JHU-Ref-7-R','RefInt_PNNL-JHU-Ref-8-R','RefInt_PNNL-JHU-Ref-9-R',
+ 'RefInt_PNNL-JHU-Ref-10-R','RefInt_PNNL-JHU-Ref-11-R','RefInt_PNNL-JHU-Ref-12-R']
+
+          # Drop quality control and ref intensity cols
+        phos = phos.drop(drop_cols_phos, axis = 'index')
+     
+        # average duplicates - CHECK really duplicates (some blanks in file are normal, 
+        # but no blanks in file for these ids)
+        replicate_IDs = ['01OV029', '15OV001', '17OV002']
+        for rep in replicate_IDs:
+            id_df = phos[phos.index.str.contains(rep)] 
+            vals = list(id_df.mean(axis=0)) # average replicates and store in list 
+            phos = phos.drop(index = rep) # drop both replicates so can add new row with averages
+            phos.loc[rep] = vals
+        
+        self._data["phosphoproteomics"] = phos
+        
+        
+        
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')

@@ -37,7 +37,8 @@ class UmichCcrcc(Dataset):
 
         data_files = {
             "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
-                    "aliquot_to_patient_ID.tsv"
+                    "aliquot_to_patient_ID.tsv",
+                   "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv"
                 #"S039_BCprospective_observed_0920.tsv.gz",
                 #"S039_BCprospective_imputed_0920.tsv.gz"
             ]
@@ -82,7 +83,19 @@ class UmichCcrcc(Dataset):
             elif file_name == "aliquot_to_patient_ID.tsv":
                 df = pd.read_csv(file_path, sep = "\t")
                 self._data["map_ids"] = df
+                
+                
+            elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
+                df = pd.read_csv(file_path, sep = "\t") 
+                df[['Protein_ID','Transcript_ID',"Database_ID","Havana_gene","Havana_transcript","Transcript","Name","Site"]] = df.Index.str.split("\\|",expand=True)
+                df[['num1','num2',"num3","num4","num5","Site"]] = df.Site.str.split("_",expand=True) 
+                df = df[df['Site'].notna()] # only keep columns with phospho site 
+                df = df.set_index(["Name","Database_ID","Peptide","Site"]) 
+                #drop columns not needed in df 
+                df.drop([ 'Gene', "Index","num1","num2","num3","num4","num5","Havana_gene","Havana_transcript","MaxPepProb","Protein_ID","Transcript_ID","Transcript"], axis=1, inplace=True)
+                self._data["phosphoproteomics"] = df
 
+            
             
             '''
             elif file_name == "S039_BCprospective_observed_0920.tsv.gz":
@@ -126,7 +139,28 @@ class UmichCcrcc(Dataset):
         tumor = tumor.sort_values(by=["Patient_ID"])
         all_prot = tumor.append(normal)
         self._data["proteomics"] = all_prot
-                
+        
+        
+        
+        ## phosphoproteomics 
+        phos = self._data["phosphoproteomics"]
+        mapping_df = self._data["map_ids"]
+        mapping_df = mapping_df.set_index("aliquot_ID")
+        map_dict = mapping_df.to_dict()["patient_ID"]
+        
+        phos = phos.rename(columns = map_dict)# rename NAT ID columns with .N 
+        phos = phos.T #transpose df 
+        ref_intensities = phos.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
+        phos = phos.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values, to get ratios
+        phos = phos.iloc[1:,:] # drop ReferenceIntensity row 
+        drop_cols_phos = ['NCI7-1','QC1','QC2','QC3','NCI7-2','NCI7-3','QC4','NCI7-4','NCI7-5','QC5',
+         'QC6','QC7','QC8','RefInt_pool01','RefInt_pool02','RefInt_pool03', 'RefInt_pool04','RefInt_pool05', 
+         'RefInt_pool06','RefInt_pool07','RefInt_pool08','RefInt_pool09','RefInt_pool10','RefInt_pool11',
+         'RefInt_pool12','RefInt_pool13','RefInt_pool14','RefInt_pool15','RefInt_pool16','RefInt_pool17',
+         'RefInt_pool18','RefInt_pool19','RefInt_pool20','RefInt_pool21','RefInt_pool22','RefInt_pool23']
+          # Drop quality control and ref intensity cols
+        phos = phos.drop(drop_cols_phos, axis = 'index')
+        self._data["phosphoproteomics"] = phos
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."

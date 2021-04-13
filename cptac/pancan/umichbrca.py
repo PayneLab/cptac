@@ -36,9 +36,9 @@ class UmichBrca(Dataset):
         valid_versions = ["1.0"]
 
         data_files = {
-            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv"
-                #"S039_BCprospective_observed_0920.tsv.gz",
-                #"S039_BCprospective_imputed_0920.tsv.gz"
+            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
+                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv"
+         
             ]
         }
 
@@ -91,25 +91,35 @@ class UmichBrca(Dataset):
                 all_df = tumor.append(normal)
                 self._data["proteomics"] = all_df
                 
-            '''
-            if file_name == "S039_BCprospective_observed_0920.tsv.gz":
-                df = pd.read_csv(file_path, sep="\t")
-                df = df.transpose()
-                df.index.name = 'Patient_ID'
-                df.columns.name = 'Name'
-                df = average_replicates(df)
-                df = df.sort_values(by=["Patient_ID"])
-                self._data["proteomics"] = df  
+            elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
+                df = pd.read_csv(file_path, sep = "\t") 
+                df[['Protein_ID','Transcript_ID',"Database_ID","Havana_gene","Havana_transcript","Transcript","Name","Site"]] = df.Index.str.split("\\|",expand=True)
+                df[['num1','num2',"num3","num4","num5","Site"]] = df.Site.str.split("_",expand=True) 
+                df = df[df['Site'].notna()] # only keep columns with phospho site 
+                df = df.set_index(["Name","Database_ID","Peptide","Site"]) 
+                #drop columns not needed in df 
+                df.drop([ 'Gene', "Index","num1","num2","num3","num4","num5","Havana_gene","Havana_transcript","MaxPepProb","Protein_ID","Transcript_ID","Transcript"], axis=1, inplace=True)
+
+                df = df.T #transpose df 
+                ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
+                df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values, to get ratios
+                df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 
-            elif file_name == "S039_BCprospective_imputed_0920.tsv.gz":
-                df = pd.read_csv(file_path, sep="\t")
-                df = df.transpose()
-                df.index.name = 'Patient_ID'
-                df.columns.name = 'Name'
+                drop_cols = ['RetroIR','CPT0018460005','CPT0008140004','RetroIR.1','RefInt_Pool01-1','RefInt_Pool02-1',
+ 'RefInt_Pool03-1','RefInt_Pool04-1','RefInt_Pool05-1','RefInt_Pool06-1','RefInt_Pool07-1','RefInt_Pool08-1',
+ 'RefInt_Pool09-1','RefInt_Pool10-1','RefInt_Pool11-1','RefInt_Pool12-1','RefInt_Pool13-1','RefInt_Pool14-1',
+ 'RefInt_Pool15-1','RefInt_Pool16-1','RefInt_Pool17-1']
+
+                # Drop quality control and ref intensity cols
+                df = df.drop(drop_cols, axis = 'index')
+                # Since cptac brca has no normal samples, the duplicates are treated as replicates
                 df = average_replicates(df)
-                df = df.sort_values(by=["Patient_ID"])
-                self._data["proteomics_imputed"] = df'''
+
                 
+                self._data["phosphoproteomics"] = df
+
+               
+
                 
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
