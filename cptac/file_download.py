@@ -315,7 +315,7 @@ def get_box_token():
     # Send the user to the "Grant access" page
     webbrowser.open(login_url)
     print("Please login to Box on the webpage that was just opened and grant access for cptac to download files through your account. If you accidentally closed the browser window, press Ctrl+C and call the download function again.")
-    print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so later on we can clear the password prompt
+    #print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so later on we can clear the password prompt
 
     # Get the temporary access code from the server on the child process
     temp_code = parent_conn.recv()

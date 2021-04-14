@@ -84,49 +84,45 @@ def pancan_download(dataset, version="latest", redownload=False):
     dataset = dataset.lower()
 
     if dataset.startswith("pdc"):
-        _pdc_download(dataset, version=version, redownload=redownload)
+        return _pdc_download(dataset, version=version, redownload=redownload)
 
     else:
         box_token = get_box_token()
-    
-        if dataset == "pancanbrca":
-            for source in BRCA_SOURCES:
-                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
-       
-        elif dataset == "pancanccrcc":
-            for source in CCRCC_SOURCES:
-                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
-       
-        elif dataset == "pancancoad":
-            for source in COAD_SOURCES:
-                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
-       
-        elif dataset == "pancangbm":
-            for source in GBM_SOURCES:
-                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
 
+        if dataset == "pancanbrca":
+            sources = BRCA_SOURCES
+        elif dataset == "pancanccrcc":
+            sources = CCRCC_SOURCES
+        elif dataset == "pancancoad":
+            sources = COAD_SOURCES
+        elif dataset == "pancangbm":
+            sources = GBM_SOURCES
         elif dataset == "pancanhnscc":
-            for source in HNSCC_SOURCES:
-                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
-       
+            sources = HNSCC_SOURCES
         elif dataset == "pancanlscc":
-            for source in LSCC_SOURCES:
-                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
-       
+            sources = LSCC_SOURCES
         elif dataset == "pancanluad":
-            for source in LUAD_SOURCES:
-                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
-       
+            sources = LUAD_SOURCES
         elif dataset == "pancanov":
-            for source in OV_SOURCES:
-                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
-       
+            sources = OV_SOURCES
         elif dataset == "pancanucec":
-            for source in UCEC_SOURCES:
-                cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
-       
+            sources = UCEC_SOURCES
         else:
             raise InvalidParameterError(f"{dataset} is not a valid dataset.")
+
+        overall_success = True
+        for source in sources:
+
+            if source.startswith("pdc"):
+                single_success = pancan_download(source, version=version, redownload=redownload)
+            else:
+                single_success = cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
+
+            if not single_success:
+                overall_success = False
+
+        return overall_success
+       
 
 def download_pdc_id(pdc_id):
     """Download a PDC dataset by its PDC study id.
@@ -203,7 +199,6 @@ def _pdc_download(dataset, version, redownload):
         if redownload:
             shutil.rmtree(cancer_dir)
         else:
-            print(f"The {dataset} dataset has been downloaded previously. If you wish to erase the existing download and re-download it, pass 'redownload=True'.")
             return True
 
     os.mkdir(cancer_dir)
