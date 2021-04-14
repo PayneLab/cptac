@@ -273,7 +273,7 @@ def download_file(url, path, server_hash, password=None, box_token=None, file_me
     file_name = path.split(os.sep)[-1]
     raise DownloadFailedError(f"Download failed for {file_name}.")
 
-# Manually set the multiprocessing spawn method to avoid problems
+# Manually set the multiprocessing start method to "fork", to avoid platform-specific problems
 set_start_method("fork")
 
 # Set up a way to share key from the server process back to the main process
@@ -314,8 +314,8 @@ def get_box_token():
 
     # Send the user to the "Grant access" page
     webbrowser.open(login_url)
-    print("Please login to Box on the webpage that was just opened and grant access for cptac to download files through your account. If you accidentally closed the browser window, press Ctrl+C and call the download function again.")
-    #print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so later on we can clear the password prompt
+    login_msg = "Please login to Box on the webpage that was just opened and grant access for cptac to download files through your account. If you accidentally closed the browser window, press Ctrl+C and call the download function again."
+    print(login_msg)
 
     # Get the temporary access code from the server on the child process
     temp_code = parent_conn.recv()
@@ -327,9 +327,6 @@ def get_box_token():
     server.terminate()
     server.join()
     server.close()
-
-    # Clean up console text
-    print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
 
     # Use the temporary access code to get the long term access token
     token_url = "https://api.box.com/oauth2/token";

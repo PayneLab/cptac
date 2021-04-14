@@ -124,7 +124,7 @@ def pancan_download(dataset, version="latest", redownload=False):
         return overall_success
        
 
-def download_pdc_id(pdc_id):
+def download_pdc_id(pdc_id, _download_msg=True):
     """Download a PDC dataset by its PDC study id.
     
     Returns:
@@ -132,18 +132,37 @@ def download_pdc_id(pdc_id):
     pandas.DataFrame: The quantitative table for the study id.
     """
 
+    if _download_msg:
+        clin_msg = f"Downloading clinical table for {pdc_id}..."
+        print(clin_msg, end="\r")
+
     # Download the clinical table
     clin = _download_study_clin(pdc_id).\
     set_index("case_submitter_id").\
     sort_index()
+
+    if _download_msg:
+        print(" " * len(clin_msg), end="\r")
+        bio_msg = f"Downloading biospecimenPerStudy table for {pdc_id}..."
+        print(bio_msg, end="\r")
 
     # The the biospecimenPerStudy table, which has both patient IDs and aliquot IDs
     bio = _download_study_biospecimen(pdc_id).\
     set_index("aliquot_submitter_id").\
     sort_index()
 
+    if _download_msg:
+        print(" " * len(bio_msg), end="\r")
+        quant_msg = f"Downloading quantitative table for {pdc_id}..."
+        print(quant_msg, end="\r")
+
     # Get the quantitative data table
     quant = _download_study_quant(pdc_id)
+
+    if _download_msg:
+        print(" " * len(quant_msg), end="\r")
+        format_msg = f"Formatting tables for {pdc_id}..."
+        print(format_msg, end="\r")
 
     # Join the patient IDs from the biospecimenPerStudy table into the quant table
     quant = quant.\
@@ -157,6 +176,10 @@ def download_pdc_id(pdc_id):
     reset_index().\
     set_index(["case_submitter_id", "aliquot_submitter_id"]).\
     sort_index()
+
+    # Clear message
+    if _download_msg:
+        print(" " * len(format_msg), end="\r")
 
     return clin, quant
 
@@ -210,14 +233,30 @@ def _pdc_download(dataset, version, redownload):
 
     for data_type in dataset_ids.keys():
 
+        # Print an update
+        download_msg = f"Downloading {dataset} {data_type} files..."
+        print(download_msg, end="\r")
+
         # Get the clinical and quantitative tables for the study ID
-        clin, quant = download_pdc_id(dataset_ids[data_type])
+        clin, quant = download_pdc_id(dataset_ids[data_type], _download_msg=False)
+
+        # Print a new update
+        print(" " * len(download_msg), end="\r")
+        save_msg = f"Saving {dataset} {data_type} files..."
+        print(save_msg, end="\r")
 
         # Append the clinical dataframe
         master_clin = master_clin.append(clin)
 
         # Save the quantitative table
         quant.to_csv(os.path.join(data_dir, f"{data_type}.tsv.gz"), sep="\t")
+
+        # Erase update
+        print(" " * len(save_msg), end="\r")
+
+    # Print an update
+    save_msg = f"Saving {dataset} clinical file..."
+    print(save_msg, end="\r")
 
     # Drop any duplicated rows in combined clinical table, then save it too
     master_clin = master_clin.drop_duplicates(keep="first")
@@ -230,6 +269,9 @@ def _pdc_download(dataset, version, redownload):
     with open(index_path, "w") as index_file:
         index_file.write("#0.0\n")
         
+    # Erase update
+    print(" " * len(save_msg), end="\r")
+
     return True
 
 def _download_study_clin(pdc_study_id):
