@@ -56,6 +56,7 @@ def download(dataset, version="latest", redownload=False, box_auth=False, box_to
             "luad",
             "ovarian",
             "pdac",
+            "ucecconf",
         ]
 
         overall_result = True
