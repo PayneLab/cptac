@@ -18,6 +18,7 @@ cptac/data_lscc/*
 cptac/data_luad/*
 cptac/data_ovarian/*
 cptac/data_pdac/*
+cptac/data_ucecconf/*
 
 cptac/pancan/data_mssmclinical/*
 
@@ -75,6 +76,7 @@ cptac/utils/data/hgnc_protein_families.tsv
 !cptac/data_luad/index_urls.tsv
 !cptac/data_ovarian/index_urls.tsv
 !cptac/data_pdac/index_urls.tsv
+!cptac/data_ucec/index_urls.tsv
 
 !cptac/pancan/data_mssmclinical/index_urls.tsv
 
