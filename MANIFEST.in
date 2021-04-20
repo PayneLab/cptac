@@ -9,6 +9,7 @@ include cptac/data_lscc/index_urls.tsv
 include cptac/data_luad/index_urls.tsv
 include cptac/data_ovarian/index_urls.tsv
 include cptac/data_pdac/index_urls.tsv
+include cptac/data_ucecconf/index_urls.tsv
 
 include cptac/utils/data/BioPlex_293T_Network_10K_Dec_2019.tsv.gz
 include cptac/utils/data/Uniprot_Proteome.tsv.gz
