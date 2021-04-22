@@ -19,30 +19,6 @@ from .dataset import Dataset
 from .dataframe_tools import *
 from .exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
-
-################################################################################
-# HOW TO USE THIS TEMPLATE FILE
-#
-# To make a class for a new dataset, copy this file and fill in the indicated
-# sections, as described below.
-#
-# This file has sections marked with the word FILL, usually in triple quotes or
-# preceded by three hashtags (###). To adapt this file for a new dataset,
-# replace all of those marked fields with the proper values for your dataset.
-# Additionally, there are some example code sections marked with START EXAMPLE
-# CODE and END EXAMPLE CODE. You need to replace the example code with the
-# proper code for processing your dataset.
-#
-# This file uses dataframe processing functions imported from
-# cptac/dataframe_tools.py. For more information on how to use those functions,
-# you can read their docstrings in that file.
-#
-# If there's something confusing about this file, look at the files for existing
-# datasets to provide examples of how this file would actually be implemented.
-# If the new dataset you're adding has something weird that isn't addressed in
-# this file, check the other datasets to see if any of them deal with a similar
-# issue.
-################################################################################
 class UcecConf(Dataset):
 
     def __init__(self, version="latest", no_internet=False):
@@ -232,18 +208,6 @@ class UcecConf(Dataset):
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 
-        ###FILL: If the dataset is not under publication embargo, you can remove
-        ### the code block below. If it is password protected, still remove
-        ### this warning, and instead keep the password protection warning
-        ### below.
-        # Print data embargo warning, if the date hasn't passed yet.
-        today = datetime.date.today()
-        embargo_date = datetime.date(year="""FILL: Insert embargo year""", month="""FILL: Insert embargo month""", day="""FILL: Insert embargo day""")
-        if today < embargo_date:
-            warnings.warn("The ###FILL: Insert dataset name### dataset is under publication embargo until ###FILL: Insert embargo date###. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until after the embargo date. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details.", PublicationEmbargoWarning, stacklevel=2)
-
-        ###FILL: If the dataset is not password access only, remove the message
-        ### below. If it's under publication embargo, still remove this
-        ### warning, and keep the above warning about publication embargo.
         # Print password access only warning
-        warnings.warn("The ###FILL: Insert dataset name### data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)
+        warnings.warn("The UcecConf data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)
+
