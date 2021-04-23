@@ -76,13 +76,23 @@ class UcecConf(Dataset):
             if file_name == "UCEC_confirmatory_meta_table_v1.0.xlsx":
                 df = pd.read_excel(file_path)
                 self._data["clinical"] = df
-
+                
+            #Finished as far as I can tell
             elif file_name == "UCEC_confirmatory_proteomics_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name = "Patient_ID"
+                df.columns.name = "Name"
                 self._data["proteomics"] = df
 
+            #Finished as far as I can tell
             elif file_name == "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name = "Patient_ID"
+                df.columns.name = "Name"
                 self._data["circular_RNA"] = df
 
             elif file_name == "UCEC_confirmatory_WES_somatic_mutation_v1.0.maf.gz":
