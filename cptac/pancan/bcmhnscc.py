@@ -20,7 +20,7 @@ from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class BcmGbm(Dataset):
+class BcmHnscc(Dataset):
 
     def __init__(self, no_internet, version):
         """Load all of the bcmbrca dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -33,19 +33,18 @@ class BcmGbm(Dataset):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        valid_versions = ["0.0"]
+        valid_versions = ["1.0"]
 
         data_files = {
-            "0.0": [
-                "GBM-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt",
+            "1.0": [
+                "HNSCC-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt",
                 "gencode.v34.basic.annotation-mapping.txt",
-                "GBM-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt",
-                "CPTAC_GBM_discovery_CNV_gene_level_log2ratio.tsv.gz"
+                "HNSCC-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt"
             ]
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="bcmbrca", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="bcmhnscc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -58,7 +57,7 @@ class BcmGbm(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-            if file_name == "GBM-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt":
+            if file_name == "HNSCC-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt":
                 df = pd.read_csv(file_path, sep="\t")
                 df.index.name = 'gene'
                 self._data["transcriptomics"] = df
@@ -68,23 +67,16 @@ class BcmGbm(Dataset):
                 df = df[["gene","gene_name"]] #only need gene (database gene id) and gene_name (common gene name)
                 df = df.set_index("gene")
                 df = df.drop_duplicates()
-                self.data["gene_key"] = df 
+                self._data["gene_key"] = df 
             
-            if file_name == "GBM-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt":
-                df = pd.read_csv(file_path, sep="\t"
+            if file_name == "HNSCC-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt":
+                df = pd.read_csv(file_path, sep="\t")
                 df = df.rename_axis('INDEX').reset_index()
                 df[["circ","chrom","start","end","gene"]] = df.INDEX.str.split('_', expand=True)
                 df["circ_chromosome"] = df["circ"] +"_" + df["chrom"]
                 df = df.set_index('gene')
-                self.data["circ_rna"] = df
-                
-            if file_name == "CPTAC_GBM_discovery_CNV_gene_level_log2ratio.tsv.gz":
-                df = df.read_csv(file_path, sep="\t"
-                df = df.rename(columns= {"Unnamed: 0": "Name"}) 
-                df = df.set_index("Name")
-                df = df.T
-                self.data["CNV"] = df                 
-           
+                self._data["circular_RNA"] = df
+    
             
            
 
@@ -105,12 +97,12 @@ class BcmGbm(Dataset):
         transcript = transcript.sort_index() #alphabetize
         transcript = transcript.T
         transcript.index = transcript.index.str.replace(r"_T", "", regex=True)
-        del self._data["transcriptomics"] #ask if I need this step?
-        self.data["transcriptomic"] = transcript
+        transcript.index = transcript.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
+   
+        self._data["transcriptomics"] = transcript
         
         # Add gene names to circular RNA data 
-        circRNA = self.data["circ_rna"]
-        gene_key = self.data["gene_key"]
+        circRNA = self._data["circular_RNA"]
         
         df = gene_key.join(circRNA, how = "inner")
         df = df.reset_index()
@@ -120,9 +112,9 @@ class BcmGbm(Dataset):
                 'chrom'], axis=1, inplace=True) 
         df = df.sort_index()
         df = df.T
-        df.index = df.index.str.replace(r"_T", "", regex=True) # remove Tumor label. All samples are tumor samples
-        del self._data["circ_rna"]
-        self.data["circ_rna"] = df
+        df.index = df.index.str.replace(r"_T", "", regex=True) # remove Tumor label
+        df.index = df.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
+        self._data["circular_RNA"] = df
       
 
 
