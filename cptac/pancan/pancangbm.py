@@ -10,18 +10,19 @@
 #   limitations under the License.
 
 from .pancandataset import PancanDataset
-from .mssmclinical import MssmClinical
+
 from .bcmgbm import BcmGbm
+from .mssmclinical import MssmClinical
 from .pdcgbm import PdcGbm
 from .umichgbm import UmichGbm
 from .washugbm import WashuGbm
 
 SOURCES = [
+    "bcmgbm",
     "mssmclinical",
+    "pdcgbm"
     "umichgbm",
     "washugbm",
-    "pdcgbm",
-    "bcmgbm"
 ]
 
 class PancanGbm(PancanDataset):
@@ -31,14 +32,8 @@ class PancanGbm(PancanDataset):
 
         super().__init__(cancer_type="pancangbm", versions=versions, no_internet=no_internet)
 
-        def get_version(source):
-            if versions == "latest":
-                return versions
-            else:
-                return versions[source]
-            
-        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancangbm')
-        self._datasets["bcm"] = BcmGbm(no_internet=no_internet, version=get_version("bcm"))
-        self._datasets["pdc"] = PdcGbm(no_internet=no_internet, version=get_version("pdc"))
-        self._datasets["umich"] = UmichGbm(no_internet=no_internet, version=get_version("umich"))
-        self._datasets["washu"] = WashuGbm(no_internet=no_internet, version=get_version("washu"))
+        self._datasets["bcm"] = BcmGbm(no_internet=no_internet, version=self._get_version("bcm"))
+        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancangbm')
+        self._datasets["pdc"] = PdcGbm(no_internet=no_internet, version=self._get_version("pdc"))
+        self._datasets["umich"] = UmichGbm(no_internet=no_internet, version=self._get_version("umich"))
+        self._datasets["washu"] = WashuGbm(no_internet=no_internet, version=self._get_version("washu"))
