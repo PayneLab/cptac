@@ -105,6 +105,7 @@ class WashuUcec(Dataset):
                 else:
                     df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
                 df = df.transpose()
+                df = average_replicates(df, common = '\.\d$') # average replicates
                 df.index = df.index.str.replace('\.T$','', regex = True)
                 df.index = df.index.str.replace('\.A$','.N', regex = True)
                 df.index.name = 'Patient_ID'                

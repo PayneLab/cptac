@@ -37,7 +37,8 @@ class MssmClinical(Dataset):
 
         data_files = {
             "1.0": [
-                "clinical_Pan-cancer.Dec2020.tsv"
+                "clinical_Pan-cancer.Dec2020.tsv"#,
+                #"CPTAC_pancan_RNA_tumor_purity_ESTIMATE.tsv"
             ]
         }
 
@@ -68,6 +69,12 @@ class MssmClinical(Dataset):
                 df.index.name = 'Patient_ID'
                 df = df.sort_values(by=["Patient_ID"])
                 self._data["clinical"] = df
+            
+            '''
+            elif file_name == "CPTAC_pancan_RNA_tumor_purity_ESTIMATE.tsv":
+                df = pd.read_csv(file_path, sep = "\t", na_values = 'NA')
+                df.Sample_ID = df.Sample_ID.str.replace(r'-T', '', regex=True) # only tumor samples in file
+                self._data["tumor_purity"] = df'''
                 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."

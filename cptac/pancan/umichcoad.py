@@ -59,7 +59,10 @@ class UmichCoad(Dataset):
             
             
             if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
-                df = pd.read_csv(file_path, sep = "\t") 
+                df = pd.read_csv(file_path, sep = "\t")
+                self._data["proteomics"] = df
+                
+                '''
                 df = df.drop(columns = ['MaxPepProb', 'NumberPSM']) #index is protein identifier (duplicate)
                 df.Index = df.Index.apply(lambda x: x.split('|')[5]) # Get gene name from position in list of gene identifiers
                 df = df.rename(columns = {'Index':'Proteins', 'Gene':'Database_ID'})
@@ -82,7 +85,7 @@ class UmichCoad(Dataset):
                 # Drop qauality control and ref intensity cols
                 df = df.drop(drop_cols, axis = 'index')
 
-                '''
+                
                 # Get Patient_IDs
                 index_list = list(df.index)
                 co_map = co_map.loc[co_map['index'].isin(index_list)]
@@ -94,7 +97,7 @@ class UmichCoad(Dataset):
                 df = df.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
                 df = df.set_index('Patient_ID')
                 df.index = df.index.str.replace('-T$','')
-                df.index = df.index.str.replace('-N$','.N')'''
+                df.index = df.index.str.replace('-N$','.N')
 
                 # Sort
                 normal = df.loc[df.index.str.contains('.N$')]
@@ -103,7 +106,7 @@ class UmichCoad(Dataset):
                 tumor = tumor.sort_values(by=["Patient_ID"])
 
                 all_df = tumor.append(normal) 
-                self._data["proteomics"] = all_df
+                self._data["proteomics"] = all_df'''
                 
                 
             elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
