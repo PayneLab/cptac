@@ -65,6 +65,10 @@ class PancanDataset:
     def get_deconvolution(self, source, decon_type, tissue_type="both", imputed=False):
         """Get a deconvolution dataframe from the specified data source."""
         return self._get_dataframe(decon_type, source, tissue_type, imputed=imputed)
+    
+    def get_circular_RNA(self,source, tissue_type="both", imputed=False):
+        """Get a circular RNA dataframe from the specified data source."""
+        return self._get_dataframe("circular_RNA", source, tissue_type, imputed=imputed)
 
     # Help functions
     def get_cancer_type(self):
