@@ -10,8 +10,10 @@
 #   limitations under the License.
 
 from .pancandataset import PancanDataset
-from .mssmclinical import MssmClinical
+
 from .bcmbrca import BcmBrca
+from .broadbrca import BroadBrca
+from .mssmclinical import MssmClinical
 from .pdcbrca import PdcBrca
 from .umichbrca import UmichBrca
 from .washubrca import WashuBrca
@@ -20,9 +22,9 @@ SOURCES = [
     "bcmbrca",
     "broadbrca",
     "mssmclinical",
+    "pdcbrca",
     "umichbrca",
     "washubrca",
-    "pdcbrca"
 ]
 
 class PancanBrca(PancanDataset):
@@ -32,14 +34,9 @@ class PancanBrca(PancanDataset):
 
         super().__init__(cancer_type="pancanbrca", versions=versions, no_internet=no_internet)
 
-        def get_version(source):
-            if versions == "latest":
-                return versions
-            else:
-                return versions[source]
-            
-        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancanbrca')
-        #self._datasets["bcm"] = BcmBrca(no_internet=no_internet, version=get_version("bcm"))
-        self._datasets["pdc"] = PdcBrca(no_internet=no_internet, version=get_version("pdc"))
-        self._datasets["umich"] = UmichBrca(no_internet=no_internet, version=get_version("umich"))
-        self._datasets["washu"] = WashuBrca(no_internet=no_internet, version=get_version("washu"))
+        self._datasets["bcm"] = BcmBrca(no_internet=no_internet, version=self._get_version("bcm"))
+        self._datasets["broad"] = BroadBrca(no_internet=no_internet, version=self._get_version("broad"))
+        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanbrca')
+        self._datasets["pdc"] = PdcBrca(no_internet=no_internet, version=self._get_version("pdc"))
+        self._datasets["umich"] = UmichBrca(no_internet=no_internet, version=self._get_version("umich"))
+        self._datasets["washu"] = WashuBrca(no_internet=no_internet, version=self._get_version("washu"))

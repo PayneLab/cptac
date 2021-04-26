@@ -19,6 +19,7 @@ class PancanDataset:
         """Initialize variables for a PancanDataset object."""
 
         self._cancer_type = cancer_type
+        self._versions = versions
         self._datasets = {} # Child class __init__ needs to fill this
 
     # Data getters
@@ -86,3 +87,10 @@ class PancanDataset:
             return self._datasets[source]._get_dataframe(name, tissue_type)
         else:
             raise ex.DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
+
+    def _get_version(self, source):
+        if self._versions == "latest":
+            return self._versions
+        else:
+            return self._versions[source]
+            

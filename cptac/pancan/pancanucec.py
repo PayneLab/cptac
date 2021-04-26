@@ -10,13 +10,16 @@
 #   limitations under the License.
 
 from .pancandataset import PancanDataset
+
 from .mssmclinical import MssmClinical
+from .pdcucec import PdcUcec
 from .umichucec import UmichUcec
 from .washuucec import WashuUcec
 
 SOURCES = [
     "bcmucec",
     "mssmclinical",
+    "pdcucec",
     "umichucec",
     "washuucec",
 ]
@@ -28,12 +31,7 @@ class PancanUcec(PancanDataset):
 
         super().__init__(cancer_type="pancanucec", versions=versions, no_internet=no_internet)
 
-        def get_version(source):
-            if versions == "latest":
-                return versions
-            else:
-                return versions[source]
-            
-        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancanucec')
-        self._datasets["umich"] = UmichUcec(no_internet=no_internet, version=get_version("umich"))
-        self._datasets["washu"] = WashuUcec(no_internet=no_internet, version=get_version("washu"))
+        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanucec')
+        self._datasets["pdc"] = PdcUcec(no_internet=no_internet, version=self._get_version("pdc"))
+        self._datasets["umich"] = UmichUcec(no_internet=no_internet, version=self._get_version("umich"))
+        self._datasets["washu"] = WashuUcec(no_internet=no_internet, version=self._get_version("washu"))

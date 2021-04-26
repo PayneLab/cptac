@@ -10,13 +10,16 @@
 #   limitations under the License.
 
 from .pancandataset import PancanDataset
+
 from .mssmclinical import MssmClinical
+from .pdcccrcc import PdcCcrcc
 from .umichccrcc import UmichCcrcc
 from .washuccrcc import WashuCcrcc
 
 SOURCES = [
     "bcmccrcc",
     "mssmclinical",
+    "pdcccrcc",
     "umichccrcc",
     "washuccrcc",
 ]
@@ -28,12 +31,7 @@ class PancanCcrcc(PancanDataset):
 
         super().__init__(cancer_type="pancanccrcc", versions=versions, no_internet=no_internet)
 
-        def get_version(source):
-            if versions == "latest":
-                return versions
-            else:
-                return versions[source]
-            
-        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancanccrcc')
-        self._datasets["umich"] = UmichCcrcc(no_internet=no_internet, version=get_version("umich"))
-        self._datasets["washu"] = WashuCcrcc(no_internet=no_internet, version=get_version("washu"))
+        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanccrcc')
+        self._datasets["pdc"] = PdcCcrcc(no_internet=no_internet, version=self._get_version("pdc"))
+        self._datasets["umich"] = UmichCcrcc(no_internet=no_internet, version=self._get_version("umich"))
+        self._datasets["washu"] = WashuCcrcc(no_internet=no_internet, version=self._get_version("washu"))

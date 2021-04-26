@@ -10,13 +10,16 @@
 #   limitations under the License.
 
 from .pancandataset import PancanDataset
+
 from .mssmclinical import MssmClinical
+from .pdcov import PdcOv
 from .umichov import UmichOv
 from .washuov import WashuOv
 
 SOURCES = [
     "bcmov",
     "mssmclinical",
+    "pdcov",
     "umichov",
     "washuov",
 ]
@@ -28,12 +31,7 @@ class PancanOv(PancanDataset):
 
         super().__init__(cancer_type="pancanov", versions=versions, no_internet=no_internet)
 
-        def get_version(source):
-            if versions == "latest":
-                return versions
-            else:
-                return versions[source]
-            
-        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancanov')
-        self._datasets["umich"] = UmichOv(no_internet=no_internet, version=get_version("umich"))
-        self._datasets["washu"] = WashuOv(no_internet=no_internet, version=get_version("washu"))
+        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanov')
+        self._datasets["pdc"] = PdcOv(no_internet=no_internet, version=self._get_version("pdc"))
+        self._datasets["umich"] = UmichOv(no_internet=no_internet, version=self._get_version("umich"))
+        self._datasets["washu"] = WashuOv(no_internet=no_internet, version=self._get_version("washu"))

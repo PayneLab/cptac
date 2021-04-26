@@ -10,13 +10,16 @@
 #   limitations under the License.
 
 from .pancandataset import PancanDataset
+
 from .mssmclinical import MssmClinical
+from .pdcluad import PdcLuad
 from .umichluad import UmichLuad
 from .washuluad import WashuLuad
 
 SOURCES = [
     "bcmluad",
     "mssmclinical",
+    "pdcluad",
     "umichluad",
     "washuluad",
 ]
@@ -28,12 +31,7 @@ class PancanLuad(PancanDataset):
 
         super().__init__(cancer_type="pancanluad", versions=versions, no_internet=no_internet)
 
-        def get_version(source):
-            if versions == "latest":
-                return versions
-            else:
-                return versions[source]
-            
-        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=get_version("mssm"), filter_type='pancanluad')
-        self._datasets["umich"] = UmichLuad(no_internet=no_internet, version=get_version("umich"))
-        self._datasets["washu"] = WashuLuad(no_internet=no_internet, version=get_version("washu"))
+        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanluad')
+        self._datasets["pdc"] = PdcLuad(no_internet=no_internet, version=self._get_version("pdc"))
+        self._datasets["umich"] = UmichLuad(no_internet=no_internet, version=self._get_version("umich"))
+        self._datasets["washu"] = WashuLuad(no_internet=no_internet, version=self._get_version("washu"))
