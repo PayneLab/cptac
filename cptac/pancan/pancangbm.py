@@ -20,7 +20,7 @@ from .washugbm import WashuGbm
 SOURCES = [
     "bcmgbm",
     "mssmclinical",
-    "pdcgbm"
+    "pdcgbm",
     "umichgbm",
     "washugbm",
 ]

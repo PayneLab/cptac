@@ -21,7 +21,7 @@ SOURCES = [
     "mssmclinical",
     "pdccoad",
     "umichcoad",
-    "washucoad",
+    "washucoad"
 ]
 
 class PancanCoad(PancanDataset):

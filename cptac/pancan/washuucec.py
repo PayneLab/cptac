@@ -84,7 +84,7 @@ class WashuUcec(Dataset):
                 self._data["transcriptomics_normal"] = df
 
             elif file_name == "EC_discovery.dnp.annotated.exonic.maf.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
-                df = pd.read_csv(file_path, sep='\t')    
+                df = pd.read_csv(file_path, sep='\t', dtype={"PUBMED": "O"})    
                 # Rename the columns we want to keep to the appropriate names
                 df = df.rename(columns={"Tumor_Sample_Barcode": "Patient_ID",
                          "Gene":"Gene_Database_ID",
@@ -105,6 +105,7 @@ class WashuUcec(Dataset):
                 else:
                     df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
                 df = df.transpose()
+                df = average_replicates(df, common = '\.\d$') # average replicates
                 df.index = df.index.str.replace('\.T$','', regex = True)
                 df.index = df.index.str.replace('\.A$','.N', regex = True)
                 df.index.name = 'Patient_ID'                
