@@ -65,6 +65,7 @@ class MssmClinical(Dataset):
             if file_name == "clinical_Pan-cancer.Dec2020.tsv":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.loc[df['tumor_code'] == tumor_codes[filter_type]] 
+                df = df.loc[df['discovery_study'] != 'No'] 
                 df = df.set_index("case_id")
                 df.index.name = 'Patient_ID'
                 df = df.sort_values(by=["Patient_ID"])
@@ -153,7 +154,10 @@ class MssmClinical(Dataset):
                                'Recurrence-free survival', 'Overall survial', 'Recurrence status (1, yes; 0, no)',
                                'Survial status (1, dead; 0, alive)']]
         tumor_purity = self._data['tumor_purity']
-        cancer_diagnosis_df = cancer_diagnosis_df.join(tumor_purity, how ='inner') # Keep only samples for the cancer
+        # Use list of patient_IDs to slice out cancers
+        #indices = 
+        #df.loc[df['Sample_ID'].isin(indices)]
+        cancer_diagnosis_df = cancer_diagnosis_df.join(tumor_purity, how ='left') # Keep only samples for the cancer
         self._data['cancer_diagnosis'] = cancer_diagnosis_df # Maps dataframe name to dataframe (self._data)
          
         # Create followup df

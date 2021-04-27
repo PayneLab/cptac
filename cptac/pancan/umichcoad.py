@@ -60,6 +60,7 @@ class UmichCoad(Dataset):
             
             if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t")
+                import pdb;pdb.set_trace()
                 df = df.drop(columns = ['MaxPepProb', 'NumberPSM']) #index is protein identifier (duplicate)
                 df.Index = df.Index.apply(lambda x: x.split('|')[5]) # Get gene name from position in list of gene identifiers
                 df = df.rename(columns = {'Index':'Name', 'Gene':'Database_ID'})
@@ -97,9 +98,9 @@ class UmichCoad(Dataset):
                 df.index = df.index.str.replace('-N$','.N')
 
                 # Sort
-                normal = df.loc[df.index.str.contains('\.N$')]
+                normal = df.loc[df.index.str.contains('\.N$', regex = True)]
                 normal = normal.sort_values(by=["Patient_ID"])
-                tumor = df.loc[~ df.index.str.contains('\.N$')]
+                tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
                 tumor = tumor.sort_values(by=["Patient_ID"])
 
                 all_df = tumor.append(normal) 
