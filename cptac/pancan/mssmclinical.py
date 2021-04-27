@@ -37,8 +37,8 @@ class MssmClinical(Dataset):
 
         data_files = {
             "1.0": [
-                "clinical_Pan-cancer.Dec2020.tsv"#,
-                #"CPTAC_pancan_RNA_tumor_purity_ESTIMATE.tsv"
+                "clinical_Pan-cancer.Dec2020.tsv",
+                #"CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz"
             ]
         }
 
@@ -71,7 +71,7 @@ class MssmClinical(Dataset):
                 self._data["clinical"] = df
             
             '''
-            elif file_name == "CPTAC_pancan_RNA_tumor_purity_ESTIMATE.tsv":
+            elif file_name == "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz":
                 df = pd.read_csv(file_path, sep = "\t", na_values = 'NA')
                 df.Sample_ID = df.Sample_ID.str.replace(r'-T', '', regex=True) # only tumor samples in file
                 self._data["tumor_purity"] = df'''
