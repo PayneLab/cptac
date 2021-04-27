@@ -22,7 +22,7 @@ from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, Re
 
 class MssmClinical(Dataset):
 
-    def __init__(self, no_internet, version, filter_type): # added cancer_type
+    def __init__(self, no_internet, version, filter_type): 
         """Load all of the mssmclinical dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:
@@ -38,7 +38,7 @@ class MssmClinical(Dataset):
         data_files = {
             "1.0": [
                 "clinical_Pan-cancer.Dec2020.tsv",
-                #"CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz"
+                "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz"
             ]
         }
 
@@ -70,11 +70,12 @@ class MssmClinical(Dataset):
                 df = df.sort_values(by=["Patient_ID"])
                 self._data["clinical"] = df
             
-            '''
+            
             elif file_name == "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz":
                 df = pd.read_csv(file_path, sep = "\t", na_values = 'NA')
                 df.Sample_ID = df.Sample_ID.str.replace(r'-T', '', regex=True) # only tumor samples in file
-                self._data["tumor_purity"] = df'''
+                df = df.set_index('Sample_ID')
+                self._data["tumor_purity"] = df
                 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
@@ -151,6 +152,8 @@ class MssmClinical(Dataset):
                                'procurement/normal_adjacent_tissue_collection_number_of_normal_segments_collected', 
                                'Recurrence-free survival', 'Overall survial', 'Recurrence status (1, yes; 0, no)',
                                'Survial status (1, dead; 0, alive)']]
+        tumor_purity = self._data['tumor_purity']
+        cancer_diagnosis_df = cancer_diagnosis_df.join(tumor_purity, how ='inner') # Keep only samples for the cancer
         self._data['cancer_diagnosis'] = cancer_diagnosis_df # Maps dataframe name to dataframe (self._data)
          
         # Create followup df

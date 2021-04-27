@@ -63,8 +63,8 @@ class UmichCcrcc(Dataset):
                 df = pd.read_csv(file_path, sep = "\t") 
                 df = df.drop(columns = ['MaxPepProb', 'NumberPSM']) 
                 df.Index = df.Index.apply(lambda x: x.split('|')[5]) # Get gene name from position in list of gene identifiers
-                df = df.rename(columns = {'Index':'Proteins', 'Gene':'Database_ID'})
-                df = df.set_index(['Proteins', 'Database_ID']) # set multiindex
+                df = df.rename(columns = {'Index':'Name', 'Gene':'Database_ID'})
+                df = df.set_index(['Name', 'Database_ID']) # set multiindex
                 df = df.transpose()
                 ref_intensities = df.loc["ReferenceIntensity"] # Get reference intensities to use to calculate ratios 
                 df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values
