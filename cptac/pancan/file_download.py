@@ -86,7 +86,7 @@ def download(dataset, version="latest", redownload=False):
     if dataset.startswith("pdc"):
         return _pdc_download(dataset, version=version, redownload=redownload)
 
-    elif dataset.startswith("pancan"):
+    elif dataset.startswith("pancan") or dataset == "all":
         box_token = get_box_token()
 
         if dataset == "pancanbrca":
@@ -107,6 +107,8 @@ def download(dataset, version="latest", redownload=False):
             sources = OV_SOURCES
         elif dataset == "pancanucec":
             sources = UCEC_SOURCES
+        elif dataset == "all":
+            sources = BRCA_SOURCES + CCRCC_SOURCES + COAD_SOURCES + GBM_SOURCES + HNSCC_SOURCES + LSCC_SOURCES + LUAD_SOURCES + OV_SOURCES + UCEC_SOURCES
         else:
             raise InvalidParameterError(f"{dataset} is not a valid dataset.")
 

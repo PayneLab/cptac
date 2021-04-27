@@ -37,7 +37,7 @@ class BcmLuad(Dataset):
 
         data_files = {
             "1.0": [
-                "LUAD-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt ",
+                "LUAD-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt",
                 "gencode.v34.basic.annotation-mapping.txt",
                 "LUAD-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt"
             ]
