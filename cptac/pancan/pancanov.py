@@ -15,6 +15,7 @@ from .mssmclinical import MssmClinical
 from .pdcov import PdcOv
 from .umichov import UmichOv
 from .washuov import WashuOv
+from .bcmov import BcmOv
 
 SOURCES = [
     "bcmov",
@@ -30,7 +31,8 @@ class PancanOv(PancanDataset):
         """Load all the data sources with OV data and provide an interface to them."""
 
         super().__init__(cancer_type="pancanov", versions=versions, no_internet=no_internet)
-
+        
+        self._datasets["ov"] = BcmOv(no_internet=no_internet, version=self._get_version("ov"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanov')
         self._datasets["pdc"] = PdcOv(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichOv(no_internet=no_internet, version=self._get_version("umich"))

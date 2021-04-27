@@ -15,6 +15,7 @@ from .mssmclinical import MssmClinical
 from .pdccoad import PdcCoad
 from .umichcoad import UmichCoad
 from .washucoad import WashuCoad
+from .bcmcoad import BcmCoad
 
 SOURCES = [
     "bcmcoad",
@@ -31,6 +32,7 @@ class PancanCoad(PancanDataset):
 
         super().__init__(cancer_type="pancancoad", versions=versions, no_internet=no_internet)
 
+        self._datasets["bcm"] = BcmCoad(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancancoad')
         self._datasets["pdc"] = PdcCoad(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichCoad(no_internet=no_internet, version=self._get_version("umich"))

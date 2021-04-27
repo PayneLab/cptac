@@ -15,6 +15,7 @@ from .mssmclinical import MssmClinical
 from .pdcluad import PdcLuad
 from .umichluad import UmichLuad
 from .washuluad import WashuLuad
+from .bcmluad import BcmLuad
 
 SOURCES = [
     "bcmluad",
@@ -30,8 +31,10 @@ class PancanLuad(PancanDataset):
         """Load all the data sources with LUAD data and provide an interface to them."""
 
         super().__init__(cancer_type="pancanluad", versions=versions, no_internet=no_internet)
-
+        
+        
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanluad')
         self._datasets["pdc"] = PdcLuad(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichLuad(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuLuad(no_internet=no_internet, version=self._get_version("washu"))
+        self._datasets["bcm"] = BcmLuad(no_internet=no_internet, version=self._get_version("bcm"))

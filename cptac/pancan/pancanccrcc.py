@@ -15,6 +15,7 @@ from .mssmclinical import MssmClinical
 from .pdcccrcc import PdcCcrcc
 from .umichccrcc import UmichCcrcc
 from .washuccrcc import WashuCcrcc
+from .bcmccrcc import BcmCcrcc
 
 SOURCES = [
     "bcmccrcc",
@@ -30,7 +31,8 @@ class PancanCcrcc(PancanDataset):
         """Load all the data sources with ccRCC data and provide an interface to them."""
 
         super().__init__(cancer_type="pancanccrcc", versions=versions, no_internet=no_internet)
-
+        
+        self._datasets["bcm"] = BcmCcrcc(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanccrcc')
         self._datasets["pdc"] = PdcCcrcc(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichCcrcc(no_internet=no_internet, version=self._get_version("umich"))
