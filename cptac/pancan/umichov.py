@@ -117,6 +117,11 @@ class UmichOv(Dataset):
                 df = df.sort_values(by=["Patient_ID"])
                 self._data["proteomics_imputed"] = df'''
             
+        # This code may need to be deleted 
+        # The '.1' added to the df is added by pd.read_csv() when there are duplicate columns
+        # The '.1' after the read on Box is read in '#1' in the mapping file do not represent the same sample
+        # Emailed about duplicate columns and waiting for response
+        '''    
         # Proteomics
         # Get Patient_IDs
         # slice mapping_df to include cancer specific aliquot_IDs 
@@ -131,10 +136,7 @@ class UmichOv(Dataset):
         prot = prot.reset_index()
         prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
         prot = prot.set_index('Patient_ID')
-        prot.index = prot.index.str.replace('-T$','', regex = True)
-        prot.index = prot.index.str.replace('-N$','.N', regex = True)   
-        
-        
+          
         # average duplicates - CHECK really duplicates (some blanks in file are normal, 
         # but no blanks in file for these ids)
         replicate_IDs = ['01OV029', '15OV001', '17OV002']
@@ -142,7 +144,11 @@ class UmichOv(Dataset):
             id_df = prot[prot.index.str.contains(rep)] 
             vals = list(id_df.mean(axis=0)) # average replicates and store in list 
             prot = prot.drop(index = rep) # drop both replicates so can add new row with averages
-            prot.loc[rep] = vals
+            prot.loc[rep] = vals'''
+        
+        prot = self._data["proteomics"]
+        prot.index = prot.index.str.replace('-T$','', regex = True)
+        prot.index = prot.index.str.replace('-N$','.N', regex = True)
         
         # Sort
         normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]

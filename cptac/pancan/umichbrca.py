@@ -83,9 +83,9 @@ class UmichBrca(Dataset):
                 df = average_replicates(df)
 
                 # Sort values
-                normal = df.loc[df.index.str.contains('.N$')]
+                normal = df.loc[df.index.str.contains('\.N$', regex = True)]
                 normal = normal.sort_values(by=["Patient_ID"])
-                tumor = df.loc[~ df.index.str.contains('.N$')]
+                tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
                 tumor = tumor.sort_values(by=["Patient_ID"])
 
                 all_df = tumor.append(normal)
