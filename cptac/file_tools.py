@@ -74,7 +74,7 @@ def validate_version(version, dataset, use_context, valid_versions=None):
                 warnings.warn(f"Downloading new version of {dataset} dataset: {index_latest}. This will now be the default version when the dataset is loaded. If you wish to load an older version of the data, you must specify it with the 'version' parameter when you load the dataset.", DownloadingNewLatestWarning, stacklevel=3)
                 return_version = index_latest
             elif use_context == "init":
-                raise AmbiguousLatestError(f"You requested to load the {dataset} dataset. Latest version is {index_latest}, which is not installed locally. To download it, run \"cptac.download(dataset='{dataset}')\". You will then be able to load the latest version of the dataset. To skip this and instead load the older version that is already installed, call \"cptac.{dataset.title()}(version='{latest_installed}')\".")
+                raise AmbiguousLatestError(f"You requested to load the {dataset} dataset. Latest version is {index_latest}, which is not installed locally. To install it, call the download function (either 'cptac.download' or 'cptac.pancan.download', depending on which module you're using) and pass '{dataset}' to the 'dataset' parameter. This will download the latest version, and you will then be able to load that version of the dataset. To skip this and instead load the older version that is already installed, re-call the function that generated this error, but pass '{latest_installed}' to the 'version' parameter.")
     else:
         raise InvalidParameterError(f"{version} is an invalid version for the {dataset} dataset. Valid versions: {', '.join(index.keys())}")
 
@@ -101,13 +101,13 @@ def get_version_files_paths(dataset, version, data_files):
     # Check that they've installed the version they requested
     version_path = os.path.join(dataset_path, f"{dataset}_v{version}")
     if not os.path.isdir(version_path):
-        raise DataVersionNotInstalledError(f"Data version {version} is not installed. To install, run \"cptac.download(dataset='{dataset}', version='{version}')\".")
+        raise DataVersionNotInstalledError(f"{dataset} data version {version} is not installed. To install, call the download function (either 'cptac.download' or 'cptac.pancan.download', depending on which module you're using), passing '{dataset}' to the 'dataset' parameter and '{version}' to the 'version' parameter.")
 
     data_files_paths = []
     for data_file in data_files:
         file_path = os.path.join(version_path, data_file)
         if not os.path.isfile(file_path): # Check that the file exists
-            raise MissingFileError(f"Missing data file '{data_file}'. Call \"cptac.download(dataset='{dataset}', version='{version}')\" to download it. Dataset loading aborted.")
+            raise MissingFileError(f"Missing data file '{data_file}'. Call the download function (either 'cptac.download' or 'cptac.pancan.download', depending on which module you're using) to download it, passing '{dataset}' to the 'dataset' parameter and '{version}' to the 'version' parameter.")
         data_files_paths.append(file_path)
 
     return data_files_paths
@@ -153,9 +153,9 @@ def get_index(dataset):
         dataset_version_search = os.path.join(dataset_path, dataset_version_pattern)
         version_dirs = glob.glob(dataset_version_search)
         if len(version_dirs) > 0:  
-            raise MissingFileError(f"Missing file '{index_file}'. Run \"cptac.download(dataset='{dataset}')\" to download it.")
+            raise MissingFileError(f"Missing file '{index_file}'. Call the download function (either 'cptac.download' or 'cptac.pancan.download', depending on which module you're using) to download it, passing '{dataset}' to the 'dataset' parameter.")
         else:
-            raise DatasetNotInstalledError(f"{dataset} dataset is not installed. To install, run \"cptac.download(dataset='{dataset}')\".")
+            raise DatasetNotInstalledError(f"{dataset} dataset is not installed. To install, call the download function (either 'cptac.download' or 'cptac.pancan.download', depending on which module you're using), passing '{dataset}' to the 'dataset' parameter.")
 
     with open(index_path, 'r') as index_file:
         index_lines = index_file.readlines()

@@ -79,14 +79,14 @@ STUDY_IDS_MAP = {
 }
 
 
-def pancan_download(dataset, version="latest", redownload=False):
+def download(dataset, version="latest", redownload=False):
 
     dataset = dataset.lower()
 
     if dataset.startswith("pdc"):
         return _pdc_download(dataset, version=version, redownload=redownload)
 
-    else:
+    elif dataset.startswith("pancan"):
         box_token = get_box_token()
 
         if dataset == "pancanbrca":
@@ -114,7 +114,7 @@ def pancan_download(dataset, version="latest", redownload=False):
         for source in sources:
 
             if source.startswith("pdc"):
-                single_success = pancan_download(source, version=version, redownload=redownload)
+                single_success = download(source, version=version, redownload=redownload)
             else:
                 single_success = cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
 
@@ -122,7 +122,9 @@ def pancan_download(dataset, version="latest", redownload=False):
                 overall_success = False
 
         return overall_success
-       
+
+    else:
+        return cptac.download(dataset, version=version, redownload=redownload, box_auth=True)
 
 def download_pdc_id(pdc_id, _download_msg=True):
     """Download a PDC dataset by its PDC study id.

@@ -9,7 +9,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from .pancan_file_download import pancan_download, download_pdc_id, list_pdc_datasets
+from .file_download import download, download_pdc_id, list_pdc_datasets
 
 from .pdcbrca import PdcBrca
 from .pdcccrcc import PdcCcrcc
