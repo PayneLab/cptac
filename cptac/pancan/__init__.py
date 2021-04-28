@@ -13,12 +13,21 @@ from .file_download import download, download_pdc_id, list_pdc_datasets
 
 from .pdcbrca import PdcBrca
 from .pdcccrcc import PdcCcrcc
+from .pdccoad import PdcCoad
+from .pdcgbm import PdcGbm
+from .pdchnscc import PdcHnscc
+from .pdclscc import PdcLscc
+from .pdcluad import PdcLuad
+from .pdcov import PdcOv
+from .pdcpda import PdcPda
+from .pdcucec import PdcUcec
+
 from .pancanbrca import PancanBrca
+from .pancanccrcc import PancanCcrcc
+from .pancancoad import PancanCoad
 from .pancangbm import PancanGbm
 from .pancanhnscc import PancanHnscc
 from .pancanlscc import PancanLscc
 from .pancanluad import PancanLuad
-from .pancanucec import PancanUcec
-from .pancancoad import PancanCoad
 from .pancanov import PancanOv
-from .pancanccrcc import PancanCcrcc
+from .pancanucec import PancanUcec

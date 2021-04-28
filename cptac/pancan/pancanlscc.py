@@ -37,6 +37,3 @@ class PancanLscc(PancanDataset):
         self._datasets["pdc"] = PdcLscc(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichLscc(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuLscc(no_internet=no_internet, version=self._get_version("washu"))
-        
-
-

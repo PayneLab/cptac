@@ -32,9 +32,8 @@ class PancanLuad(PancanDataset):
 
         super().__init__(cancer_type="pancanluad", versions=versions, no_internet=no_internet)
         
-        
+        self._datasets["bcm"] = BcmLuad(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanluad')
         self._datasets["pdc"] = PdcLuad(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichLuad(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuLuad(no_internet=no_internet, version=self._get_version("washu"))
-        self._datasets["bcm"] = BcmLuad(no_internet=no_internet, version=self._get_version("bcm"))
