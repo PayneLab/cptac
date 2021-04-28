@@ -22,7 +22,7 @@ class PancanDataset:
         self._versions = versions
         self._datasets = {} # Child class __init__ needs to fill this
 
-    # Data getters
+    # Clinical table getters
     def get_clinical(self, source, tissue_type="both", imputed=False):
         """Get the clinical dataframe from the specified data source."""
         return self._get_dataframe("clinical", source, tissue_type, imputed=imputed)
@@ -47,38 +47,48 @@ class PancanDataset:
         """Get the followup dataframe from the specified data source."""
         return self._get_dataframe("followup", source, tissue_type, imputed=imputed)
 
-    def get_proteomics(self, source, tissue_type="both", imputed=False):
-        """Get the proteomics dataframe from the specified data source."""
-        return self._get_dataframe("proteomics", source, tissue_type, imputed=imputed)
+    # Quantitative table getters
+    def get_acetylproteomics(self, source, tissue_type="both", imputed=False):
+        """Get the acetylproteomics dataframe from the specified data source."""
+        return self._get_dataframe("acetylproteomics", source, tissue_type, imputed=imputed)
 
-    def get_transcriptomics(self, source, tissue_type="both", imputed=False):
-        """Get the transcriptomics dataframe from the specified data source."""
-        return self._get_dataframe("transcriptomics", source, tissue_type, imputed=imputed)
+    def get_circular_RNA(self,source, tissue_type="both", imputed=False):
+        """Get a circular RNA dataframe from the specified data source."""
+        return self._get_dataframe("circular_RNA", source, tissue_type, imputed=imputed)
 
-    def get_somatic_mutation(self, source, tissue_type="both", imputed=False):
-        """Get the somatic mutation dataframe from the specified data source."""
-        return self._get_dataframe("somatic_mutation", source, tissue_type, imputed=imputed)
+    def get_deconvolution(self, source, decon_type, tissue_type="both", imputed=False):
+        """Get a deconvolution dataframe from the specified data source."""
+        return self._get_dataframe(decon_type, source, tissue_type, imputed=imputed)
     
     def get_miRNA(self, source, miRNA_type = 'total', tissue_type="both", imputed=False):
         """Get miRNA dataframe from the specified data source."""
         return self._get_dataframe(miRNA_type+'_miRNA', source, tissue_type, imputed=imputed)
     
-    def get_deconvolution(self, source, decon_type, tissue_type="both", imputed=False):
-        """Get a deconvolution dataframe from the specified data source."""
-        return self._get_dataframe(decon_type, source, tissue_type, imputed=imputed)
+    def get_phosphoproteomics(self, source, tissue_type="both", imputed=False):
+        """Get the phosphoproteomics dataframe from the specified data source."""
+        return self._get_dataframe("phosphoproteomics", source, tissue_type, imputed=imputed)
+
+    def get_proteomics(self, source, tissue_type="both", imputed=False):
+        """Get the proteomics dataframe from the specified data source."""
+        return self._get_dataframe("proteomics", source, tissue_type, imputed=imputed)
+
+    def get_somatic_mutation(self, source, tissue_type="both", imputed=False):
+        """Get the somatic mutation dataframe from the specified data source."""
+        return self._get_dataframe("somatic_mutation", source, tissue_type, imputed=imputed)
     
-    def get_circular_RNA(self,source, tissue_type="both", imputed=False):
-        """Get a circular RNA dataframe from the specified data source."""
-        return self._get_dataframe("circular_RNA", source, tissue_type, imputed=imputed)
+    def get_transcriptomics(self, source, tissue_type="both", imputed=False):
+        """Get the transcriptomics dataframe from the specified data source."""
+        return self._get_dataframe("transcriptomics", source, tissue_type, imputed=imputed)
 
     # Help functions
     def get_cancer_type(self):
         return self._cancer_type
     
-    def list_sources(self):
-        for source in self._datasets.keys():
+    def list_sources_data(self):
+        for source in sorted(self._datasets.keys()):
             print(source)
-        return('True')
+            for df_name in sorted(self._datasets[source]._data.keys()):
+                print(f"\t{df_name}")
 
     # "Private" methods
     def _get_dataframe(self, name, source, tissue_type, imputed):
