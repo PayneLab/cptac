@@ -62,11 +62,11 @@ class PdcHnscc(Dataset):
 
             if file_name == "phosphoproteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
+                df = df.set_index(["case_submitter_id", "case_submitter_id"])
                 self._data["phosphoproteomics"] = df
 
             if file_name == "proteome.tsv.gz":
-                df = pd.read_csv(file_path, sep="\t")
+                df = pd.read_csv(file_path, sep="\t", dtype={"case_submitter_id": "O"})
                 df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["proteomics"] = df
 

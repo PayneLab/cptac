@@ -37,5 +37,3 @@ class PancanHnscc(PancanDataset):
         self._datasets["pdc"] = PdcHnscc(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichHnscc(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuHnscc(no_internet=no_internet, version=self._get_version("washu"))
-        
-        

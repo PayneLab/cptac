@@ -93,8 +93,8 @@ class UmichCoad(Dataset):
                 df = df.reset_index()
                 df = df.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
                 df = df.set_index('Patient_ID')'''
-                df.index = df.index.str.replace('-T$','')
-                df.index = df.index.str.replace('-N$','.N')
+                df.index = df.index.str.replace('-T$','', regex=True)
+                df.index = df.index.str.replace('-N$','.N', regex=True)
 
                 # Sort
                 normal = df.loc[df.index.str.contains('\.N$', regex = True)]
