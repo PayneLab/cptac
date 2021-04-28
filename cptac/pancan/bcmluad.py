@@ -57,7 +57,7 @@ class BcmLuad(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-            if file_name == "LSCC-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt":
+            if file_name == "LUAD-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt":
                 df = pd.read_csv(file_path, sep="\t")
                 df.index.name = 'gene'
                 self._data["transcriptomics"] = df
