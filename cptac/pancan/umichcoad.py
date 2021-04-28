@@ -60,7 +60,6 @@ class UmichCoad(Dataset):
             
             if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t")
-                import pdb;pdb.set_trace()
                 df = df.drop(columns = ['MaxPepProb', 'NumberPSM']) #index is protein identifier (duplicate)
                 df.Index = df.Index.apply(lambda x: x.split('|')[5]) # Get gene name from position in list of gene identifiers
                 df = df.rename(columns = {'Index':'Name', 'Gene':'Database_ID'})

@@ -59,7 +59,6 @@ class UmichUcec(Dataset):
             
             
             if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
-                import pdb
                 df = pd.read_csv(file_path, sep = "\t") 
                 df = df.drop(columns = ['MaxPepProb', 'NumberPSM']) 
                 df.Index = df.Index.apply(lambda x: x.split('|')[5]) # Get gene name from position in list of gene identifiers
@@ -80,7 +79,6 @@ class UmichUcec(Dataset):
                    'RefInt_pool09', 'RefInt_pool10', 'RefInt_pool11', 'RefInt_pool12',
                    'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15', 'RefInt_pool16',
                    'RefInt_pool17']
-                #pdb.set_trace()
                 df = df.drop(drop_cols, axis = 'index')
                 self._data["proteomics"] = df
                 
