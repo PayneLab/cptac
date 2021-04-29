@@ -166,8 +166,18 @@ class UmichLscc(Dataset):
  'RefInt_LSCC-Global-CR.18','RefInt_LSCC-Global-CR.19','RefInt_LSCC-Global-CR.20','RefInt_LSCC-Global-CR.21']
           # Drop quality control and ref intensity cols
         phos = phos.drop(drop_cols_phos, axis = 'index')
-        self._data["phosphoproteomics"] = phos
-          
+        
+        # Sort values
+        phos.index.name = 'Patient_ID'
+        normal = phos.loc[phos.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = phos.loc[~ phos.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)
+        
+        self._data["phosphoproteomics"] = all_prot
+        
+        
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')

@@ -160,7 +160,16 @@ class UmichUcec(Dataset):
                    'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15', 'RefInt_pool16',
                    'RefInt_pool17']
         phos = phos.drop(drop_cols, axis = 'index')
-        self._data["phosphoproteomics"] = phos
+        
+        # Sort values
+        phos.index.name = 'Patient_ID'
+        normal = phos.loc[phos.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = phos.loc[~ phos.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)
+        
+        self._data["phosphoproteomics"] = all_prot
         
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."

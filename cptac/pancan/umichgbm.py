@@ -139,7 +139,7 @@ class UmichGbm(Dataset):
         
         #Phosphoproteomcis 
         
-          ## phosphoproteomics 
+        ## phosphoproteomics 
         phos = self._data["phosphoproteomics"]
         mapping_df = self._data["map_ids"]
         mapping_df = mapping_df.set_index("aliquot_ID")
@@ -154,10 +154,18 @@ class UmichGbm(Dataset):
                           'RefInt_07Pool', 'RefInt_08Pool','RefInt_09Pool','RefInt_10Pool','RefInt_11Pool']
           # Drop quality control and ref intensity cols
         phos = phos.drop(drop_cols_phos, axis = 'index')
-        self._data["phosphoproteomics"] = phos
-          
         
         
+        # Sort values
+        phos.index.name = 'Patient_ID'
+        normal = phos.loc[phos.index.str.contains('^PT-', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        normal.index = normal.index +'.N' # append .N to normal IDs
+        tumor = phos.loc[~ phos.index.str.contains('^PT-', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)
+        
+        self._data["phosphoproteomics"] = all_prot
         
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."

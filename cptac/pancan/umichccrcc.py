@@ -160,7 +160,16 @@ class UmichCcrcc(Dataset):
          'RefInt_pool18','RefInt_pool19','RefInt_pool20','RefInt_pool21','RefInt_pool22','RefInt_pool23']
           # Drop quality control and ref intensity cols
         phos = phos.drop(drop_cols_phos, axis = 'index')
-        self._data["phosphoproteomics"] = phos
+        
+        # Sort values
+        phos.index.name = 'Patient_ID'
+        normal = phos.loc[phos.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = phos.loc[~ phos.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)
+        
+        self._data["phosphoproteomics"] = all_prot
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."

@@ -91,6 +91,7 @@ class UmichBrca(Dataset):
                 all_df = tumor.append(normal)
                 self._data["proteomics"] = all_df
                 
+            #Phosphoproteomics    
             elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
                 df[['Protein_ID','Transcript_ID',"Database_ID","Havana_gene","Havana_transcript","Transcript","Name","Site"]] = df.Index.str.split("\\|",expand=True)
@@ -114,9 +115,17 @@ class UmichBrca(Dataset):
                 df = df.drop(drop_cols, axis = 'index')
                 # Since cptac brca has no normal samples, the duplicates are treated as replicates
                 df = average_replicates(df)
+                
+                # Sort values
+                df.index.name = 'Patient_ID'
+                normal = df.loc[df.index.str.contains('\.N$', regex = True)]
+                normal = normal.sort_values(by=["Patient_ID"])
+                tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
+                tumor = tumor.sort_values(by=["Patient_ID"])
+                all_prot = tumor.append(normal)
 
                 
-                self._data["phosphoproteomics"] = df
+                self._data["phosphoproteomics"] = all_prot
 
                
 

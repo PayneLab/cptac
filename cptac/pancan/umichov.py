@@ -96,6 +96,7 @@ class UmichOv(Dataset):
                 df = df.set_index(["Name","Database_ID","Peptide","Site"]) 
                 #drop columns not needed in df 
                 df.drop([ 'Gene', "Index","num1","num2","num3","num4","num5","Havana_gene","Havana_transcript","MaxPepProb","Protein_ID","Transcript_ID","Transcript"], axis=1, inplace=True)
+                
                 self._data["phosphoproteomics"] = df
 
             '''
@@ -190,8 +191,16 @@ class UmichOv(Dataset):
             vals = list(id_df.mean(axis=0)) # average replicates and store in list 
             phos = phos.drop(index = rep) # drop both replicates so can add new row with averages
             phos.loc[rep] = vals
-        
-        self._data["phosphoproteomics"] = phos
+            
+        # Sort values
+        phos.index.name = 'Patient_ID'
+        normal = phos.loc[phos.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = phos.loc[~ phos.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)    
+         
+        self._data["phosphoproteomics"] = all_prot
         
         
         

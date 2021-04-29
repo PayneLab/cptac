@@ -128,7 +128,16 @@ class UmichHnscc(Dataset):
                 df.index = df.index.str.replace('-T$','', regex = True)
                 df.index = df.index.str.replace('-N$','.N', regex = True)
                 
-                self._data["phosphoproteomics"] = df
+                
+                # Sort values
+                df.index.name = 'Patient_ID'
+                normal = df.loc[df.index.str.contains('\.N$', regex = True)]
+                normal = normal.sort_values(by=["Patient_ID"])
+                tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
+                tumor = tumor.sort_values(by=["Patient_ID"])
+                all_prot = tumor.append(normal)
+                
+                self._data["phosphoproteomics"] = all_prot
             
             '''
             if file_name == "S039_BCprospective_observed_0920.tsv.gz":

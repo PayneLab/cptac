@@ -127,6 +127,14 @@ class UmichCoad(Dataset):
                    'RefInt_ColonRef15', 'RefInt_ColonRef16', 'RefInt_ColonRef17',
                    'RefInt_ColonRef18', 'RefInt_ColonRef19', 'RefInt_ColonRef20',
                    'RefInt_ColonRef21', 'RefInt_ColonRef22-1']
+                
+                # Sort values
+                df.index.name = 'Patient_ID'
+                normal = df.loc[df.index.str.contains('\.N$', regex = True)]
+                normal = normal.sort_values(by=["Patient_ID"])
+                tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
+                tumor = tumor.sort_values(by=["Patient_ID"])
+                all_prot = tumor.append(normal)
 
                 # Drop qauality control and ref intensity cols
                 df = df.drop(drop_cols, axis = 'index')
