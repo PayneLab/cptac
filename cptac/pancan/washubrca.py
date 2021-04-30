@@ -14,6 +14,7 @@ import numpy as np
 import os
 import warnings
 import datetime
+from gtfparse import read_gtf
 
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
@@ -41,7 +42,10 @@ class WashuBrca(Dataset):
                 "BR_prospective.dnp.annotated.exonic.addrecovercases.maf.gz",
                 #"BR_total_miRNA_combined.tsv",  no file on box yet
                 "BR_xCell.txt",
-                "CIBERSORT.Output_Abs_BR.txt"
+                "CIBERSORT.Output_Abs_BR.txt",
+                "BR.gene_level.from_seg.filtered.tsv",
+                "gencode.v22.annotation.gtf.gz"
+         
             ]
         }
 
@@ -103,55 +107,35 @@ class WashuBrca(Dataset):
                 df.index = df.index.str.replace(r'-A$', '.N', regex=True)
                 self._data["cibersort"] = df
                 
-#
+            elif file_name == "BR.gene_level.from_seg.filtered.tsv":
+                df = pd.read_csv(file_path, sep="\t")
+                df = df.rename(columns={"Gene": "Name"})
+                df = df.set_index("Name")
+                self._data["CNV"] = df
+                
+           
+            elif file_name == "gencode.v22.annotation.gtf.gz":
+                df = read_gtf(file_path)
+                df = df[["gene_name","gene_id"]]
+                df = df.drop_duplicates()
+                df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
+                df = df.set_index("Name")
+                self._data["CNV_gene_ids"] = df
+                
+        # CNV
+        cnv = self._data["CNV"]
+        gene_ids = self._data["CNV_gene_ids"]
+        df = cnv.join(gene_ids,how = "left") #merge in gene_ids 
+        df = df.reset_index()
+        df = df.set_index(["Name", "Database_ID"]) #create multi-index
+        df = df.T
+        df.index.name = 'Patient_ID'
+        self._data["CNV"] = df
+
+
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
         
-        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-#        new_clinical = self._data["clinical"]
-#        new_clinical = new_clinical.reindex(master_index)
-
-        # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample was a tumor or normal sample. Use a function from dataframe_tools to generate it.
-
-        ###FILL: Your dataset should have some way that it marks the Patient IDs
-        ### of normal samples. The example code below is for a dataset that
-        ### marks them by putting an 'N' at the beginning of each one. You will
-        ### need to write a lambda function that takes a given Patient_ID string
-        ### and returns a bool indicating whether it corresponds to a normal
-        ### sample. Pass that lambda function to the 'normal_test' parameter of
-        ### the  generate_sample_status_col function when you call it. See 
-        ### cptac/dataframe_tools.py for further function documentation.
-        ###START EXAMPLE CODE###################################################
-#        sample_status_col = generate_sample_status_col(new_clinical, normal_test=lambda sample: sample[0] == 'N')
-        ###END EXAMPLE CODE#####################################################
-
-#        new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
-
-        # Replace the clinical dataframe in the data dictionary with our new and improved version!
-#        self._data['clinical'] = new_clinical
-
-        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. 
-        
-        ###FILL: You will need to pass the proper parameters to correctly
-        ### reformat the patient IDs in your dataset. The standard format is to
-        ### have the string '.N' appended to the end of the normal patient IDs,
-        ### e.g. the  normal patient ID corresponding to C3L-00378 would be
-        ### C3L-00378.N (this way we can easily match two samples from the same
-        ### patient). The example code below is for a dataset where all the
-        ### normal samples have  an "N" prepended to the patient IDs. The
-        ### reformat_normal_patient_ids function erases that and puts a ".N" at
-        ### the end. See cptac/dataframe_tools.py for further function
-        ### documentation.
-        ###START EXAMPLE CODE###################################################
-#        self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
-        ###END EXAMPLE CODE#####################################################
-
-        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-#        self._data = sort_all_rows(self._data)
-
-        # Call function from dataframe_tools.py to standardize the names of the index and column axes
-#        self._data = standardize_axes_names(self._data)
-
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

@@ -14,6 +14,7 @@ import numpy as np
 import os
 import warnings
 import datetime
+from gtfparse import read_gtf
 
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
@@ -44,7 +45,9 @@ class WashuCcrcc(Dataset):
                 "ccRCC_mature_miRNA_combined.tsv",                
                 "ccRCC_total_miRNA_combined.tsv",               
                 "CIBERSORT.Output_Abs_ccRCC.txt",
-                "ccRCC_xCell.txt"
+                "ccRCC_xCell.txt",
+                "CCRCC.gene_level.from_seg.filtered.tsv",
+                "gencode.v22.annotation.gtf.gz"
             ]
         }
 
@@ -130,6 +133,20 @@ class WashuCcrcc(Dataset):
                 df.index = df.index.str.replace(r'-T$', '', regex=True) 
                 df.index = df.index.str.replace(r'-A$', '.N', regex=True)
                 self._data["cibersort"] = df
+                
+            elif file_name == "CCRCC.gene_level.from_seg.filtered.tsv":
+                df = pd.read_csv(file_path, sep="\t")
+                df = df.rename(columns={"Gene": "Name"})
+                df = df.set_index("Name")
+                self._data["CNV"] = df
+                
+            elif file_name == "gencode.v22.annotation.gtf.gz":
+                df = read_gtf(file_path)
+                df = df[["gene_name","gene_id"]]
+                df = df.drop_duplicates()
+                df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
+                df = df.set_index("Name")
+                self._data["CNV_gene_ids"] = df 
 
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
@@ -142,7 +159,16 @@ class WashuCcrcc(Dataset):
         rna_combined = rna_tumor.append(rna_normal)
         self._data["transcriptomics"] = rna_combined
         del self._data["transcriptomics_tumor"]
-        #del self._data["transcriptomics_normal"]
+        
+         # CNV
+        cnv = self._data["CNV"]
+        gene_ids = self._data["CNV_gene_ids"]
+        df = cnv.join(gene_ids,how = "left") #merge in gene_ids 
+        df = df.reset_index()
+        df = df.set_index(["Name", "Database_ID"]) #create multi-index
+        df = df.T
+        df.index.name = 'Patient_ID'
+        self._data["CNV"] = df
         
         # Get a union of all dataframes' indices, with duplicates removed
         ###FILL: If there are any tables whose index values you don't want

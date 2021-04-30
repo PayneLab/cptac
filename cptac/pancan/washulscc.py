@@ -14,6 +14,7 @@ import numpy as np
 import os
 import warnings
 import datetime
+from gtfparse import read_gtf
 
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
@@ -44,7 +45,9 @@ class WashuLscc(Dataset):
                 "LSCC_precursor_miRNA_combined.tsv",
                 "LSCC_total_miRNA_combined.tsv",
                 "LSCC_xCell.txt",
-                "CIBERSORT.Output_Abs_LSCC.txt"
+                "CIBERSORT.Output_Abs_LSCC.txt",
+                "LSCC.gene_level.from_seg.filtered.tsv",
+                "gencode.v22.annotation.gtf.gz"
             ]
         }
 
@@ -136,6 +139,20 @@ class WashuLscc(Dataset):
                 df.index = df.index.str.replace(r'-T$', '', regex=True) 
                 df.index = df.index.str.replace(r'-A$', '.N', regex=True)
                 self._data["cibersort"] = df
+                
+            elif file_name == "LSCC.gene_level.from_seg.filtered.tsv":
+                df = pd.read_csv(file_path, sep="\t")
+                df = df.rename(columns={"Gene": "Name"})
+                df = df.set_index("Name")
+                self._data["CNV"] = df
+                
+            elif file_name == "gencode.v22.annotation.gtf.gz":
+                df = read_gtf(file_path)
+                df = df[["gene_name","gene_id"]]
+                df = df.drop_duplicates()
+                df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
+                df = df.set_index("Name")
+                self._data["CNV_gene_ids"] = df       
         
 # combine and create transcriptomic dataframe            
         rna_tumor = self._data.get("transcriptomics_tumor")
@@ -145,6 +162,15 @@ class WashuLscc(Dataset):
         del self._data["transcriptomics_tumor"]
         del self._data["transcriptomics_norm"]
         
+        # CNV
+        cnv = self._data["CNV"]
+        gene_ids = self._data["CNV_gene_ids"]
+        df = cnv.join(gene_ids,how = "left") #merge in gene_ids 
+        df = df.reset_index()
+        df = df.set_index(["Name", "Database_ID"]) #create multi-index
+        df = df.T
+        df.index.name = 'Patient_ID'
+        self._data["CNV"] = df
         
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
