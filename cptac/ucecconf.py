@@ -36,15 +36,11 @@ class UcecConf(Dataset):
 
         data_files = {
             "1.0": [
-            #"UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz",
-            #"UCEC_confirmatory_acetyl_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
+            "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             #"UCEC_confirmatory_Direct_SRM_tumor_v1.0.cct.gz",
             #"UCEC_confirmatory_IMAC_SRM_tumor_v1.0.cct.gz",
             "UCEC_confirmatory_meta_table_v1.0.xlsx",
-            #"UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.0.cct.gz",
             #"UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.0.cct.gz",
-            #"UCEC_confirmatory_nglycoform-site_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz",
-            #"UCEC_confirmatory_phospho_gene_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             #"UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_proteomics_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             #"UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz",
@@ -73,11 +69,31 @@ class UcecConf(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-            if file_name == "UCEC_confirmatory_meta_table_v1.0.xlsx":
+            if file_name == "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.reset_index()
+                df[['Name','Database_ID','Site']] = df.idx.str.split("@", expand=True)
+                df['Site'] = df['Site'].str.split('-',expand=True)[1]
+                df[['Peptide']] = ''
+                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])
+                df = df.drop(columns=["idx"])
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name = "Patient_ID"
+                self._data["acetylproteomics"] = df
+                
+            elif file_name == "UCEC_confirmatory_meta_table_v1.0.xlsx":
                 df = pd.read_excel(file_path)
+                df.index.name = "Patient_ID"
+                df.columns.name = "Name"
+                df.loc[df['Group'] == 'Enriched_Normal', 'Idx'] = df['Idx'] + '.E'
+                df['Enriched_Sample'] = df['Group'].apply(lambda x: 'True' if x == 'Enriched_Normal' else 'False')
+                df.loc[df['Group'] == 'Adjacent_normal', 'Idx'] = df['Idx'].str[:-2] + '.N'
+                df = df.set_index("Idx")
+                df.loc[df['Group'] != 'Tumor', 'Group'] = 'Normal'
+                df = df.rename({'Group': 'Sample_Tumor_Normal'}, axis=1)
                 self._data["clinical"] = df
                 
-            #Finished as far as I can tell
             elif file_name == "UCEC_confirmatory_proteomics_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
@@ -86,7 +102,6 @@ class UcecConf(Dataset):
                 df.columns.name = "Name"
                 self._data["proteomics"] = df
 
-            #Finished as far as I can tell
             elif file_name == "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
@@ -97,27 +112,7 @@ class UcecConf(Dataset):
 
             elif file_name == "UCEC_confirmatory_WES_somatic_mutation_v1.0.maf.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
-                self._data["somatic_mutation_binary"] = df
-
-            # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
-            if file_name == "awesome_omics_data.tsv":
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.drop(columns=["columns", "we", "don't", "want"])
-                df = df.do_some_formatting_thing()
-
-                df = df.sort_index()
-                df = df.transpose()
-                self._data["awesomeomics"] = df
-
-            elif file_name == "other_data_file.tsv":
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.drop(columns=["columns", "we", "don't", "want"])
-                df = df.super_crazy_dataframe_formatting_function()
-                df = df.even_crazier()
-
-                df = df.sort_index()
-                df = df.transpose()
-                self._data["lessawesomeomics"] = df
+                self._data["somatic_mutation"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
@@ -130,20 +125,6 @@ class UcecConf(Dataset):
         # uncomment them when all the data tables are ready. Note that some of
         # the lines are marked as just examples, though, and you'll still need
         # to adapt them to your specific situation.
-
-        # ALSO: This section makes use of several useful functions from the
-        # dataframe_tools.py file, such as "unionize_indices",
-        # "generate_sample_status_col", and so on. If you want more information
-        # about these functions, open that file and look at the docstring at
-        # the beginning of each functions, which is a triple-quoted string that
-        # gives an overview of what the function does, a description of what
-        # each parameter should be, and a description of the returned value. If
-        # you're using a function in a Jupyter Notebook or Python interpreter,
-        # you can also get the docstring using the Python "help" function, which
-        # just checks if the function has a docstring and then prints it if it
-        # does. An example usage would be "help(reformat_normal_patient_ids)".
-        # You can use the help function for any function from any library, not
-        # just cptac; docstrings are a common standard.
 
         # Get a union of all dataframes' indices, with duplicates removed
         ###FILL: If there are any tables whose index values you don't want
@@ -220,4 +201,3 @@ class UcecConf(Dataset):
 
         # Print password access only warning
         warnings.warn("The UcecConf data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)
-
