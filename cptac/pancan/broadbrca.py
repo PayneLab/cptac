@@ -14,13 +14,14 @@ import numpy as np
 import os
 import warnings
 import datetime
+from gtfparse import read_gtf
 
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class WashuBrca(Dataset):
+class BroadBrca(Dataset):
 
     def __init__(self, no_internet, version):
         """Load all of the bcmbrca dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -37,13 +38,14 @@ class WashuBrca(Dataset):
 
         data_files = {
             "1.0": [
-                "BR_tumor_RNA-Seq_Expr_WashU_FPKM.tsv",
-                "BR_prospective.dnp.annotated.exonic.maf"
+                "BRCA.rsem_transcripts_tpm.txt.gz",
+                "sample_descriptions.tsv",
+                "gencode.v34.GRCh38.genes.collapsed_only.gtf"
             ]
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="washubrca", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="broadbrca", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -56,84 +58,59 @@ class WashuBrca(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-            if file_name == "BR_tumor_RNA-Seq_Expr_WashU_FPKM.tsv":
+            if file_name == "BRCA.rsem_transcripts_tpm.txt.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
-                df = df.set_index(["Name", "Database_ID"])
-                df = df.T
-                df.index.name = "Patient_ID"
-                df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
+                df = df.set_index(["transcript_id","gene_id"])
                 self._data["transcriptomics"] = df
 
-            elif file_name == "BR_prospective.dnp.annotated.exonic.maf": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
-                df = pd.read_csv(file_path, sep='\t', index_col=0)           
-                df = df[['Patient_ID','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
-                df = df.rename(columns={
-                     "Hugo_Symbol":"Gene",
-                     "Variant_Classification":"Mutation",
-                     "HGVSp_Short":"Location"}) # Rename the columns we want to keep to the appropriate names
-                df = df.set_index("Patient_ID")
-                df.index = df.index.str.replace(r"_T", "", regex=True) #remove label for tumor samples
-                self._data["somatic_mutation"] = df
-#
+            elif file_name == "sample_descriptions.tsv":
+                broad_key = pd.read_csv(file_path, sep="\t")
+                broad_key = broad_key.loc[broad_key['cohort'] == "BRCA"] #get only BRCA keys
+                broad_key = broad_key[["sample_id","GDC_id","tissue_type"]]
+                broad_key = broad_key.set_index("sample_id")#set broad id as index
+                #add tumor type identification to end
+                broad_key["Patient_ID"] = broad_key["GDC_id"] + broad_key["tissue_type"] 
+                #change so tumor samples have nothing on end of id and .N for normal samples
+                broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Tumor", "", regex=True)
+                broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
+                #covert df to dictionary
+                broad_dict = broad_key.to_dict()["Patient_ID"]
+                
+                self._data["broad_key"] = broad_dict
+                
+            elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf":
+                broad_gene_names = read_gtf(file_path)
+                broad_gene_names = broad_gene_names[["gene_name","gene_id"]]
+                broad_gene_names = broad_gene_names.rename(columns= {"gene_name":"Name"}) #change name to merge 
+                broad_gene_names = broad_gene_names.set_index("gene_id")
+                broad_gene_names = broad_gene_names.drop_duplicates()
+                
+                self._data["broad_gene_names"] = broad_gene_names
+                
+                
+        
+        # Add gene names to transcriptomic data 
+        
+        df = self._data["transcriptomics"] 
+        broad_gene_names = self._data["broad_gene_names"]
+        broad_dict = self._data["broad_key"]
+        
+        df = broad_gene_names.join(df,how = "left") #merge in gene names keep transcripts that have a gene name
+        df = df.reset_index()
+        df = df.rename(columns= {"transcript_id": "Transcript_ID","gene_id":"Database_ID"})
+        df = df.set_index(["Name","Transcript_ID","Database_ID"])
+        df = df.rename(columns = broad_dict)# rename columns with CPTAC IDs
+        df = df.sort_index() 
+        df = df.T
+        
+        self._data["transcriptomics"] = df
+       
+                
+                
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
-        # Get a union of all dataframes' indices, with duplicates removed
-        ###FILL: If there are any tables whose index values you don't want
-        ### included in the master index, pass them to the optional 'exclude'
-        ### parameter of the unionize_indices function. This was useful, for
-        ### example, when some datasets' followup data files included samples
-        ### from cohorts that weren't in any data tables besides the followup
-        ### table, so we excluded the followup table from the master index since
-        ### there wasn't any point in creating empty representative rows for
-        ### those samples just because they existed in the followup table.
-#        master_index = unionize_indices(self._data) 
-
-        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-#        new_clinical = self._data["clinical"]
-#        new_clinical = new_clinical.reindex(master_index)
-
-        # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample was a tumor or normal sample. Use a function from dataframe_tools to generate it.
-
-        ###FILL: Your dataset should have some way that it marks the Patient IDs
-        ### of normal samples. The example code below is for a dataset that
-        ### marks them by putting an 'N' at the beginning of each one. You will
-        ### need to write a lambda function that takes a given Patient_ID string
-        ### and returns a bool indicating whether it corresponds to a normal
-        ### sample. Pass that lambda function to the 'normal_test' parameter of
-        ### the  generate_sample_status_col function when you call it. See 
-        ### cptac/dataframe_tools.py for further function documentation.
-        ###START EXAMPLE CODE###################################################
-#        sample_status_col = generate_sample_status_col(new_clinical, normal_test=lambda sample: sample[0] == 'N')
-        ###END EXAMPLE CODE#####################################################
-
-#        new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
-
-        # Replace the clinical dataframe in the data dictionary with our new and improved version!
-#        self._data['clinical'] = new_clinical
-
-        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. 
-        
-        ###FILL: You will need to pass the proper parameters to correctly
-        ### reformat the patient IDs in your dataset. The standard format is to
-        ### have the string '.N' appended to the end of the normal patient IDs,
-        ### e.g. the  normal patient ID corresponding to C3L-00378 would be
-        ### C3L-00378.N (this way we can easily match two samples from the same
-        ### patient). The example code below is for a dataset where all the
-        ### normal samples have  an "N" prepended to the patient IDs. The
-        ### reformat_normal_patient_ids function erases that and puts a ".N" at
-        ### the end. See cptac/dataframe_tools.py for further function
-        ### documentation.
-        ###START EXAMPLE CODE###################################################
-#        self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
-        ###END EXAMPLE CODE#####################################################
-
-        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-#        self._data = sort_all_rows(self._data)
-
-        # Call function from dataframe_tools.py to standardize the names of the index and column axes
-#        self._data = standardize_axes_names(self._data)
+       
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

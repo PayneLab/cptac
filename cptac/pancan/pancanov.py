@@ -16,6 +16,7 @@ from .pdcov import PdcOv
 from .umichov import UmichOv
 from .washuov import WashuOv
 from .bcmov import BcmOv
+from .broadov import BroadOv
 
 SOURCES = [
     "bcmov",
@@ -23,6 +24,7 @@ SOURCES = [
     "pdcov",
     "umichov",
     "washuov",
+    "broadov"
 ]
 
 class PancanOv(PancanDataset):
@@ -32,7 +34,8 @@ class PancanOv(PancanDataset):
 
         super().__init__(cancer_type="pancanov", versions=versions, no_internet=no_internet)
         
-        self._datasets["bcm"] = BcmOv(no_internet=no_internet, version=self._get_version("ov"))
+        self._datasets["bcm"] = BcmOv(no_internet=no_internet, version=self._get_version("bcm"))
+        self._datasets["broad"] = BroadOv(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanov')
         self._datasets["pdc"] = PdcOv(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichOv(no_internet=no_internet, version=self._get_version("umich"))

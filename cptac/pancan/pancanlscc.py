@@ -16,6 +16,7 @@ from .pdclscc import PdcLscc
 from .umichlscc import UmichLscc
 from .washulscc import WashuLscc
 from .bcmlscc import BcmLscc
+from .broadlscc import BroadLscc
 
 SOURCES = [
     "bcmlscc",
@@ -23,6 +24,7 @@ SOURCES = [
     "pdclscc",
     "umichlscc",
     "washulscc",
+    "broadlscc"
 ]
 
 class PancanLscc(PancanDataset):
@@ -33,6 +35,7 @@ class PancanLscc(PancanDataset):
         super().__init__(cancer_type="pancanlscc", versions=versions, no_internet=no_internet)
         
         self._datasets["bcm"] = BcmLscc(no_internet=no_internet, version=self._get_version("bcm"))
+        self._datasets["broad"] = BroadLscc(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanlscc')
         self._datasets["pdc"] = PdcLscc(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichLscc(no_internet=no_internet, version=self._get_version("umich"))

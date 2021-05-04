@@ -194,7 +194,9 @@ def parse_tsv_dict(path):
         lines = data_file.readlines()
 
     data_dict = {}
-    for line in lines:
+    for line in lines:                         
+        if len(line.strip()) == 0:
+            continue
         line_list = line.strip().split("\t")
         key = line_list[0]
         value = line_list[1]

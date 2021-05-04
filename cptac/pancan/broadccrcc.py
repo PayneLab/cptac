@@ -21,7 +21,7 @@ from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class BroadHnscc(Dataset):
+class BroadCcrcc(Dataset):
 
     def __init__(self, no_internet, version):
         """Load all of the bcmbrca dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -38,14 +38,14 @@ class BroadHnscc(Dataset):
 
         data_files = {
             "1.0": [
-                "HNSCC.rsem_transcripts_tpm.txt.gz",
+                "CCRCC.rsem_transcripts_tpm.txt.gz",
                 "sample_descriptions.tsv",
                 "gencode.v34.GRCh38.genes.collapsed_only.gtf"
             ]
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="broadhnscc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="broadccrcc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -58,14 +58,14 @@ class BroadHnscc(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-            if file_name == "HNSCC.rsem_transcripts_tpm.txt.gz":
+            if file_name == "CCRCC.rsem_transcripts_tpm.txt.gz":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.set_index(["transcript_id","gene_id"])
                 self._data["transcriptomics"] = df
 
             elif file_name == "sample_descriptions.tsv":
                 broad_key = pd.read_csv(file_path, sep="\t")
-                broad_key = broad_key.loc[broad_key['cohort'] == "HNSCC"] #get only HNSCC keys
+                broad_key = broad_key.loc[broad_key['cohort'] == "CCRCC"] #get only CCRCC keys
                 broad_key = broad_key[["sample_id","GDC_id","tissue_type"]]
                 broad_key = broad_key.set_index("sample_id")#set broad id as index
                 #add tumor type identification to end

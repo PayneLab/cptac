@@ -23,33 +23,41 @@ include cptac/pancan/data_umichbrca/index_urls.tsv
 include cptac/pancan/data_washubrca/index_urls.tsv
 
 include cptac/pancan/data_bcmccrcc/index_urls.tsv
+include cptac/pancan/data_broadccrcc/index_urls.tsv
 include cptac/pancan/data_umichccrcc/index_urls.tsv
 include cptac/pancan/data_washuccrcc/index_urls.tsv
 
 include cptac/pancan/data_bcmcoad/index_urls.tsv
+include cptac/pancan/data_broadcoad/index_urls.tsv
 include cptac/pancan/data_umichcoad/index_urls.tsv
 include cptac/pancan/data_washucoad/index_urls.tsv
 
 include cptac/pancan/data_bcmgbm/index_urls.tsv
+include cptac/pancan/data_broadgbm/index_urls.tsv
 include cptac/pancan/data_umichgbm/index_urls.tsv
 include cptac/pancan/data_washugbm/index_urls.tsv
 
 include cptac/pancan/data_bcmhnscc/index_urls.tsv
+include cptac/pancan/data_broadhnscc/index_urls.tsv
 include cptac/pancan/data_umichhnscc/index_urls.tsv
 include cptac/pancan/data_washuhnscc/index_urls.tsv
 
 include cptac/pancan/data_bcmlscc/index_urls.tsv
+include cptac/pancan/data_broadlscc/index_urls.tsv
 include cptac/pancan/data_umichlscc/index_urls.tsv
 include cptac/pancan/data_washulscc/index_urls.tsv
 
 include cptac/pancan/data_bcmluad/index_urls.tsv
+include cptac/pancan/data_broadluad/index_urls.tsv
 include cptac/pancan/data_umichluad/index_urls.tsv
 include cptac/pancan/data_washuluad/index_urls.tsv
 
 include cptac/pancan/data_bcmov/index_urls.tsv
+include cptac/pancan/data_broadov/index_urls.tsv
 include cptac/pancan/data_umichov/index_urls.tsv
 include cptac/pancan/data_washuov/index_urls.tsv
 
 include cptac/pancan/data_bcmucec/index_urls.tsv
+include cptac/pancan/data_broaducec/index_urls.tsv
 include cptac/pancan/data_umichucec/index_urls.tsv
 include cptac/pancan/data_washuucec/index_urls.tsv

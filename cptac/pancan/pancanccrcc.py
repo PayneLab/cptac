@@ -16,6 +16,7 @@ from .pdcccrcc import PdcCcrcc
 from .umichccrcc import UmichCcrcc
 from .washuccrcc import WashuCcrcc
 from .bcmccrcc import BcmCcrcc
+from .broadccrcc import BroadCcrcc
 
 SOURCES = [
     "bcmccrcc",
@@ -23,6 +24,7 @@ SOURCES = [
     "pdcccrcc",
     "umichccrcc",
     "washuccrcc",
+    "broadccrcc"
 ]
 
 class PancanCcrcc(PancanDataset):
@@ -33,6 +35,7 @@ class PancanCcrcc(PancanDataset):
         super().__init__(cancer_type="pancanccrcc", versions=versions, no_internet=no_internet)
         
         self._datasets["bcm"] = BcmCcrcc(no_internet=no_internet, version=self._get_version("bcm"))
+        self._datasets["broad"] = BroadCcrcc(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanccrcc')
         self._datasets["pdc"] = PdcCcrcc(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichCcrcc(no_internet=no_internet, version=self._get_version("umich"))

@@ -16,6 +16,7 @@ from .mssmclinical import MssmClinical
 from .pdchnscc import PdcHnscc
 from .umichhnscc import UmichHnscc
 from .washuhnscc import WashuHnscc
+from .broadhnscc import BroadHnscc
 
 SOURCES = [
     "bcmhnscc",
@@ -23,6 +24,7 @@ SOURCES = [
     "pdchnscc",
     "umichhnscc",
     "washuhnscc",
+    "broadhnscc"
 ]
 
 class PancanHnscc(PancanDataset):
@@ -33,7 +35,9 @@ class PancanHnscc(PancanDataset):
         super().__init__(cancer_type="pancanhnscc", versions=versions, no_internet=no_internet)
 
         self._datasets["bcm"] = BcmHnscc(no_internet=no_internet, version=self._get_version("bcm"))
+        self._datasets["broad"] = BroadHnscc(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanhnscc')
         self._datasets["pdc"] = PdcHnscc(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichHnscc(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuHnscc(no_internet=no_internet, version=self._get_version("washu"))
+        

@@ -28,34 +28,42 @@ cptac/pancan/data_umichbrca/*
 cptac/pancan/data_washubrca/*
 
 cptac/pancan/data_bcmccrcc/*
+cptac/pancan/data_broadccrcc/*
 cptac/pancan/data_umichccrcc/*
 cptac/pancan/data_washuccrcc/*
 
 cptac/pancan/data_bcmcoad/*
+cptac/pancan/data_broadcoad/*
 cptac/pancan/data_umichcoad/*
 cptac/pancan/data_washucoad/*
 
 cptac/pancan/data_bcmgbm/*
+cptac/pancan/data_broadgbm/*
 cptac/pancan/data_umichgbm/*
 cptac/pancan/data_washugbm/*
 
 cptac/pancan/data_bcmhnscc/*
+cptac/pancan/data_broadhnscc/*
 cptac/pancan/data_umichhnscc/*
 cptac/pancan/data_washuhnscc/*
 
 cptac/pancan/data_bcmlscc/*
+cptac/pancan/data_broadlscc/*
 cptac/pancan/data_umichlscc/*
 cptac/pancan/data_washulscc/*
 
 cptac/pancan/data_bcmluad/*
+cptac/pancan/data_broadluad/*
 cptac/pancan/data_umichluad/*
 cptac/pancan/data_washuluad/*
 
 cptac/pancan/data_bcmov/*
+cptac/pancan/data_broadov/*
 cptac/pancan/data_umichov/*
 cptac/pancan/data_washuov/*
 
 cptac/pancan/data_bcmucec/*
+cptac/pancan/data_broaducec/*
 cptac/pancan/data_umichucec/*
 cptac/pancan/data_washuucec/*
 
@@ -86,33 +94,41 @@ cptac/utils/data/hgnc_protein_families.tsv
 !cptac/pancan/data_washubrca/index_urls.tsv
 
 !cptac/pancan/data_bcmccrcc/index_urls.tsv
+!cptac/pancan/data_broadccrcc/index_urls.tsv
 !cptac/pancan/data_umichccrcc/index_urls.tsv
 !cptac/pancan/data_washuccrcc/index_urls.tsv
 
 !cptac/pancan/data_bcmcoad/index_urls.tsv
+!cptac/pancan/data_broadcoad/index_urls.tsv
 !cptac/pancan/data_umichcoad/index_urls.tsv
 !cptac/pancan/data_washucoad/index_urls.tsv
 
 !cptac/pancan/data_bcmgbm/index_urls.tsv
+!cptac/pancan/data_broadgbm/index_urls.tsv
 !cptac/pancan/data_umichgbm/index_urls.tsv
 !cptac/pancan/data_washugbm/index_urls.tsv
 
 !cptac/pancan/data_bcmhnscc/index_urls.tsv
+!cptac/pancan/data_broadhnscc/index_urls.tsv
 !cptac/pancan/data_umichhnscc/index_urls.tsv
 !cptac/pancan/data_washuhnscc/index_urls.tsv
 
 !cptac/pancan/data_bcmlscc/index_urls.tsv
+!cptac/pancan/data_broadlscc/index_urls.tsv
 !cptac/pancan/data_umichlscc/index_urls.tsv
 !cptac/pancan/data_washulscc/index_urls.tsv
 
 !cptac/pancan/data_bcmluad/index_urls.tsv
+!cptac/pancan/data_broadluad/index_urls.tsv
 !cptac/pancan/data_umichluad/index_urls.tsv
 !cptac/pancan/data_washuluad/index_urls.tsv
 
 !cptac/pancan/data_bcmov/index_urls.tsv
+!cptac/pancan/data_broadov/index_urls.tsv
 !cptac/pancan/data_umichov/index_urls.tsv
 !cptac/pancan/data_washuov/index_urls.tsv
 
 !cptac/pancan/data_bcmucec/index_urls.tsv
+!cptac/pancan/data_broaducec/index_urls.tsv
 !cptac/pancan/data_umichucec/index_urls.tsv
 !cptac/pancan/data_washuucec/index_urls.tsv

@@ -16,13 +16,15 @@ from .pdcucec import PdcUcec
 from .umichucec import UmichUcec
 from .washuucec import WashuUcec
 from .bcmucec import BcmUcec
+from .broaducec import BroadUcec
 
 SOURCES = [
     "bcmucec",
     "mssmclinical",
     "pdcucec",
     "umichucec",
-    "washuucec"
+    "washuucec",
+    "broaducec"
     
 ]
 
@@ -34,6 +36,7 @@ class PancanUcec(PancanDataset):
         super().__init__(cancer_type="pancanucec", versions=versions, no_internet=no_internet)
 
         self._datasets["bcm"] = BcmUcec(no_internet=no_internet, version=self._get_version("bcm"))
+        self._datasets["broad"] = BroadUcec(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanucec')
         self._datasets["pdc"] = PdcUcec(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichUcec(no_internet=no_internet, version=self._get_version("umich"))

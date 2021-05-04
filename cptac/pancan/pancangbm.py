@@ -16,6 +16,7 @@ from .mssmclinical import MssmClinical
 from .pdcgbm import PdcGbm
 from .umichgbm import UmichGbm
 from .washugbm import WashuGbm
+from .broadgbm import BroadGbm
 
 SOURCES = [
     "bcmgbm",
@@ -23,6 +24,7 @@ SOURCES = [
     "pdcgbm",
     "umichgbm",
     "washugbm",
+    "broadgbm"
 ]
 
 class PancanGbm(PancanDataset):
@@ -33,6 +35,7 @@ class PancanGbm(PancanDataset):
         super().__init__(cancer_type="pancangbm", versions=versions, no_internet=no_internet)
 
         self._datasets["bcm"] = BcmGbm(no_internet=no_internet, version=self._get_version("bcm"))
+        self._datasets["broad"] = BroadGbm(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancangbm')
         self._datasets["pdc"] = PdcGbm(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichGbm(no_internet=no_internet, version=self._get_version("umich"))
