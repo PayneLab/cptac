@@ -139,7 +139,7 @@ class WashuLscc(Dataset):
                 df.index = df.index.str.replace(r'-T$', '', regex=True) 
                 df.index = df.index.str.replace(r'-A$', '.N', regex=True)
                 self._data["cibersort"] = df
-                
+            #CNV    
             elif file_name == "LSCC.gene_level.from_seg.filtered.tsv":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.rename(columns={"Gene": "Name"})
