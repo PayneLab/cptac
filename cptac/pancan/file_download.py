@@ -113,12 +113,12 @@ def download(dataset, version="latest", redownload=False):
             raise InvalidParameterError(f"{dataset} is not a valid dataset.")
 
         overall_success = True
-        for source in sources:
+        for source in sorted(sources):
 
             if source.startswith("pdc"):
                 single_success = download(source, version=version, redownload=redownload)
             else:
-                single_success = cptac.download(source, version=version, redownload=redownload, box_auth=True, box_token=box_token)
+                single_success = cptac.download(source, version=version, redownload=redownload, _box_auth=True, _box_token=box_token)
 
             if not single_success:
                 overall_success = False
@@ -126,7 +126,7 @@ def download(dataset, version="latest", redownload=False):
         return overall_success
 
     else:
-        return cptac.download(dataset, version=version, redownload=redownload, box_auth=True)
+        return cptac.download(dataset, version=version, redownload=redownload, _box_auth=True)
 
 def download_pdc_id(pdc_id, _download_msg=True):
     """Download a PDC dataset by its PDC study id.

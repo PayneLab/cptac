@@ -37,6 +37,7 @@ setup(name='cptac',
 		'xlrd==1.2.0',
 		'statsmodels>=0.10.0',
 		'flask>=1.1.0',
+		'gtfparse>=1.2.1',
 	],
 	classifiers=[
         'Development Status :: 4 - Beta',
