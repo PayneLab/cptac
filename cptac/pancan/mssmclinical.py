@@ -37,8 +37,7 @@ class MssmClinical(Dataset):
 
         data_files = {
             "1.0": [
-                "clinical_Pan-cancer.Dec2020.tsv",
-                "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz"
+                "clinical_Pan-cancer.Dec2020.tsv"                
             ]
         }
 
@@ -69,14 +68,8 @@ class MssmClinical(Dataset):
                 df = df.set_index("case_id")
                 df.index.name = 'Patient_ID'
                 df = df.sort_values(by=["Patient_ID"])
-                self._data["clinical"] = df
-            
-            
-            elif file_name == "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz":
-                df = pd.read_csv(file_path, sep = "\t", na_values = 'NA')
-                df.Sample_ID = df.Sample_ID.str.replace(r'-T', '', regex=True) # only tumor samples in file
-                df = df.set_index('Sample_ID')
-                self._data["tumor_purity"] = df
+                self._data["clinical"] = df                      
+        
                 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
@@ -152,12 +145,7 @@ class MssmClinical(Dataset):
                                'procurement/tumor_tissue_collection_frozen_with_oct',
                                'procurement/normal_adjacent_tissue_collection_number_of_normal_segments_collected', 
                                'Recurrence-free survival', 'Overall survial', 'Recurrence status (1, yes; 0, no)',
-                               'Survial status (1, dead; 0, alive)']]
-        tumor_purity = self._data['tumor_purity']
-        # Use list of patient_IDs to slice out cancers
-        #indices = 
-        #df.loc[df['Sample_ID'].isin(indices)]
-        cancer_diagnosis_df = cancer_diagnosis_df.join(tumor_purity, how ='left') # Keep only samples for the cancer
+                               'Survial status (1, dead; 0, alive)']]        
         self._data['cancer_diagnosis'] = cancer_diagnosis_df # Maps dataframe name to dataframe (self._data)
          
         # Create followup df
