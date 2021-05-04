@@ -223,7 +223,7 @@ def _pdc_download(dataset, version, redownload):
     if os.path.isdir(cancer_dir):
 
         # Only redownload if they explicitly wanted that
-        if redownload:
+        if redownload or not os.path.isfile(os.path.join(cancer_dir, "index.txt")):
             shutil.rmtree(cancer_dir)
         else:
             return True
