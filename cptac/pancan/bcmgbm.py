@@ -102,7 +102,15 @@ class BcmGbm(Dataset):
         transcript = transcript.T
         transcript.index = transcript.index.str.replace(r"_T", "", regex=True)
         transcript.index.name = "Patient_ID"
-        self._data["transcriptomics"] = transcript
+        
+         # Sort values
+        normal = transcript.loc[transcript.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = transcript.loc[~ transcript.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_transcript = tumor.append(normal)  
+        
+        self._data["transcriptomics"] = all_transcript
        
         
         # Add gene names to circular RNA data 
@@ -118,7 +126,15 @@ class BcmGbm(Dataset):
         df = df.T
         df.index = df.index.str.replace(r"_T", "", regex=True) # remove Tumor label. All samples are tumor samples
         df.index.name = "Patient_ID"
-        self._data["circular_RNA"] = df
+        
+        # Sort values
+        normal = df.loc[df.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)  
+        
+        self._data["circular_RNA"] = all_prot
       
       
 

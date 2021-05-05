@@ -99,7 +99,15 @@ class BcmCcrcc(Dataset):
         transcript.index = transcript.index.str.replace(r"_T", "", regex=True)
         transcript.index = transcript.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
         transcript.index.name = "Patient_ID"
-        self._data["transcriptomics"] = transcript
+        
+        # Sort values
+        normal = transcript.loc[transcript.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = transcript.loc[~ transcript.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_transcript = tumor.append(normal)  
+       
+        self._data["transcriptomics"] = all_transcript
         
         # Add gene names to circular RNA data 
         circRNA = self._data["circular_RNA"]
@@ -115,7 +123,15 @@ class BcmCcrcc(Dataset):
         df.index = df.index.str.replace(r"_T", "", regex=True) # remove Tumor label
         df.index = df.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
         df.index.name = "Patient_ID"
-        self._data["circular_RNA"] = df
+        
+        # Sort values
+        normal = df.loc[df.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)  
+        
+        self._data["circular_RNA"] = all_prot
       
 
 

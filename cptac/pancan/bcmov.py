@@ -88,7 +88,15 @@ class BcmOv(Dataset):
         transcript = transcript.sort_index() #alphabetize
         transcript = transcript.T
         transcript.index.name = "Patient_ID"
-        self._data["transcriptomics"] = transcript
         
+         # Sort values
+        normal = transcript.loc[transcript.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = transcript.loc[~ transcript.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_transcript = tumor.append(normal)  
+        
+        self._data["transcriptomics"] = all_transcript
+       
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
