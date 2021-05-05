@@ -29,10 +29,10 @@ SOURCES = [
 
 class PancanCcrcc(PancanDataset):
 
-    def __init__(self, versions="latest", no_internet=False):
+    def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with ccRCC data and provide an interface to them."""
 
-        super().__init__(cancer_type="pancanccrcc", versions=versions, no_internet=no_internet)
+        super().__init__(cancer_type="pancanccrcc", version=version, no_internet=no_internet)
         
         self._datasets["bcm"] = BcmCcrcc(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["broad"] = BroadCcrcc(no_internet=no_internet, version=self._get_version("broad"))
