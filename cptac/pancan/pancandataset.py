@@ -15,11 +15,11 @@ import pandas as pd
 
 class PancanDataset:
 
-    def __init__(self, cancer_type, versions, no_internet):
+    def __init__(self, cancer_type, version, no_internet):
         """Initialize variables for a PancanDataset object."""
 
         self._cancer_type = cancer_type
-        self._versions = versions
+        self._version = version
         self._datasets = {} # Child class __init__ needs to fill this
 
     # Clinical table getters
@@ -99,10 +99,27 @@ class PancanDataset:
         return self._cancer_type
     
     def list_sources_data(self):
+        """Print which sources provide each data type."""
+
+        # This dict will be keyed by data type, and the values will be each source that provides that data type
+        data_sources = {}
+
         for source in sorted(self._datasets.keys()):
-            print(source)
             for df_name in sorted(self._datasets[source]._data.keys()):
-                print(f"\t{df_name}")
+                if df_name in data_sources.keys():
+                    data_sources[df_name].append(source)
+                else:
+                    data_sources[df_name] = [source]
+
+        result = ""
+
+        for data_type in sorted(data_sources.keys()):
+            result += f"\n{data_type}"
+            sources = data_sources[data_type]
+            for source in sorted(sources):
+                result += f"\n\t{source}"
+
+        return result
 
     # "Private" methods
     def _get_dataframe(self, name, source, tissue_type, imputed):
@@ -117,8 +134,10 @@ class PancanDataset:
             raise ex.DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
 
     def _get_version(self, source):
-        if self._versions == "latest":
-            return self._versions
+        if self._version == "latest":
+            return self._version
+        elif type(self._version) is dict:
+            return self._version[source]
         else:
-            return self._versions[source]
+            return self._version
             

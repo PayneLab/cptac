@@ -29,10 +29,10 @@ SOURCES = [
 
 class PancanHnscc(PancanDataset):
 
-    def __init__(self, versions="latest", no_internet=False):
+    def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with HNSCC data and provide an interface to them."""
 
-        super().__init__(cancer_type="pancanhnscc", versions=versions, no_internet=no_internet)
+        super().__init__(cancer_type="pancanhnscc", version=version, no_internet=no_internet)
 
         self._datasets["bcm"] = BcmHnscc(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["broad"] = BroadHnscc(no_internet=no_internet, version=self._get_version("broad"))

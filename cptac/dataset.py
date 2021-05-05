@@ -55,6 +55,7 @@ class Dataset:
 
         # Initialize dataframe and definitions dicts as empty for this parent class
         self._data = {}
+        self._helper_tables = {}
         self._definitions = {}
 
         # Assign the valid dfs lists, but make them instance variables so they're easy to override if needed

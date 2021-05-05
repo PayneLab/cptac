@@ -222,14 +222,28 @@ def _pdc_download(dataset, version, redownload):
 
     if os.path.isdir(cancer_dir):
 
-        # Only redownload if they explicitly wanted that
-        if redownload or not os.path.isfile(os.path.join(cancer_dir, "index.txt")):
+        index_path = os.path.join(cancer_dir, "index.txt")
+
+        # Check that they also have the index
+        if not os.path.isfile(index_path):
+            redownload = True
+        else:
+            # The PDC doesn't have a versioning scheme for the tables they serve, so originally we just called it version 0.0 but later decided it would be better to call it 1.0. So, check if theirs is called 0.0; if so, replace it with 1.0.
+
+            with open(index_path, "r") as index_file:
+                first_line = index_file.readline()
+
+            if first_line.startswith("#0.0"):
+                redownload=True
+
+        if redownload:
             shutil.rmtree(cancer_dir)
         else:
+
             return True
 
     os.mkdir(cancer_dir)
-    data_dir = os.path.join(cancer_dir, f"{dataset}_v0.0")
+    data_dir = os.path.join(cancer_dir, f"{dataset}_v1.0")
     os.mkdir(data_dir)
 
     # We'll combine all the clinical tables in case there are differences
@@ -271,7 +285,7 @@ def _pdc_download(dataset, version, redownload):
     index_path = os.path.join(cancer_dir, "index.txt")
 
     with open(index_path, "w") as index_file:
-        index_file.write("#0.0\n")
+        index_file.write("#1.0\n")
         
     # Erase update
     print(" " * len(save_msg), end="\r")
