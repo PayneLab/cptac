@@ -98,7 +98,7 @@ class BcmLscc(Dataset):
         transcript = transcript.T
         transcript.index = transcript.index.str.replace(r"_T", "", regex=True)
         transcript.index = transcript.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
-   
+        transcript.index.name = "Patient_ID"
         self._data["transcriptomics"] = transcript
         
         # Add gene names to circular RNA data 
@@ -114,6 +114,7 @@ class BcmLscc(Dataset):
         df = df.T
         df.index = df.index.str.replace(r"_T", "", regex=True) # remove Tumor label
         df.index = df.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
+        df.index.name = "Patient_ID"
         self._data["circular_RNA"] = df
       
 

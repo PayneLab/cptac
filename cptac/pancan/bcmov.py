@@ -87,6 +87,7 @@ class BcmOv(Dataset):
         transcript = transcript.set_index(["Name", "Database_ID"])
         transcript = transcript.sort_index() #alphabetize
         transcript = transcript.T
+        transcript.index.name = "Patient_ID"
         self._data["transcriptomics"] = transcript
         
 

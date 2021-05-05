@@ -101,8 +101,9 @@ class BcmGbm(Dataset):
         transcript = transcript.sort_index() #alphabetize
         transcript = transcript.T
         transcript.index = transcript.index.str.replace(r"_T", "", regex=True)
+        transcript.index.name = "Patient_ID"
         self._data["transcriptomics"] = transcript
-        #del self._data["transcriptomics"] #ask if I need this step?
+       
         
         # Add gene names to circular RNA data 
         circRNA = self._data["circular_RNA"]
@@ -116,9 +117,9 @@ class BcmGbm(Dataset):
         df = df.sort_index()
         df = df.T
         df.index = df.index.str.replace(r"_T", "", regex=True) # remove Tumor label. All samples are tumor samples
-        
+        df.index.name = "Patient_ID"
         self._data["circular_RNA"] = df
-        #del self._data["circular_RNA"]
+      
       
 
 

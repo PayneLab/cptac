@@ -102,7 +102,7 @@ class BroadLscc(Dataset):
         df = df.rename(columns = broad_dict)# rename columns with CPTAC IDs
         df = df.sort_index() 
         df = df.T
-        
+        df.index.name = "Patient_ID"
         self._data["transcriptomics"] = df
        
                 

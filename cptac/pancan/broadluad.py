@@ -115,7 +115,7 @@ class BroadLuad(Dataset):
         # average duplicates: C3N-00545-03 and C3N-00545-01 were seperated out as two different aliqout ids. 
         # They are from the same sample, so we average them. 
         df = df.groupby("index", level = 0).mean() 
-        
+        df.index.name = "Patient_ID"
         self._data["transcriptomics"] = df
        
                 
