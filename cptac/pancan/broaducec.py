@@ -117,7 +117,15 @@ class BroadUcec(Dataset):
         # They are from the same sample, so we average them. 
         df = df.groupby("index", level = 0).mean() 
         df.index.name = "Patient_ID"
-        self._data["transcriptomics"] = df
+        
+          # Sort values
+        normal = df.loc[df.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)  
+        
+        self._data["transcriptomics"] = all_prot
        
                 
                 

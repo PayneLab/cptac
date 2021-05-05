@@ -103,7 +103,15 @@ class BroadCcrcc(Dataset):
         df = df.sort_index() 
         df = df.T
         df.index.name = "Patient_ID"
-        self._data["transcriptomics"] = df
+        
+          # Sort values
+        normal = df.loc[df.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)  
+        
+        self._data["transcriptomics"] = all_prot
        
                 
                 
