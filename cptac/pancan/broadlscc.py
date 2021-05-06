@@ -14,6 +14,7 @@ import numpy as np
 import os
 import warnings
 import datetime
+import logging
 from gtfparse import read_gtf
 
 from cptac.dataset import Dataset
@@ -30,7 +31,10 @@ class BroadLscc(Dataset):
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
-
+        #ignore logging messages
+        logger = logging.getLogger()
+        logger.setLevel(logging.CRITICAL)
+        
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
