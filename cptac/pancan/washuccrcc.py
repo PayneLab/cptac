@@ -14,6 +14,7 @@ import numpy as np
 import os
 import warnings
 import datetime
+import logging
 from gtfparse import read_gtf
 
 from cptac.dataset import Dataset
@@ -30,7 +31,9 @@ class WashuCcrcc(Dataset):
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
-
+        #ignore logging messages
+        logger = logging.getLogger()
+        logger.setLevel(logging.CRITICAL)
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
@@ -73,7 +76,7 @@ class WashuCcrcc(Dataset):
                 df = df.T
                 df.index.name = "Patient_ID"
                 df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
-                self._data["transcriptomics_tumor"] = df
+                self._helper_tables["transcriptomics_tumor"] = df
                 
             if file_name == "ccRCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
@@ -83,7 +86,7 @@ class WashuCcrcc(Dataset):
                 df = df.T
                 df.index.name = "Patient_ID"
                 df.index = df.index.str.replace(r"-A", ".N", regex=True) #remove label for tumor samples
-                self._data["transcriptomics_normal"] = df
+                self._helper_tables["transcriptomics_normal"] = df
 
             elif file_name == "ccRCC_discovery.dnp.annotated.exonic.maf.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t')           
@@ -146,7 +149,7 @@ class WashuCcrcc(Dataset):
                 df = df.drop_duplicates()
                 df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
                 df = df.set_index("Name")
-                self._data["CNV_gene_ids"] = df 
+                self._helper_tables["CNV_gene_ids"] = df 
 
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
@@ -154,15 +157,15 @@ class WashuCcrcc(Dataset):
         print(formatting_msg, end='\r')
             
         # Combine the two transcriptomics dataframes
-        rna_tumor = self._data.get("transcriptomics_tumor")
-        rna_normal = self._data.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
+        rna_tumor = self._helper_tables.get("transcriptomics_tumor")
+        rna_normal = self._helper_tables.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
         rna_combined = rna_tumor.append(rna_normal)
         self._data["transcriptomics"] = rna_combined
-        del self._data["transcriptomics_tumor"]
+     
         
          # CNV
         cnv = self._data["CNV"]
-        gene_ids = self._data["CNV_gene_ids"]
+        gene_ids = self._helper_tables["CNV_gene_ids"]
         df = cnv.join(gene_ids,how = "left") #merge in gene_ids 
         df = df.reset_index()
         df = df.set_index(["Name", "Database_ID"]) #create multi-index

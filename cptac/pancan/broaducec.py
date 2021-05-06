@@ -14,6 +14,7 @@ import numpy as np
 import os
 import warnings
 import datetime
+import logging
 from gtfparse import read_gtf
 
 from cptac.dataset import Dataset
@@ -30,7 +31,10 @@ class BroadUcec(Dataset):
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
-
+        #ignore logging messages
+        logger = logging.getLogger()
+        logger.setLevel(logging.CRITICAL)
+        
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
@@ -77,9 +81,9 @@ class BroadUcec(Dataset):
                 broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
                 #covert df to dictionary
                 broad_dict = broad_key.to_dict()["Patient_ID"]
-                self._data["broad_key"] = broad_dict
+                self._helper_tables["broad_key"] = broad_dict
                 
-                self._data["broad_key"] = broad_dict
+              
             #has gene names for each database ID    
             elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf":
                 broad_gene_names = read_gtf(file_path)
@@ -88,20 +92,20 @@ class BroadUcec(Dataset):
                 broad_gene_names = broad_gene_names.set_index("gene_id")
                 broad_gene_names = broad_gene_names.drop_duplicates()
                 
-                self._data["broad_gene_names"] = broad_gene_names
+                self._helper_tables["broad_gene_names"] = broad_gene_names
             # converts aliquot id to patient id     
             elif file_name == "aliquot_to_patient_ID.tsv":
                 df = pd.read_csv(file_path, sep = "\t", index_col = 0)
-                self._data["map_ids"] = df
+                self._helper_tables["map_ids"] = df
                 
                 
         
         # Add gene names to transcriptomic data 
         
         df = self._data["transcriptomics"] 
-        broad_gene_names = self._data["broad_gene_names"]
-        broad_dict = self._data["broad_key"]
-        mapping_df = self._data["map_ids"]
+        broad_gene_names = self._helper_tables["broad_gene_names"]
+        broad_dict = self._helper_tables["broad_key"]
+        mapping_df = self._helper_tables["map_ids"]
         aliquot_dict = mapping_df.to_dict()["patient_ID"]
 
         
@@ -117,7 +121,15 @@ class BroadUcec(Dataset):
         # They are from the same sample, so we average them. 
         df = df.groupby("index", level = 0).mean() 
         df.index.name = "Patient_ID"
-        self._data["transcriptomics"] = df
+        
+          # Sort values
+        normal = df.loc[df.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)  
+        
+        self._data["transcriptomics"] = all_prot
        
                 
                 

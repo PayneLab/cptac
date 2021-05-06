@@ -14,6 +14,7 @@ import numpy as np
 import os
 import warnings
 import datetime
+import logging
 from gtfparse import read_gtf
 
 from cptac.dataset import Dataset
@@ -30,7 +31,10 @@ class BroadLscc(Dataset):
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
-
+        #ignore logging messages
+        logger = logging.getLogger()
+        logger.setLevel(logging.CRITICAL)
+        
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
@@ -75,8 +79,8 @@ class BroadLscc(Dataset):
                 broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
                 #covert df to dictionary
                 broad_dict = broad_key.to_dict()["Patient_ID"]
-                
-                self._data["broad_key"] = broad_dict
+                self._helper_tables["broad_key"] = broad_dict
+    
                 
             elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf":
                 broad_gene_names = read_gtf(file_path)
@@ -84,16 +88,16 @@ class BroadLscc(Dataset):
                 broad_gene_names = broad_gene_names.rename(columns= {"gene_name":"Name"}) #change name to merge 
                 broad_gene_names = broad_gene_names.set_index("gene_id")
                 broad_gene_names = broad_gene_names.drop_duplicates()
-                
-                self._data["broad_gene_names"] = broad_gene_names
+                self._helper_tables["broad_gene_names"] = broad_gene_names
+
                 
                 
         
         # Add gene names to transcriptomic data 
         
         df = self._data["transcriptomics"] 
-        broad_gene_names = self._data["broad_gene_names"]
-        broad_dict = self._data["broad_key"]
+        broad_gene_names = self._helper_tables["broad_gene_names"]
+        broad_dict = self._helper_tables["broad_key"]
         
         df = broad_gene_names.join(df,how = "left") #merge in gene names keep transcripts that have a gene name
         df = df.reset_index()
@@ -103,7 +107,15 @@ class BroadLscc(Dataset):
         df = df.sort_index() 
         df = df.T
         df.index.name = "Patient_ID"
-        self._data["transcriptomics"] = df
+        
+          # Sort values
+        normal = df.loc[df.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)  
+        
+        self._data["transcriptomics"] = all_prot
        
                 
                 
