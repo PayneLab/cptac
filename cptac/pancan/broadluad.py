@@ -78,7 +78,8 @@ class BroadLuad(Dataset):
                 broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
                 #covert df to dictionary
                 broad_dict = broad_key.to_dict()["Patient_ID"]
-                self._data["broad_key"] = broad_dict
+                self._helper_tables["broad_key"] = broad_dict
+   
                 
             #has gene names for each database ID      
             elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf":
@@ -87,21 +88,21 @@ class BroadLuad(Dataset):
                 broad_gene_names = broad_gene_names.rename(columns= {"gene_name":"Name"}) #change name to merge 
                 broad_gene_names = broad_gene_names.set_index("gene_id")
                 broad_gene_names = broad_gene_names.drop_duplicates()
-                
-                self._data["broad_gene_names"] = broad_gene_names
+                self._helper_tables["broad_gene_names"] = broad_gene_names
+
             
             # converts aliquot id to patient id     
             elif file_name == "aliquot_to_patient_ID.tsv":
                 df = pd.read_csv(file_path, sep = "\t", index_col = 0)
-                self._data["map_ids"] = df   
+                self._helper_tables["map_ids"] = df   
                 
         
         # Add gene names to transcriptomic data 
         
         df = self._data["transcriptomics"] 
-        broad_gene_names = self._data["broad_gene_names"]
-        broad_dict = self._data["broad_key"]
-        mapping_df = self._data["map_ids"]
+        broad_gene_names = self._helper_tables["broad_gene_names"]
+        broad_dict = self._helper_tables["broad_key"]
+        mapping_df = self._helpter_tables["map_ids"]
         aliquot_dict = mapping_df.to_dict()["patient_ID"]
         
         df = broad_gene_names.join(df,how = "left") #merge in gene names keep transcripts that have a gene name

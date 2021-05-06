@@ -66,7 +66,7 @@ class BcmOv(Dataset):
                 df = df[["gene","gene_name"]] #only need gene (database gene id) and gene_name (common gene name)
                 df = df.set_index("gene")
                 df = df.drop_duplicates()
-                self._data["gene_key"] = df 
+                self._helper_tables["gene_key"] = df 
             
         
         
@@ -79,7 +79,7 @@ class BcmOv(Dataset):
         # Add gene names to transcriptomic data 
         
         prot = self._data["transcriptomics"]
-        gene_key = self._data["gene_key"]
+        gene_key = self._helper_tables["gene_key"]
         transcript = gene_key.join(prot,how = "inner") #keep only gene_ids with gene names
         transcript = transcript.reset_index()
         transcript = transcript.rename(columns={

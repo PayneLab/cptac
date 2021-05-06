@@ -125,11 +125,11 @@ class WashuOv(Dataset):
                 df = df.drop_duplicates()
                 df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
                 df = df.set_index("Name")
-                self._data["CNV_gene_ids"] = df  
+                self._helper_tables["CNV_gene_ids"] = df  
                 
         # CNV
         cnv = self._data["CNV"]
-        gene_ids = self._data["CNV_gene_ids"]
+        gene_ids = self._helper_tables["CNV_gene_ids"]
         df = cnv.join(gene_ids,how = "left") #merge in gene_ids 
         df = df.reset_index()
         df = df.set_index(["Name", "Database_ID"]) #create multi-index

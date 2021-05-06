@@ -75,7 +75,7 @@ class WashuUcec(Dataset):
                 df = df.T
                 df.index.name = "Patient_ID"
                 df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
-                self._data["transcriptomics_tumor"] = df
+                self._helper_tables["transcriptomics_tumor"] = df
                 
             if file_name == "EC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
@@ -85,7 +85,7 @@ class WashuUcec(Dataset):
                 df = df.T
                 df.index.name = "Patient_ID"
                 df.index = df.index.str.replace(r"-A", ".N", regex=True) #remove label for tumor samples
-                self._data["transcriptomics_normal"] = df
+                self._helper_tables["transcriptomics_normal"] = df
 
             elif file_name == "EC_discovery.dnp.annotated.exonic.maf.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t', dtype={"PUBMED": "O"})    
@@ -155,16 +155,15 @@ class WashuUcec(Dataset):
                 
                 
         # Combine the two transcriptomics dataframes
-        rna_tumor = self._data.get("transcriptomics_tumor")
-        rna_normal = self._data.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
+        rna_tumor = self._helper_tables.get("transcriptomics_tumor")
+        rna_normal = self._helper_tables.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
         rna_combined = rna_tumor.append(rna_normal)
         self._data["transcriptomics"] = rna_combined
-        del self._data["transcriptomics_tumor"]
-        #del self._data["transcriptomics_normal"]   
+ 
         
         # CNV
         cnv = self._data["CNV"]
-        gene_ids = self._data["CNV_gene_ids"]
+        gene_ids = self._helper_tables["CNV_gene_ids"]
         df = cnv.join(gene_ids,how = "left") #merge in gene_ids 
         df = df.reset_index()
         df = df.set_index(["Name", "Database_ID"]) #create multi-index

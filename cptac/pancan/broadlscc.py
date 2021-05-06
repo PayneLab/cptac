@@ -75,8 +75,8 @@ class BroadLscc(Dataset):
                 broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
                 #covert df to dictionary
                 broad_dict = broad_key.to_dict()["Patient_ID"]
-                
-                self._data["broad_key"] = broad_dict
+                self._helper_tables["broad_key"] = broad_dict
+    
                 
             elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf":
                 broad_gene_names = read_gtf(file_path)
@@ -84,16 +84,16 @@ class BroadLscc(Dataset):
                 broad_gene_names = broad_gene_names.rename(columns= {"gene_name":"Name"}) #change name to merge 
                 broad_gene_names = broad_gene_names.set_index("gene_id")
                 broad_gene_names = broad_gene_names.drop_duplicates()
-                
-                self._data["broad_gene_names"] = broad_gene_names
+                self._helper_tables["broad_gene_names"] = broad_gene_names
+
                 
                 
         
         # Add gene names to transcriptomic data 
         
         df = self._data["transcriptomics"] 
-        broad_gene_names = self._data["broad_gene_names"]
-        broad_dict = self._data["broad_key"]
+        broad_gene_names = self._helper_tables["broad_gene_names"]
+        broad_dict = self._helper_tables["broad_key"]
         
         df = broad_gene_names.join(df,how = "left") #merge in gene names keep transcripts that have a gene name
         df = df.reset_index()
