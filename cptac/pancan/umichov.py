@@ -86,7 +86,7 @@ class UmichOv(Dataset):
                 ov_map = pd.read_csv(file_path, sep = ",", index_col = 0)
                 ov_map = ov_map[['sample']].reset_index()
                 ov_map = ov_map.replace("#",".", regex = True)
-                self._data["map_ids"] = ov_map
+                self._helper_tables["map_ids"] = ov_map
                 
             elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
@@ -162,7 +162,7 @@ class UmichOv(Dataset):
         
         ## phosphoproteomics 
         phos = self._data["phosphoproteomics"]
-        ovmap = self._data["map_ids"]
+        ovmap = self._helper_tables["map_ids"]
         ovmap = ovmap.set_index("index")
         ovmap_dict = ovmap.to_dict()["sample"]
         

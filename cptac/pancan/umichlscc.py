@@ -91,7 +91,7 @@ class UmichLscc(Dataset):
             
             elif file_name == "aliquot_to_patient_ID.tsv":
                 df = pd.read_csv(file_path, sep = "\t")
-                self._data["map_ids"] = df
+                self._helper_tables["map_ids"] = df
                 
             elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
@@ -128,7 +128,7 @@ class UmichLscc(Dataset):
         # Get Patient_IDs
         # slice mapping_df to include cancer specific aliquot_IDs 
         prot = self._data["proteomics"]
-        mapping_df = self._data["map_ids"]
+        mapping_df = self._helper_tables["map_ids"]
         index_list = list(prot.index)
         cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(index_list)]
         # Create dictionary with aliquot_ID as keys and patient_ID as values
