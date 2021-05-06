@@ -31,3 +31,29 @@ from .pancanlscc import PancanLscc
 from .pancanluad import PancanLuad
 from .pancanov import PancanOv
 from .pancanucec import PancanUcec
+
+def list_datasets(print_list=True):
+    """Print available datasets in the cptac.pancan module.
+
+    Parameters:
+    print_list (bool, optional): Whether to print the list. Default is True. Otherwise, it's returned as a string.
+    """
+
+    datasets = [
+        "PancanBrca",
+        "PancanCcrcc",
+        "PancanCoad",
+        "PancanGbm",
+        "PancanHnscc",
+        "PancanLscc",
+        "PancanLuad",
+        "PancanOv",
+        "PancanUcec",
+    ]
+
+    str_result = "\n".join(datasets)
+
+    if print_list:
+        print(str_result)
+    else:
+        return str_result

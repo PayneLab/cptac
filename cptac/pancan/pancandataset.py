@@ -99,27 +99,37 @@ class PancanDataset:
         return self._cancer_type
     
     def list_sources_data(self):
-        """Print which sources provide each data type."""
+        """Print which sources provide each data type.
+        
+        Parameters:
+        print_list (bool, optional): Whether to print the list. Default is True. Otherwise, it's returned as a string.
+        """
 
         # This dict will be keyed by data type, and the values will be each source that provides that data type
         data_sources = {}
 
         for source in sorted(self._datasets.keys()):
             for df_name in sorted(self._datasets[source]._data.keys()):
+
+                if df_name in ["cibersort", "xcell"]:
+                    df_name = f"deconvolution_{df_name}" # For clarity
+
                 if df_name in data_sources.keys():
-                    data_sources[df_name].append(source)
+                    data_sources[df_name][0] += f", {source}"
                 else:
                     data_sources[df_name] = [source]
 
-        result = ""
+        data_sources = pd.\
+        DataFrame(data_sources).\
+        transpose().\
+        sort_index().\
+        reset_index()
 
-        for data_type in sorted(data_sources.keys()):
-            result += f"\n{data_type}"
-            sources = data_sources[data_type]
-            for source in sorted(sources):
-                result += f"\n\t{source}"
+        data_sources.columns=["Data type", "Available sources"]
 
-        return result
+        return data_sources
+        
+
 
     # "Private" methods
     def _get_dataframe(self, name, source, tissue_type, imputed):
