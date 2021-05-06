@@ -10,7 +10,8 @@
 #   limitations under the License.
 
 from flask import Flask, cli, request
-from multiprocessing import Pipe, Process, set_start_method
+from threading import Thread
+from pathlib import Path
 
 import webbrowser
 import time
@@ -26,6 +27,11 @@ from .exceptions import InvalidParameterError, NoInternetError, DownloadFailedEr
 # Some websites don't like requests from sources without a user agent. Let's preempt that issue.
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
 HEADERS = {'User-Agent': USER_AGENT}
+
+# For a rudimentary data sharing between processes
+path_here = os.path.abspath(os.path.dirname(__file__))
+LOCK_PATH = os.path.join(path_here, "lock.tmp")
+CODE_FILE_PATH = os.path.join(path_here, "code.tmp")
 
 def download(dataset, version="latest", redownload=False, _box_auth=False, _box_token=None):
     """Download data files for the specified datasets. Defaults to downloading latest version on server.
@@ -278,12 +284,6 @@ def download_file(url, path, server_hash, password=None, _box_token=None, file_m
     file_name = path.split(os.sep)[-1]
     raise DownloadFailedError(f"Download failed for {file_name}.")
 
-# Manually set the multiprocessing start method to "fork", to avoid platform-specific problems
-set_start_method("fork")
-
-# Set up a way to share key from the server process back to the main process
-parent_conn, child_conn = Pipe()
-
 # Set up a localhost server to receive access token
 app = Flask(__name__)
 
@@ -293,8 +293,18 @@ def receive():
     # Get the temporary access code
     code = request.args.get('code')
 
-    # Send back to the parent process
-    child_conn.send(code)
+    # Create our "lock flag" file
+    Path(LOCK_PATH).touch()
+
+    # Save the code
+    with open(CODE_FILE_PATH, "w") as code_file:
+        code_file.write(code)
+
+    # Remove lock flag
+    os.remove(LOCK_PATH)
+
+    # Shutdown the server. This will allow the thread it's running on to finish as well.
+    request.environ.get("werkzeug.server.shutdown")()
 
     return "Authentication successful. You can close this window."
 
@@ -314,7 +324,7 @@ def get_box_token():
     login_url = f"{base_url}?client_id={client_id}&response_type=code"
 
     # Start the server
-    server = Process(target=app.run, kwargs={"port": "8003"})
+    server = Thread(target=app.run, kwargs={"port": "8003"})
     server.start()
 
     # Send the user to the "Grant access" page
@@ -323,15 +333,17 @@ def get_box_token():
     print(login_msg)
 
     # Get the temporary access code from the server on the child process
-    temp_code = parent_conn.recv()
+    temp_code = None
+    while temp_code is None:
+        if os.path.isfile(CODE_FILE_PATH) and not os.path.isfile(LOCK_PATH):
+            with open(CODE_FILE_PATH) as code_file:
+                temp_code = code_file.read()
+            os.remove(CODE_FILE_PATH)
+        else:
+            time.sleep(1)
 
-    # Give the browswer time to grab the response page
-    time.sleep(1)
-
-    # End the server process
-    server.terminate()
+    # Wait for the server process to finish. Note in the receive endpoint handler shuts down the server automatically after receiving the code, so we don't need to worry about trying to kill it.
     server.join()
-    server.close()
 
     # Use the temporary access code to get the long term access token
     token_url = "https://api.box.com/oauth2/token";
