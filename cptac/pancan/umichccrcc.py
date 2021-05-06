@@ -144,7 +144,7 @@ class UmichCcrcc(Dataset):
         
         ## phosphoproteomics 
         phos = self._data["phosphoproteomics"]
-        mapping_df = self._data["map_ids"]
+        mapping_df = self._helper_tables["map_ids"]
         mapping_df = mapping_df.set_index("aliquot_ID")
         map_dict = mapping_df.to_dict()["patient_ID"]
         
