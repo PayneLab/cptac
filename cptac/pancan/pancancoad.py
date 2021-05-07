@@ -17,6 +17,7 @@ from .umichcoad import UmichCoad
 from .washucoad import WashuCoad
 from .bcmcoad import BcmCoad
 from .broadcoad import BroadCoad
+from .harmonized import Harmonized
 
 SOURCES = [
     "bcmcoad",
@@ -24,7 +25,8 @@ SOURCES = [
     "pdccoad",
     "umichcoad",
     "washucoad",
-    "broadcoad"
+    "broadcoad",
+    "harmonized"
 ]
 
 class PancanCoad(PancanDataset):
@@ -40,3 +42,4 @@ class PancanCoad(PancanDataset):
         self._datasets["pdc"] = PdcCoad(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichCoad(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuCoad(no_internet=no_internet, version=self._get_version("washu"))
+        self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancancoad')

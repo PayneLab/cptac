@@ -75,19 +75,18 @@ class WashuOv(Dataset):
             if file_name == "OV_prospective.dnp.annotated.exonic.addrecovercases.maf.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t')    
                 # Rename the columns we want to keep to the appropriate names
-                df = df.rename(columns={"Tumor_Sample_Barcode": "Patient_ID",
+                df = pd.read_csv(file_path, sep='\t')    
+                df['Patient_ID'] = df.loc[:, 'Tumor_Sample_Barcode']
+                df = df.rename(columns={
+                         "Hugo_Symbol":"Gene",
                          "Gene":"Gene_Database_ID",
-                           "Hugo_Symbol":"Gene",
-                           "Variant_Classification":"Mutation",
-                           "Transcript_ID": "Database_ID",
-                           "HGVSp_Short":"Location"}) 
-                df = df[['Patient_ID','Gene','Mutation','Location','Database_ID']]
+                         "Variant_Classification":"Mutation",
+                         "HGVSp_Short":"Location"})
+
                 df = df.set_index("Patient_ID")
-                #remove label for tumor samples. (All samples are tumors and have _T label)
-                df.index = df.index.str.replace(r"_T", "", regex=True)  
-              
+                df = df[ ['Gene'] + ["Mutation"] + ["Location"] + [ col for col in df.columns if col not in ["Gene","Mutation","Location"] ] ]
+                df.index = df.index.str.replace(r"_T", "", regex=True)     
                 self._data["somatic_mutation"] = df
-                  
         
             if file_name == "OV_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")

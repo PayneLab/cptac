@@ -90,16 +90,18 @@ class WashuCcrcc(Dataset):
 
             elif file_name == "ccRCC_discovery.dnp.annotated.exonic.maf.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t')           
-                df = df.rename(columns={"Tumor_Sample_Barcode": "Patient_ID",
-                                "Gene":"Gene_Database_ID",
-                                 "Hugo_Symbol":"Gene",
-                                 "Transcript_ID":"Database_ID",
-                                 "Variant_Classification":"Mutation",
-                                 "HGVSp_Short":"Location"}) 
-                df = df[['Patient_ID','Gene','Mutation','Location','Database_ID']]
+                df = pd.read_csv(file_path, sep='\t')    
+                df['Patient_ID'] = df.loc[:, 'Tumor_Sample_Barcode']
+                df = df.rename(columns={
+                         "Hugo_Symbol":"Gene",
+                         "Gene":"Gene_Database_ID",
+                         "Variant_Classification":"Mutation",
+                         "HGVSp_Short":"Location"})
+
                 df = df.set_index("Patient_ID")
-                #remove label for tumor samples. (All samples are tumors and have _T label)
-                df.index = df.index.str.replace(r"_T", "", regex=True)
+                df = df[ ['Gene'] + ["Mutation"] + ["Location"] + [ col for col in df.columns if col not in ["Gene","Mutation","Location"] ] ]
+                df.index = df.index.str.replace(r"_T", "", regex=True)     
+  
                 self._data["somatic_mutation"] = df
             
             elif 'miRNA_combined' in file_name:
