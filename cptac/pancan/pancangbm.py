@@ -17,6 +17,7 @@ from .pdcgbm import PdcGbm
 from .umichgbm import UmichGbm
 from .washugbm import WashuGbm
 from .broadgbm import BroadGbm
+from .harmonized import Harmonized
 
 SOURCES = [
     "bcmgbm",
@@ -24,7 +25,8 @@ SOURCES = [
     "pdcgbm",
     "umichgbm",
     "washugbm",
-    "broadgbm"
+    "broadgbm",
+    "harmonized"
 ]
 
 class PancanGbm(PancanDataset):
@@ -40,3 +42,4 @@ class PancanGbm(PancanDataset):
         self._datasets["pdc"] = PdcGbm(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichGbm(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuGbm(no_internet=no_internet, version=self._get_version("washu"))
+        self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancangbm')

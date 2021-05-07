@@ -17,6 +17,7 @@ from .umichucec import UmichUcec
 from .washuucec import WashuUcec
 from .bcmucec import BcmUcec
 from .broaducec import BroadUcec
+from .harmonized import Harmonized
 
 SOURCES = [
     "bcmucec",
@@ -24,7 +25,8 @@ SOURCES = [
     "pdcucec",
     "umichucec",
     "washuucec",
-    "broaducec"
+    "broaducec",
+    "harmonized"
     
 ]
 
@@ -41,3 +43,4 @@ class PancanUcec(PancanDataset):
         self._datasets["pdc"] = PdcUcec(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichUcec(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuUcec(no_internet=no_internet, version=self._get_version("washu"))
+        self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanucec')

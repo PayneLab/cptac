@@ -17,6 +17,7 @@ from .umichccrcc import UmichCcrcc
 from .washuccrcc import WashuCcrcc
 from .bcmccrcc import BcmCcrcc
 from .broadccrcc import BroadCcrcc
+from .harmonized import Harmonized
 
 SOURCES = [
     "bcmccrcc",
@@ -24,7 +25,8 @@ SOURCES = [
     "pdcccrcc",
     "umichccrcc",
     "washuccrcc",
-    "broadccrcc"
+    "broadccrcc",
+    "harmonized"
 ]
 
 class PancanCcrcc(PancanDataset):
@@ -40,3 +42,4 @@ class PancanCcrcc(PancanDataset):
         self._datasets["pdc"] = PdcCcrcc(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichCcrcc(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuCcrcc(no_internet=no_internet, version=self._get_version("washu"))
+        self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanccrcc')

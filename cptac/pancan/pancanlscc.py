@@ -17,6 +17,7 @@ from .umichlscc import UmichLscc
 from .washulscc import WashuLscc
 from .bcmlscc import BcmLscc
 from .broadlscc import BroadLscc
+from .harmonized import Harmonized
 
 SOURCES = [
     "bcmlscc",
@@ -24,7 +25,8 @@ SOURCES = [
     "pdclscc",
     "umichlscc",
     "washulscc",
-    "broadlscc"
+    "broadlscc",
+    "harmonized"
 ]
 
 class PancanLscc(PancanDataset):
@@ -40,3 +42,4 @@ class PancanLscc(PancanDataset):
         self._datasets["pdc"] = PdcLscc(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichLscc(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuLscc(no_internet=no_internet, version=self._get_version("washu"))
+        self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanlscc')

@@ -17,6 +17,7 @@ from .pdchnscc import PdcHnscc
 from .umichhnscc import UmichHnscc
 from .washuhnscc import WashuHnscc
 from .broadhnscc import BroadHnscc
+from .harmonized import Harmonized
 
 SOURCES = [
     "bcmhnscc",
@@ -24,7 +25,8 @@ SOURCES = [
     "pdchnscc",
     "umichhnscc",
     "washuhnscc",
-    "broadhnscc"
+    "broadhnscc",
+    "harmonized"
 ]
 
 class PancanHnscc(PancanDataset):
@@ -40,4 +42,5 @@ class PancanHnscc(PancanDataset):
         self._datasets["pdc"] = PdcHnscc(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichHnscc(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuHnscc(no_internet=no_internet, version=self._get_version("washu"))
+        self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanhnscc')
         

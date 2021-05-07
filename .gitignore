@@ -21,6 +21,7 @@ cptac/data_pdac/*
 cptac/data_ucecconf/*
 
 cptac/pancan/data_mssmclinical/*
+cptac/pancan/data_harmonized/*
 
 cptac/pancan/data_bcmbrca/*
 cptac/pancan/data_broadbrca/*

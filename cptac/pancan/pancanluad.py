@@ -17,6 +17,7 @@ from .umichluad import UmichLuad
 from .washuluad import WashuLuad
 from .bcmluad import BcmLuad
 from .broadluad import BroadLuad
+from .harmonized import Harmonized
 
 SOURCES = [
     "bcmluad",
@@ -24,7 +25,8 @@ SOURCES = [
     "pdcluad",
     "umichluad",
     "washuluad",
-    "broadluad"
+    "broadluad",
+    "harmonized"
 ]
 
 class PancanLuad(PancanDataset):
@@ -40,3 +42,4 @@ class PancanLuad(PancanDataset):
         self._datasets["pdc"] = PdcLuad(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichLuad(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuLuad(no_internet=no_internet, version=self._get_version("washu"))
+        self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanluad')

@@ -17,6 +17,7 @@ from .umichov import UmichOv
 from .washuov import WashuOv
 from .bcmov import BcmOv
 from .broadov import BroadOv
+from .harmonized import Harmonized
 
 SOURCES = [
     "bcmov",
@@ -24,7 +25,8 @@ SOURCES = [
     "pdcov",
     "umichov",
     "washuov",
-    "broadov"
+    "broadov",
+    "harmonized"
 ]
 
 class PancanOv(PancanDataset):
@@ -40,3 +42,4 @@ class PancanOv(PancanDataset):
         self._datasets["pdc"] = PdcOv(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichOv(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuOv(no_internet=no_internet, version=self._get_version("washu"))
+        self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanov')

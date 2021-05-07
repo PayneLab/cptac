@@ -16,6 +16,7 @@ include cptac/utils/data/Uniprot_Proteome.tsv.gz
 include cptac/utils/data/WikiPathwaysDataframe.tsv.gz
 
 include cptac/pancan/data_mssmclinical/index_urls.tsv
+include cptac/pancan/data_harmonized/index_urls.tsv
 
 include cptac/pancan/data_bcmbrca/index_urls.tsv
 include cptac/pancan/data_broadbrca/index_urls.tsv

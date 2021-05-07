@@ -17,6 +17,8 @@ from .mssmclinical import MssmClinical
 from .pdcbrca import PdcBrca
 from .umichbrca import UmichBrca
 from .washubrca import WashuBrca
+from .harmonized import Harmonized
+from .joiningdataset import JoiningDataset
 
 
 SOURCES = [
@@ -26,6 +28,8 @@ SOURCES = [
     "pdcbrca",
     "umichbrca",
     "washubrca",
+    "harmonized",
+    "joiningdataset"
 ]
 
 class PancanBrca(PancanDataset):
@@ -41,3 +45,7 @@ class PancanBrca(PancanDataset):
         self._datasets["pdc"] = PdcBrca(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichBrca(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuBrca(no_internet=no_internet, version=self._get_version("washu"))
+        self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type= 'pancanbrca')
+        
+        join_dict = {k: v._data for k, v in self._datasets.items()}
+        self._joining_dataset = JoiningDataset(join_dict)
