@@ -27,7 +27,7 @@ class Dataset:
     the same function calls exist for cptac.Endometrial, cptac.Colon, etc.
     """
 
-    def __init__(self, cancer_type, version, valid_versions, data_files, no_internet, attempt_update_index=True):
+    def __init__(self, cancer_type, version, valid_versions, data_files, no_internet, attempt_update_index=True, skip_init=False):
         """Initialize variables for a Dataset object.
 
         Parameters:
@@ -36,30 +36,13 @@ class Dataset:
         valid_versions (list of str): A list of all possible valid versions for this dataset
         data_files (dict, keys of str, values of list of str): A dictionary where the keys are the existing version of the dataset, and the values are lists of the data file names for that version.
         """
-        # Initialize the _cancer_type instance variable
-        self._cancer_type = cancer_type.lower()
-
-        # Update the index, if possible and desired.
-        if attempt_update_index and not no_internet:
-            try:
-                update_index(self._cancer_type)
-            except NoInternetError:
-                pass
-
-        # Validate the version
-        self._version = validate_version(version, self._cancer_type, use_context="init", valid_versions=valid_versions)
-
-        # Get the paths to the data files
-        version_data_files = data_files[self._version] # Get the data files for this version from the data files dictionary
-        self._data_files_paths = get_version_files_paths(self._cancer_type, self._version, version_data_files)
-
-        # Initialize dataframe and definitions dicts as empty for this parent class
+         # Initialize dataframe and definitions dicts as empty for this parent class
         self._data = {}
         self._helper_tables = {}
         self._definitions = {}
 
-        # Assign the valid dfs lists, but make them instance variables so they're easy to override if needed
-        # These are the omics dataframes that are valid for use in the utilities functions
+         # Assign the valid dfs lists, but make them instance variables so they're easy to override if needed
+         # These are the omics dataframes that are valid for use in the utilities functions
         self._valid_omics_dfs = [
             'acetylproteomics',
             'circular_RNA',
@@ -72,16 +55,39 @@ class Dataset:
             'phosphoproteomics_gene',
             'proteomics',
             'somatic_mutation_binary',
-            'transcriptomics',
-            ]
+            'transcriptomics',                
+             ]
 
-        # These are the metadata dataframes that are valid for use in the utilities functions
+         # These are the metadata dataframes that are valid for use in the utilities functions
         self._valid_metadata_dfs = [
             "clinical",
             "derived_molecular",
-            "experimental_design",
-            #"followup", # Right now there are duplicate rows, so don't include follow up tables for joins.
-            ] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in Ccrcc, because they both have multiple rows for each sample.
+             "experimental_design",
+             #"followup", # Right now there are duplicate rows, so don't include follow up tables for joins.
+             ] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in Ccrcc, because they both have multiple rows for each sample.
+        
+        # Initialize the _cancer_type instance variable
+        self._cancer_type = cancer_type.lower()
+        
+        if not skip_init:
+
+           
+
+            # Update the index, if possible and desired.
+            if attempt_update_index and not no_internet:
+                try:
+                    update_index(self._cancer_type)
+                except NoInternetError:
+                    pass
+
+            # Validate the version
+            self._version = validate_version(version, self._cancer_type, use_context="init", valid_versions=valid_versions)
+
+            # Get the paths to the data files
+            version_data_files = data_files[self._version] # Get the data files for this version from the data files dictionary
+            self._data_files_paths = get_version_files_paths(self._cancer_type, self._version, version_data_files)
+
+           
 
     # Methods to get metadata dataframes
     def get_clinical(self, tissue_type="both"):
