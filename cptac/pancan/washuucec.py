@@ -154,7 +154,7 @@ class WashuUcec(Dataset):
                 df = df.drop_duplicates()
                 df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
                 df = df.set_index("Name")
-                self._data["CNV_gene_ids"] = df  
+                self._helper_tables["CNV_gene_ids"] = df  
                 
                 
                 
