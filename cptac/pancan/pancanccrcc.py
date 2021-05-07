@@ -18,6 +18,7 @@ from .washuccrcc import WashuCcrcc
 from .bcmccrcc import BcmCcrcc
 from .broadccrcc import BroadCcrcc
 from .harmonized import Harmonized
+from .joiningdataset import JoiningDataset
 
 SOURCES = [
     "bcmccrcc",
@@ -26,7 +27,8 @@ SOURCES = [
     "umichccrcc",
     "washuccrcc",
     "broadccrcc",
-    "harmonized"
+    "harmonized",
+    "joiningdataset"
 ]
 
 class PancanCcrcc(PancanDataset):
@@ -43,3 +45,6 @@ class PancanCcrcc(PancanDataset):
         self._datasets["umich"] = UmichCcrcc(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuCcrcc(no_internet=no_internet, version=self._get_version("washu"))
         self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanccrcc')
+        
+        join_dict = {k: v._data for k, v in self._datasets.items()}
+        self._joining_dataset = JoiningDataset(join_dict)

@@ -18,6 +18,7 @@ from .washuucec import WashuUcec
 from .bcmucec import BcmUcec
 from .broaducec import BroadUcec
 from .harmonized import Harmonized
+from .joiningdataset import JoiningDataset
 
 SOURCES = [
     "bcmucec",
@@ -26,7 +27,8 @@ SOURCES = [
     "umichucec",
     "washuucec",
     "broaducec",
-    "harmonized"
+    "harmonized",
+    "joiningdataset"
     
 ]
 
@@ -44,3 +46,6 @@ class PancanUcec(PancanDataset):
         self._datasets["umich"] = UmichUcec(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuUcec(no_internet=no_internet, version=self._get_version("washu"))
         self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanucec')
+        
+        join_dict = {k: v._data for k, v in self._datasets.items()}
+        self._joining_dataset = JoiningDataset(join_dict)

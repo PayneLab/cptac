@@ -18,6 +18,7 @@ from .washuluad import WashuLuad
 from .bcmluad import BcmLuad
 from .broadluad import BroadLuad
 from .harmonized import Harmonized
+from .joiningdataset import JoiningDataset
 
 SOURCES = [
     "bcmluad",
@@ -26,7 +27,8 @@ SOURCES = [
     "umichluad",
     "washuluad",
     "broadluad",
-    "harmonized"
+    "harmonized",
+    "joiningdataset"
 ]
 
 class PancanLuad(PancanDataset):
@@ -43,3 +45,6 @@ class PancanLuad(PancanDataset):
         self._datasets["umich"] = UmichLuad(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuLuad(no_internet=no_internet, version=self._get_version("washu"))
         self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanluad')
+        
+        join_dict = {k: v._data for k, v in self._datasets.items()}
+        self._joining_dataset = JoiningDataset(join_dict)

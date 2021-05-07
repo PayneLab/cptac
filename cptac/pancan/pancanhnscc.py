@@ -18,6 +18,8 @@ from .umichhnscc import UmichHnscc
 from .washuhnscc import WashuHnscc
 from .broadhnscc import BroadHnscc
 from .harmonized import Harmonized
+from .joiningdataset import JoiningDataset
+
 
 SOURCES = [
     "bcmhnscc",
@@ -26,7 +28,8 @@ SOURCES = [
     "umichhnscc",
     "washuhnscc",
     "broadhnscc",
-    "harmonized"
+    "harmonized",
+    "joiningdataset"
 ]
 
 class PancanHnscc(PancanDataset):
@@ -43,4 +46,7 @@ class PancanHnscc(PancanDataset):
         self._datasets["umich"] = UmichHnscc(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuHnscc(no_internet=no_internet, version=self._get_version("washu"))
         self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanhnscc')
+        
+        join_dict = {k: v._data for k, v in self._datasets.items()}
+        self._joining_dataset = JoiningDataset(join_dict)
         

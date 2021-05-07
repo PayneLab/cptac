@@ -18,6 +18,7 @@ from .umichgbm import UmichGbm
 from .washugbm import WashuGbm
 from .broadgbm import BroadGbm
 from .harmonized import Harmonized
+from .joiningdataset import JoiningDataset
 
 SOURCES = [
     "bcmgbm",
@@ -26,7 +27,8 @@ SOURCES = [
     "umichgbm",
     "washugbm",
     "broadgbm",
-    "harmonized"
+    "harmonized",
+    "joiningdataset"
 ]
 
 class PancanGbm(PancanDataset):
@@ -43,3 +45,6 @@ class PancanGbm(PancanDataset):
         self._datasets["umich"] = UmichGbm(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuGbm(no_internet=no_internet, version=self._get_version("washu"))
         self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancangbm')
+        
+        join_dict = {k: v._data for k, v in self._datasets.items()}
+        self._joining_dataset = JoiningDataset(join_dict)
