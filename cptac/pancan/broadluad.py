@@ -106,7 +106,7 @@ class BroadLuad(Dataset):
         df = self._data["transcriptomics"] 
         broad_gene_names = self._helper_tables["broad_gene_names"]
         broad_dict = self._helper_tables["broad_key"]
-        mapping_df = self._helpter_tables["map_ids"]
+        mapping_df = self._helper_tables["map_ids"]
         aliquot_dict = mapping_df.to_dict()["patient_ID"]
         
         df = broad_gene_names.join(df,how = "left") #merge in gene names keep transcripts that have a gene name
