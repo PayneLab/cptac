@@ -12,6 +12,7 @@
 import cptac
 import cptac.exceptions as ex
 import pandas as pd
+import logging
 
 class PancanDataset:
 
@@ -22,6 +23,11 @@ class PancanDataset:
         self._version = version
         self._datasets = {} # Child class __init__ needs to fill this
         self._joining_dataset = None
+        
+        #ignore logging messages
+        logger = logging.getLogger()
+        logger.setLevel(logging.CRITICAL)
+        
 
     # Clinical table getters
     def get_clinical(self, source = 'mssm', tissue_type="both", imputed=False):
