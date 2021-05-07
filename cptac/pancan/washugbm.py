@@ -50,7 +50,8 @@ class WashuGbm(Dataset):
                 "GBM_xCell.txt",
                 "CIBERSORT.Output_Abs_GBM.txt",
                 "gencode.v22.annotation.gtf.gz",
-                "GBM.gene_level.from_seg.filtered.tsv"
+                "GBM.gene_level.from_seg.filtered.tsv", 
+                "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz"
                 
             ]
         }
@@ -148,6 +149,12 @@ class WashuGbm(Dataset):
                 df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
                 df = df.set_index("Name")
                 self._helper_tables["CNV_gene_ids"] = df
+                
+            elif file_name == "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz":
+                df = pd.read_csv(file_path, sep = "\t", na_values = 'NA')
+                df.Sample_ID = df.Sample_ID.str.replace(r'-T', '', regex=True) # only tumor samples in file
+                df = df.set_index('Sample_ID')
+                self._data["tumor_purity"] = df
                 
         # CNV
         cnv = self._data["CNV"]

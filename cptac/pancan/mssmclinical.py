@@ -64,10 +64,28 @@ class MssmClinical(Dataset):
             if file_name == "clinical_Pan-cancer.Dec2020.tsv":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.loc[df['tumor_code'] == tumor_codes[filter_type]] 
-                df = df.loc[df['discovery_study'] != 'No'] 
+                df = df.loc[df['discovery_study'] != 'No'] # Only keep discovery study = 'Yes' or 'na'
                 df = df.set_index("case_id")
                 df.index.name = 'Patient_ID'
                 df = df.sort_values(by=["Patient_ID"])
+                # make Sample_Tumor_Normal column
+                if tumor_codes[filter_type] not in ('HCC','CO','OV'): # sample types not distinguished 
+                    if tumor_codes[filter_type] in ('GBM', 'BR'): # only has tumor samples 
+                        df['Sample_Tumor_Normal'] = 'Tumor'
+                    else:
+                        # Get list of patient_IDs with normal sample. Add suffix to distinguish. 
+                        normal = df.loc[df['discovery_study/type_of_analyzed_samples'].isin(['Normal', 'Tumor_and_Normal'])]
+                        normal = normal.sort_values(by=["Patient_ID"])
+                        normal['Sample_Tumor_Normal'] = 'Normal'
+                        normal = normal[['Sample_Tumor_Normal']] # keep only Sample_Tumor_Normal col
+                        indices = list(normal.index) 
+                        indices = [e+'.N' for e in indices] # Add ".N" to indices
+                        normal.index = indices
+                        # tumor samples
+                        tumor = df.loc[df['discovery_study/type_of_analyzed_samples'].isin(['Tumor', 'Tumor_and_Normal'])]
+                        tumor = tumor.sort_values(by=["Patient_ID"])
+                        tumor['Sample_Tumor_Normal'] = 'Tumor'
+                        df = tumor.append(normal) # append only the annotated patient_ID for normals (other information is with tumor and normals have nan for values in clinical table)
                 self._data["clinical"] = df                      
         
                 
@@ -99,30 +117,24 @@ class MssmClinical(Dataset):
                           'medical_history/exposure_to_secondhand_smoke_in_participants_current_household',    'medical_history/number_of_years_participant_has_consumed_more_than_2_drinks_per_day_for_men_and_more_than_1_drink_per_day_for_women']]         
         self._data['demographic'] = demographic_df
         
-        # Create previous_cancer df
+        # Create previous_cancer df (no data for HCC, BR, CO, OV)
         previous_cancer_df = all_clinical[['cancer_history/cancer_type', 'cancer_history/history_source', 
                                         'cancer_history/history_of_any_treatment',
                                         'cancer_history/medical_record_documentation_of_this_history_of_cancer_and_treatment']]
-        # include previous_cancer if it's not empty
+        # include previous_cancer if it's not empty 
         previous_cancer_df = previous_cancer_df.dropna(how='all')
         if len(previous_cancer_df.index) != 0: 
             self._data['previous_cancer'] = previous_cancer_df
-        #else:
-        #    print('no data for previous_cancer for', tumor_codes[filter_type])
-            
         
-        # Create medical_conditions df
+        # Create medical_conditions df (no data for HCC, BR, CO, OV)
         medical_conditions_df = all_clinical[['general_medical_history/medical_condition',
                                          'general_medical_history/history_of_treatment',
                                          'general_medical_history/history_source']]
-        # include general_medical if it's not empty
+        # include medical_conditions if it's not empty 
         medical_conditions_df = medical_conditions_df.dropna(how='all')
         if len(medical_conditions_df.index) != 0: 
             self._data['medical_conditions'] = medical_conditions_df
-        #else:
-        #    print('no data for medical_conditions for', tumor_codes[filter_type])
-            
-            
+        
         # Create cancer_diagnosis df    
         cancer_diagnosis_df = all_clinical[['baseline/tumor_site', 'baseline/tumor_site_other', 'baseline/tumor_laterality',
                                'baseline/tumor_focality', 'baseline/tumor_size_cm', 'baseline/histologic_type',
@@ -146,7 +158,7 @@ class MssmClinical(Dataset):
                                'procurement/normal_adjacent_tissue_collection_number_of_normal_segments_collected', 
                                'Recurrence-free survival', 'Overall survial', 'Recurrence status (1, yes; 0, no)',
                                'Survial status (1, dead; 0, alive)']]        
-        self._data['cancer_diagnosis'] = cancer_diagnosis_df # Maps dataframe name to dataframe (self._data)
+        self._data['cancer_diagnosis'] = cancer_diagnosis_df 
          
         # Create followup df
         followup_df = all_clinical[['follow-up/follow_up_period','follow-up/is_this_patient_lost_to_follow-up',
@@ -215,9 +227,7 @@ class MssmClinical(Dataset):
         dem = dem.rename(columns={'history_source':'med_history_source'}) # ?? ok to rename?
         self._data['demographic'] = dem
         
-        
-        
-        
+                    
 
         # Get a union of all dataframes' indices, with duplicates removed
         ###FILL: If there are any tables whose index values you don't want
@@ -233,25 +243,6 @@ class MssmClinical(Dataset):
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
 #        new_clinical = self._data["clinical"]
 #        new_clinical = new_clinical.reindex(master_index)
-
-        # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample was a tumor or normal sample. Use a function from dataframe_tools to generate it.
-
-        ###FILL: Your dataset should have some way that it marks the Patient IDs
-        ### of normal samples. The example code below is for a dataset that
-        ### marks them by putting an 'N' at the beginning of each one. You will
-        ### need to write a lambda function that takes a given Patient_ID string
-        ### and returns a bool indicating whether it corresponds to a normal
-        ### sample. Pass that lambda function to the 'normal_test' parameter of
-        ### the  generate_sample_status_col function when you call it. See 
-        ### cptac/dataframe_tools.py for further function documentation.
-        ###START EXAMPLE CODE###################################################
-#        sample_status_col = generate_sample_status_col(new_clinical, normal_test=lambda sample: sample[0] == 'N')
-        ###END EXAMPLE CODE#####################################################
-
-#        new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
-
-        # Replace the clinical dataframe in the data dictionary with our new and improved version!
-#        self._data['clinical'] = new_clinical
 
         # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. 
         
