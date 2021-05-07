@@ -57,6 +57,6 @@ class JoiningDataset(Dataset):
                 
         self._valid_metadata_dfs = meta_valid
         
-    
+  # for the join function to work the clincal data needs to be named clincal not mssm_clinical  
         self._data["clinical"] = self._data["mssm_clinical"]
         
