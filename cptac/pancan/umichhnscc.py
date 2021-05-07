@@ -77,8 +77,7 @@ class UmichHnscc(Dataset):
                    'RefInt_pool07', 'RefInt_pool08', 'RefInt_pool09', 'RefInt_pool10',
                    'RefInt_pool11', 'RefInt_pool12', 'RefInt_pool13', 'RefInt_pool14',
                    'RefInt_pool15', 'RefInt_pool16', 'RefInt_pool17', 'RefInt_pool18',
-                   'RefInt_pool19', 'RefInt_pool20', 'C3L-00994-C', 'C3L-02617-C', 
-                   'C3L-04350-C', 'C3L-05257-C', 'C3N-01757-C', 'C3N-03042-C'] # ok to drop -C ?
+                   'RefInt_pool19', 'RefInt_pool20']
     
                 # Drop quality control and ref intensity cols
                 df = df.drop(drop_cols, axis = 'index')
@@ -88,11 +87,12 @@ class UmichHnscc(Dataset):
 
                 df.index = df.index.str.replace('-T$','', regex = True)
                 df.index = df.index.str.replace('-N$','.N', regex = True)
+                df.index = df.index.str.replace('-C$','.C', regex = True) # 6 cored normal samples 
 
                 # Sort values
-                normal = df.loc[df.index.str.contains('\.N$', regex = True)]
+                normal = df.loc[df.index.str.contains('\.[NC]$', regex = True)]
                 normal = normal.sort_values(by=["Patient_ID"])
-                tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
+                tumor = df.loc[~ df.index.str.contains('\.[NC]$', regex = True)]
                 tumor = tumor.sort_values(by=["Patient_ID"])
 
                 all_df = tumor.append(normal)
