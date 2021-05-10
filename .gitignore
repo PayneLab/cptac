@@ -89,6 +89,7 @@ cptac/utils/data/hgnc_protein_families.tsv
 !cptac/data_ucec/index_urls.tsv
 
 !cptac/pancan/data_mssmclinical/index_urls.tsv
+!cptac/pancan/data_harmonized/index_urls.tsv
 
 !cptac/pancan/data_bcmbrca/index_urls.tsv
 !cptac/pancan/data_broadbrca/index_urls.tsv
