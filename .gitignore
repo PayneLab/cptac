@@ -5,6 +5,7 @@ __pychache__/
 dist/
 build/
 .DS_Store
+.python-version
 
 # Exclude data files, since they're stored remotely
 
