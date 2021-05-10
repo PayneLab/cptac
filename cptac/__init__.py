@@ -64,7 +64,6 @@ def version():
 
 def how_to_cite():
     """Give instructions for citing CPTAC datasets."""
-    """Give instructions for citing CPTAC datasets."""
     print("If you use the API to generate results, please cite our manuscript describing the API - Lindgren et al. 2021, PMID:33560848, https://pubs.acs.org/doi/10.1021/acs.jproteome.0c00919")
     print('\n')
     print("For instructions on how to cite a specific dataset, please call its how_to_cite method, e.g. cptac.Endometrial().how_to_cite()")
