@@ -60,10 +60,10 @@ class UmichCoad(Dataset):
             
             if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t")
-                df = df.drop(columns = ['MaxPepProb', 'NumberPSM']) #index is protein identifier (duplicate)
-                df.Index = df.Index.apply(lambda x: x.split('|')[5]) # Get gene name from position in list of gene identifiers
-                df = df.rename(columns = {'Index':'Name', 'Gene':'Database_ID'})
+                df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # Get protein identifier 
+                df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # Get protein name 
                 df = df.set_index(['Name', 'Database_ID']) # set multiindex
+                df = df.drop(columns = ['Index', 'MaxPepProb', 'NumberPSM', 'Gene']) # drop unnecessary  columns
                 df = df.transpose()
                 ref_intensities = df.loc["ReferenceIntensity"] # Get reference intensities to use to calculate ratios 
                 df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values

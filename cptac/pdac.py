@@ -66,7 +66,7 @@ class Pdac(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
             mark_normal = lambda s: s + ".N"
-            remove_type_tag = lambda s: s[:-2]
+            remove_type_tag = lambda s: s[:-2] # remove _T and similar tags from end of string
 
             if file_name == "clinical_table_140.tsv.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
