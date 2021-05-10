@@ -59,4 +59,5 @@ class JoiningDataset(Dataset):
         
   # for the join function to work the clincal data needs to be named clincal not mssm_clinical  
         self._data["clinical"] = self._data["mssm_clinical"]
+        self._data["somatic_mutation"] = self._data["harmonized_somatic_mutation"]
         
