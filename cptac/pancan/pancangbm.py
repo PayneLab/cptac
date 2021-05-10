@@ -20,6 +20,7 @@ from .broadgbm import BroadGbm
 from .harmonized import Harmonized
 from .joiningdataset import JoiningDataset
 
+#List sources to be downloaded
 SOURCES = [
     "bcmgbm",
     "mssmclinical",
@@ -27,8 +28,7 @@ SOURCES = [
     "umichgbm",
     "washugbm",
     "broadgbm",
-    "harmonized",
-    "joiningdataset"
+    "harmonized"
 ]
 
 class PancanGbm(PancanDataset):

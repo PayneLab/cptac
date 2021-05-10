@@ -20,6 +20,7 @@ from .broadluad import BroadLuad
 from .harmonized import Harmonized
 from .joiningdataset import JoiningDataset
 
+#List Sources to be Downloaded
 SOURCES = [
     "bcmluad",
     "mssmclinical",
@@ -27,8 +28,7 @@ SOURCES = [
     "umichluad",
     "washuluad",
     "broadluad",
-    "harmonized",
-    "joiningdataset"
+    "harmonized"
 ]
 
 class PancanLuad(PancanDataset):

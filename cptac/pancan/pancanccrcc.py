@@ -20,6 +20,7 @@ from .broadccrcc import BroadCcrcc
 from .harmonized import Harmonized
 from .joiningdataset import JoiningDataset
 
+#List sources to be downloaded
 SOURCES = [
     "bcmccrcc",
     "mssmclinical",
@@ -27,8 +28,7 @@ SOURCES = [
     "umichccrcc",
     "washuccrcc",
     "broadccrcc",
-    "harmonized",
-    "joiningdataset"
+    "harmonized"
 ]
 
 class PancanCcrcc(PancanDataset):

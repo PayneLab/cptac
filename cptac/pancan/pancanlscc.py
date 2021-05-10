@@ -20,6 +20,7 @@ from .broadlscc import BroadLscc
 from .harmonized import Harmonized
 from .joiningdataset import JoiningDataset
 
+#List sources to be downloaded
 SOURCES = [
     "bcmlscc",
     "mssmclinical",
@@ -27,8 +28,7 @@ SOURCES = [
     "umichlscc",
     "washulscc",
     "broadlscc",
-    "harmonized",
-    "joiningdataset"
+    "harmonized"
 ]
 
 class PancanLscc(PancanDataset):

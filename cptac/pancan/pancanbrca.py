@@ -20,7 +20,7 @@ from .washubrca import WashuBrca
 from .harmonized import Harmonized
 from .joiningdataset import JoiningDataset
 
-
+#List Sources to be downloaded
 SOURCES = [
     "bcmbrca",
     "broadbrca",
@@ -28,8 +28,7 @@ SOURCES = [
     "pdcbrca",
     "umichbrca",
     "washubrca",
-    "harmonized",
-    "joiningdataset"
+    "harmonized"
 ]
 
 class PancanBrca(PancanDataset):
