@@ -19,14 +19,14 @@ from .bcmcoad import BcmCoad
 from .broadcoad import BroadCoad
 from .harmonized import Harmonized
 
+#List sources to be downloaded
 SOURCES = [
     "bcmcoad",
     "mssmclinical",
     "pdccoad",
     "umichcoad",
     "washucoad",
-    "broadcoad",
-    "harmonized"
+    "broadcoad"
 ]
 
 class PancanCoad(PancanDataset):

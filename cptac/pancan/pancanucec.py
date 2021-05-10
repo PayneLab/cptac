@@ -20,6 +20,7 @@ from .broaducec import BroadUcec
 from .harmonized import Harmonized
 from .joiningdataset import JoiningDataset
 
+#List Sources to be downloaded
 SOURCES = [
     "bcmucec",
     "mssmclinical",
@@ -27,8 +28,7 @@ SOURCES = [
     "umichucec",
     "washuucec",
     "broaducec",
-    "harmonized",
-    "joiningdataset"
+    "harmonized"
     
 ]
 
