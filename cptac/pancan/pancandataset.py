@@ -134,7 +134,35 @@ class PancanDataset:
             tissue_type=tissue_type
         )
     
-    
+    def join_omics_to_mutations(
+        self,
+        omics_df_name,
+        omics_source,
+        mutations_genes,  
+        omics_genes=None, 
+        mutations_filter=None, 
+        show_location=True, 
+        how="outer", 
+        quiet=False,
+        tissue_type="both",
+        mutation_cols=["Mutation","Location"]
+     
+    ):
+        omics_df_name = f"{omics_source}_{omics_df_name}"
+      
+        return self._joining_dataset.join_omics_to_mutations(
+            omics_df_name = omics_df_name,
+            mutations_genes = mutations_genes,
+            omics_genes=omics_genes,
+            mutations_filter=mutations_filter,
+            show_location=show_location,
+            how=how,
+            quiet=quiet,
+            tissue_type=tissue_type,
+            mutation_cols=mutation_cols
+        )
+         
+        
     # Help functions
     def get_cancer_type(self):
         return self._cancer_type

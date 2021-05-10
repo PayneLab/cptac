@@ -486,7 +486,7 @@ class Dataset:
 
         return joined
 
-    def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both"):
+    def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both", mutation_cols = ["Mutation","Location"]):
         """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
@@ -507,7 +507,7 @@ class Dataset:
 
         # Select the data from each dataframe
         omics = self._get_omics_cols(omics_df_name, omics_genes, tissue_type)
-        mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
+        mutations = self._get_genes_mutations(mutations_genes, mutations_filter, mutation_cols = mutation_cols)
         if tissue_type == "normal":
             mutations = mutations.iloc[0:0] #If tissue type is normal, we drop all of the mutations rows and join only with the columns.
 
@@ -903,102 +903,124 @@ class Dataset:
         selected = df[cols]
         return selected
 
-    def _get_genes_mutations(self, genes, mutations_filter):
-        """Gets all the mutations for one or multiple genes, for all patients.
+    def _get_genes_mutations(self, genes, mutations_filter ,mutation_cols = ["Mutation","Location"]):
+            """Gets all the mutations for one or multiple genes, for all patients.
 
-        Parameters:
-        genes (str, or list or array-like of str): The gene(s) to grab mutations for. str if one, list or array-like of str if multiple.
-        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Passing None will cause no filtering to be done, and all mutation data will be included, in a list.
+            Parameters:
+            genes (str, or list or array-like of str): The gene(s) to grab mutations for. str if one, list or array-like of str if multiple.
+            mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Passing None will cause no filtering to be done, and all mutation data will be included, in a list.
+            mutation_cols (list): List of columns to include in joined df. Default is the Mutation and Location column
 
-        Returns:
-        pandas.DataFrame: The mutations in each patient for the specified gene(s).
-        """
-        somatic_mutation = self.get_somatic_mutation()
+            Returns:
+            pandas.DataFrame: The mutations in each patient for the specified gene(s).
+            """
+             
+            somatic_mutation = self.get_somatic_mutation()                            
 
-        # Process genes parameter
-        if isinstance(genes, str): # If it's a single gene, make it a list so we can treat everything the same
-            genes = [genes]
-        elif isinstance(genes, (list, pd.Series, pd.Index)): # If it's already a list or array-like, we're all good
-            pass
-        else: # If it's neither of those, they done messed up. Tell 'em.
-            raise InvalidParameterError("Genes parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(genes, type(genes)))
+            # Process genes parameter
+            if isinstance(genes, str): # If it's a single gene, make it a list so we can treat everything the same
+                genes = [genes]
+            elif isinstance(genes, (list, pd.Series, pd.Index)): # If it's already a list or array-like, we're all good
+                pass
+            else: # If it's neither of those, they done messed up. Tell 'em.
+                raise InvalidParameterError("Genes parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(genes, type(genes)))
 
-        # Set some column names for use later
-        gene_col = "Gene"
-        mutation_col = "Mutation"
-        location_col = "Location"
-        mutation_status_col = "Mutation_Status"
+            # Set some column names for use later
+            gene_col = "Gene"
+            mutation_col = "Mutation"
+            location_col = "Location"
+            mutation_status_col = "Mutation_Status"
 
-        # Check that they didn't make any typos in specifying filter values
-        invalid_filter = False
-        if mutations_filter is not None:
-            for filter_val in mutations_filter:
-                if (filter_val not in somatic_mutation[mutation_col].values) and (filter_val not in somatic_mutation[location_col].values):
-                    raise InvalidParameterError(f"Filter value {filter_val} does not exist in the mutations dataframe for this dataset. Check for typos and existence. Merge aborted.")
-
-        # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
-        df = pd.DataFrame(index=somatic_mutation.index.copy().drop_duplicates())
-        genes = pd.Series(genes).drop_duplicates()
-        for gene in genes:
-            gene_mutations = somatic_mutation[somatic_mutation[gene_col] == gene] # Get all the mutations for that gene
-            if len(gene_mutations) == 0: # If the gene doesn't match any genes in the dataframe, tell them
-                raise InvalidParameterError("{} gene not found in somatic_mutation data.".format(gene))
-            gene_mutations = gene_mutations.drop(columns=[gene_col]) # Gene column is same for every sample, so we don't need it anymore.
-
-            # Check whether all filter values exist for this particular gene. If not, that's fine, we just want to warn the user.
+            # Check that they didn't make any typos in specifying filter values
+            invalid_filter = False
             if mutations_filter is not None:
                 for filter_val in mutations_filter:
-                    if (filter_val not in gene_mutations[mutation_col].values) and (filter_val not in gene_mutations[location_col].values):
-                        warnings.warn(f"Filter value {filter_val} does not exist in the mutations data for the {gene} gene, though it exists for other genes.", ParameterWarning, stacklevel=3)
+                    if (filter_val not in somatic_mutation[mutation_col].values) and (filter_val not in somatic_mutation[location_col].values):
+                        raise InvalidParameterError(f"Filter value {filter_val} does not exist in the mutations dataframe for this dataset. Check for typos and existence. Merge aborted.")
 
-            # Create another empty dataframe, which we'll fill with the mutation and location data for this gene, as lists
-            prep_index = gene_mutations.index.copy().drop_duplicates()
-            prep_columns = gene_mutations.columns.copy()
-            mutation_status_idx = pd.Index([mutation_status_col]) # Prep mutation_status_col to be joined
-            prep_cols_with_mut_status = prep_columns.append(mutation_status_idx) # Add a mutation_status column, which will indicate if there are 1 or multiple mutations
-            mutation_lists = pd.DataFrame(index=prep_index, columns=prep_cols_with_mut_status)
+            # Create an empty dataframe, which we'll fill with the columns we select using our genes, and then return.
+            df = pd.DataFrame(index=somatic_mutation.index.copy().drop_duplicates())
+            genes = pd.Series(genes).drop_duplicates()
+            for gene in genes:
+                gene_mutations = somatic_mutation[somatic_mutation[gene_col] == gene] # Get all the mutations for that gene
+                if len(gene_mutations) == 0: # If the gene doesn't match any genes in the dataframe, tell them
+                    raise InvalidParameterError("{} gene not found in somatic_mutation data.".format(gene))
+                gene_mutations = gene_mutations.drop(columns=[gene_col]) # Gene column is same for every sample, so we don't need it anymore.
 
-            # Get the mutation(s), mutation status, and location information for this gene and sample
-            # Yes, I know I'm doing that horrible thing, using nested for loops to work with dataframes. However, I tried refactoring it to use DataFrame.groupby and DataFrame.apply, and both actually made it slower. Go figure.
-            for sample in mutation_lists.index:
-                sample_data = gene_mutations.loc[sample] # Get slice of dataframe for the sample
-                sample_mutations = sample_data[mutation_col] # Get mutation(s)
-                sample_locations = sample_data[location_col] # Get location(s)
+                # Check whether all filter values exist for this particular gene. If not, that's fine, we just want to warn the user.
+                if mutations_filter is not None:
+                    for filter_val in mutations_filter:
+                        if (filter_val not in gene_mutations[mutation_col].values) and (filter_val not in gene_mutations[location_col].values):
+                            warnings.warn(f"Filter value {filter_val} does not exist in the mutations data for the {gene} gene, though it exists for other genes.", ParameterWarning, stacklevel=3)
 
-                # Make the mutations a list (even if there's only one)
-                if isinstance(sample_mutations, pd.Series):
-                    sample_mutations_list = sample_mutations.tolist()
-                else:
-                    sample_mutations_list = [sample_mutations]
+                # Create another empty dataframe, which we'll fill with the mutation and location data for this gene, as lists
+                prep_index = gene_mutations.index.copy().drop_duplicates()
+                prep_columns = gene_mutations.columns.copy()
+                mutation_status_idx = pd.Index([mutation_status_col]) # Prep mutation_status_col to be joined
+                prep_cols_with_mut_status = prep_columns.append(mutation_status_idx) # Add a mutation_status column, which will indicate if there are 1 or multiple mutations
+                mutation_lists = pd.DataFrame(index=prep_index, columns=prep_cols_with_mut_status)
 
-                # Make the locations a list (even if there's only one)
-                if isinstance(sample_locations, pd.Series):
-                    sample_locations_list = sample_locations.tolist()
-                else:
-                    sample_locations_list = [sample_locations]
+                # Get the mutation(s), mutation status, and location information for this gene and sample
+                # Yes, I know I'm doing that horrible thing, using nested for loops to work with dataframes. However, I tried refactoring it to use DataFrame.groupby and DataFrame.apply, and both actually made it slower. Go figure.
+                for sample in mutation_lists.index: # samples ids with mutation
 
-                # Figure out what our mutation status is (either single_mutation or multiple_mutation)
-                if len(sample_mutations_list) > 1:
-                    sample_mutation_status = "Multiple_mutation"
-                else:
-                    sample_mutation_status = "Single_mutation"
+                    sample_data = gene_mutations.loc[sample] # Get slice of dataframe for the sample
 
-                if mutations_filter is not None: # Filter multiple mutations down to just one
-                    chosen_mutation, chosen_location = self._filter_multiple_mutations(mutations_filter, sample_mutations_list, sample_locations_list)
-                    mutation_lists.at[sample, mutation_col] = chosen_mutation
-                    mutation_lists.at[sample, location_col] = chosen_location
-                else: # Include all the mutations!
-                    mutation_lists.at[sample, mutation_col] = sample_mutations_list
-                    mutation_lists.at[sample, location_col] = sample_locations_list
+                    for col in mutation_cols:
 
-                # Also add the mutations status column
-                mutation_lists.at[sample, mutation_status_col] = sample_mutation_status
+                        sliced_col = sample_data[col] # Get single col 
 
-            mutation_lists = mutation_lists.add_prefix(gene + '_') # Add the gene name to end beginning of each column header, to preserve info when we join dataframes.
-            df = df.join(mutation_lists, how='outer') # Append the columns to our dataframe we'll return.
-            df.columns.name = "Name"
+                        #Make Mutations List 
+                        if col == mutation_col:
+                            if isinstance(sliced_col, pd.Series):
+                                sample_mutations_list = sliced_col.tolist()
+                            else:
+                                sample_mutations_list = [sliced_col] 
 
-        return df
+                            # Figure out what our mutation status is (either single_mutation or multiple_mutation)
+                            if len(sample_mutations_list) > 1:
+                                sample_mutation_status = "Multiple_mutation"
+                            else:
+                                sample_mutation_status = "Single_mutation"
+                        #Make Location List        
+                        if col == location_col:
+                            if isinstance(sliced_col, pd.Series):
+                                sample_locations_list = sliced_col.tolist()
+                            else:
+                                sample_locations_list = [sliced_col]
+                        else:
+                            if isinstance(sliced_col, pd.Series):
+                                sample_mut_col_list = sliced_col.tolist()
+                            else:
+                                sample_mut_col_list = [sliced_col]
+
+                            mutation_lists.at[sample, col] = sample_mut_col_list  
+                                        
+                    necessary_cols = ["Mutation","Location"] #must be included in order to filter mutations                   
+                    if mutations_filter is not None: # Filter multiple mutations down to just one
+                    #Check that Mutation and Location is mutation_cols so mutations_filter can work 
+                        if (all(x in mutation_cols for x in necessary_cols)):
+                            chosen_mutation, chosen_location = self._filter_multiple_mutations(mutations_filter, sample_mutations_list, sample_locations_list)
+                            mutation_lists.at[sample, mutation_col] = chosen_mutation
+                            mutation_lists.at[sample, location_col] = chosen_location
+                        else:
+                            warnings.warn(f"mutations_filter was not applied because columns 'Location' and 'Mutation' were not included in mutation_cols.")
+                    else: # Include all the mutations!
+                        if (all(x in mutation_cols for x in necessary_cols)):
+                            mutation_lists.at[sample, mutation_col] = sample_mutations_list
+                            mutation_lists.at[sample, location_col] = sample_locations_list 
+
+
+                    # Also add the mutations status column
+                    mutation_lists.at[sample, mutation_status_col] = sample_mutation_status
+
+                mutation_lists = mutation_lists[mutation_cols + [mutation_status_col]] #only include user specified columns and Mutation_Status 
+                mutation_lists = mutation_lists.add_prefix(gene + '_') # Add the gene name to end beginning of each column header, to preserve info when we join dataframes.
+                df = df.join(mutation_lists, how='outer') # Append the columns to our dataframe we'll return.
+                df.columns.name = "Name"
+
+            return df
+                                        
     def _join_other_to_mutations(self, other, mutations, mutations_were_filtered, show_location, how, quiet):
         """Join selected mutations data to selected other omics or metadata, add a Sample_Status column, fill in NaNs with Wildtype_Normal or Wildtype_Tumor, and name the dataframe.
 
