@@ -1003,13 +1003,12 @@ class Dataset:
                                         
                     necessary_cols = ["Mutation","Location"] #must be included in order to filter mutations                   
                     if mutations_filter is not None: # Filter multiple mutations down to just one
-                    #Check that Mutation and Location is mutation_cols so mutations_filter can work 
+                        #Check that Mutation and Location is mutation_cols so mutations_filter can work 
                         if (all(x in mutation_cols for x in necessary_cols)):
                             chosen_mutation, chosen_location = self._filter_multiple_mutations(mutations_filter, sample_mutations_list, sample_locations_list)
                             mutation_lists.at[sample, mutation_col] = chosen_mutation
                             mutation_lists.at[sample, location_col] = chosen_location
-                        else:
-                            warnings.warn(f"mutations_filter was not applied because columns 'Location' and 'Mutation' were not included in mutation_cols.")
+                        
                     else: # Include all the mutations!
                         if (all(x in mutation_cols for x in necessary_cols)):
                             mutation_lists.at[sample, mutation_col] = sample_mutations_list
@@ -1018,6 +1017,10 @@ class Dataset:
 
                     # Also add the mutations status column
                     mutation_lists.at[sample, mutation_status_col] = sample_mutation_status
+                                        
+                # Print warning if either Location and Mutation not provided and mutation_filter provided                       
+                if (mutations_filter is not None) & ((all(x in mutation_cols for x in necessary_cols)) == False):
+                    warnings.warn(f"mutations_filter was not applied because columns 'Location' and 'Mutation' were not included in mutation_cols.", ParameterWarning, stacklevel=3)                        
 
                 mutation_lists = mutation_lists[mutation_cols + [mutation_status_col]] #only include user specified columns and Mutation_Status 
                 mutation_lists = mutation_lists.add_prefix(gene + '_') # Add the gene name to end beginning of each column header, to preserve info when we join dataframes.
