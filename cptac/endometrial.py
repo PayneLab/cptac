@@ -231,3 +231,6 @@ class Endometrial(Dataset):
         self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
+
+    def how_to_cite(self):
+        return super().how_to_cite(cancer_type='endometrial carcinoma (uterine)', pmid=32059776)

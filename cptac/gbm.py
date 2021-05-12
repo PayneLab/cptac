@@ -308,3 +308,6 @@ class Gbm(Dataset):
         embargo_date = datetime.date(year=2021, month=3, day=1)
         if today < embargo_date:
             warnings.warn("The GBM dataset is under publication embargo until March 01, 2021. CPTAC is a community resource project and data are made available rapidly after generation for community research use. The embargo allows exploring and utilizing the data, but analysis may not be published until after the embargo date. Please see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details.", PublicationEmbargoWarning, stacklevel=2)
+
+    def how_to_cite(self):
+        return super().how_to_cite(cancer_type='glioblastoma', pmid=33577785)

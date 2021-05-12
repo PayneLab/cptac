@@ -522,3 +522,6 @@ class Lscc(Dataset):
 
         # Print data embargo warning
         warnings.warn("The LSCC data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)
+
+    def how_to_cite(self):
+        return super().how_to_cite(cancer_type='lung squamous cell carcinoma', pmid='', unpublished=True)

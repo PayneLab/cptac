@@ -17,7 +17,7 @@ import datetime
 
 from .dataset import Dataset
 from .dataframe_tools import *
-from .exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
+from .exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError, InvalidParameterError
 
 class UcecConf(Dataset):
 
@@ -202,17 +202,21 @@ class UcecConf(Dataset):
         # Print password access only warning
         warnings.warn("The UcecConf data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)
 
-    def get_CNV(self, algorithm):
+    def get_CNV(self, algorithm=""):
         if (not algorithm):
             message = ("Please specify which type of UcecConf CNV data you want: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
-            return cptac.exceptions.InvalidParameterError(message)
-        elif (version == "log2ratio"):
+            raise InvalidParameterError(message)
+        elif (algorithm == "log2ratio"):
             return super().get_dataframe("CNV_log2ratio")
-        elif (version == "gistic"):
+        elif (algorithm == "gistic"):
             return super().get_dataframe("CNV_gistic")
         else: 
             message = ("Please specify a valid algorithm type for UcecConf CNV data: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
-            return cptac.exceptions.InvalidParameterError(message)
+            raise InvalidParameterError(message)
+
+    def how_to_cite(self):
+        super().how_to_cite(cancer_type='endometrial confirmatory carcinoma', pmid='', unpublished=True)
+        
 
