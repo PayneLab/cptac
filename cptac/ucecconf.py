@@ -36,11 +36,15 @@ class UcecConf(Dataset):
 
         data_files = {
             "1.0": [
+            #"UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_Direct_SRM_tumor_v1.0.cct.gz",
             "UCEC_confirmatory_IMAC_SRM_tumor_v1.0.cct.gz",
             "UCEC_confirmatory_meta_table_v1.0.xlsx",
+            #"UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.0.cct.gz",
             "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.0.cct.gz",
+            #"UCEC_confirmatory_nglycoform-site_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz",
+            #"UCEC_confirmatory_phospho_gene_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_proteomics_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             #"UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz",
@@ -113,8 +117,8 @@ class UcecConf(Dataset):
             
             elif file_name == "UCEC_confirmatory_meta_table_v1.0.xlsx":
                 df = pd.read_excel(file_path)
-                df.loc[df['Group'] == 'Enriched_Normal', 'Idx'] = df['Idx'] + '.E'
-                df['Enriched_Sample'] = df['Group'].apply(lambda x: 'True' if x == 'Enriched_Normal' else 'False')
+                df.insert(6, "Proteomics_Tumor_Normal", df["Group"])
+                df.loc[df['Group'] == 'Enriched_Normal', 'Idx'] = df['Idx'] + '.N'
                 df.loc[df['Group'] == 'Adjacent_normal', 'Idx'] = df['Idx'].str[:-2] + '.N'
                 df = df.set_index("Idx")
                 df.loc[df['Group'] != 'Tumor', 'Group'] = 'Normal'
