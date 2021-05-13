@@ -61,3 +61,17 @@ class JoiningDataset(Dataset):
         self._data["clinical"] = self._data["mssm_clinical"]
         self._data["somatic_mutation"] = self._data["harmonized_somatic_mutation"]
         
+        #create unionized indices for clinical
+        
+        master_index = unionize_indices(self._data).dropna()
+        new_clinical = self._data["clinical"]
+        new_clinical = new_clinical.reindex(master_index)
+       
+        sample_status_col = generate_sample_status_col(new_clinical, normal_test=lambda sample: sample.endswith('.N') if type(sample) is str else sample[0].endswith(".N"))
+        new_clinical = new_clinical.drop(columns=['Sample_Tumor_Normal'])
+        
+        new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
+        # Replace the clinical dataframe in the data dictionary with our new and improved version!
+        self._data['clinical'] = new_clinical
+
+        
