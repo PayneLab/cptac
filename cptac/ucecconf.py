@@ -36,12 +36,16 @@ class UcecConf(Dataset):
 
         data_files = {
             "1.0": [
+            #"UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
-            #"UCEC_confirmatory_Direct_SRM_tumor_v1.0.cct.gz",
-            #"UCEC_confirmatory_IMAC_SRM_tumor_v1.0.cct.gz",
+            "UCEC_confirmatory_Direct_SRM_tumor_v1.0.cct.gz",
+            "UCEC_confirmatory_IMAC_SRM_tumor_v1.0.cct.gz",
             "UCEC_confirmatory_meta_table_v1.0.xlsx",
-            #"UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.0.cct.gz",
-            #"UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
+            #"UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.0.cct.gz",
+            "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.0.cct.gz",
+            #"UCEC_confirmatory_nglycoform-site_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz",
+            #"UCEC_confirmatory_phospho_gene_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
+            "UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_proteomics_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             #"UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz",
             #"UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.0.txt.gz",
@@ -74,25 +78,74 @@ class UcecConf(Dataset):
                 df = df.reset_index()
                 df[['Name','Database_ID','Site']] = df.idx.str.split("@", expand=True)
                 df['Site'] = df['Site'].str.split('-',expand=True)[1]
-                df[['Peptide']] = ''
-                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])
+                df = df.set_index(["Name", "Site", "Database_ID"])
                 df = df.drop(columns=["idx"])
                 df = df.transpose()
                 df = df.sort_index()
                 df.index.name = "Patient_ID"
                 self._data["acetylproteomics"] = df
                 
+            elif file_name == "UCEC_confirmatory_Direct_SRM_tumor_v1.0.cct.gz":
+                df_direct = pd.read_csv(file_path, sep='\t', index_col=0)
+                df_direct = df_direct.transpose()
+                df_direct = df_direct.sort_index()
+                
+                # merge srm files if we already have loaded the other one
+                if "proteomics_srm" in self._data:
+                    df_imac = self._data["proteomics_srm"]
+                    df_combined = pd.concat([df_direct, df_imac])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
+                    self._data["proteomics_srm"] = df_combined
+                else:
+                    self._data["proteomics_srm"] = df_direct
+
+            elif file_name == "UCEC_confirmatory_IMAC_SRM_tumor_v1.0.cct.gz":
+                df_imac = pd.read_csv(file_path, sep='\t', index_col=0)
+                df_imac = df_imac.transpose()
+                df_imac = df_imac.sort_index()
+                
+                # merge srm files if we already have loaded the other one
+                if "proteomics_srm" in self._data:
+                    df_direct = self._data["proteomics_srm"]
+                    df_combined = pd.concat([df_direct, df_imac])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
+                    self._data["proteomics_srm"] = df_combined
+                else:
+                    self._data["proteomics_srm"] = df_imac
+            
             elif file_name == "UCEC_confirmatory_meta_table_v1.0.xlsx":
                 df = pd.read_excel(file_path)
-                df.index.name = "Patient_ID"
-                df.columns.name = "Name"
-                df.loc[df['Group'] == 'Enriched_Normal', 'Idx'] = df['Idx'] + '.E'
-                df['Enriched_Sample'] = df['Group'].apply(lambda x: 'True' if x == 'Enriched_Normal' else 'False')
+                df.insert(6, "Proteomics_Tumor_Normal", df["Group"])
+                df.loc[df['Group'] == 'Enriched_Normal', 'Idx'] = df['Idx'] + '.N'
                 df.loc[df['Group'] == 'Adjacent_normal', 'Idx'] = df['Idx'].str[:-2] + '.N'
                 df = df.set_index("Idx")
                 df.loc[df['Group'] != 'Tumor', 'Group'] = 'Normal'
                 df = df.rename({'Group': 'Sample_Tumor_Normal'}, axis=1)
+                df.index.name = "Patient_ID"
+                df.columns.name = "Name"
                 self._data["clinical"] = df
+            
+            elif file_name == "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.0.cct.gz":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name = "Patient_ID"
+                df.columns.name = "Name"
+                self._data["miRNA"] = df
+                
+            elif file_name == "UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.reset_index()
+                df[['Name','Database_ID','Site']] = df.idx.str.split("@", expand=True)
+                df['Site'] = df['Site'].str.split('-',expand=True)[1]
+                df = df.set_index(["Name", "Site", "Database_ID"])
+                df = df.drop(columns=["idx"])
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name = "Patient_ID"
+                self._data["phosphoproteomics"] = df
                 
             elif file_name == "UCEC_confirmatory_proteomics_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
@@ -108,10 +161,21 @@ class UcecConf(Dataset):
                 df = df.sort_index()
                 df.index.name = "Patient_ID"
                 df.columns.name = "Name"
-                self._data["circular_RNA"] = df
+                self._data["transcriptomics"] = df
 
             elif file_name == "UCEC_confirmatory_WES_somatic_mutation_v1.0.maf.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.reset_index()
+                df['Tumor_Sample_Barcode'].apply(lambda s: s[:-2])
+                df = df[['Tumor_Sample_Barcode','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
+                df = df.rename(columns={
+                    "Tumor_Sample_Barcode": "Patient_ID",
+                    "Hugo_Symbol":"Gene",
+                    "Variant_Classification":"Mutation",
+                    "HGVSp_Short":"Location"})
+                df = df.sort_values(by=["Patient_ID", "Gene"])
+                df.columns.name = "Name"
+                df = df.set_index("Patient_ID")
                 self._data["somatic_mutation"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
@@ -201,7 +265,7 @@ class UcecConf(Dataset):
 
         # Print password access only warning
         warnings.warn("The UcecConf data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)
-
+        
     def get_CNV(self, algorithm):
         if (not algorithm):
             message = ("Please specify which type of UcecConf CNV data you want: "
@@ -215,4 +279,3 @@ class UcecConf(Dataset):
             message = ("Please specify a valid algorithm type for UcecConf CNV data: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
             return cptac.exceptions.InvalidParameterError(message)
-

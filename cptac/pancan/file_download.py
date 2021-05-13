@@ -176,7 +176,7 @@ def download_pdc_id(pdc_id, _download_msg=True):
     sort_index()
 
     quant = bio.\
-    join(quant, how="right").\
+    join(quant, how="inner").\
     reset_index().\
     set_index(["case_submitter_id", "aliquot_submitter_id"]).\
     sort_index()
