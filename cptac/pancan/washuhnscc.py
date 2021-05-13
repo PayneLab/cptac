@@ -20,6 +20,7 @@ from gtfparse import read_gtf
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
+from .mssmclinical import MssmClinical
 
 
 class WashuHnscc(Dataset):
@@ -51,12 +52,18 @@ class WashuHnscc(Dataset):
                 "HNSCC_xCell.txt",
                 "CIBERSORT.Output_Abs_HNSCC.txt",
                 "HNSCC.gene_level.from_seg.filtered.tsv",
-                "gencode.v22.annotation.gtf.gz"
+                "gencode.v22.annotation.gtf.gz",
+                "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz"
             ]
         }
 
         # Call the parent class __init__ function
         super().__init__(cancer_type="washuhnscc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        
+        # get clinical df (used to slice out cancer specific patient_IDs in tumor_purity file)
+        mssmclin = MssmClinical(no_internet=no_internet, version="latest", filter_type='pancanhnscc') #_get_version - pancandataset
+        clinical_df = mssmclin.get_clinical()
+        
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -157,7 +164,17 @@ class WashuHnscc(Dataset):
                 df = df.drop_duplicates()
                 df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
                 df = df.set_index("Name")
-                self._helper_tables["CNV_gene_ids"] = df    
+                self._helper_tables["CNV_gene_ids"] = df
+                
+            elif file_name == "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz":
+                df = pd.read_csv(file_path, sep = "\t", na_values = 'NA')
+                df.Sample_ID = df.Sample_ID.str.replace(r'-T', '', regex=True) # only tumor samples in file
+                df = df.set_index('Sample_ID') 
+                df.index.name = 'Patient_ID' 
+                # Use list of patient_ids to slice out cancers                
+                patient_ids = clinical_df.index.to_list()
+                df = df.loc[df.index.isin(patient_ids)]                
+                self._data["tumor_purity"] = df
                     
         # combine and create transcriptomic dataframe            
         rna_tumor = self._helper_tables.get("transcriptomics_tumor")
