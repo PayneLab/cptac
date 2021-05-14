@@ -242,7 +242,9 @@ class PancanDataset:
                                     'Missense_Mutation_hotspot',
     	                           'Missense_Mutation',
                                     'Amplification',
-                                    'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site'
+                                    'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site' ,
+                                    'De_Novo_Start_Out_Frame' ,'De_Novo_Start_In_Frame', 
+                                    'Start_Codon_Ins', 'Start_Codon_SNP', 
                                     'Silent',
                                     'Wildtype']
 
@@ -266,7 +268,7 @@ class PancanDataset:
 
                 return mutations
             
-            cnv = self.get_CNV()
+            cnv = self.get_CNV(source = omics_source)
             #drop the database index from ccrcc and brca
             if isinstance(cnv.keys(), pd.core.indexes.multi.MultiIndex):
                 drop = ['Database_ID']
@@ -354,7 +356,7 @@ class PancanDataset:
                         if mutation in missenses:
                             chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
 
-                if self.get_cancer_type() == "gbm" and len(chosen_indices) == 0: # None of them were in the filter, nor were truncations, nor missenses, so we'll grab all the noncodings
+                if len(chosen_indices) == 0: # None of them were in the filter, nor were truncations, nor missenses, so we'll grab all the noncodings
                     for mutation in sample_mutations_list:
                         if mutation in noncodings:
                             chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
