@@ -1215,20 +1215,14 @@ class Dataset:
 
     def _tumor_only(self, df):
         """For a given dataframe, extract only the tumor samples."""
-
-        clinical = self._get_dataframe("clinical")
-        clinical_tumor = clinical[clinical.Sample_Tumor_Normal == "Tumor"]
-        tumor_list = list(clinical_tumor.index.values)
-        tumor_df = df.loc[df.index.isin(tumor_list)]
+        
+        tumor_df = df[~df.index.str.endswith(".N")]                  
         return tumor_df
 
     def _normal_only(self, df):
         """For a given dataframe, extract only the tumor samples."""
 
-        clinical = self._get_dataframe("clinical")
-        clinical_normal = clinical[clinical.Sample_Tumor_Normal == "Normal"]
-        normal_list = list(clinical_normal.index.values)
-        normal_df = df.loc[df.index.isin(normal_list)]
+        normal_df = df[df.index.str.endswith(".N")]
         return normal_df
 
     def _check_how_parameter(self, given_how):
