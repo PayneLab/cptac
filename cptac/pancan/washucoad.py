@@ -52,8 +52,8 @@ class WashuCoad(Dataset):
                 "CO_xCell.txt",
                 "CO.gene_level.from_seg.filtered.tsv",
                 "gencode.v22.annotation.gtf.gz",
-                "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
-                "README_miRNA"              
+                "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz"
+                #"README_miRNA"              
             ]
         }
 
@@ -144,10 +144,10 @@ class WashuCoad(Dataset):
                 patient_ids = clinical_df.index.to_list()
                 df = df.loc[df.index.isin(patient_ids)]                
                 self._data["tumor_purity"] = df
-                
+            '''    
             elif file_name == "README_miRNA":
                 with open(file_path, 'r') as reader:
-                    self._data["readme_miRNA"] = reader 
+                    self._data["readme_miRNA"] = reader.read()'''
                 
 #
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
