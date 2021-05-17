@@ -13,6 +13,7 @@ import cptac
 import cptac.exceptions as ex
 import pandas as pd
 import logging
+import cptac.utils as ut
 
 class PancanDataset:
 
@@ -224,67 +225,32 @@ class PancanDataset:
         else:
             return self._version
         
-    def get_genotype_all_vars(self, mutations_genes, mutations_filter=None, show_location=True, mutation_hotspot=None):
+    def get_genotype_all_vars(self, mutations_genes, omics_source, mutations_filter=None, show_location=True, mutation_hotspot=None):
         """Return a dataframe that has the mutation type and wheather or not it is a multiple mutation
         Parameters:
         mutation_genes (str, or list or array-like of str): The gene(s) to get mutation data for.
         mutations_filter (list, optional):  List of mutations to prioritize when filtering out multiple mutations, in order of priority.
+        omics_source(str): Source of omics data ex "bcm", "washu", "broad", "umich"
         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
         mutation_hotspot (optional): a list of hotspots
         """
 
         #If they don't give us a filter, this is the default.
+           
+        mutations_filter = ["Deletion",
+                                    'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', #tuncation
+                                    'Missense_Mutation_hotspot',
+    	                           'Missense_Mutation',
+                                    'Amplification',
+                                    'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site' ,
+                                    'De_Novo_Start_Out_Frame' ,'De_Novo_Start_In_Frame', 
+                                    'Start_Codon_Ins', 'Start_Codon_SNP', 
+                                    'Silent',
+                                    'Wildtype']
 
-        if mutations_filter == None:
-            if self.get_cancer_type() == "colon":
-                mutations_filter = ["Deletion", #deletion
-                                        'frameshift deletion', 'frameshift insertion', 'frameshift substitution', 'stopgain', 'stoploss', #truncation
-                                        'Missense_Mutation_hotspot',
-    	                                'nonframeshift deletion', 'nonframeshift insertion', 'nonframeshift substitution', 'nonsynonymous SNV', #missense
-                                        'Amplification',
-                                         'Wildtype']
-
-
-            elif self.get_cancer_type() == "hnscc":
-                mutations_filter = ["Deletion", #deletion
-                                        'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', #truncation
-                                        'Missense_Mutation_hotspot',
-    	                                'Missense_Mutation',
-                                        'Amplification',
-                                        'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site' #inframe changes
-                                        'Silent','Wildtype']
-
-            elif self.get_cancer_type() == "gbm":
-                mutations_filter = ["Deletion", #deletion
-                                        'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', #truncation
-                                        'Missense_Mutation_hotspot',
-                                        'Missense_Mutation',
-                                        'Amplification',
-                                        'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site' #inframe changes
-                                        'Silent','Wildtype']
-
-            else:
-                mutations_filter = ["Deletion",
-                                        'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', #tuncation
-                                        'Missense_Mutation_hotspot',
-    	                                'Missense_Mutation',
-                                        'Amplification',
-                                        'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site'
-                                        'Silent',
-                                        'Wildtype']
-
-        if self.get_cancer_type() == 'colon':
-            truncations = ['frameshift deletion', 'frameshift insertion', 'frameshift substitution', 'stopgain', 'stoploss']
-            missenses = ['nonframeshift deletion', 'nonframeshift insertion', 'nonframeshift substitution', 'nonsynonymous SNV']
-        elif self.get_cancer_type() == 'hnscc' and self.version() == "0.1":
-            truncations =["stopgain", "stoploss"]
-            missenses = ["nonframeshift insertion", "nonframeshift deletion"]
-        else:
-            truncations = ['Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', 'Splice_Site']
-            missenses = ['In_Frame_Del', 'In_Frame_Ins', 'Missense_Mutation']
-
-        if self.get_cancer_type() == "gbm":
-            noncodings = ["Intron", "RNA", "3'Flank", "Splice_Region", "5'UTR", "5'Flank", "3'UTR"]
+        truncations = ['Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', 'Splice_Site']
+        missenses = ['In_Frame_Del', 'In_Frame_Ins', 'Missense_Mutation']
+        noncodings = ["Intron", "RNA", "3'Flank", "Splice_Region", "5'UTR", "5'Flank", "3'UTR"]
 
 
 
@@ -302,7 +268,7 @@ class PancanDataset:
 
                 return mutations
             
-            cnv = self.get_CNV()
+            cnv = self.get_CNV(source = omics_source)
             #drop the database index from ccrcc and brca
             if isinstance(cnv.keys(), pd.core.indexes.multi.MultiIndex):
                 drop = ['Database_ID']
@@ -314,14 +280,12 @@ class PancanDataset:
 
 
         #combine the cnv and mutations dataframe
-        combined = self.join_omics_to_mutations(omics_df_name="CNV", mutations_genes=mutations_genes, omics_genes=mutations_genes)
+        combined = self.join_omics_to_mutations(omics_df_name="CNV", mutations_genes=mutations_genes, omics_genes=mutations_genes, omics_source = omics_source)
+                
 
-
-        #drop the database index from ccrcc
-        if self.get_cancer_type() == "ccrcc" or self.get_cancer_type() == "brca":
-             cc = self.get_CNV()
-             drop = ['Database_ID']
-             combined = ut.reduce_multiindex(df=combined, levels_to_drop=drop)
+        #drop the database index 
+        drop = ['Database_ID']
+        combined = ut.reduce_multiindex(df=combined, levels_to_drop=drop)
 
 
         #If there are hotspot mutations, append 'hotspot' to the mutation type so that it's prioritized correctly
@@ -344,14 +308,15 @@ class PancanDataset:
             combined['hotspot'] = combined.apply(mark_hotspot_locations, axis=1)
             combined[mutations_genes+"_Mutation"] = combined['hotspot']
             combined = combined.drop(columns='hotspot')
+     
 
         # Based on cnv make a new column with mutation type that includes deletions and amplifications
         def add_del_and_amp(row):
-            if row[mutations_genes+"_CNV"] <= -.2:
+            if row[mutations_genes+ "_" + omics_source + "_CNV"] <= -.2:
                 mutations = row[mutations_genes+"_Mutation"] + ['Deletion']
                 locations = row[mutations_genes+'_Location']+['Deletion']
 
-            elif row[mutations_genes+"_CNV"] >= .2:
+            elif row[mutations_genes + "_" + omics_source+"_CNV"] >= .2:
                 mutations = row[mutations_genes+"_Mutation"] + ['Amplification']
                 locations = row[mutations_genes+'_Location']+['Amplification']
             else:
@@ -362,8 +327,7 @@ class PancanDataset:
 
 
         combined['mutations'], combined['locations'] = zip(*combined.apply(add_del_and_amp, axis=1))
-
-
+       
         #now that we have the deletion and amplifications, we need to prioritize the correct mutations.
         def sort(row):
             sortedcol = []
@@ -392,7 +356,7 @@ class PancanDataset:
                         if mutation in missenses:
                             chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
 
-                if self.get_cancer_type() == "gbm" and len(chosen_indices) == 0: # None of them were in the filter, nor were truncations, nor missenses, so we'll grab all the noncodings
+                if len(chosen_indices) == 0: # None of them were in the filter, nor were truncations, nor missenses, so we'll grab all the noncodings
                     for mutation in sample_mutations_list:
                         if mutation in noncodings:
                             chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
@@ -432,8 +396,9 @@ class PancanDataset:
         combined['Mutation_Status'] = combined.apply(sample_status, axis=1)
 
         #drop all the unnecessary Columns
-        df = combined.drop(columns=[mutations_genes+"_CNV", mutations_genes+"_Mutation", mutations_genes+"_Location", mutations_genes+"_Mutation_Status", 'Sample_Status', 'mutations','locations'])
+        df = combined.drop(columns=[mutations_genes+ "_" + omics_source +"_CNV", mutations_genes+"_Mutation", mutations_genes+"_Location", mutations_genes+"_Mutation_Status", 'Sample_Status', 'mutations','locations'])
         df['Mutation'] = [','.join(map(str, l)) for l in df['Mutation']]
         df['Location'] = [','.join(map(str, l)) for l in df['Location']]
         if show_location == False: df = df.drop(columns="Location") #if they don't want us to show the location, drop it
+       
         return df

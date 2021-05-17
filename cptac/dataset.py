@@ -522,6 +522,7 @@ class Dataset:
         Returns:
         pandas.DataFrame: The mutations for the specified gene, joined to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
         """
+
         # Check to make sure that the "how" parameter is valid
         self._check_how_parameter(how)
 
@@ -929,7 +930,7 @@ class Dataset:
             Parameters:
             genes (str, or list or array-like of str): The gene(s) to grab mutations for. str if one, list or array-like of str if multiple.
             mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Passing None will cause no filtering to be done, and all mutation data will be included, in a list.
-            mutation_cols (list): List of columns to include in joined df. Default is the Mutation and Location column
+            mutation_cols (list or str): List of columns to include in joined df. Default is the Mutation and Location column. The str "All" returns all mutation columns. 
 
             Returns:
             pandas.DataFrame: The mutations in each patient for the specified gene(s).
@@ -979,7 +980,11 @@ class Dataset:
                 mutation_status_idx = pd.Index([mutation_status_col]) # Prep mutation_status_col to be joined
                 prep_cols_with_mut_status = prep_columns.append(mutation_status_idx) # Add a mutation_status column, which will indicate if there are 1 or multiple mutations
                 mutation_lists = pd.DataFrame(index=prep_index, columns=prep_cols_with_mut_status)
-
+                
+                if mutation_cols == "All":
+                    mutation_cols = somatic_mutation.columns.to_list()
+                    mutation_cols = mutation_cols[1:] #drop column name "Gene"  
+                                        
                 # Get the mutation(s), mutation status, and location information for this gene and sample
                 # Yes, I know I'm doing that horrible thing, using nested for loops to work with dataframes. However, I tried refactoring it to use DataFrame.groupby and DataFrame.apply, and both actually made it slower. Go figure.
                 for sample in mutation_lists.index: # samples ids with mutation
@@ -1225,20 +1230,14 @@ class Dataset:
 
     def _tumor_only(self, df):
         """For a given dataframe, extract only the tumor samples."""
-
-        clinical = self._get_dataframe("clinical")
-        clinical_tumor = clinical[clinical.Sample_Tumor_Normal == "Tumor"]
-        tumor_list = list(clinical_tumor.index.values)
-        tumor_df = df.loc[df.index.isin(tumor_list)]
+        
+        tumor_df = df[~df.index.str.endswith(".N")]                  
         return tumor_df
 
     def _normal_only(self, df):
         """For a given dataframe, extract only the tumor samples."""
 
-        clinical = self._get_dataframe("clinical")
-        clinical_normal = clinical[clinical.Sample_Tumor_Normal == "Normal"]
-        normal_list = list(clinical_normal.index.values)
-        normal_df = df.loc[df.index.isin(normal_list)]
+        normal_df = df[df.index.str.endswith(".N")]
         return normal_df
 
     def _check_how_parameter(self, given_how):
