@@ -211,15 +211,30 @@ class Dataset:
         """Return the dataset version of this instance, as a string."""
         return self._version
 
-    def how_to_cite(self):
+    def how_to_cite(self, cancer_type='', pmid='', unpublished=False):
         """Print instructions for citing the data."""
-        #print("For use of the cptac Python data API, please cite our publication: https://www.biorxiv.org/content/10.1101/2020.11.16.385427v1")
-        message = ('Please include the following statement(s) in publications using data '
+        ### 
+        # OLD message: 
+        # print("For use of the cptac Python data API, please cite 
+        # our publication: https://www.biorxiv.org/content/10.1101/2020.11.16.385427v1")
+        ###
+
+        # current main message
+        main_message = ('Please include the following statement(s) in publications using data '
          'accessed through this module:\n"Data used in this publication were generated '
          'by the Clinical Proteomic Tumor Analysis Consortium (NCI/NIH). '
          'Data were accessed through the Python module cptac, PMID: 33560848."')
-        
-        print(textwrap.wrap(message))
+        print(main_message)
+
+        # extra message specific to cancer type
+        if (cancer_type and pmid):
+            cancer_specific_message = (f"Data from {cancer_type} were originally published in PMID: {pmid}")
+            print(cancer_specific_message)
+        elif (cancer_type and unpublished):
+            print(f"Data for {cancer_type} has not been published yet.")
+        else:
+            # no additional message will be printed if we have not passed in parameters
+            pass
 
     def list_data(self):
         """Print list of loaded dataframes and dimensions."""
