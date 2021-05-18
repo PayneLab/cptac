@@ -78,7 +78,12 @@ class UcecConf(Dataset):
                 df = df.reset_index()
                 df[['Name','Database_ID','Site']] = df.idx.str.split("@", expand=True)
                 df['Site'] = df['Site'].str.split('-',expand=True)[1]
-                df = df.set_index(["Name", "Site", "Database_ID"])
+                
+                #Without the peptide information the columns are not unique and it gives us an error
+                # when calling "self._data = sort_all_rows(self._data)"
+                df["Peptide"] = [i for i in range(len(df["Name"]))]
+                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])
+                
                 df = df.drop(columns=["idx"])
                 df = df.transpose()
                 df = df.sort_index()
@@ -124,7 +129,13 @@ class UcecConf(Dataset):
                 df = df.reset_index()
                 df[['Name','Database_ID','Site']] = df.idx.str.split("@", expand=True)
                 df['Site'] = df['Site'].str.split('-',expand=True)[1]
-                df = df.set_index(["Name", "Site", "Database_ID"])
+                
+                #Without the peptide information the columns are not unique and it gives us an error
+                # when calling "self._data = sort_all_rows(self._data)"
+                df["Peptide"] = [i for i in range(len(df["Name"]))]
+                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])
+                
+                
                 df = df.drop(columns=["idx"])
                 df = df.transpose()
                 df = df.sort_index()
@@ -186,7 +197,7 @@ class UcecConf(Dataset):
                 self._data["somatic_mutation_binary"] = df
 
             elif file_name == "UCEC_confirmatory_WES_somatic_mutation_v1.0.maf.gz":
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = pd.read_csv(file_path, sep='\t', index_col=0, dtype={88:object})
                 df = df.reset_index()
                 df['Tumor_Sample_Barcode'].apply(lambda s: s[:-2])
                 df = df[['Tumor_Sample_Barcode','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
