@@ -190,5 +190,4 @@ class Colon(Dataset):
     # Overload the default how_to_cite function, to provide the specific publication information for the Colon dataset
     def how_to_cite(self):
         """Print instructions for citing the data."""
-        super().how_to_cite()
-        print('"Data from Colon cancer were originally published in PMID: 31031003."')
+        super().how_to_cite(cancer_type='colorectal cancer', pmid=31031003)
