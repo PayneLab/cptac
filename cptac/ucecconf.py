@@ -17,7 +17,7 @@ import datetime
 
 from .dataset import Dataset
 from .dataframe_tools import *
-from .exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError, InvalidParameterError
+from .exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 class UcecConf(Dataset):
 
@@ -45,12 +45,12 @@ class UcecConf(Dataset):
             "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.0.cct.gz",
             #"UCEC_confirmatory_nglycoform-site_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz",
             #"UCEC_confirmatory_phospho_gene_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
-            "UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
+            "UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz", # finished but also didn't have peptides :\
             "UCEC_confirmatory_proteomics_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
-            "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz",
-            "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.0.txt.gz",
-            "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz",
-            #"UCEC_confirmatory_RNAseq_isoform_FPKM_removed_circRNA_log2(x+1)_tumor_normal_v1.0.cct.gz",
+            "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz", #circular_RNA
+            "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.0.txt.gz", #gene_fusion
+            "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz", #transcriptomics
+            #"UCEC_confirmatory_RNAseq_isoform_FPKM_removed_circRNA_log2(x+1)_tumor_normal_v1.0.cct.gz", #Ask what type this one is
             "UCEC_confirmatory_WES_cnv_gistic_thresholded_tumor_v1.0.cct.gz",
             "UCEC_confirmatory_WES_cnv_log2_ratio_tumor_v1.0.cct.gz",
             "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.0.cbt.gz",
@@ -205,104 +205,38 @@ class UcecConf(Dataset):
         print(formatting_msg, end='\r')
 
 
-        # NOTE: The code below will not work properly until you have all the
-        # dataframes formatted properly and loaded into the self._data
-        # dictionary. That's why they're commented out for now. Go ahead and
-        # uncomment them when all the data tables are ready. Note that some of
-        # the lines are marked as just examples, though, and you'll still need
-        # to adapt them to your specific situation.
-
         # Get a union of all dataframes' indices, with duplicates removed
-        ###FILL: If there are any tables whose index values you don't want
-        ### included in the master index, pass them to the optional 'exclude'
-        ### parameter of the unionize_indices function. This was useful, for
-        ### example, when some datasets' followup data files included samples
-        ### from cohorts that weren't in any data tables besides the followup
-        ### table, so we excluded the followup table from the master index since
-        ### there wasn't any point in creating empty representative rows for
-        ### those samples just because they existed in the followup table.
-
-        # master_index = unionize_indices(self._data)
+        master_index = unionize_indices(self._data)
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-
-        # new_clinical = self._data["clinical"]
-        # new_clinical = new_clinical.reindex(master_index)
-
-        # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample was a tumor or normal sample. Use a function from dataframe_tools to generate it.
-
-        ###FILL: Your dataset should have some way that it marks the Patient IDs
-        ### of normal samples. The example code below is for a dataset that
-        ### marks them by putting an 'N' at the beginning of each one. You will
-        ### need to write a lambda function that takes a given Patient_ID string
-        ### and returns a bool indicating whether it corresponds to a normal
-        ### sample. Pass that lambda function to the 'normal_test' parameter of
-        ### the  generate_sample_status_col function when you call it. See
-        ### cptac/dataframe_tools.py for further function documentation.
-        ###START EXAMPLE CODE###################################################
-
-        # sample_status_col = generate_sample_status_col(new_clinical, normal_test=lambda sample: sample[0] == 'N')
-
-        ###END EXAMPLE CODE#####################################################
-
-        # new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
+        new_clinical = self._data["clinical"]
+        new_clinical = new_clinical.reindex(master_index)
 
         # Replace the clinical dataframe in the data dictionary with our new and improved version!
-        # self._data['clinical'] = new_clinical
-
-        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets.
-
-        ###FILL: You may need to use the code below to reformat the patient IDs
-        ### in your dataset. This applies if all of the normal samples are
-        ### already marked in the original data files in some way, but just not
-        ### in the way we want (e.g. they have an "N" at the beginning of the
-        ### sample ID, instead of a ".N" at the end). Be aware that the case
-        ### with some datasets such as PDAC is different; instead of the normal
-        ### samples already being marked, just not in the way we want, they're
-        ### actually contained in a separate table, with no special marking on
-        ### the sample ids. In those cases you wouldn't use the
-        ### reformat_normal_patient_ids function, and would instead just mark
-        ### the samples in the normal tables with the ".N" before appending them
-        ### to the tumor tables.
-        ### If you do use this function: the standard normal ID format is to
-        ### have the string '.N' appended to the end of the normal patient IDs,
-        ### e.g. the  normal patient ID corresponding to C3L-00378 would be
-        ### C3L-00378.N (this way we can easily match two samples from the same
-        ### patient). The example code below is for a dataset where all the
-        ### normal samples have  an "N" prepended to the patient IDs. The
-        ### reformat_normal_patient_ids function erases that and puts a ".N" at
-        ### the end. See cptac/dataframe_tools.py for further function
-        ### documentation.
-        ###START EXAMPLE CODE###################################################
-        # self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
-        ###END EXAMPLE CODE#####################################################
+        self._data['clinical'] = new_clinical
 
         # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-        # self._data = sort_all_rows(self._data)
+        self._data = sort_all_rows(self._data)
 
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
-        # self._data = standardize_axes_names(self._data)
+        self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 
         # Print password access only warning
         warnings.warn("The UcecConf data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)
         
-    def get_CNV(self, algorithm=None):
+    def get_CNV(self, algorithm):
         if (not algorithm):
             message = ("Please specify which type of UcecConf CNV data you want: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
-            raise InvalidParameterError(message)
-        elif (algorithm == "log2ratio"):
+            return cptac.exceptions.InvalidParameterError(message)
+        elif (version == "log2ratio"):
             return super().get_dataframe("CNV_log2ratio")
-        elif (algorithm == "gistic"):
+        elif (version == "gistic"):
             return super().get_dataframe("CNV_gistic")
         else: 
             message = ("Please specify a valid algorithm type for UcecConf CNV data: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
-            raise InvalidParameterError(message)
-
-    def how_to_cite(self):
-        super().how_to_cite(cancer_type='endometrial confirmatory carcinoma', pmid='', unpublished=True)
-        
+            return cptac.exceptions.InvalidParameterError(message)
 
