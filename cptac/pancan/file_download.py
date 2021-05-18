@@ -108,12 +108,12 @@ def download(dataset, version="latest", redownload=False):
         elif dataset == "pancanucec":
             sources = UCEC_SOURCES
         elif dataset == "all":
-            sources = BRCA_SOURCES + CCRCC_SOURCES + COAD_SOURCES + GBM_SOURCES + HNSCC_SOURCES + LSCC_SOURCES + LUAD_SOURCES + OV_SOURCES + UCEC_SOURCES
+            sources = sorted(set(BRCA_SOURCES + CCRCC_SOURCES + COAD_SOURCES + GBM_SOURCES + HNSCC_SOURCES + LSCC_SOURCES + LUAD_SOURCES + OV_SOURCES + UCEC_SOURCES))
         else:
             raise InvalidParameterError(f"{dataset} is not a valid dataset.")
 
         overall_success = True
-        for source in sorted(sources):
+        for source in sources:
 
             if source.startswith("pdc"):
                 single_success = download(source, version=version, redownload=redownload)

@@ -75,11 +75,9 @@ class WashuLuad(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-
             if file_name == "LUAD_discovery.dnp.annotated.exonic.maf.gz": # Note that we use the "file_name" variable to identify files. That way we don't have to use the whole path.
                 df = pd.read_csv(file_path, sep='\t', dtype={"PUBMED": "O"})    
                # Rename the columns we want to keep to the appropriate names
-                df = pd.read_csv(file_path, sep='\t')    
                 df['Patient_ID'] = df.loc[:, 'Tumor_Sample_Barcode']
                 df = df.rename(columns={
                          "Hugo_Symbol":"Gene",
