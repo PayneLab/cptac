@@ -36,7 +36,7 @@ class UcecConf(Dataset):
 
         data_files = {
             "1.0": [
-            #"UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz",
+            "UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             #"UCEC_confirmatory_Direct_SRM_tumor_v1.0.cct.gz", #SRM not to be included in 1.0
             #"UCEC_confirmatory_IMAC_SRM_tumor_v1.0.cct.gz",
@@ -44,7 +44,7 @@ class UcecConf(Dataset):
             "UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.0.cct.gz",
             "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.0.cct.gz",
             #"UCEC_confirmatory_nglycoform-site_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz",
-            #"UCEC_confirmatory_phospho_gene_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
+            "UCEC_confirmatory_phospho_gene_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz", # finished but also didn't have peptides :\
             "UCEC_confirmatory_proteomics_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz", #circular_RNA
@@ -73,7 +73,15 @@ class UcecConf(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-            if file_name == "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
+            if file_name == "UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name = "Patient_ID"
+                df.columns.name = "Name"
+                self._data["acetylproteomics_gene"] = df
+                
+            elif file_name == "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.reset_index()
                 df[['Name','Database_ID','Site']] = df.idx.str.split("@", expand=True)
@@ -120,6 +128,14 @@ class UcecConf(Dataset):
                 #df = df.set_index("Patient_ID")
                 df.columns.name = "Name"
                 self._data["miRNA"] = df
+                
+            elif file_name == "UCEC_confirmatory_phospho_gene_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name = "Patient_ID"
+                df.columns.name = "Name"
+                self._data["phosphoproteomics_gene"] = df
                 
             elif file_name == "UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
