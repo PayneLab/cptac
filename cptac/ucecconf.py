@@ -50,7 +50,7 @@ class UcecConf(Dataset):
             "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz", #circular_RNA
             "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.0.txt.gz", #gene_fusion
             "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz", #transcriptomics
-            #"UCEC_confirmatory_RNAseq_isoform_FPKM_removed_circRNA_log2(x+1)_tumor_normal_v1.0.cct.gz", #Ask what type this one is
+            #"UCEC_confirmatory_RNAseq_isoform_FPKM_removed_circRNA_log2(x+1)_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_WES_cnv_gistic_thresholded_tumor_v1.0.cct.gz",
             "UCEC_confirmatory_WES_cnv_log2_ratio_tumor_v1.0.cct.gz",
             "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.0.cbt.gz",
@@ -103,13 +103,10 @@ class UcecConf(Dataset):
                 self._data["clinical"] = df
                 
             elif file_name == "UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.0.cct.gz":
-                df = pd.read_csv(file_path, sep='\t', index_col=0, dtype=object)
-                #Not sure what the dtype thing actually does, but it was giving me a big warning
-                #This made it go away. I need to find out exactly what is happening
+                df = pd.read_csv(file_path, sep='\t', index_col=0,  na_values=['NA'])
                 df = df.transpose()
                 df.index.name = "Patient_ID"
                 df.columns.name = "Name"
-                #I also am not 100% sure this is methylation, but I don't know what else it would be
                 self._data["methylation"] = df
             
             elif file_name == "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.0.cct.gz":
