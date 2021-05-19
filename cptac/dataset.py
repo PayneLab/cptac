@@ -118,6 +118,10 @@ class Dataset:
     def get_acetylproteomics(self, tissue_type="both"):
         """Get the acetylproteomics dataframe."""
         return self._get_dataframe("acetylproteomics", tissue_type)
+    
+    def get_acetylproteomics_gene(self, tissue_type="both"):
+        """Get the acetylproteomics_gene dataframe. The gene level acetylation measurement is an aggregate metric which potentially averages together individual measurements of different sites. Use get_acetylproteomics() to view the data for individual sites."""
+        return self._get_dataframe("acetylproteomics_gene",tissue_type)
 
     def get_circular_RNA(self, tissue_type="both"):
         """Get the circular_RNA dataframe."""
