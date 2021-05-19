@@ -47,9 +47,9 @@ class UcecConf(Dataset):
             "UCEC_confirmatory_phospho_gene_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz", # finished but also didn't have peptides :\
             "UCEC_confirmatory_proteomics_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
-            "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz", #circular_RNA
-            "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.0.txt.gz", #gene_fusion
-            "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz", #transcriptomics
+            "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz",
+            "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.0.txt.gz",
+            "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz",
             #"UCEC_confirmatory_RNAseq_isoform_FPKM_removed_circRNA_log2(x+1)_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_WES_cnv_gistic_thresholded_tumor_v1.0.cct.gz",
             "UCEC_confirmatory_WES_cnv_log2_ratio_tumor_v1.0.cct.gz",
@@ -122,10 +122,6 @@ class UcecConf(Dataset):
                 df = df.transpose()
                 df = df.sort_index()
                 df.index.name = "Patient_ID"
-                #If we wanted to turn every -A into a .N on the Patient_IDs
-                #df = df.reset_index()
-                #df.loc[df['Patient_ID'].str[-2:] == '-A', 'Patient_ID'] = df['Patient_ID'].str[:-2] + '.N'
-                #df = df.set_index("Patient_ID")
                 df.columns.name = "Name"
                 self._data["miRNA"] = df
                 
@@ -212,8 +208,8 @@ class UcecConf(Dataset):
             elif file_name == "UCEC_confirmatory_WES_somatic_mutation_v1.0.maf.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0, dtype={88:object})
                 df = df.reset_index()
-                df['Tumor_Sample_Barcode'].apply(lambda s: s[:-2])
                 df = df[['Tumor_Sample_Barcode','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
+                df['Tumor_Sample_Barcode'] = df['Tumor_Sample_Barcode'].apply(lambda s: s[:-2])
                 df = df.rename(columns={
                     "Tumor_Sample_Barcode": "Patient_ID",
                     "Hugo_Symbol":"Gene",
