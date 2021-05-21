@@ -74,11 +74,14 @@ class Dataset:
            
 
             # Update the index, if possible and desired.
-            if attempt_update_index and not no_internet:
+            """ if attempt_update_index and not no_internet:
                 try:
                     update_index(self._cancer_type)
                 except NoInternetError:
                     pass
+ """
+
+            self._version = version # TEMP FOR DEV; REPLACE W/ ABOVE WHEN DONE
 
             # Validate the version
             self._version = validate_version(version, self._cancer_type, use_context="init", valid_versions=valid_versions)
