@@ -29,7 +29,7 @@ class Brca(Dataset):
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
-        valid_versions = ["3.1", "3.1.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["3.1", "3.1.1", "5.4"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "3.1": [
@@ -48,6 +48,15 @@ class Brca(Dataset):
                 "prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz",
                 "prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz",
                 "prosp-brca-v3.1-sample-annotation.csv.gz"],
+            "5.4" : [
+                "prosp-brca-v5.4-public-acetylome-ratio-norm-NArm.gct.gz", 
+                "prosp-brca-v5.4-public-gene-level-cnv-gistic2-all_data_by_genes.gct.gz", 
+                "prosp-brca-v5.4-public-immune-profiling-scores-combined.gct.gz", 
+                "prosp-brca-v5.4-public-phosphoproteome-ratio-norm-NArm.gct.gz", 
+                "prosp-brca-v5.4-public-proteome-ratio-norm-NArm.gct.gz", 
+                #"prosp-brca-v5.4-public-rnaseq-fpkm-log2-row-norm-median-mad.gct.gz", 
+                "prosp-brca-v5.4-public-rnaseq-fpkm-log2.gct.gz", 
+                "prosp-brca-v5.4-public-sample-annotation.csv.gz"]
         }
 
         super().__init__(cancer_type="brca", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
@@ -63,7 +72,8 @@ class Brca(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
 
-            if file_name == "prosp-brca-v3.1-acetylome-ratio-norm-NArm.gct.gz":
+            if file_name in ["prosp-brca-v3.1-acetylome-ratio-norm-NArm.gct.gz", 
+                            "prosp-brca-v5.4-public-acetylome-ratio-norm-NArm.gct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
                 df = df[df["GeneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for GeneSymbol, so we'll use that to filter them out.
 
@@ -94,7 +104,8 @@ class Brca(Dataset):
                 df.index.name = "Patient_ID"
                 self._data["acetylproteomics"] = df
 
-            elif file_name == "prosp-brca-v3.1-gene-level-cnv-gistic2-all_data_by_genes.gct.gz":
+            elif file_name in ["prosp-brca-v3.1-gene-level-cnv-gistic2-all_data_by_genes.gct.gz", 
+                                "prosp-brca-v5.4-public-gene-level-cnv-gistic2-all_data_by_genes.gct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', skiprows=2, index_col=0, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
                 df = df[df["geneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for geneSymbol, so we'll use that to filter them out.
                 df = df.drop(columns="Cytoband")
@@ -108,7 +119,8 @@ class Brca(Dataset):
                 df.index.name = "Patient_ID"
                 self._data["CNV"] = df
 
-            elif file_name == "prosp-brca-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz":
+            elif file_name in ["prosp-brca-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz", 
+                                "prosp-brca-v5.4-public-phosphoproteome-ratio-norm-NArm.gct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
                 df = df[df["GeneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for GeneSymbol, so we'll use that to filter them out.
 
@@ -140,7 +152,8 @@ class Brca(Dataset):
                 df.index.name = "Patient_ID"
                 self._data["phosphoproteomics"] = df
 
-            elif file_name == "prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz":
+            elif file_name in ["prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz", 
+                                "prosp-brca-v5.4-public-proteome-ratio-norm-NArm.gct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
                 df = df[df["GeneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for GeneSymbol, so we'll use that to filter them out.
 
@@ -156,8 +169,13 @@ class Brca(Dataset):
                 df.index.name = "Patient_ID"
                 self._data["proteomics"] = df
 
-            elif file_name == "prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz":
-                df = pd.read_csv(file_path, sep='\t', skiprows=2, index_col=0, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
+            elif file_name in ["prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz", 
+                                "prosp-brca-v5.4-public-rnaseq-fpkm-log2.gct.gz"]:
+                if self._version in ["3.1", "3.1.1"]:
+                    rows_to_skip = 2
+                elif self._version == "5.4":
+                    rows_to_skip = 57
+                df = pd.read_csv(file_path, sep='\t', skiprows=rows_to_skip, index_col=0, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
                 df = df[df["geneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for GeneSymbol, so we'll use that to filter them out.
                 df = df.set_index("geneSymbol")
                 df = df.drop(columns="description") # We don't need this.
@@ -168,7 +186,8 @@ class Brca(Dataset):
                 df.index.name = "Patient_ID"
                 self._data["transcriptomics"] = df
 
-            elif file_name == "prosp-brca-v3.1-sample-annotation.csv.gz":
+            elif file_name == ["prosp-brca-v3.1-sample-annotation.csv.gz", 
+                                "prosp-brca-v5.4-public-sample-annotation.csv.gz"]:
                 df = pd.read_csv(file_path, index_col=0)
                 df = df.drop(columns="Participant") # This column is just a duplicate of the index
                 df = df.rename(columns={"Sample.IDs": "Replicate_Measurement_IDs", "Type": "Sample_Tumor_Normal"})
@@ -209,6 +228,9 @@ class Brca(Dataset):
                 df = df.set_index("Patient_ID")
 
                 self._data["somatic_mutation"] = df
+
+            elif file_name == "prosp-brca-v5.4-public-immune-profiling-scores-combined.gct.gz" and self._version == "5.4":
+                df = pd.read_csv(file_path, sep='\t')
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
