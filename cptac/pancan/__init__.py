@@ -19,7 +19,7 @@ from .pdchnscc import PdcHnscc
 from .pdclscc import PdcLscc
 from .pdcluad import PdcLuad
 from .pdcov import PdcOv
-from .pdcpda import PdcPda
+from .pdcpdac import PdcPdac
 from .pdcucec import PdcUcec
 
 from .pancanbrca import PancanBrca
@@ -31,6 +31,7 @@ from .pancanlscc import PancanLscc
 from .pancanluad import PancanLuad
 from .pancanov import PancanOv
 from .pancanucec import PancanUcec
+from .pancanpdac import PancanPdac
 
 def list_datasets(print_list=True):
     """Print available datasets in the cptac.pancan module.
@@ -49,6 +50,7 @@ def list_datasets(print_list=True):
         "PancanLuad",
         "PancanOv",
         "PancanUcec",
+        "PancanPdac"
     ]
 
     str_result = "\n".join(datasets)

@@ -20,10 +20,10 @@ from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class UmichGbm(Dataset):
+class UmichPdac(Dataset):
 
     def __init__(self, no_internet, version):
-        """Load all of the umichgbm dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+        """Load all of the umichucec dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
@@ -38,14 +38,13 @@ class UmichGbm(Dataset):
         data_files = {
             "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
                     "aliquot_to_patient_ID.tsv",
-                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv"
-                #"S039_BCprospective_observed_0920.tsv.gz",
-                #"S039_BCprospective_imputed_0920.tsv.gz"
+                   "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv"
+             
             ]
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="umichgbm", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="umichpdac", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -57,9 +56,8 @@ class UmichGbm(Dataset):
 
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
-            
-            
-            if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
+                   
+            if file_name == 'Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv':
                 df = pd.read_csv(file_path, sep = "\t") 
                 df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # Get protein identifier 
                 df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # Get protein name 
@@ -68,24 +66,20 @@ class UmichGbm(Dataset):
                 df = df.transpose()
                 ref_intensities = df.loc["ReferenceIntensity"] # Get reference intensities to use to calculate ratios 
                 df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values
-                df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
-    
-                # Drop quality control and ref intensity cols
-                drop_cols = ['RefInt_01Pool', 'RefInt_02Pool', 'RefInt_03Pool', 'RefInt_04Pool',
-                             'RefInt_05Pool', 'RefInt_06Pool', 'RefInt_07Pool', 'RefInt_08Pool',
-                             'RefInt_09Pool', 'RefInt_10Pool', 'RefInt_11Pool']
-                df = df.drop(drop_cols, axis = 'index')
+
+                # Drop qauality control and ref intensity 
+                drop_cols = ['ReferenceIntensity', 'QC1', 'QC2', 'QC3', 'QC4', 'QC5', 'QC6', 'KoreanReference1',
+                   'KoreanReference2', 'KoreanReference3', 'Pool-24-2', 'WU-PDA1', 'WU-Pool-25']
+                df = df.drop(drop_cols, axis = 'index')   
                 self._data["proteomics"] = df
-                
+
             elif file_name == "aliquot_to_patient_ID.tsv":
                 df = pd.read_csv(file_path, sep = "\t")
                 self._helper_tables["map_ids"] = df
-                
-                 
-            elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
+
+            if file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
-                
                 # Parse a few columns out of the "Index" column that we'll need for our multiindex
                 df[['Database_ID','Transcript_ID',"Gene_ID","Havana_gene","Havana_transcript","Transcript","Name","Site"]] = df.Index.str.split("\\|",expand=True)
                 df[['num1','start',"end","detected_phos","localized_phos","Site"]] = df.Site.str.split("_",expand=True) 
@@ -100,25 +94,7 @@ class UmichGbm(Dataset):
                 df.drop([ 'Gene', "Index","num1","start","end","detected_phos","localized_phos","Havana_gene","Havana_transcript","MaxPepProb","Gene_ID","Transcript_ID","Transcript"], axis=1, inplace=True)
                 self._data["phosphoproteomics"] = df
 
-            '''
-            elif file_name == "S039_BCprospective_observed_0920.tsv.gz":
-                df = pd.read_csv(file_path, sep="\t")
-                df = df.transpose()
-                df.index.name = 'Patient_ID'
-                df.columns.name = 'Name'
-                df = average_replicates(df)
-                df = df.sort_values(by=["Patient_ID"])
-                self._data["proteomics"] = df  
-                
-            elif file_name == "S039_BCprospective_imputed_0920.tsv.gz":
-                df = pd.read_csv(file_path, sep="\t")
-                df = df.transpose()
-                df.index.name = 'Patient_ID'
-                df.columns.name = 'Name'
-                df = average_replicates(df)
-                df = df.sort_values(by=["Patient_ID"])
-                self._data["proteomics_imputed"] = df'''
-            
+
         # Proteomics
         # Get Patient_IDs 
         # slice mapping_df to include cancer specific aliquot_IDs 
@@ -133,20 +109,17 @@ class UmichGbm(Dataset):
         prot = prot.reset_index()
         prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
         prot = prot.set_index('Patient_ID')
-        
+
         # Sort values
-        normal = prot.loc[prot.index.str.contains('^PT-', regex = True)]
+        normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
         normal = normal.sort_values(by=["Patient_ID"])
-        normal.index = normal.index +'.N' # append .N to normal IDs
-        tumor = prot.loc[~ prot.index.str.contains('^PT-', regex = True)]
+        tumor = prot.loc[~ prot.index.str.contains('\.N$', regex = True)]
         tumor = tumor.sort_values(by=["Patient_ID"])
         all_prot = tumor.append(normal)
         self._data["proteomics"] = all_prot
-                
         
-        #Phosphoproteomcis 
+        #phosphoproteomics 
         
-        ## phosphoproteomics 
         phos = self._data["phosphoproteomics"]
         mapping_df = self._helper_tables["map_ids"]
         mapping_df = mapping_df.set_index("aliquot_ID")
@@ -156,19 +129,21 @@ class UmichGbm(Dataset):
         phos = phos.T #transpose df 
         ref_intensities = phos.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
         phos = phos.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values, to get ratios
-        phos = phos.iloc[1:,:] # drop ReferenceIntensity row 
-        drop_cols_phos = ['RefInt_01Pool','RefInt_02Pool', 'RefInt_03Pool', 'RefInt_04Pool', 'RefInt_05Pool','RefInt_06Pool', 
-                          'RefInt_07Pool', 'RefInt_08Pool','RefInt_09Pool','RefInt_10Pool','RefInt_11Pool']
-          # Drop quality control and ref intensity cols
-        phos = phos.drop(drop_cols_phos, axis = 'index')
-        
+           
+        # Drop qauality control and ref intensity 
+        drop_cols = ['ReferenceIntensity', 'QC1', 'QC2', 'QC3', 'QC4', 'QC5', 'QC6', 'KoreanReference1',
+                   'KoreanReference2', 'KoreanReference3', 'Pool-24-2', 'WU-PDA1', 'WU-Pool-25','RefInt_pool-01',
+                 'RefInt_pool-02','RefInt_pool-03','RefInt_pool-04','RefInt_pool-05','RefInt_pool-06','RefInt_pool-07',
+                 'RefInt_pool-08','RefInt_pool-09', 'RefInt_pool-10','RefInt_pool-11','RefInt_pool-12','RefInt_pool-13',
+                 'RefInt_pool-14','RefInt_pool-15','RefInt_pool-16','RefInt_pool-17','RefInt_pool-18','RefInt_pool-19',
+                 'RefInt_pool-20','RefInt_pool-21','RefInt_pool-22','RefInt_pool-23','RefInt_pool-24','RefInt_pool-25']
+        phos = phos.drop(drop_cols, axis = 'index')
         
         # Sort values
         phos.index.name = 'Patient_ID'
-        normal = phos.loc[phos.index.str.contains('^PT-', regex = True)]
+        normal = phos.loc[phos.index.str.contains('\.N$', regex = True)]
         normal = normal.sort_values(by=["Patient_ID"])
-        normal.index = normal.index +'.N' # append .N to normal IDs
-        tumor = phos.loc[~ phos.index.str.contains('^PT-', regex = True)]
+        tumor = phos.loc[~ phos.index.str.contains('\.N$', regex = True)]
         tumor = tumor.sort_values(by=["Patient_ID"])
         all_prot = tumor.append(normal)
         
@@ -178,60 +153,5 @@ class UmichGbm(Dataset):
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
-        # Get a union of all dataframes' indices, with duplicates removed
-        ###FILL: If there are any tables whose index values you don't want
-        ### included in the master index, pass them to the optional 'exclude'
-        ### parameter of the unionize_indices function. This was useful, for
-        ### example, when some datasets' followup data files included samples
-        ### from cohorts that weren't in any data tables besides the followup
-        ### table, so we excluded the followup table from the master index since
-        ### there wasn't any point in creating empty representative rows for
-        ### those samples just because they existed in the followup table.
-#        master_index = unionize_indices(self._data) 
-
-        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-#        new_clinical = self._data["clinical"]
-#        new_clinical = new_clinical.reindex(master_index)
-
-        # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample was a tumor or normal sample. Use a function from dataframe_tools to generate it.
-
-        ###FILL: Your dataset should have some way that it marks the Patient IDs
-        ### of normal samples. The example code below is for a dataset that
-        ### marks them by putting an 'N' at the beginning of each one. You will
-        ### need to write a lambda function that takes a given Patient_ID string
-        ### and returns a bool indicating whether it corresponds to a normal
-        ### sample. Pass that lambda function to the 'normal_test' parameter of
-        ### the  generate_sample_status_col function when you call it. See 
-        ### cptac/dataframe_tools.py for further function documentation.
-        ###START EXAMPLE CODE###################################################
-#        sample_status_col = generate_sample_status_col(new_clinical, normal_test=lambda sample: sample[0] == 'N')
-        ###END EXAMPLE CODE#####################################################
-
-#        new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
-
-        # Replace the clinical dataframe in the data dictionary with our new and improved version!
-#        self._data['clinical'] = new_clinical
-
-        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. 
         
-        ###FILL: You will need to pass the proper parameters to correctly
-        ### reformat the patient IDs in your dataset. The standard format is to
-        ### have the string '.N' appended to the end of the normal patient IDs,
-        ### e.g. the  normal patient ID corresponding to C3L-00378 would be
-        ### C3L-00378.N (this way we can easily match two samples from the same
-        ### patient). The example code below is for a dataset where all the
-        ### normal samples have  an "N" prepended to the patient IDs. The
-        ### reformat_normal_patient_ids function erases that and puts a ".N" at
-        ### the end. See cptac/dataframe_tools.py for further function
-        ### documentation.
-        ###START EXAMPLE CODE###################################################
-#        self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
-        ###END EXAMPLE CODE#####################################################
-
-        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-#        self._data = sort_all_rows(self._data)
-
-        # Call function from dataframe_tools.py to standardize the names of the index and column axes
-#        self._data = standardize_axes_names(self._data)
-
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

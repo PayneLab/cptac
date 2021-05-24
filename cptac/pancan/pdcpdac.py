@@ -19,7 +19,7 @@ from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
-class PdcPda(Dataset):
+class PdcPdac(Dataset):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -43,7 +43,7 @@ class PdcPda(Dataset):
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="pdcpda", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet, attempt_update_index=False)
+        super().__init__(cancer_type="pdcpdac", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet, attempt_update_index=False)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"

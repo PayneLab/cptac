@@ -58,7 +58,7 @@ class Harmonized(Dataset):
             # Get tumor_code
             tumor_codes = {'pancanbrca': 'BRCA', 'pancanccrcc':'CCRCC', 
                            'pancanucec':'UCEC','pancangbm':'GBM','pancanhnscc':'HNSCC',
-                           'pancanlscc': 'LSCC','pancanluad':'LUAD', 'pancanpda':'PDA',
+                           'pancanlscc': 'LSCC','pancanluad':'LUAD', 'pancanpdac':'PDAC',
                            'pancanhcc':'HCC','pancancoad':'CO','pancanov':'OV'}
 
             if file_name == "PanCan_Union_Maf_Broad_WashU.maf":

@@ -69,6 +69,11 @@ cptac/pancan/data_broaducec/*
 cptac/pancan/data_umichucec/*
 cptac/pancan/data_washuucec/*
 
+cptac/pancan/data_bcmpdac/*
+cptac/pancan/data_broadpdac/*
+cptac/pancan/data_umichpdac/*
+cptac/pancan/data_washupdac/*
+
 cptac/pancan/data_pdc*
 
 # Exclude files that are downloaded by utils functions
@@ -135,3 +140,8 @@ cptac/utils/data/hgnc_protein_families.tsv
 !cptac/pancan/data_broaducec/index_urls.tsv
 !cptac/pancan/data_umichucec/index_urls.tsv
 !cptac/pancan/data_washuucec/index_urls.tsv
+
+!cptac/pancan/data_bcmpdac/index_urls.tsv
+!cptac/pancan/data_broadpdac/index_urls.tsv
+!cptac/pancan/data_umichpdac/index_urls.tsv
+!cptac/pancan/data_washupdac/index_urls.tsv

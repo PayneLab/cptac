@@ -28,6 +28,7 @@ from .pancanlscc import SOURCES as LSCC_SOURCES
 from .pancanluad import SOURCES as LUAD_SOURCES
 from .pancanov import SOURCES as OV_SOURCES
 from .pancanucec import SOURCES as UCEC_SOURCES
+from .pancanpdac import SOURCES as PDAC_SOURCES
 
 STUDY_IDS_MAP = {
     "pdcbrca": {
@@ -67,9 +68,9 @@ STUDY_IDS_MAP = {
         "phosphoproteome": "PDC000119", # Prospective OV Phosphoproteome S038-3
         "proteome": "PDC000118", # Prospective OV Proteome S038-2
     },
-    "pdcpda": {
-        "proteome": "PDC000270", # CPTAC PDA Discovery Study - Proteome
-        "phosphoproteome": "PDC000271", # CPTAC PDA Discovery Study - Phosphoproteome
+    "pdcpdac": {
+        "proteome": "PDC000270", # CPTAC PDAC Discovery Study - Proteome
+        "phosphoproteome": "PDC000271", # CPTAC PDAC Discovery Study - Phosphoproteome
     },
     "pdcucec": {
         "acetylome": "PDC000226", # CPTAC UCEC Discovery Study - Acetylome
@@ -107,8 +108,10 @@ def download(dataset, version="latest", redownload=False):
             sources = OV_SOURCES
         elif dataset == "pancanucec":
             sources = UCEC_SOURCES
+        elif dataset == "pancanpdac":
+            sources = PDAC_SOURCES
         elif dataset == "all":
-            sources = sorted(set(BRCA_SOURCES + CCRCC_SOURCES + COAD_SOURCES + GBM_SOURCES + HNSCC_SOURCES + LSCC_SOURCES + LUAD_SOURCES + OV_SOURCES + UCEC_SOURCES))
+            sources = sorted(set(BRCA_SOURCES + CCRCC_SOURCES + COAD_SOURCES + GBM_SOURCES + HNSCC_SOURCES + LSCC_SOURCES + LUAD_SOURCES + OV_SOURCES + UCEC_SOURCES + PDAC_SOURCES))
         else:
             raise InvalidParameterError(f"{dataset} is not a valid dataset.")
 

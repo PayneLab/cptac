@@ -246,7 +246,7 @@ def join_col_to_dataframe(df, col):
     pandas.DataFrame: The dataframe with the column joined in.
     """
     col_df = col.to_frame().copy(deep=True)
-
+    
     # Make sure the columns axes all have the same name
     df.columns.name = "Name"
     col_df.columns.name = "Name"
@@ -254,7 +254,7 @@ def join_col_to_dataframe(df, col):
     # If df has a column multiindex, edit the col_df column index to match, so we can join them
     if col_df.columns.names != df.columns.names:
         col_df.columns = add_index_levels(to=col_df.columns, source=df.columns) 
-
+    
     if col_df.columns.names != df.columns.names: # Just to make sure
         raise CptacDevError(f"col_df's column axes had levels not found in the dataframe's columns.")
 

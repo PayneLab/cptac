@@ -90,13 +90,18 @@ class UmichOv(Dataset):
                 
             elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
-                df[['Protein_ID','Transcript_ID',"Database_ID","Havana_gene","Havana_transcript","Transcript","Name","Site"]] = df.Index.str.split("\\|",expand=True)
-                df[['num1','num2',"num3","num4","num5","Site"]] = df.Site.str.split("_",expand=True) 
+                # Parse a few columns out of the "Index" column that we'll need for our multiindex
+                df[['Database_ID','Transcript_ID',"Gene_ID","Havana_gene","Havana_transcript","Transcript","Name","Site"]] = df.Index.str.split("\\|",expand=True)
+                df[['num1','start',"end","detected_phos","localized_phos","Site"]] = df.Site.str.split("_",expand=True) 
+
+                 # Some rows have at least one localized phosphorylation site, but also have other phosphorylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
+                unlocalized_to_drop = df.index[~df["detected_phos"].eq(df["localized_phos"]) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)]# dectected_phos of the split "Index" column is number of phosphorylations detected, and localized_phos is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
+                df = df.drop(index=unlocalized_to_drop)
+
                 df = df[df['Site'].notna()] # only keep columns with phospho site 
-                df = df.set_index(["Name","Database_ID","Peptide","Site"]) 
+                df = df.set_index(['Name', 'Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns, in this order.
                 #drop columns not needed in df 
-                df.drop([ 'Gene', "Index","num1","num2","num3","num4","num5","Havana_gene","Havana_transcript","MaxPepProb","Protein_ID","Transcript_ID","Transcript"], axis=1, inplace=True)
-                
+                df.drop([ 'Gene', "Index","num1","start","end","detected_phos","localized_phos","Havana_gene","Havana_transcript","MaxPepProb","Gene_ID","Transcript_ID","Transcript"], axis=1, inplace=True)
                 self._data["phosphoproteomics"] = df
 
             '''

@@ -58,7 +58,7 @@ class MssmClinical(Dataset):
             # Get tumor_code
             tumor_codes = {'pancanbrca': 'BR', 'pancanccrcc':'CCRCC', 
                            'pancanucec':'UCEC','pancangbm':'GBM','pancanhnscc':'HNSCC',
-                           'pancanlscc': 'LSCC','pancanluad':'LUAD', 'pancanpda':'PDA',
+                           'pancanlscc': 'LSCC','pancanluad':'LUAD', 'pancanpdac':'PDA',
                            'pancanhcc':'HCC','pancancoad':'CO','pancanov':'OV'}
 
             if file_name == "clinical_Pan-cancer.Dec2020.tsv":

@@ -201,11 +201,12 @@ def download_text(url):
     Returns:
     str: The downloaded text.
     """
+    
     try:
         response = requests.get(url, headers=HEADERS, allow_redirects=True)
         response.raise_for_status() # Raises a requests HTTPError if the response code was unsuccessful
     except requests.RequestException: # Parent class for all exceptions in the requests module
-        raise NoInternetError("Insufficient internet. Check your internet connection.") from None
+        raise NoInternetError("Insufficient internet. Check your internet connection.") from None 
 
     text = response.text.strip()
     return text
