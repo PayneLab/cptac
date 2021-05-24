@@ -17,7 +17,7 @@ import datetime
 
 from .dataset import Dataset
 from .dataframe_tools import *
-from .exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
+from .exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError, InvalidParameterError
 
 class UcecConf(Dataset):
 
@@ -36,7 +36,7 @@ class UcecConf(Dataset):
 
         data_files = {
             "1.0": [
-            #"UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz",
+            "UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             #"UCEC_confirmatory_Direct_SRM_tumor_v1.0.cct.gz", #SRM not to be included in 1.0
             #"UCEC_confirmatory_IMAC_SRM_tumor_v1.0.cct.gz",
@@ -44,13 +44,13 @@ class UcecConf(Dataset):
             "UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.0.cct.gz",
             "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.0.cct.gz",
             #"UCEC_confirmatory_nglycoform-site_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz",
-            #"UCEC_confirmatory_phospho_gene_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
+            "UCEC_confirmatory_phospho_gene_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz", # finished but also didn't have peptides :\
             "UCEC_confirmatory_proteomics_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
-            "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz", #circular_RNA
-            "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.0.txt.gz", #gene_fusion
-            "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz", #transcriptomics
-            #"UCEC_confirmatory_RNAseq_isoform_FPKM_removed_circRNA_log2(x+1)_tumor_normal_v1.0.cct.gz", #Ask what type this one is
+            "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz",
+            "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.0.txt.gz",
+            "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz",
+            #"UCEC_confirmatory_RNAseq_isoform_FPKM_removed_circRNA_log2(x+1)_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_WES_cnv_gistic_thresholded_tumor_v1.0.cct.gz",
             "UCEC_confirmatory_WES_cnv_log2_ratio_tumor_v1.0.cct.gz",
             "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.0.cbt.gz",
@@ -73,11 +73,19 @@ class UcecConf(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-            if file_name == "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
+            if file_name == "UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name = "Patient_ID"
+                df.columns.name = "Name"
+                self._data["acetylproteomics_gene"] = df
+                
+            elif file_name == "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.reset_index()
                 df[['Name','Database_ID','Site']] = df.idx.str.split("@", expand=True)
-                df['Site'] = df['Site'].str.split('-',expand=True)[1]
+                df['Site'] = df['Site'].str.rsplit('-',1,expand=True)[1]
                 df = df.set_index(["Name", "Site", "Database_ID"])
                 df = df.drop(columns=["idx"])
                 df = df.transpose()
@@ -98,13 +106,10 @@ class UcecConf(Dataset):
                 self._data["clinical"] = df
                 
             elif file_name == "UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.0.cct.gz":
-                df = pd.read_csv(file_path, sep='\t', index_col=0, dtype=object)
-                #Not sure what the dtype thing actually does, but it was giving me a big warning
-                #This made it go away. I need to find out exactly what is happening
+                df = pd.read_csv(file_path, sep='\t', index_col=0,  na_values=['NA'])
                 df = df.transpose()
                 df.index.name = "Patient_ID"
                 df.columns.name = "Name"
-                #I also am not 100% sure this is methylation, but I don't know what else it would be
                 self._data["methylation"] = df
             
             elif file_name == "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.0.cct.gz":
@@ -112,18 +117,22 @@ class UcecConf(Dataset):
                 df = df.transpose()
                 df = df.sort_index()
                 df.index.name = "Patient_ID"
-                #If we wanted to turn every -A into a .N on the Patient_IDs
-                #df = df.reset_index()
-                #df.loc[df['Patient_ID'].str[-2:] == '-A', 'Patient_ID'] = df['Patient_ID'].str[:-2] + '.N'
-                #df = df.set_index("Patient_ID")
                 df.columns.name = "Name"
                 self._data["miRNA"] = df
+                
+            elif file_name == "UCEC_confirmatory_phospho_gene_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name = "Patient_ID"
+                df.columns.name = "Name"
+                self._data["phosphoproteomics_gene"] = df
                 
             elif file_name == "UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.reset_index()
                 df[['Name','Database_ID','Site']] = df.idx.str.split("@", expand=True)
-                df['Site'] = df['Site'].str.split('-',expand=True)[1]
+                df['Site'] = df['Site'].str.rsplit('-',1,expand=True)[1]
                 df = df.set_index(["Name", "Site", "Database_ID"])
                 df = df.drop(columns=["idx"])
                 df = df.transpose()
@@ -186,10 +195,10 @@ class UcecConf(Dataset):
                 self._data["somatic_mutation_binary"] = df
 
             elif file_name == "UCEC_confirmatory_WES_somatic_mutation_v1.0.maf.gz":
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = pd.read_csv(file_path, sep='\t', index_col=0, dtype={88:object})
                 df = df.reset_index()
-                df['Tumor_Sample_Barcode'].apply(lambda s: s[:-2])
                 df = df[['Tumor_Sample_Barcode','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
+                df['Tumor_Sample_Barcode'] = df['Tumor_Sample_Barcode'].apply(lambda s: s[:-2])
                 df = df.rename(columns={
                     "Tumor_Sample_Barcode": "Patient_ID",
                     "Hugo_Symbol":"Gene",
@@ -226,17 +235,17 @@ class UcecConf(Dataset):
         # Print password access only warning
         warnings.warn("The UcecConf data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)
         
-    def get_CNV(self, algorithm):
+    def get_CNV(self, algorithm=None):
         if (not algorithm):
             message = ("Please specify which type of UcecConf CNV data you want: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
-            return cptac.exceptions.InvalidParameterError(message)
-        elif (version == "log2ratio"):
-            return super().get_dataframe("CNV_log2ratio")
-        elif (version == "gistic"):
-            return super().get_dataframe("CNV_gistic")
+            return InvalidParameterError(message)
+        elif (algorithm == "log2ratio"):
+            return super()._get_dataframe("CNV_log2ratio")
+        elif (algorithm == "gistic"):
+            return super()._get_dataframe("CNV_gistic")
         else: 
             message = ("Please specify a valid algorithm type for UcecConf CNV data: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
-            return cptac.exceptions.InvalidParameterError(message)
+            return InvalidParameterError(message)
 
