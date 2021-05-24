@@ -66,7 +66,7 @@ class BroadUcec(Dataset):
 
             if file_name == "UCEC.rsem_transcripts_tpm.txt.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                #df = df.set_index(["transcript_id","gene_id"])
+                df = df.set_index(["transcript_id","gene_id"])
                 self._data["transcriptomics"] = df
 #Converts the broad IDs to GDC_id aka the aliquot id 
             elif file_name == "sample_descriptions.tsv":
