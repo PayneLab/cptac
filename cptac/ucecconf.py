@@ -17,7 +17,7 @@ import datetime
 
 from .dataset import Dataset
 from .dataframe_tools import *
-from .exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
+from .exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError, InvalidParameterError
 
 class UcecConf(Dataset):
 
@@ -239,7 +239,7 @@ class UcecConf(Dataset):
         if (not algorithm):
             message = ("Please specify which type of UcecConf CNV data you want: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
-            return cptac.exceptions.InvalidParameterError(message)
+            return InvalidParameterError(message)
         elif (algorithm == "log2ratio"):
             return super()._get_dataframe("CNV_log2ratio")
         elif (algorithm == "gistic"):
@@ -247,5 +247,5 @@ class UcecConf(Dataset):
         else: 
             message = ("Please specify a valid algorithm type for UcecConf CNV data: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
-            return cptac.exceptions.InvalidParameterError(message)
+            return InvalidParameterError(message)
 
