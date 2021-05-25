@@ -239,7 +239,7 @@ class UcecConf(Dataset):
         if (not algorithm):
             message = ("Please specify which type of UcecConf CNV data you want: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
-            return InvalidParameterError(message)
+            raise InvalidParameterError(message)
         elif (algorithm == "log2ratio"):
             return super()._get_dataframe("CNV_log2ratio")
         elif (algorithm == "gistic"):
@@ -247,5 +247,5 @@ class UcecConf(Dataset):
         else: 
             message = ("Please specify a valid algorithm type for UcecConf CNV data: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
-            return InvalidParameterError(message)
+            raise InvalidParameterError(message)
 
