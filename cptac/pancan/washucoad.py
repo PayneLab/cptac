@@ -52,8 +52,13 @@ class WashuCoad(Dataset):
                 "CO_xCell.txt",
                 "CO.gene_level.from_seg.filtered.tsv",
                 "gencode.v22.annotation.gtf.gz",
-                "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz"
-                #"README_miRNA"              
+                "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
+                "README_miRNA",
+                "README_CIBERSORT",
+                "README_xCell",
+                "README_somatic_mutation_WXS",
+                "README_WashU_CNV_wgs",
+                "README_gene_expression"
             ]
         }
 
@@ -144,12 +149,33 @@ class WashuCoad(Dataset):
                 patient_ids = clinical_df.index.to_list()
                 df = df.loc[df.index.isin(patient_ids)]                
                 self._data["tumor_purity"] = df
-            '''    
+            
+            # README files
             elif file_name == "README_miRNA":
                 with open(file_path, 'r') as reader:
-                    self._data["readme_miRNA"] = reader.read()'''
+                    self._data["readme_miRNA"] = reader.read()
+                    
+            elif file_name == "README_CIBERSORT":
+                with open(file_path, 'r') as reader:
+                    self._data["readme_cibersort"] = reader.read()
+                    
+            elif file_name == "README_xCell":
+                with open(file_path, 'r') as reader:
+                    self._data["readme_xcell"] = reader.read()
+            
+            elif file_name == "README_somatic_mutation_WXS":
+                with open(file_path, 'r') as reader:
+                    self._data["readme_somatic_mutation"] = reader.read()
+                    
+            elif file_name == "README_WashU_CNV_wgs":
+                with open(file_path, 'r') as reader:
+                    self._data["readme_cnv"] = reader.read()
+                    
+            elif file_name == "README_gene_expression":
+                with open(file_path, 'r') as reader:
+                    self._data["readme_transcriptomics"] = reader.read()
                 
-#
+
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')

@@ -111,6 +111,16 @@ class PancanDataset:
     def get_tumor_purity(self, source = 'washu', tissue_type="both", imputed=False):
         """Get the tumor purity dataframe from the specified data source."""
         return self._get_dataframe("tumor_purity", source, tissue_type, imputed=imputed)
+    
+    def get_docs(self, data, source = 'washu', tissue_type="both", imputed=False):
+        """Get the readme docs for the specified data type and source."""
+        if source in self._datasets.keys():
+            obj = self._datasets[source] 
+            print(obj._data['readme_'+data])
+            return 0
+        else:
+            raise ex.DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
+            
 
     # Join functions
     def join_omics_to_omics(

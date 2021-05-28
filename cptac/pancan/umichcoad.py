@@ -37,7 +37,8 @@ class UmichCoad(Dataset):
 
         data_files = {
             "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
-                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv"
+                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
+                    "CRC_Prospective sample info.xlsx"
                 #"S039_BCprospective_observed_0920.tsv.gz",
                 #"S039_BCprospective_imputed_0920.tsv.gz"
             ]
@@ -57,7 +58,7 @@ class UmichCoad(Dataset):
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
             
-            
+            # Proteomics
             if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t")
                 df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # Get protein identifier 
@@ -78,34 +79,13 @@ class UmichCoad(Dataset):
                    'RefInt_ColonRef15', 'RefInt_ColonRef16', 'RefInt_ColonRef17',
                    'RefInt_ColonRef18', 'RefInt_ColonRef19', 'RefInt_ColonRef20',
                    'RefInt_ColonRef21', 'RefInt_ColonRef22-1']
-
+                
                 # Drop qauality control and ref intensity cols
                 df = df.drop(drop_cols, axis = 'index')
+                self._data["proteomics"] = df              
                 
-                '''
-                # Get Patient_IDs
-                index_list = list(df.index)
-                co_map = co_map.loc[co_map['index'].isin(index_list)]
-                matched_ids = {}
-                for i, row in co_map.iterrows():
-                    matched_ids[row['index']] = row['sample']
-
-                df = df.reset_index()
-                df = df.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
-                df = df.set_index('Patient_ID')'''
-                df.index = df.index.str.replace('-T$','', regex=True)
-                df.index = df.index.str.replace('-N$','.N', regex=True)
-
-                # Sort
-                normal = df.loc[df.index.str.contains('\.N$', regex = True)]
-                normal = normal.sort_values(by=["Patient_ID"])
-                tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
-                tumor = tumor.sort_values(by=["Patient_ID"])
-
-                all_df = tumor.append(normal) 
-                self._data["proteomics"] = all_df
-                
-                
+            
+            # Phosphoproteomics
             elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
                 # Parse a few columns out of the "Index" column that we'll need for our multiindex
@@ -145,6 +125,12 @@ class UmichCoad(Dataset):
                 # Drop qauality control and ref intensity cols
                 df = df.drop(drop_cols, axis = 'index')
                 self._data["phosphoproteomics"] = df
+            
+            # mapping file to get patient_IDs
+            elif file_name == "CRC_Prospective sample info.xlsx":
+                df = pd.read_excel(file_path)
+                df = df[['Label','Sample Code']]
+                self._helper_tables["map_ids"] = df
 
             '''
             if file_name == "S039_BCprospective_observed_0920.tsv.gz":
@@ -169,6 +155,29 @@ class UmichCoad(Dataset):
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
+        
+        
+        # Proteomics
+        # Get Patient_IDs
+        prot = self._data['proteomics']
+        mapping_df = self._helper_tables['map_ids']
+        index_list = list(prot.index)
+        cancer_df = mapping_df.loc[mapping_df['Label'].isin(index_list)]
+        # Create dictionary with labels as keys and sample code (case_ID with sample identifier) as values
+        matched_ids = {}
+        for i, row in cancer_df.iterrows():
+            matched_ids[row['Label']] = row['Sample Code']
+        prot = prot.reset_index()
+        prot = prot.replace(matched_ids) # replace label with Patient_IDs
+        prot.Patient_ID = prot.Patient_ID.apply(lambda x: x[1:]+'.N' if x[0] == 'N' else x[1:]) # change normals to have .N
+        prot = prot.set_index('Patient_ID')
+        # Sort
+        normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = prot.loc[~ prot.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_df = tumor.append(normal)
+        self._data['proteomics'] = all_df
 
         # Get a union of all dataframes' indices, with duplicates removed
         ###FILL: If there are any tables whose index values you don't want
