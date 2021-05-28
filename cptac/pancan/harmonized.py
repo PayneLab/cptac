@@ -59,7 +59,7 @@ class Harmonized(Dataset):
             tumor_codes = {'pancanbrca': 'BRCA', 'pancanccrcc':'CCRCC', 
                            'pancanucec':'UCEC','pancangbm':'GBM','pancanhnscc':'HNSCC',
                            'pancanlscc': 'LSCC','pancanluad':'LUAD', 'pancanpdac':'PDAC',
-                           'pancanhcc':'HCC','pancancoad':'CO','pancanov':'OV'}
+                           'pancanhcc':'HCC','pancancoad':'COAD','pancanov':'OV'}
 
             if file_name == "PanCan_Union_Maf_Broad_WashU.maf":
                 df = pd.read_csv(file_path, sep="\t", low_memory = False)
@@ -73,6 +73,7 @@ class Harmonized(Dataset):
                 df = df.set_index("Patient_ID")
                 df = df[ ['Gene'] + ["Mutation"] + ["Location"] + [ col for col in df.columns if col not in ["Gene","Mutation","Location"] ] ]
                 df.index = df.index.str.replace(r"_T", "", regex=True) # data based on Tumor and Normal. Remove _T 
+           
                 self._data["somatic_mutation"] = df                      
         
                 
