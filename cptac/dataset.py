@@ -55,7 +55,10 @@ class Dataset:
             'phosphoproteomics_gene',
             'proteomics',
             'somatic_mutation_binary',
-            'transcriptomics',                
+            'transcriptomics', 
+            'CNV_log2ratio',
+            'CNV_gistic'
+            
              ]
 
          # These are the metadata dataframes that are valid for use in the utilities functions
