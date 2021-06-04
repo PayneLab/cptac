@@ -33,14 +33,19 @@ class UmichOv(Dataset):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        valid_versions = ["1.0"]
+        valid_versions = ["1.0", "1.1"]
 
         data_files = {
             "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
                     "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv",
                     "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv"
-                #"S039_BCprospective_observed_0920.tsv.gz",
-                #"S039_BCprospective_imputed_0920.tsv.gz"
+                    #"S039_BCprospective_observed_0920.tsv.gz",
+                    #"S039_BCprospective_imputed_0920.tsv.gz"
+             ],
+                    
+             "1.1": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",                    
+                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv", 
+                     "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv"
             ]
         }
 
@@ -69,23 +74,13 @@ class UmichOv(Dataset):
                 ref_intensities = df.loc["ReferenceIntensity"] # Get reference intensities to use to calculate ratios 
                 df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
-                df.index.name = 'Patient_ID'
-    
-                # Drop quality control and ref intensity cols
-                drop_cols = ['JHU-QC', 'JHU-QC.1', 'JHU-QC.2', 'JHU-QC.3', 'JHU-QC.4',
-                           'RefInt_PNNL-JHU-Ref-1', 'RefInt_PNNL-JHU-Ref-2',
-                           'RefInt_PNNL-JHU-Ref-3', 'RefInt_PNNL-JHU-Ref-4',
-                           'RefInt_PNNL-JHU-Ref-5', 'RefInt_PNNL-JHU-Ref-6',
-                           'RefInt_PNNL-JHU-Ref-7', 'RefInt_PNNL-JHU-Ref-8',
-                           'RefInt_PNNL-JHU-Ref-9', 'RefInt_PNNL-JHU-Ref-10',
-                           'RefInt_PNNL-JHU-Ref-11', 'RefInt_PNNL-JHU-Ref-12']
-                df = df.drop(drop_cols, axis = 'index')
+                df.index.name = 'Patient_ID'                
+                df = df.loc[df.index[~ df.index.str.contains('JHU', regex = True)]] # drop ref intensity and quality control 
                 self._data["proteomics"] = df
-                
+            
             elif file_name == "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv":
                 ov_map = pd.read_csv(file_path, sep = ",", index_col = 0)
-                ov_map = ov_map[['sample']].reset_index()
-                ov_map = ov_map.replace("#",".", regex = True)
+                ov_map = ov_map.loc[ov_map.index[~ ov_map.index.str.contains('JHU', regex = True)]] # drop so doesn't map to NA
                 self._helper_tables["map_ids"] = ov_map
                 
             elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
@@ -102,6 +97,12 @@ class UmichOv(Dataset):
                 df = df.set_index(['Name', 'Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns, in this order.
                 #drop columns not needed in df 
                 df.drop([ 'Gene', "Index","num1","start","end","detected_phos","localized_phos","Havana_gene","Havana_transcript","MaxPepProb","Gene_ID","Transcript_ID","Transcript"], axis=1, inplace=True)
+                df = df.T # transpose
+                df.index.name = 'Patient_ID'
+                df = df.loc[df.index[~ df.index.str.contains('JHU', regex = True)]] # drop end ref intensity and quality control 
+                ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
+                df = df.subtract(ref_intensities, axis="columns")#Subtract reference intensities from all the values (get ratios)
+                df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 self._data["phosphoproteomics"] = df
 
             '''
@@ -123,95 +124,56 @@ class UmichOv(Dataset):
                 df = df.sort_values(by=["Patient_ID"])
                 self._data["proteomics_imputed"] = df'''
             
-        # This code may need to be deleted 
-        # The '.1' added to the df is added by pd.read_csv() when there are duplicate columns
-        # The '.1' after the read on Box is read in '#1' in the mapping file do not represent the same sample
-        # Emailed about duplicate columns and waiting for response
-        '''    
-        # Proteomics
-        # Get Patient_IDs
-        # slice mapping_df to include cancer specific aliquot_IDs 
-        prot = self._data["proteomics"]
-        index_list = list(prot.index)
-        mapping_df = self._data["map_ids"]
-        cancer_df = mapping_df.loc[mapping_df['index'].isin(index_list)]
-        # Create dictionary with aliquot_ID as keys and patient_ID as values
-        matched_ids = {}
-        for i, row in cancer_df.iterrows():
-            matched_ids[row['index']] = row['sample']
-        prot = prot.reset_index()
-        prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
-        prot = prot.set_index('Patient_ID')
-          
-        # average duplicates - CHECK really duplicates (some blanks in file are normal, 
-        # but no blanks in file for these ids)
-        replicate_IDs = ['01OV029', '15OV001', '17OV002']
-        for rep in replicate_IDs:
-            id_df = prot[prot.index.str.contains(rep)] 
-            vals = list(id_df.mean(axis=0)) # average replicates and store in list 
-            prot = prot.drop(index = rep) # drop both replicates so can add new row with averages
-            prot.loc[rep] = vals'''
-        
-        prot = self._data["proteomics"]
-        prot.index = prot.index.str.replace('-T$','', regex = True)
-        prot.index = prot.index.str.replace('-N$','.N', regex = True)
-        
-        # Sort
-        normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
-        normal = normal.sort_values(by=["Patient_ID"])
-        tumor = prot.loc[~ prot.index.str.contains('\.N$', regex = True)]
-        tumor = tumor.sort_values(by=["Patient_ID"])
-        all_prot = tumor.append(normal)  
-        self._data["proteomics"] = all_prot
-                
-        
-        ## phosphoproteomics 
-        phos = self._data["phosphoproteomics"]
-        ovmap = self._helper_tables["map_ids"]
-        ovmap = ovmap.set_index("index")
-        ovmap_dict = ovmap.to_dict()["sample"]
-        
-        phos = phos.rename(columns = ovmap_dict)# rename NAT ID columns with .N 
-        phos = phos.T #transpose df 
-        ref_intensities = phos.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
-        phos = phos.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values, to get ratios
-        phos = phos.iloc[1:,:] # drop ReferenceIntensity row 
-        
-        phos.index = phos.index.str.replace('-T$','', regex = True)
-        phos.index = phos.index.str.replace('-N$','.N', regex = True)
-        
-        drop_cols_phos = ['JHU-QC','JHU-QC-1-Q','JHU-QC-2-Q','JHU-QC-3-Q','JHU-QC-4-Q','RefInt_PNNL-JHU-Ref-1-R',
- 'RefInt_PNNL-JHU-Ref-2-R','RefInt_PNNL-JHU-Ref-3-R','RefInt_PNNL-JHU-Ref-4-R','RefInt_PNNL-JHU-Ref-5-R',
- 'RefInt_PNNL-JHU-Ref-6-R','RefInt_PNNL-JHU-Ref-7-R','RefInt_PNNL-JHU-Ref-8-R','RefInt_PNNL-JHU-Ref-9-R',
- 'RefInt_PNNL-JHU-Ref-10-R','RefInt_PNNL-JHU-Ref-11-R','RefInt_PNNL-JHU-Ref-12-R']
-
-          # Drop quality control and ref intensity cols
-        phos = phos.drop(drop_cols_phos, axis = 'index')
-     
-        # average duplicates - CHECK really duplicates (some blanks in file are normal, 
-        # but no blanks in file for these ids)
-        replicate_IDs = ['01OV029', '15OV001', '17OV002']
-        for rep in replicate_IDs:
-            id_df = phos[phos.index.str.contains(rep)] 
-            vals = list(id_df.mean(axis=0)) # average replicates and store in list 
-            phos = phos.drop(index = rep) # drop both replicates so can add new row with averages
-            phos.loc[rep] = vals
             
-        # Sort values
-        phos.index.name = 'Patient_ID'
-        normal = phos.loc[phos.index.str.contains('\.N$', regex = True)]
-        normal = normal.sort_values(by=["Patient_ID"])
-        tumor = phos.loc[~ phos.index.str.contains('\.N$', regex = True)]
-        tumor = tumor.sort_values(by=["Patient_ID"])
-        all_prot = tumor.append(normal)    
-         
-        self._data["phosphoproteomics"] = all_prot
-        
-        
-        
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
+           
+        if self._version == "1.1":         
+            # Proteomics
+            # Get Patient_IDs
+            # slice mapping_df to include cancer specific aliquot_IDs 
+            prot = self._data["proteomics"]
+            index_list = list(prot.index)
+            mapping_df = self._helper_tables["map_ids"]
+
+            # Create dictionary with aliquot_ID as keys and patient_ID as values
+            matched_ids = {}
+            for i, row in mapping_df.iterrows():
+                matched_ids[row['specimen']] = row['sample']
+            prot = prot.reset_index()
+            prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
+            prot = prot.set_index('Patient_ID')
+       
+            prot.index = prot.index.str.replace('-T$','', regex = True)
+            prot.index = prot.index.str.replace('-N$','.N', regex = True)
+
+            # Sort
+            normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
+            normal = normal.sort_values(by=["Patient_ID"])
+            tumor = prot.loc[~ prot.index.str.contains('\.N$', regex = True)]
+            tumor = tumor.sort_values(by=["Patient_ID"])
+            all_prot = tumor.append(normal)  
+            self._data["proteomics"] = all_prot
+                
+        
+            # Phosphoproteomics 
+            phos_df = self._data["phosphoproteomics"]
+            phos_df = phos_df.reset_index()
+            phos_df = phos_df.replace(matched_ids)
+            phos_df = phos_df.set_index('Patient_ID')
+            
+            phos_df.index = phos_df.index.str.replace('-T$','', regex = True)
+            phos_df.index = phos_df.index.str.replace('-N$','.N', regex = True)
+            # Sort values
+            phos_df.index.name = 'Patient_ID'
+            normal = phos_df.loc[phos_df.index.str.contains('\.N$', regex = True)]
+            normal = normal.sort_values(by=["Patient_ID"])
+            tumor = phos_df.loc[~ phos_df.index.str.contains('\.N$', regex = True)]
+            tumor = tumor.sort_values(by=["Patient_ID"])
+            all_phos = tumor.append(normal)  
+            self._data["phosphoproteomics"] = all_phos
+
 
         # Get a union of all dataframes' indices, with duplicates removed
         ###FILL: If there are any tables whose index values you don't want
