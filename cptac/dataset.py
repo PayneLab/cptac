@@ -336,7 +336,11 @@ class Dataset:
 
                 return mutations
             
-            cnv = self.get_CNV()
+            if self.get_cancer_type() == "ucecconf":
+                cnv = self.get_CNV("log2ratio")
+            else:      
+                cnv = self.get_CNV()
+                
             #drop the database index from ccrcc and brca
             if isinstance(cnv.keys(), pd.core.indexes.multi.MultiIndex):
                 drop = ['Database_ID']
@@ -345,15 +349,19 @@ class Dataset:
             mutation_col = gene_cnv.apply(add_del_and_amp_no_somatic, axis=1)
             df = gene_cnv.assign(Mutation = mutation_col)
             return df
+ #combine the cnv and mutations dataframe
+        if self.get_cancer_type() == "ucecconf":
+            combined = self.join_omics_to_mutations(omics_df_name="CNV_log2ratio", mutations_genes=mutations_genes, omics_genes=mutations_genes)
+            combined.columns = combined.columns.str.rstrip('_log2ratio') # strip log2ratio 
 
 
-        #combine the cnv and mutations dataframe
-        combined = self.join_omics_to_mutations(omics_df_name="CNV", mutations_genes=mutations_genes, omics_genes=mutations_genes)
+        else:
+            combined = self.join_omics_to_mutations(omics_df_name="CNV", mutations_genes=mutations_genes, omics_genes=mutations_genes)
 
 
         #drop the database index from ccrcc
         if self.get_cancer_type() == "ccrcc" or self.get_cancer_type() == "brca":
-             cc = self.get_CNV()
+             cc = self.get_CNV()#not sure about this step
              drop = ['Database_ID']
              combined = ut.reduce_multiindex(df=combined, levels_to_drop=drop)
 
@@ -410,6 +418,7 @@ class Dataset:
                 location.append(sample_locations_list[0])
 
             else:
+             
                 for filter_val in mutations_filter: # This will start at the beginning of the filter list, thus filters earlier in the list are prioritized, like we want
                     if filter_val in sample_mutations_list:
                         chosen_indices = [index for index, value in enumerate(sample_mutations_list) if value == filter_val]
@@ -430,7 +439,8 @@ class Dataset:
                     for mutation in sample_mutations_list:
                         if mutation in noncodings:
                             chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
-
+                
+                
                 soonest_mutation = sample_mutations_list[chosen_indices[0]]
                 soonest_location = sample_locations_list[chosen_indices[0]]
                 chosen_indices.clear()
@@ -438,7 +448,8 @@ class Dataset:
                 location.append(soonest_location)
 
             return pd.Series([sortedcol, location],index=['mutations', 'locations'])
-
+       
+        
         df = combined.apply(sort, axis=1)
         combined['Mutation'] = df['mutations']
         combined['Location'] = df['locations']
