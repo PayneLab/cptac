@@ -68,8 +68,10 @@ class MssmClinical(Dataset):
                 df = df.set_index("case_id")
                 df.index.name = 'Patient_ID'
                 df = df.sort_values(by=["Patient_ID"])
+                
+                '''
                 # make Sample_Tumor_Normal column
-                if tumor_codes[filter_type] not in ('HCC','CO','OV'): # sample types not distinguished 
+                if tumor_codes[filter_type] not in ('HCC','CO','OV'): # sample types not distinguished in clinical_Pan-cancer.Dec2020.tsv
                     if tumor_codes[filter_type] in ('GBM', 'BR'): # only has tumor samples 
                         df['Sample_Tumor_Normal'] = 'Tumor'
                     else:
@@ -85,7 +87,7 @@ class MssmClinical(Dataset):
                         tumor = df.loc[df['discovery_study/type_of_analyzed_samples'].isin(['Tumor', 'Tumor_and_Normal'])]
                         tumor = tumor.sort_values(by=["Patient_ID"])
                         tumor['Sample_Tumor_Normal'] = 'Tumor'
-                        df = tumor.append(normal) # append only the annotated patient_ID for normals (other information is with tumor and normals have nan for values in clinical table)
+                        df = tumor.append(normal) # append only the annotated patient_ID for normals (other information is with tumor and normals have nan for values in clinical table)'''
                 self._data["clinical"] = df                      
         
                 
@@ -238,11 +240,11 @@ class MssmClinical(Dataset):
         ### table, so we excluded the followup table from the master index since
         ### there wasn't any point in creating empty representative rows for
         ### those samples just because they existed in the followup table.
-#        master_index = unionize_indices(self._data) 
+        #master_index = unionize_indices(self._data) 
 
         # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-#        new_clinical = self._data["clinical"]
-#        new_clinical = new_clinical.reindex(master_index)
+        #new_clinical = self._data["clinical"]
+        #new_clinical = new_clinical.reindex(master_index)
 
         # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. 
         

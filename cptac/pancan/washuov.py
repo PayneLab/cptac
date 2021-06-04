@@ -60,7 +60,7 @@ class WashuOv(Dataset):
         super().__init__(cancer_type="washuov", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
         
         # get clinical df (used to slice out cancer specific patient_IDs in tumor_purity file)
-        mssmclin = MssmClinical(no_internet=no_internet, version="latest", filter_type='pancanov') #_get_version - pancandataset
+        mssmclin = MssmClinical(no_internet=no_internet, version=version, filter_type='pancanov') #_get_version - pancandataset
         clinical_df = mssmclin.get_clinical()
         
 
