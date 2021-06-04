@@ -18,6 +18,8 @@ from .washucoad import WashuCoad
 from .bcmcoad import BcmCoad
 from .broadcoad import BroadCoad
 from .harmonized import Harmonized
+from .joiningdataset import JoiningDataset
+
 
 #List sources to be downloaded
 SOURCES = [
@@ -43,3 +45,6 @@ class PancanCoad(PancanDataset):
         self._datasets["umich"] = UmichCoad(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuCoad(no_internet=no_internet, version=self._get_version("washu"))
         self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancancoad')
+    
+        join_dict = {k: v._data for k, v in self._datasets.items()}
+        self._joining_dataset = JoiningDataset(join_dict)
