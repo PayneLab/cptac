@@ -285,7 +285,7 @@ class Dataset:
                                         'Missense_Mutation_hotspot',
     	                                'Missense_Mutation',
                                         'Amplification',
-                                        'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site' #inframe changes
+                                        'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site', #inframe changes
                                         'Silent','Wildtype']
 
             elif self.get_cancer_type() == "gbm":
@@ -294,7 +294,7 @@ class Dataset:
                                         'Missense_Mutation_hotspot',
                                         'Missense_Mutation',
                                         'Amplification',
-                                        'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site' #inframe changes
+                                        'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site', #inframe changes
                                         'Silent','Wildtype']
 
             else:
@@ -303,7 +303,7 @@ class Dataset:
                                         'Missense_Mutation_hotspot',
     	                                'Missense_Mutation',
                                         'Amplification',
-                                        'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site'
+                                        'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site',
                                         'Silent',
                                         'Wildtype']
 
@@ -439,7 +439,6 @@ class Dataset:
                     for mutation in sample_mutations_list:
                         if mutation in noncodings:
                             chosen_indices += [index for index, value in enumerate(sample_mutations_list) if value == mutation]
-                
                 
                 soonest_mutation = sample_mutations_list[chosen_indices[0]]
                 soonest_location = sample_locations_list[chosen_indices[0]]
