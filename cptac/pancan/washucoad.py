@@ -66,7 +66,7 @@ class WashuCoad(Dataset):
         super().__init__(cancer_type="washucoad", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
         
         # get clinical df (used to slice out cancer specific patient_IDs in tumor_purity file)
-        mssmclin = MssmClinical(no_internet=no_internet, version="latest", filter_type='pancancoad') #_get_version - pancandataset
+        mssmclin = MssmClinical(no_internet=no_internet, version=version, filter_type='pancancoad') #_get_version - pancandataset
         clinical_df = mssmclin.get_clinical()
 
         # Load the data into dataframes in the self._data dict
