@@ -18,6 +18,7 @@ from .washuov import WashuOv
 from .bcmov import BcmOv
 from .broadov import BroadOv
 from .harmonized import Harmonized
+from .joiningdataset import JoiningDataset
 
 SOURCES = [
     "bcmov",
@@ -43,3 +44,6 @@ class PancanOv(PancanDataset):
         self._datasets["umich"] = UmichOv(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuOv(no_internet=no_internet, version=self._get_version("washu"))
         self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanov')
+        
+        join_dict = {k: v._data for k, v in self._datasets.items()}
+        self._joining_dataset = JoiningDataset(join_dict)
