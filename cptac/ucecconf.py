@@ -23,7 +23,7 @@ class UcecConf(Dataset):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the dataframes as values in the self._data dict variable, with names as keys, and format them properly.
-
+        
         Parameters:
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
@@ -175,8 +175,8 @@ class UcecConf(Dataset):
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.reset_index()
                 df[['Name','Chromosome']] = df.idx.str.split("|", expand=True)
-                df = df.set_index(["Name", "Chromosome"])
-                df = df.drop(columns=["idx"])
+                df = df.set_index(["Name"])
+                df = df.drop(columns=["idx", "Chromosome"])
                 df = df.transpose()
                 df = df.sort_index()
                 df.index.name = "Patient_ID"
@@ -186,8 +186,8 @@ class UcecConf(Dataset):
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.reset_index()
                 df[['Name','Chromosome']] = df.idx.str.split("|", expand=True)
-                df = df.set_index(["Name", "Chromosome"])
-                df = df.drop(columns=["idx"])
+                df = df.set_index(["Name"])
+                df = df.drop(columns=["idx", "Chromosome"])
                 df = df.transpose()
                 df = df.sort_index()
                 df.index.name = "Patient_ID"
@@ -254,4 +254,4 @@ class UcecConf(Dataset):
             message = ("Please specify a valid algorithm type for UcecConf CNV data: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
             raise InvalidParameterError(message)
-
+            
