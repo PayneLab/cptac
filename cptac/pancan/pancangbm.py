@@ -20,6 +20,7 @@ from .broadgbm import BroadGbm
 from .harmonized import Harmonized
 from .joiningdataset import JoiningDataset
 
+
 #List sources to be downloaded
 SOURCES = [
     "bcmgbm",
@@ -48,3 +49,11 @@ class PancanGbm(PancanDataset):
         
         join_dict = {k: v._data for k, v in self._datasets.items()}
         self._joining_dataset = JoiningDataset(join_dict)
+        
+        self._pancan_unionize_indices()
+        
+        
+
+        
+            
+        

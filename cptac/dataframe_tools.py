@@ -55,8 +55,11 @@ def unionize_indices(dataset, exclude=[]):
     indices = [df.index for name, df in dataset.items() if name not in exclude]
     master_index = pd.Index([])
     for index in indices:
-        master_index = master_index.union(index)
-        master_index = master_index.drop_duplicates()
+        try:
+            master_index = master_index.union(index)
+            master_index = master_index.drop_duplicates()
+        except:
+            import pdb; pdb.set_trace()
     return master_index
 
 def generate_sample_status_col(df, normal_test):

@@ -153,27 +153,27 @@ class WashuCoad(Dataset):
             # README files
             elif file_name == "README_miRNA":
                 with open(file_path, 'r') as reader:
-                    self._data["readme_miRNA"] = reader.read()
+                    self._readmefiles["readme_miRNA"] = reader.read()
                     
             elif file_name == "README_CIBERSORT":
                 with open(file_path, 'r') as reader:
-                    self._data["readme_cibersort"] = reader.read()
+                    self._readmefiles["readme_cibersort"] = reader.read()
                     
             elif file_name == "README_xCell":
                 with open(file_path, 'r') as reader:
-                    self._data["readme_xcell"] = reader.read()
+                    self._readmefiles["readme_xcell"] = reader.read()
             
             elif file_name == "README_somatic_mutation_WXS":
                 with open(file_path, 'r') as reader:
-                    self._data["readme_somatic_mutation"] = reader.read()
+                    self._readmefiles["readme_somatic_mutation"] = reader.read()
                     
             elif file_name == "README_WashU_CNV_wgs":
                 with open(file_path, 'r') as reader:
-                    self._data["readme_cnv"] = reader.read()
+                    self._readmefiles["readme_cnv"] = reader.read()
                     
             elif file_name == "README_gene_expression":
                 with open(file_path, 'r') as reader:
-                    self._data["readme_transcriptomics"] = reader.read()
+                    self._readmefiles["readme_transcriptomics"] = reader.read()
                 
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
