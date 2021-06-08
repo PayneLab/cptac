@@ -173,18 +173,24 @@ class UcecConf(Dataset):
                 
             elif file_name == "UCEC_confirmatory_WES_cnv_gistic_thresholded_tumor_v1.0.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.reset_index()
+                df[['Name','Chromosome']] = df.idx.str.split("|", expand=True)
+                df = df.set_index(["Name", "Chromosome"])
+                df = df.drop(columns=["idx"])
                 df = df.transpose()
                 df = df.sort_index()
                 df.index.name = "Patient_ID"
-                df.columns.name = "Name"
                 self._data["CNV_gistic"] = df
                 
             elif file_name == "UCEC_confirmatory_WES_cnv_log2_ratio_tumor_v1.0.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.reset_index()
+                df[['Name','Chromosome']] = df.idx.str.split("|", expand=True)
+                df = df.set_index(["Name", "Chromosome"])
+                df = df.drop(columns=["idx"])
                 df = df.transpose()
                 df = df.sort_index()
                 df.index.name = "Patient_ID"
-                df.columns.name = "Name"
                 self._data["CNV_log2ratio"] = df
                 
             elif file_name == "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.0.cbt.gz":
