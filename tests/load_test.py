@@ -11,10 +11,16 @@
 
 import cptac
 
+'''class for testing the loading of datasets'''
 class TestLoad:
+    # example test
     def test_brca():
         success = cptac.download("brca")
         assert success == True
 
+    # trying to get automate the testing of all available datasets without having to update this test as more are added
     def test_all_cancer_types():
         datasets = cptac.list_datasets()
+        # TODO get list of datasets out of datasets pandas dataframe
+        # TODO convert all dataset names to lowercase
+        # TODO figure out how to handle password protected datasets
