@@ -11,7 +11,10 @@
 
 import cptac
 
-def test_brca():
-    success = cptac.download("brca")
-    assert success == True
+class TestLoad:
+    def test_brca():
+        success = cptac.download("brca")
+        assert success == True
 
+    def test_all_cancer_types():
+        datasets = cptac.list_datasets()
