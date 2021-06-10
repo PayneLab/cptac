@@ -24,3 +24,12 @@ class TestLoad:
         # TODO get list of datasets out of datasets pandas dataframe
         # TODO convert all dataset names to lowercase
         # TODO figure out how to handle password protected datasets
+        
+        # How about something like this?
+        for dataset in datasets.index:
+            if datasets.loc[dataset, "Data reuse status"] == "password access only":
+                # Still not sure how to test password protected files, but we can handle that here
+                pass
+            else:
+                # Here we can assert that each is correct or save them or whatever
+                cptac.download(dataset.lower())
