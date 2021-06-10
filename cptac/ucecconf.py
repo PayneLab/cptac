@@ -106,7 +106,7 @@ class UcecConf(Dataset):
                 self._data["clinical"] = df
                 
             elif file_name == "UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.0.cct.gz":
-                df = pd.read_csv(file_path, sep='\t', index_col=0,  na_values=['NA'])
+                df = pd.read_csv(file_path, sep='\t', index_col=0, na_values='   NA')
                 df = df.transpose()
                 df.index.name = "Patient_ID"
                 df.columns.name = "Name"
