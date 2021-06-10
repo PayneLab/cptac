@@ -11,3 +11,7 @@
 
 import cptac
 
+def test_brca():
+    success = cptac.download("brca")
+    assert success == True
+
