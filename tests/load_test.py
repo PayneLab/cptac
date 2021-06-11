@@ -14,12 +14,12 @@ import cptac
 '''class for testing the loading of datasets'''
 class TestLoad:
     # example test
-    def test_brca():
+    def test_brca(self):
         success = cptac.download("brca")
         assert success == True
 
     # trying to get automate the testing of all available datasets without having to update this test as more are added
-    def test_all_cancer_types():
+    def test_all_cancer_types(self):
         datasets = cptac.list_datasets()
         # TODO get list of datasets out of datasets pandas dataframe
         # TODO convert all dataset names to lowercase
@@ -31,5 +31,6 @@ class TestLoad:
                 # Still not sure how to test password protected files, but we can handle that here
                 pass
             else:
-                # Here we can assert that each is correct or save them or whatever
-                cptac.download(dataset.lower())
+                # Assert all non-password protected datasets can download
+                # TODO: how do we identify individual failures dynamically?
+                assert cptac.download(dataset.lower()) == True
