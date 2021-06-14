@@ -9,6 +9,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import pytest
 import cptac
 
 '''class for testing the loading of datasets'''
@@ -18,19 +19,42 @@ class TestLoad:
         success = cptac.download("brca")
         assert success == True
 
+    @pytest.fixture
+    def get_all_datasets(scope="class"):
+        return cptac.list_datasets()
+
+    @pytest.fixture
+    def get_public_datasets(get_all_datasets):
+        public_datasets = []
+        for dataset in get_all_datasets:
+            if dataset.loc[dataset, "Data reuse stats"] == "no restricions":
+                public_datasets.append(dataset.lower())
+        return public_datasets
+
+    @pytest.fixture
+    def get_restricted_datasets(get_all_datasets):
+        restricted_datasets = []
+        for dataset in get_all_datasets:
+            if dataset.loc[dataset, "Data reuse stats"] == "password access only":
+                restricted_datasets.append(dataset.lower())
+        return restricted_datasets
+
+    @pytest.fixture
+    def test_public_datasets(get_public_datasets):
+        for dataset in get_public_datasets:
+            assert cptac.download(dataset)
+
+    @pytest.fixture
+    def test_protected_datasets(get_private_datasets):
+        for dataset in get_private_datasets:
+            assert cptac.download(dataset)
+
+
     # trying to get automate the testing of all available datasets without having to update this test as more are added
-    def test_all_cancer_types(self):
-        datasets = cptac.list_datasets()
+    def test_all_cancer_types(self, test_public_datasets, test_protected_datasets):
         # TODO get list of datasets out of datasets pandas dataframe
         # TODO convert all dataset names to lowercase
         # TODO figure out how to handle password protected datasets
         
-        # How about something like this?
-        for dataset in datasets.index:
-            if datasets.loc[dataset, "Data reuse status"] == "password access only":
-                # Still not sure how to test password protected files, but we can handle that here
-                pass
-            else:
-                # Assert all non-password protected datasets can download
-                # TODO: how do we identify individual failures dynamically?
-                assert cptac.download(dataset.lower()) == True
+        assert test_public_datasets
+        # assert test_protected_datasets
