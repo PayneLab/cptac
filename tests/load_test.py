@@ -19,37 +19,6 @@ class TestLoad:
         success = cptac.download("brca")
         assert success == True
 
-    @pytest.fixture
-    def get_all_datasets(scope="class"):
-        return cptac.list_datasets()
-
-    @pytest.fixture
-    def get_public_datasets(get_all_datasets):
-        public_datasets = []
-        for dataset in get_all_datasets:
-            if dataset.loc[dataset, "Data reuse stats"] == "no restricions":
-                public_datasets.append(dataset.lower())
-        return public_datasets
-
-    @pytest.fixture
-    def get_restricted_datasets(get_all_datasets):
-        restricted_datasets = []
-        for dataset in get_all_datasets:
-            if dataset.loc[dataset, "Data reuse stats"] == "password access only":
-                restricted_datasets.append(dataset.lower())
-        return restricted_datasets
-
-    @pytest.fixture
-    def test_public_datasets(get_public_datasets):
-        for dataset in get_public_datasets:
-            assert cptac.download(dataset)
-
-    @pytest.fixture
-    def test_protected_datasets(get_private_datasets):
-        for dataset in get_private_datasets:
-            assert cptac.download(dataset)
-
-
     # trying to get automate the testing of all available datasets without having to update this test as more are added
     def test_all_cancer_types(self, test_public_datasets, test_protected_datasets):
         # TODO get list of datasets out of datasets pandas dataframe
