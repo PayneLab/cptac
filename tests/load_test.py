@@ -19,11 +19,13 @@ class TestLoad:
         success = cptac.download("brca")
         assert success == True
 
-    # trying to get automate the testing of all available datasets without having to update this test as more are added
-    def test_all_cancer_types(self, test_public_datasets, test_protected_datasets):
-        # TODO get list of datasets out of datasets pandas dataframe
-        # TODO convert all dataset names to lowercase
-        # TODO figure out how to handle password protected datasets
-        
-        assert test_public_datasets
-        # assert test_protected_datasets
+    def test_public_datasets(get_public_datasets):
+        for dataset in get_public_datasets:
+            assert cptac.download(dataset)
+
+    
+    def test_protected_datasets(get_restricted_datasets):
+        for dataset in get_restricted_datasets:
+            # assert cptac.download(dataset)
+            pass
+    
