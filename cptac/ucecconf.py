@@ -173,18 +173,24 @@ class UcecConf(Dataset):
                 
             elif file_name == "UCEC_confirmatory_WES_cnv_gistic_thresholded_tumor_v1.0.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.reset_index()
+                df[['Name','Chromosome']] = df.idx.str.split("|", expand=True)
+                df = df.set_index(["Name"])
+                df = df.drop(columns=["idx", "Chromosome"])
                 df = df.transpose()
                 df = df.sort_index()
                 df.index.name = "Patient_ID"
-                df.columns.name = "Name"
                 self._data["CNV_gistic"] = df
                 
             elif file_name == "UCEC_confirmatory_WES_cnv_log2_ratio_tumor_v1.0.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.reset_index()
+                df[['Name','Chromosome']] = df.idx.str.split("|", expand=True)
+                df = df.set_index(["Name"])
+                df = df.drop(columns=["idx", "Chromosome"])
                 df = df.transpose()
                 df = df.sort_index()
                 df.index.name = "Patient_ID"
-                df.columns.name = "Name"
                 self._data["CNV_log2ratio"] = df
                 
             elif file_name == "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.0.cbt.gz":
@@ -239,7 +245,7 @@ class UcecConf(Dataset):
         if (not algorithm):
             message = ("Please specify which type of UcecConf CNV data you want: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
-            return InvalidParameterError(message)
+            raise InvalidParameterError(message)
         elif (algorithm == "log2ratio"):
             return super()._get_dataframe("CNV_log2ratio")
         elif (algorithm == "gistic"):
@@ -247,5 +253,5 @@ class UcecConf(Dataset):
         else: 
             message = ("Please specify a valid algorithm type for UcecConf CNV data: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
-            return InvalidParameterError(message)
+            raise InvalidParameterError(message)
 
