@@ -14,18 +14,16 @@ import cptac
 
 '''class for testing the loading of datasets'''
 class TestLoad:
-    # example test
-    def test_brca(self):
-        success = cptac.download("brca")
-        assert success == True
 
     def test_public_datasets(self, get_public_datasets):
         for dataset in get_public_datasets:
+            # TODO: add way to see dataset-specific failures
             assert cptac.download(dataset)
 
     
     def test_protected_datasets(self, get_restricted_datasets):
         for dataset in get_restricted_datasets:
+            # TODO: figure out how to handle passwords
             # assert cptac.download(dataset)
-            pass
+            assert False
     
