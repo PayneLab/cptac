@@ -19,12 +19,12 @@ class TestLoad:
         success = cptac.download("brca")
         assert success == True
 
-    def test_public_datasets(get_public_datasets):
+    def test_public_datasets(self, get_public_datasets):
         for dataset in get_public_datasets:
             assert cptac.download(dataset)
 
     
-    def test_protected_datasets(get_restricted_datasets):
+    def test_protected_datasets(self, get_restricted_datasets):
         for dataset in get_restricted_datasets:
             # assert cptac.download(dataset)
             pass
