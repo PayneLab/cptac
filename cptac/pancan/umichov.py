@@ -71,16 +71,20 @@ class UmichOv(Dataset):
                 df = df.set_index(['Name', 'Database_ID']) # set multiindex
                 df = df.drop(columns = ['Index', 'MaxPepProb', 'NumberPSM', 'Gene']) # drop unnecessary  columns
                 df = df.transpose()
-                ref_intensities = df.loc["ReferenceIntensity"] # Get reference intensities to use to calculate ratios 
-                df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values
+                # Get reference intensities to use to calculate ratios
+                ref_intensities = df.loc["ReferenceIntensity"]  
+                # Subtract reference intensities from all the values
+                df = df.subtract(ref_intensities, axis="columns") 
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
-                df.index.name = 'Patient_ID'                
-                df = df.loc[df.index[~ df.index.str.contains('JHU', regex = True)]] # drop ref intensity and quality control 
+                df.index.name = 'Patient_ID'
+                # drop ref intensity and quality control 
+                df = df.loc[df.index[~ df.index.str.contains('JHU', regex = True)]] 
                 self._data["proteomics"] = df
             
             elif file_name == "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv":
                 ov_map = pd.read_csv(file_path, sep = ",", index_col = 0)
-                ov_map = ov_map.loc[ov_map.index[~ ov_map.index.str.contains('JHU', regex = True)]] # drop so doesn't map to NA
+                # drop so doesn't map to NA
+                ov_map = ov_map.loc[ov_map.index[~ ov_map.index.str.contains('JHU', regex = True)]] 
                 self._helper_tables["map_ids"] = ov_map
                 
             elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
