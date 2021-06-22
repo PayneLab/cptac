@@ -64,17 +64,14 @@ class PdcLuad(Dataset):
 
             if file_name == "acetylome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["acetylproteomics"] = df
 
             if file_name == "phosphoproteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                #df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["phosphoproteomics"] = df
 
             if file_name == "proteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                #df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["proteomics"] = df
                 
             elif file_name == "aliquot_to_patient_ID.tsv":
@@ -109,6 +106,13 @@ class PdcLuad(Dataset):
         phos = phos.set_index('Patient_ID')
         phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') # 2 duplicate aliquots and case
         self._data["phosphoproteomics"] = phos
+        
+        # Acetylproteomics
+        acetyl = self._data["acetylproteomics"]
+        acetyl['Patient_ID'] = acetyl['aliquot_submitter_id'].replace(matched_ids) # GTEX ids to patient IDs for normal samples
+        acetyl = acetyl.set_index('Patient_ID')
+        #acetyl = acetyl.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
+        self._data["acetylproteomics"] = acetyl
 
         # sort by sample status, then by index
         #self._data = sort_all_rows(self._data) # need to have sample tumor col

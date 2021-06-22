@@ -227,9 +227,7 @@ class MssmClinical(Dataset):
         dem = dem.assign(medication_name_vitamins_supplements = dem.medication_name_vitamins_supplements.str.split("|"))
         dem = dem.assign(history_source = dem.history_source.str.split("|"))
         dem = dem.rename(columns={'history_source':'med_history_source'}) # ?? ok to rename?
-        self._data['demographic'] = dem
-        
-                    
+        self._data['demographic'] = dem           
 
         # Get a union of all dataframes' indices, with duplicates removed
         ###FILL: If there are any tables whose index values you don't want

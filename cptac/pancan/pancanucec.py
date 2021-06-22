@@ -10,6 +10,7 @@
 #   limitations under the License.
 
 from .pancandataset import PancanDataset
+from ..dataframe_tools import sort_all_rows_pancan
 
 from .mssmclinical import MssmClinical
 from .pdcucec import PdcUcec

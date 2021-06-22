@@ -14,7 +14,7 @@ import cptac.exceptions as ex
 import pandas as pd
 import logging
 import cptac.utils as ut
-from ..dataframe_tools import unionize_indices, generate_sample_status_col
+from ..dataframe_tools import unionize_indices, generate_sample_status_col, sort_all_rows_pancan
 
 
 class PancanDataset:
@@ -61,6 +61,10 @@ class PancanDataset:
     def get_acetylproteomics(self, source, tissue_type="both", imputed=False):
         """Get the acetylproteomics dataframe from the specified data source."""
         return self._get_dataframe("acetylproteomics", source, tissue_type, imputed=imputed)
+    
+    def get_ubiquitylomics(self, source, tissue_type="both", imputed=False):
+        """Get the ubiquitylomics dataframe from the specified data source."""
+        return self._get_dataframe("ubiquitylomics", source, tissue_type, imputed=imputed)
 
     def get_circular_RNA(self,source = "bcm", tissue_type="both", imputed=False):
         """Get a circular RNA dataframe from the specified data source."""
@@ -122,8 +126,7 @@ class PancanDataset:
             return 0
         else:
             raise ex.DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
-            
-
+     
     # Join functions
     def join_omics_to_omics(
         self, 
@@ -236,7 +239,10 @@ class PancanDataset:
             return self._version[source]
         else:
             return self._version
+        
     def _pancan_unionize_indices(self):
+        '''Gets a master index of all IDs, adds IDs to clinical (clinical will have all IDs in other data), 
+        adds Sample_Tumor_Normal column, and sorts clinical rows'''
         master_index = pd.Index([])
         for name, ds in self._datasets.items():
             ds_index = unionize_indices(ds._data) # unionize_indices takes 
@@ -250,6 +256,7 @@ class PancanDataset:
         sample_status_col = generate_sample_status_col(new_clinical, normal_test=lambda sample: sample[-2:] == '.N') # Parse the patient IDs and based on that generate a column that says which rows are tumor or normal. Note that if the normal IDs are marked by some format other than a ".N" at the end, you'll need to edit the "normal_test" parameter. But otherwise you're fine.
         new_clinical.insert(0, "Sample_Tumor_Normal", sample_status_col) # Add this new column into the clinical dataframe
         self._datasets["mssm"]._data['clinical'] = new_clinical # Save the edited clinical dataframe
+        self._datasets["mssm"]._data = sort_all_rows_pancan(self._datasets["mssm"]._data) # sort clinical after adding master
 
         
     def get_genotype_all_vars(self, mutations_genes, omics_source, mutations_filter=None, show_location=True, mutation_hotspot=None):

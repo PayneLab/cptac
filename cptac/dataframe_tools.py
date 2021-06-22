@@ -15,6 +15,32 @@ import warnings
 from .exceptions import CptacDevError, ReindexMapError, FailedReindexWarning
 
 
+def sort_all_rows_pancan(data_dict):
+    """For all dataframes in the given dictionary, sort them first by sample status, 
+    with tumor samples first, and then by the index.
+
+    Parameters:
+    data_dict (dict): The dataframe dictionary of the dataset.
+
+    Returns:
+    dict: The dataframe dictionary, with the dataframes sorted by their indices. 
+    Keys are str of dataframe names, values are pandas.DataFrame"""
+
+    for name in data_dict.keys(): # Loop over the keys so we can alter the values without any issues
+        df = data_dict[name]
+        df.index.name = "Patient_ID" # Get the name of the index
+        # Sort normal samples
+        normal = df.loc[df.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_index() # index should be Patient_ID
+        # Sort tumor samples
+        tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_index()
+        # append normal to tumor
+        all_df = tumor.append(normal)
+        data_dict[name] = all_df
+
+    return data_dict
+
 def average_replicates(df, common = '\.', to_drop = '\.\d$'):
     """Returns a df with one row for each patient_ID (all replicates for a patient are averaged)
 

@@ -64,17 +64,14 @@ class PdcUcec(Dataset):
 
             if file_name == "acetylome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["acetylproteomics"] = df
 
             if file_name == "phosphoproteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                #df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["phosphoproteomics"] = df
 
             if file_name == "proteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                #df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["proteomics"] = df
                 
             elif file_name == "aliquot_to_patient_ID.tsv":
@@ -112,6 +109,15 @@ class PdcUcec(Dataset):
         # drop quality control rows
         #phos = phos.loc[phos.index[~ phos.index.str.contains('NX', regex = True)]] 
         self._data["phosphoproteomics"] = phos
+        
+        # Acetylproteomics
+        acetyl = self._data["acetylproteomics"]
+        acetyl['Patient_ID'] = acetyl['aliquot_submitter_id'].replace(matched_ids) # GTEX ids to patient IDs for normal samples
+        acetyl = acetyl.set_index('Patient_ID')
+        acetyl = acetyl.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')         
+        self._data["acetylproteomics"] = acetyl
+        
+        self._data = sort_all_rows_pancan(self._data)
 
         # NOTE: The code below will not work properly until you have all the 
         # dataframes formatted properly and loaded into the self._data

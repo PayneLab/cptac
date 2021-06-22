@@ -65,22 +65,18 @@ class PdcLscc(Dataset):
 
             if file_name == "acetylome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["acetylproteomics"] = df
 
             if file_name == "phosphoproteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                #df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["phosphoproteomics"] = df
 
             if file_name == "proteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                #df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["proteomics"] = df
 
             if file_name == "ubiquitylome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["ubiquitylomics"] = df
                                 
             elif file_name == "aliquot_to_patient_ID.tsv":
@@ -112,8 +108,24 @@ class PdcLscc(Dataset):
         phos = self._data["phosphoproteomics"]
         phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
         phos = phos.set_index('Patient_ID')
-        phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
+        #phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
         self._data["phosphoproteomics"] = phos
+        
+        # Acetylproteomics
+        acetyl = self._data["acetylproteomics"]
+        acetyl['Patient_ID'] = acetyl['aliquot_submitter_id'].replace(matched_ids) # GTEX ids to patient IDs for normal samples
+        acetyl = acetyl.set_index('Patient_ID')
+        acetyl = acetyl.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
+        self._data["acetylproteomics"] = acetyl
+        
+        # Ubiquitylomics
+        ubiq = self._data["ubiquitylomics"]
+        ubiq['Patient_ID'] = ubiq['aliquot_submitter_id'].replace(matched_ids) # GTEX ids to patient IDs for normal samples
+        ubiq = ubiq.set_index('Patient_ID')
+        ubiq = ubiq.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
+        self._data["ubiquitylomics"] = ubiq
+        
+        self._data = sort_all_rows_pancan(self._data)
 
         # NOTE: The code below will not work properly until you have all the 
         # dataframes formatted properly and loaded into the self._data
