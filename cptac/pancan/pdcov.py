@@ -39,6 +39,7 @@ class PdcOv(Dataset):
                 "clinical.tsv.gz",
                 "phosphoproteome.tsv.gz",
                 "proteome.tsv.gz",
+                "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv"
             ]
         }
 
@@ -62,18 +63,65 @@ class PdcOv(Dataset):
 
             if file_name == "phosphoproteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["phosphoproteomics"] = df
 
             if file_name == "proteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["proteomics"] = df
+                
+            elif file_name == "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv":
+                ov_map = pd.read_csv(file_path, sep = ",", index_col = 0)
+                # drop so doesn't map to NA
+                ov_map = ov_map.loc[ov_map.index[~ ov_map.index.str.contains('JHU', regex = True)]] 
+                self._helper_tables["map_ids"] = ov_map
+             
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
+        # Proteomics
+        # Get Patient_IDs
+        # slice mapping_df to include cancer specific aliquot_IDs 
+        prot = self._data["proteomics"]
+        mapping_df = self._helper_tables["map_ids"]
+
+        # Create dictionary with aliquot_ID as keys and patient_ID as values
+        matched_ids = {}
+        for i, row in mapping_df.iterrows():
+            matched_ids[row['specimen']] = row['sample']
+        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(matched_ids) # replace aliquots
+        prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
+        prot = prot.set_index('Patient_ID')
+
+        prot.index = prot.index.str.replace('-T$','', regex = True)
+        prot.index = prot.index.str.replace('-N$','.N', regex = True)
+
+        # Sort
+        normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = prot.loc[~ prot.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)  
+        self._data["proteomics"] = all_prot
+
+
+        # Phosphoproteomics 
+        phos_df = self._data["phosphoproteomics"]
+        phos_df['Patient_ID'] = phos_df['aliquot_submitter_id'].replace(matched_ids)
+        phos_df = phos_df.set_index('Patient_ID')
+        phos_df = phos_df.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
+
+        phos_df.index = phos_df.index.str.replace('-T$','', regex = True)
+        phos_df.index = phos_df.index.str.replace('-N$','.N', regex = True)
+        # Sort values
+        phos_df.index.name = 'Patient_ID'
+        normal = phos_df.loc[phos_df.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = phos_df.loc[~ phos_df.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_phos = tumor.append(normal)  
+        self._data["phosphoproteomics"] = all_phos
 
         # NOTE: The code below will not work properly until you have all the 
         # dataframes formatted properly and loaded into the self._data

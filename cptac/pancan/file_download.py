@@ -85,7 +85,13 @@ def download(dataset, version="latest", redownload=False):
     dataset = dataset.lower()
 
     if dataset.startswith("pdc"):
-        return _pdc_download(dataset, version=version, redownload=redownload)
+        box_token = get_box_token()
+        mapping = cptac.download(dataset, version=version, redownload=redownload, _box_auth=True, _box_token=box_token) # all cancers need helper file
+        omics = _pdc_download(dataset, version=version, redownload=redownload)        
+        if omics and mapping:
+            return True
+        else:
+            return False 
 
     elif dataset.startswith("pancan") or dataset == "all":
         box_token = get_box_token()

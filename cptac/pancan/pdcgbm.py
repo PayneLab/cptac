@@ -40,6 +40,7 @@ class PdcGbm(Dataset):
                 "clinical.tsv.gz",
                 "phosphoproteome.tsv.gz",
                 "proteome.tsv.gz",
+                "GBM_normal_sample_mapping.xlsx"
             ]
         }
 
@@ -63,30 +64,61 @@ class PdcGbm(Dataset):
 
             if file_name == "acetylome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["acetylproteomics"] = df
 
             if file_name == "phosphoproteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["phosphoproteomics"] = df
 
             if file_name == "proteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-
-                # Temp cleanup
-                df = df.\
-                drop(columns="aliquot_submitter_id").\
-                rename(columns={"case_submitter_id": "Patient_ID"}).\
-                set_index("Patient_ID")
-
-                # df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["proteomics"] = df
+                
+            elif file_name == "GBM_normal_sample_mapping.xlsx":
+                df = pd.read_excel(file_path)
+                df['Subject ID'] = df['Subject ID'].apply(lambda x: x+'.N' if 'PT-' in x else x) # add normal sample identifier 
+                self._helper_tables["map_ids"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
+        
+        # Proteomics
+        # Get Patient_IDs 
+        # slice mapping_df to include cancer specific aliquot_IDs 
+        prot = self._data["proteomics"]
+        mapping_df = self._helper_tables["map_ids"]
+        # Create dictionary with aliquot_ID as keys and patient_ID as values
+        matched_ids = {}
+        for i, row in mapping_df.iterrows():
+            matched_ids[row['Original Id']] = row['Subject ID']
 
+        prot['Patient_ID'] = prot['case_submitter_id'].replace(matched_ids) # GTEX ids to patient IDs for normal samples
+        prot = prot.set_index('Patient_ID')
+        prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
+        self._data["proteomics"] = prot
+        
+        # Phosphoproteomics
+        phos = self._data["phosphoproteomics"]
+        phos['Patient_ID'] = phos['case_submitter_id'].replace(matched_ids) # GTEX ids to patient IDs for normal samples
+        phos = phos.set_index('Patient_ID')
+        phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
+        self._data["phosphoproteomics"] = phos
+        
+        # Acetylproteomics
+        acetyl = self._data["acetylproteomics"]
+        acetyl['Patient_ID'] = acetyl['case_submitter_id'].replace(matched_ids) # GTEX ids to patient IDs for normal samples
+        acetyl = acetyl.set_index('Patient_ID')
+        acetyl = acetyl.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
+        self._data["acetylproteomics"] = acetyl
+        
+        # Clinical
+        clin = self._data["clinical"]
+        clin = clin.reset_index()
+        clin['Patient_ID'] = clin['case_submitter_id'].replace(matched_ids) # GTEX ids to patient IDs for normal samples
+        clin = clin.set_index('Patient_ID')
+        clin = clin.drop(['case_submitter_id'], axis = 'columns') 
+        self._data["clinical"] = clin
 
         # NOTE: The code below will not work properly until you have all the 
         # dataframes formatted properly and loaded into the self._data

@@ -47,9 +47,14 @@ class PancanGbm(PancanDataset):
         self._datasets["washu"] = WashuGbm(no_internet=no_internet, version=self._get_version("washu"))
         self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancangbm')
         
-        join_dict = {k: v._data for k, v in self._datasets.items()}
-        self._joining_dataset = JoiningDataset(join_dict)
         
+        join_dict = {k: v._data for k, v in self._datasets.items()}
+        self._joining_dataset = JoiningDataset(join_dict)        
+        
+        for name, df in self._joining_dataset._data.items():
+            print(name)
+            print(df.index)
+            
         self._pancan_unionize_indices()
         
         

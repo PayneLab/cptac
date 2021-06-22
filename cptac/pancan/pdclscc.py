@@ -41,6 +41,7 @@ class PdcLscc(Dataset):
                 "phosphoproteome.tsv.gz",
                 "proteome.tsv.gz",
                 "ubiquitylome.tsv.gz",
+                "aliquot_to_patient_ID.tsv"
             ]
         }
 
@@ -69,23 +70,50 @@ class PdcLscc(Dataset):
 
             if file_name == "phosphoproteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
+                #df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["phosphoproteomics"] = df
 
             if file_name == "proteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
+                #df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["proteomics"] = df
 
             if file_name == "ubiquitylome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["ubiquitylomics"] = df
+                                
+            elif file_name == "aliquot_to_patient_ID.tsv":
+                df = pd.read_csv(file_path, sep = "\t")
+                self._helper_tables["map_ids"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
+        # Proteomics
+        # Get Patient_IDs 
+        # slice mapping_df to include cancer specific aliquot_IDs 
+        prot = self._data["proteomics"]
+        mapping_df = self._helper_tables["map_ids"]
+        aliquot_list = list(prot.aliquot_submitter_id)
+        cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(aliquot_list)]
+        # Create dictionary with aliquot_ID as keys and patient_ID as values
+        matched_ids = {}
+        for i, row in mapping_df.iterrows():
+            matched_ids[row['aliquot_ID']] = row['patient_ID']
+
+        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
+        prot = prot.set_index('Patient_ID')
+        prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
+        self._data["proteomics"] = prot
+        
+        # Phosphoproteomics
+        phos = self._data["phosphoproteomics"]
+        phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
+        phos = phos.set_index('Patient_ID')
+        phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
+        self._data["phosphoproteomics"] = phos
 
         # NOTE: The code below will not work properly until you have all the 
         # dataframes formatted properly and loaded into the self._data

@@ -39,6 +39,7 @@ class PdcCoad(Dataset):
                 "clinical.tsv.gz",
                 "phosphoproteome.tsv.gz",
                 "proteome.tsv.gz",
+                "CRC_Prospective sample info.xlsx"
             ]
         }
 
@@ -62,19 +63,61 @@ class PdcCoad(Dataset):
 
             if file_name == "phosphoproteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
+                #df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["phosphoproteomics"] = df
 
             if file_name == "proteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
+                #df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["proteomics"] = df
+                
+            # mapping file to get patient_IDs
+            elif file_name == "CRC_Prospective sample info.xlsx":
+                df = pd.read_excel(file_path)
+                df = df[['Label','Sample Code']]
+                self._helper_tables["map_ids"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
+        # Proteomics
+        # Get Patient_IDs
+        prot = self._data['proteomics']
+        mapping_df = self._helper_tables['map_ids']
+      
+        # Create dictionary with labels as keys and sample code (case_ID with sample identifier) as values
+        matched_ids = {}
+        for i, row in mapping_df.iterrows():
+            matched_ids[row['Label']] = row['Sample Code']
+        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(matched_ids) # replace label with Patient_IDs
+        prot.Patient_ID = prot.Patient_ID.apply(lambda x: x[1:]+'.N' if x[0] == 'N' else x[1:]) # change normals to have .N
+        prot = prot.set_index('Patient_ID')
+        prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')        
+        # Sort
+        normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
+        normal = normal.sort_values(by=["Patient_ID"])
+        tumor = prot.loc[~ prot.index.str.contains('\.N$', regex = True)]
+        tumor = tumor.sort_values(by=["Patient_ID"])
+        all_prot = tumor.append(normal)
+        self._data['proteomics'] = all_prot
 
+        # Phosphoproteomics
+        phos = self._data["phosphoproteomics"] 
+        phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(matched_ids) # replace 
+        phos.Patient_ID = phos.Patient_ID.apply(lambda x: x[1:]+'.N' if x[0] == 'N' else x[1:]) # change normals to have .N
+        phos = phos.set_index('Patient_ID')
+        phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
+
+        # Sort values
+        normal_phos = phos.loc[phos.index.str.contains('\.N$', regex = True)]
+        normal_phos = normal_phos.sort_values(by=["Patient_ID"])
+        tumor_phos = phos.loc[~ phos.index.str.contains('\.N$', regex = True)]
+        tumor_phos = tumor_phos.sort_values(by=["Patient_ID"])
+        all_phos = tumor_phos.append(normal_phos)
+        self._data["phosphoproteomics"] = all_phos
+       
+    
         # NOTE: The code below will not work properly until you have all the 
         # dataframes formatted properly and loaded into the self._data
         # dictionary. That's why they're commented out for now. Go ahead and
