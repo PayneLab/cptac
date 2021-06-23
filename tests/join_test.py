@@ -12,7 +12,12 @@
 import pytest
 import cptac
 
+"""
+TODO: Things that should happen in a join:
+    - 
+    - 
+"""
 class TestJoin:
 
-    def test_join(self):
+    def test_omics_to_omics(self):
         pass
