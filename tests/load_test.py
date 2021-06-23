@@ -11,6 +11,7 @@
 
 import pytest
 import cptac
+from cptac.exceptions import InvalidParameterError 
 
 '''class for testing the loading of datasets'''
 class TestLoad:
@@ -26,4 +27,9 @@ class TestLoad:
             # TODO: figure out how to handle passwords
             # assert cptac.download(dataset)
             assert False
+
+    def test_invalid_dataset(self):
+        with pytest.raises(InvalidParameterError) as exception_raised:
+            cptac.download("abc")
+        assert exception_raised.type == InvalidParameterError
     
