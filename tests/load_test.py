@@ -19,14 +19,12 @@ class TestLoad:
     def test_public_datasets(self, get_public_datasets):
         for dataset in get_public_datasets:
             # TODO: add way to see dataset-specific failures
-            assert cptac.download(dataset)
-
+            assert cptac.download(dataset, redownload=True)
     
     def test_protected_datasets(self, get_restricted_datasets):
         for dataset in get_restricted_datasets:
             # TODO: figure out how to handle passwords
-            # assert cptac.download(dataset)
-            assert False
+            assert cptac.download(dataset, redownload=True)
 
     def test_invalid_dataset(self):
         with pytest.raises(InvalidParameterError) as exception_raised:
