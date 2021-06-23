@@ -24,6 +24,11 @@ class TestLoad:
     def test_protected_datasets(self, get_restricted_datasets):
         for dataset in get_restricted_datasets:
             # TODO: figure out how to handle passwords
+            # could add a directory outside of the package that contains a dict of the passwords.
+            #   Then figure out how to import that dict
+            #   The problem here is that other users with password access trying to run tests would have to know how to set up the files
+            # could figure out how to prompt a system file selection that contains json for the passwords and import that data
+            # could do nothing and let people type them in manually
             assert cptac.download(dataset, redownload=True)
 
     def test_invalid_dataset(self):
