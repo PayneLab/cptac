@@ -94,42 +94,32 @@ class UmichPdac(Dataset):
                 df.drop([ 'Gene', "Index","num1","start","end","detected_phos","localized_phos","Havana_gene","Havana_transcript","MaxPepProb","Gene_ID","Transcript_ID","Transcript"], axis=1, inplace=True)
                 self._data["phosphoproteomics"] = df
 
-
-        # Proteomics
-        # Get Patient_IDs 
-        # slice mapping_df to include cancer specific aliquot_IDs 
-        prot = self._data["proteomics"]
-        mapping_df = self._helper_tables["map_ids"]
-        index_list = list(prot.index)
-        cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(index_list)]
+        
+        print(' ' * len(loading_msg), end='\r') # Erase the loading message
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
+        print(formatting_msg, end='\r')
+        
+        
+        # Get dictionary to map aliquot to patient IDs 
         # Create dictionary with aliquot_ID as keys and patient_ID as values
+        mapping_df = self._helper_tables["map_ids"]
         matched_ids = {}
-        for i, row in cancer_df.iterrows():
+        for i, row in mapping_df.iterrows():
             matched_ids[row['aliquot_ID']] = row['patient_ID']
+        
+        # Proteomics
+        prot = self._data["proteomics"]  
         prot = prot.reset_index()
         prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
         prot = prot.set_index('Patient_ID')
-
-        # Sort values
-        normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
-        normal = normal.sort_values(by=["Patient_ID"])
-        tumor = prot.loc[~ prot.index.str.contains('\.N$', regex = True)]
-        tumor = tumor.sort_values(by=["Patient_ID"])
-        all_prot = tumor.append(normal)
-        self._data["proteomics"] = all_prot
+        self._data["proteomics"] = prot
         
-        #phosphoproteomics 
-        
+        # Phosphoproteomics 
         phos = self._data["phosphoproteomics"]
-        mapping_df = self._helper_tables["map_ids"]
-        mapping_df = mapping_df.set_index("aliquot_ID")
-        map_dict = mapping_df.to_dict()["patient_ID"]
-        
-        phos = phos.rename(columns = map_dict)# rename NAT ID columns with .N 
+        phos = phos.rename(columns = matched_ids)# rename NAT ID columns with .N 
         phos = phos.T #transpose df 
         ref_intensities = phos.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
         phos = phos.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values, to get ratios
-           
         # Drop qauality control and ref intensity 
         drop_cols = ['ReferenceIntensity', 'QC1', 'QC2', 'QC3', 'QC4', 'QC5', 'QC6', 'KoreanReference1',
                    'KoreanReference2', 'KoreanReference3', 'Pool-24-2', 'WU-PDA1', 'WU-Pool-25','RefInt_pool-01',
@@ -137,21 +127,10 @@ class UmichPdac(Dataset):
                  'RefInt_pool-08','RefInt_pool-09', 'RefInt_pool-10','RefInt_pool-11','RefInt_pool-12','RefInt_pool-13',
                  'RefInt_pool-14','RefInt_pool-15','RefInt_pool-16','RefInt_pool-17','RefInt_pool-18','RefInt_pool-19',
                  'RefInt_pool-20','RefInt_pool-21','RefInt_pool-22','RefInt_pool-23','RefInt_pool-24','RefInt_pool-25']
-        phos = phos.drop(drop_cols, axis = 'index')
+        phos = phos.drop(drop_cols, axis = 'index')        
+        self._data["phosphoproteomics"] = phos
         
-        # Sort values
-        phos.index.name = 'Patient_ID'
-        normal = phos.loc[phos.index.str.contains('\.N$', regex = True)]
-        normal = normal.sort_values(by=["Patient_ID"])
-        tumor = phos.loc[~ phos.index.str.contains('\.N$', regex = True)]
-        tumor = tumor.sort_values(by=["Patient_ID"])
-        all_prot = tumor.append(normal)
         
-        self._data["phosphoproteomics"] = all_prot
-        
-        print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
-        print(formatting_msg, end='\r')
-
+        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
         
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

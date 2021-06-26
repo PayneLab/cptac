@@ -78,21 +78,11 @@ class UmichBrca(Dataset):
                    'RefInt_Pool09', 'RefInt_Pool10', 'RefInt_Pool11', 'RefInt_Pool12',
                    'RefInt_Pool13', 'RefInt_Pool14', 'RefInt_Pool15', 'RefInt_Pool16',
                    'RefInt_Pool17']
-
                 # Drop quality control and ref intensity cols
                 df = df.drop(drop_cols, axis = 'index')
-
                 # Since cptac brca has no normal samples, the duplicates are treated as replicates
                 df = average_replicates(df)
-
-                # Sort values
-                normal = df.loc[df.index.str.contains('\.N$', regex = True)]
-                normal = normal.sort_values(by=["Patient_ID"])
-                tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
-                tumor = tumor.sort_values(by=["Patient_ID"])
-
-                all_df = tumor.append(normal)
-                self._data["proteomics"] = all_df
+                self._data["proteomics"] = df
                 
             #Phosphoproteomics    
             elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
@@ -127,26 +117,15 @@ class UmichBrca(Dataset):
                 df = df.drop(drop_cols, axis = 'index')
                 # Since cptac brca has no normal samples, the duplicates are treated as replicates
                 df = average_replicates(df)
-                
-                # Sort values
-                df.index.name = 'Patient_ID'
-                normal = df.loc[df.index.str.contains('\.N$', regex = True)]
-                normal = normal.sort_values(by=["Patient_ID"])
-                tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
-                tumor = tumor.sort_values(by=["Patient_ID"])
-                all_prot = tumor.append(normal)
+                self._data["phosphoproteomics"] = df
 
-                
-                self._data["phosphoproteomics"] = all_prot
-
-               
-
-                
-          
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
+        
+        self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
+        
         # Get a union of all dataframes' indices, with duplicates removed
         ###FILL: If there are any tables whose index values you don't want
         ### included in the master index, pass them to the optional 'exclude'

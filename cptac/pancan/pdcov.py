@@ -59,6 +59,7 @@ class PdcOv(Dataset):
 
             if file_name == "clinical.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
+                df = df.loc[df.index[df.index.str.contains('OV', regex = True)]] # Drop quality control and ref intensity
                 self._data["clinical"] = df
 
             if file_name == "phosphoproteome.tsv.gz":

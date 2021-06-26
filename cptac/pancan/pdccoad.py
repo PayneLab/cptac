@@ -59,16 +59,15 @@ class PdcCoad(Dataset):
 
             if file_name == "clinical.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
+                df = df.loc[df.index[df.index.str.contains('CO', regex = True)]] # Drop quality control and ref intensity
                 self._data["clinical"] = df
 
             if file_name == "phosphoproteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                #df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["phosphoproteomics"] = df
 
             if file_name == "proteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                #df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["proteomics"] = df
                 
             # mapping file to get patient_IDs
@@ -94,13 +93,7 @@ class PdcCoad(Dataset):
         prot.Patient_ID = prot.Patient_ID.apply(lambda x: x[1:]+'.N' if x[0] == 'N' else x[1:]) # change normals to have .N
         prot = prot.set_index('Patient_ID')
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')        
-        # Sort
-        normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
-        normal = normal.sort_values(by=["Patient_ID"])
-        tumor = prot.loc[~ prot.index.str.contains('\.N$', regex = True)]
-        tumor = tumor.sort_values(by=["Patient_ID"])
-        all_prot = tumor.append(normal)
-        self._data['proteomics'] = all_prot
+        self._data['proteomics'] = prot
 
         # Phosphoproteomics
         phos = self._data["phosphoproteomics"] 
@@ -108,16 +101,10 @@ class PdcCoad(Dataset):
         phos.Patient_ID = phos.Patient_ID.apply(lambda x: x[1:]+'.N' if x[0] == 'N' else x[1:]) # change normals to have .N
         phos = phos.set_index('Patient_ID')
         phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
-
-        # Sort values
-        normal_phos = phos.loc[phos.index.str.contains('\.N$', regex = True)]
-        normal_phos = normal_phos.sort_values(by=["Patient_ID"])
-        tumor_phos = phos.loc[~ phos.index.str.contains('\.N$', regex = True)]
-        tumor_phos = tumor_phos.sort_values(by=["Patient_ID"])
-        all_phos = tumor_phos.append(normal_phos)
-        self._data["phosphoproteomics"] = all_phos
+        self._data["phosphoproteomics"] = phos
        
-    
+        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
+        
         # NOTE: The code below will not work properly until you have all the 
         # dataframes formatted properly and loaded into the self._data
         # dictionary. That's why they're commented out for now. Go ahead and

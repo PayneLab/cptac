@@ -63,6 +63,7 @@ class PdcHnscc(Dataset):
 
             if file_name == "phosphoproteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
+                df = df.set_index(["case_submitter_id"])
                 self._data["phosphoproteomics"] = df
 
             if file_name == "proteome.tsv.gz":
@@ -95,6 +96,7 @@ class PdcHnscc(Dataset):
         # drop quality control rows
         prot = prot.loc[prot.index[~ prot.index.str.contains('QC', regex = True)]] 
         self._data["proteomics"] = prot
+        
         
         # Phosphoproteomics
         phos = self._data["phosphoproteomics"]

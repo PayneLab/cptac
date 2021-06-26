@@ -171,7 +171,7 @@ class WashuCcrcc(Dataset):
 
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
             
         # Combine the two transcriptomics dataframes
@@ -190,6 +190,8 @@ class WashuCcrcc(Dataset):
         df = df.T
         df.index.name = 'Patient_ID'
         self._data["CNV"] = df
+        
+        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
         
         # Get a union of all dataframes' indices, with duplicates removed
         ###FILL: If there are any tables whose index values you don't want

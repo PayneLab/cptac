@@ -59,34 +59,35 @@ class PdcBrca(Dataset):
 
             if file_name == "clinical.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
+                df = df.drop(['Internal Reference - Pooled Sample', 'RetroIR'])
                 self._data["clinical"] = df
 
             if file_name == "acetylome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
+                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"]) 
+                df = df.drop('RetroIR', level = 1)
                 self._data["acetylproteomics"] = df
 
             if file_name == "phosphoproteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
+                df = df.drop('RetroIR', level = 1)
                 self._data["phosphoproteomics"] = df
 
             if file_name == "proteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-
-                # Temp cleanup
-                df = df.\
-                drop(columns="aliquot_submitter_id").\
-                rename(columns={"case_submitter_id": "Patient_ID"}).\
-                set_index("Patient_ID")
-
-                # df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
+                df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["proteomics"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
 
+        # Sort IDs based on the Patient_ID of the Multiindex 
+        # The Patient_ID and the Aliquot are needed to differentiate duplicate Aliquots 
+        # and Patient_IDs with different values that did not correlate well together
+        # (checked with linear regression).
+        self._data = sort_all_rows_pancan(self._data)  
 
         # NOTE: The code below will not work properly until you have all the 
         # dataframes formatted properly and loaded into the self._data

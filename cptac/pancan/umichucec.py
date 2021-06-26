@@ -102,59 +102,47 @@ class UmichUcec(Dataset):
                 df.drop([ 'Gene', "Index","num1","start","end","detected_phos","localized_phos","Havana_gene","Havana_transcript","MaxPepProb","Gene_ID","Transcript_ID","Transcript"], axis=1, inplace=True)
                 self._data["phosphoproteomics"] = df
 
-
         
-        # Proteomics
-        # Get Patient_IDs
-        # slice mapping_df to include cancer specific aliquot_IDs 
-        prot = self._data["proteomics"]
-        mapping_df = self._helper_tables["map_ids"]
-        index_list = list(prot.index)
-        cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(index_list)]
+        print(' ' * len(loading_msg), end='\r') # Erase the loading message
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
+        print(formatting_msg, end='\r')
+        
+        
+        # Get dictionary to map aliquot to patient IDs 
         # Create dictionary with aliquot_ID as keys and patient_ID as values
+        mapping_df = self._helper_tables["map_ids"]
         matched_ids = {}
-        for i, row in cancer_df.iterrows():
+        for i, row in mapping_df.iterrows():
             matched_ids[row['aliquot_ID']] = row['patient_ID']
+            
+        # Proteomics
+        prot = self._data["proteomics"]
         prot = prot.reset_index()
         prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
         prot = prot.set_index('Patient_ID')
-        
-        
         # C3N-01825 comes from two tumor aliquots, so we average these 
         id_df = prot[prot.index.str.contains('C3N-01825')] 
         vals = list(id_df.mean(axis=0)) # average replicates and store in list 
         prot = prot.drop(index = 'C3N-01825') # drop both replicates so can add new row with averages
         prot.loc['C3N-01825'] = vals 
-
-        # Sort values
-        normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
-        normal = normal.sort_values(by=["Patient_ID"])
-        tumor = prot.loc[~ prot.index.str.contains('\.N$', regex = True)]
-        tumor = tumor.sort_values(by=["Patient_ID"])
-        all_prot = tumor.append(normal)
-        self._data["proteomics"] = all_prot
+        self._data["proteomics"] = prot
         
         
-        #phosphoproteomics 
-        
+        # Phosphoproteomics         
         phos = self._data["phosphoproteomics"]
         mapping_df = self._helper_tables["map_ids"]
         mapping_df = mapping_df.set_index("aliquot_ID")
-        map_dict = mapping_df.to_dict()["patient_ID"]
-        
+        map_dict = mapping_df.to_dict()["patient_ID"]        
         phos = phos.rename(columns = map_dict)# rename NAT ID columns with .N 
         phos = phos.T #transpose df 
         ref_intensities = phos.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
         phos = phos.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values, to get ratios
-        phos = phos.iloc[1:,:] # drop ReferenceIntensity row 
-        
+        phos = phos.iloc[1:,:] # drop ReferenceIntensity row         
         # C3N-01825 comes from two tumor aliquots, so we average these 
         id_df = phos[phos.index.str.contains('C3N-01825')] 
         vals = list(id_df.mean(axis=0)) # average replicates and store in list 
         phos = phos.drop(index = 'C3N-01825') # drop both replicates so can add new row with averages
         phos.loc['C3N-01825'] = vals
-        
-        
         # Drop quality control and ref intensity cols
         drop_cols = ['NX1', 'NX2', 'NX3', 'NX4', 'NX5', 'NX6', 'NX7', 'NX8', 'NX9', 'NX12',
                    'NX17', 'NX13', 'NX14', 'NX10', 'NX16', 'NX18', 'NX11', 'NX15',
@@ -164,20 +152,9 @@ class UmichUcec(Dataset):
                    'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15', 'RefInt_pool16',
                    'RefInt_pool17']
         phos = phos.drop(drop_cols, axis = 'index')
+        self._data["phosphoproteomics"] = phos
         
-        # Sort values
-        phos.index.name = 'Patient_ID'
-        normal = phos.loc[phos.index.str.contains('\.N$', regex = True)]
-        normal = normal.sort_values(by=["Patient_ID"])
-        tumor = phos.loc[~ phos.index.str.contains('\.N$', regex = True)]
-        tumor = tumor.sort_values(by=["Patient_ID"])
-        all_prot = tumor.append(normal)
-        
-        self._data["phosphoproteomics"] = all_prot
-        
-        print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
-        print(formatting_msg, end='\r')
+        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
 
         # Get a union of all dataframes' indices, with duplicates removed
         ###FILL: If there are any tables whose index values you don't want

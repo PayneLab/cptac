@@ -69,35 +69,7 @@ class UmichHnscc(Dataset):
                 df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values 
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
-
-                drop_cols = ['128C', 'QC2', 'QC3', 'QC4', '129N', 'LungTumor1', 'Pooled-sample14',
-                   'LungTumor2', 'QC6', 'LungTumor3', 'Pooled-sample17', 'QC7',
-                   'Pooled-sample19', 'QC9', 'RefInt_pool01', 'RefInt_pool02',
-                   'RefInt_pool03', 'RefInt_pool04', 'RefInt_pool05', 'RefInt_pool06',
-                   'RefInt_pool07', 'RefInt_pool08', 'RefInt_pool09', 'RefInt_pool10',
-                   'RefInt_pool11', 'RefInt_pool12', 'RefInt_pool13', 'RefInt_pool14',
-                   'RefInt_pool15', 'RefInt_pool16', 'RefInt_pool17', 'RefInt_pool18',
-                   'RefInt_pool19', 'RefInt_pool20']
-    
-                # Drop quality control and ref intensity cols
-                df = df.drop(drop_cols, axis = 'index')
-
-                # duplicates are averaged
-                df = average_replicates(df, common = '-duplicate', to_drop = '-duplicate.*')
-
-                df.index = df.index.str.replace('-T$','', regex = True)
-                df.index = df.index.str.replace('-N$','.N', regex = True)
-                df.index = df.index.str.replace('-C$','.C', regex = True) # 6 cored normal samples 
-
-                # Sort values
-                normal = df.loc[df.index.str.contains('\.[NC]$', regex = True)]
-                normal = normal.sort_values(by=["Patient_ID"])
-                tumor = df.loc[~ df.index.str.contains('\.[NC]$', regex = True)]
-                tumor = tumor.sort_values(by=["Patient_ID"])
-
-                all_df = tumor.append(normal)
-                self._data["proteomics"] = all_df
-                
+                self._data["proteomics"] = df              
                 
             elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
@@ -134,16 +106,7 @@ class UmichHnscc(Dataset):
                 df.index = df.index.str.replace('-T$','', regex = True)
                 df.index = df.index.str.replace('-N$','.N', regex = True)
                 df.index = df.index.str.replace('-C$','.C', regex = True) # 6 cored normal samples 
-
-                # Sort values
-                df.index.name = 'Patient_ID'
-                normal = df.loc[df.index.str.contains('\.[NC]$', regex = True)]
-                normal = normal.sort_values(by=["Patient_ID"])
-                tumor = df.loc[~ df.index.str.contains('\.[NC]$', regex = True)]
-                tumor = tumor.sort_values(by=["Patient_ID"])
-                all_phos = tumor.append(normal)
-                               
-                self._data["phosphoproteomics"] = all_phos
+                self._data["phosphoproteomics"] = df
             
             '''
             if file_name == "S039_BCprospective_observed_0920.tsv.gz":
@@ -166,9 +129,32 @@ class UmichHnscc(Dataset):
                 
         
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
-
+        
+        drop_cols = ['128C', 'QC2', 'QC3', 'QC4', '129N', 'LungTumor1', 'Pooled-sample14',
+                   'LungTumor2', 'QC6', 'LungTumor3', 'Pooled-sample17', 'QC7',
+                   'Pooled-sample19', 'QC9', 'RefInt_pool01', 'RefInt_pool02',
+                   'RefInt_pool03', 'RefInt_pool04', 'RefInt_pool05', 'RefInt_pool06',
+                   'RefInt_pool07', 'RefInt_pool08', 'RefInt_pool09', 'RefInt_pool10',
+                   'RefInt_pool11', 'RefInt_pool12', 'RefInt_pool13', 'RefInt_pool14',
+                   'RefInt_pool15', 'RefInt_pool16', 'RefInt_pool17', 'RefInt_pool18',
+                   'RefInt_pool19', 'RefInt_pool20']
+    
+        
+        # Proteomics
+        prot = self._data["proteomics"]
+        # Drop quality control and ref intensity cols
+        prot = prot.drop(drop_cols, axis = 'index')
+        # duplicates are averaged
+        prot = average_replicates(prot, common = '-duplicate', to_drop = '-duplicate.*')
+        prot.index = prot.index.str.replace('-T$','', regex = True)
+        prot.index = prot.index.str.replace('-N$','.N', regex = True)
+        prot.index = prot.index.str.replace('-C$','.C', regex = True) # 6 cored normal samples 
+        self._data["proteomics"] = prot
+        
+        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
+        
         # Get a union of all dataframes' indices, with duplicates removed
         ###FILL: If there are any tables whose index values you don't want
         ### included in the master index, pass them to the optional 'exclude'

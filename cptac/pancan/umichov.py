@@ -130,55 +130,36 @@ class UmichOv(Dataset):
             
             
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
            
         if self._version == "1.1":         
-            # Proteomics
-            # Get Patient_IDs
-            # slice mapping_df to include cancer specific aliquot_IDs 
-            prot = self._data["proteomics"]
-            index_list = list(prot.index)
-            mapping_df = self._helper_tables["map_ids"]
-
             # Create dictionary with aliquot_ID as keys and patient_ID as values
+            mapping_df = self._helper_tables["map_ids"]
             matched_ids = {}
             for i, row in mapping_df.iterrows():
                 matched_ids[row['specimen']] = row['sample']
+
+            # Proteomics    
+            prot = self._data["proteomics"]
             prot = prot.reset_index()
             prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
-            prot = prot.set_index('Patient_ID')
-       
+            prot = prot.set_index('Patient_ID')       
             prot.index = prot.index.str.replace('-T$','', regex = True)
-            prot.index = prot.index.str.replace('-N$','.N', regex = True)
-
-            # Sort
-            normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
-            normal = normal.sort_values(by=["Patient_ID"])
-            tumor = prot.loc[~ prot.index.str.contains('\.N$', regex = True)]
-            tumor = tumor.sort_values(by=["Patient_ID"])
-            all_prot = tumor.append(normal)  
-            self._data["proteomics"] = all_prot
+            prot.index = prot.index.str.replace('-N$','.N', regex = True)  
+            self._data["proteomics"] = prot
                 
-        
             # Phosphoproteomics 
             phos_df = self._data["phosphoproteomics"]
             phos_df = phos_df.reset_index()
             phos_df = phos_df.replace(matched_ids)
-            phos_df = phos_df.set_index('Patient_ID')
-            
+            phos_df = phos_df.set_index('Patient_ID')            
             phos_df.index = phos_df.index.str.replace('-T$','', regex = True)
-            phos_df.index = phos_df.index.str.replace('-N$','.N', regex = True)
-            # Sort values
-            phos_df.index.name = 'Patient_ID'
-            normal = phos_df.loc[phos_df.index.str.contains('\.N$', regex = True)]
-            normal = normal.sort_values(by=["Patient_ID"])
-            tumor = phos_df.loc[~ phos_df.index.str.contains('\.N$', regex = True)]
-            tumor = tumor.sort_values(by=["Patient_ID"])
-            all_phos = tumor.append(normal)  
-            self._data["phosphoproteomics"] = all_phos
+            phos_df.index = phos_df.index.str.replace('-N$','.N', regex = True)  
+            self._data["phosphoproteomics"] = phos_df
 
-
+        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
+        
         # Get a union of all dataframes' indices, with duplicates removed
         ###FILL: If there are any tables whose index values you don't want
         ### included in the master index, pass them to the optional 'exclude'

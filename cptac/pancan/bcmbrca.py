@@ -67,37 +67,24 @@ class BcmBrca(Dataset):
                 df = df.set_index("gene")
                 df = df.drop_duplicates()
                 self._helper_tables["gene_key"] = df 
-            
-        
-        
+
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
-
      
-        # Add gene names to transcriptomic data 
-        
-        prot = self._data["transcriptomics"]
+        # Add gene names to transcriptomic data         
+        trans_df = self._data["transcriptomics"]
         gene_key = self._helper_tables["gene_key"]
-        transcript = gene_key.join(prot,how = "inner") #keep only gene_ids with gene names
+        transcript = gene_key.join(trans_df,how = "inner") #keep only gene_ids with gene names
         transcript = transcript.reset_index()
-        transcript = transcript.rename(columns={
-         "gene_name":"Name","gene":"Database_ID"})
+        transcript = transcript.rename(columns={"gene_name":"Name","gene":"Database_ID"})
         transcript = transcript.set_index(["Name", "Database_ID"])
         transcript = transcript.sort_index() #alphabetize
         transcript = transcript.T
         transcript.index.name = "Patient_ID"
+        self._data["transcriptomics"] = transcript
         
-         # Sort values
-        normal = transcript.loc[transcript.index.str.contains('\.N$', regex = True)]
-        normal = normal.sort_values(by=["Patient_ID"])
-        tumor = transcript.loc[~ transcript.index.str.contains('\.N$', regex = True)]
-        tumor = tumor.sort_values(by=["Patient_ID"])
-        all_transcript = tumor.append(normal)  
-        
-        self._data["transcriptomics"] = all_transcript
-        
-        
+        self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

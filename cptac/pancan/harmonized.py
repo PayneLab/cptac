@@ -72,15 +72,20 @@ class Harmonized(Dataset):
 
                 df = df.set_index("Patient_ID")
                 df = df[ ['Gene'] + ["Mutation"] + ["Location"] + [ col for col in df.columns if col not in ["Gene","Mutation","Location"] ] ]
-                df.index = df.index.str.replace(r"_T", "", regex=True) # data based on Tumor and Normal. Remove _T 
-           
+                df.index = df.index.str.replace(r"_T", "", regex=True) # data based on Tumor and Normal. Remove _T            
                 self._data["somatic_mutation"] = df                      
         
                 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
-       
-        
+        self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
+        '''
+        if filter_type == 'pancanucec':  
+            print("True")
+            mut_df = self._data["somatic_mutation"]
+            mut_df = mut_df.loc[mut_df.index[~ mut_df.index.str.contains('NX', regex = True)]] # Drop quality control 
+            self._data["somatic_mutation"] = mut_df
+        '''
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

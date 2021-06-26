@@ -80,8 +80,7 @@ class BroadPdac(Dataset):
                 broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
                 #covert df to dictionary
                 broad_dict = broad_key.to_dict()["Patient_ID"]
-                self._helper_tables["broad_key"] = broad_dict
-                
+                self._helper_tables["broad_key"] = broad_dict                
                 
             elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf":
                 broad_gene_names = read_gtf(file_path)
@@ -90,17 +89,17 @@ class BroadPdac(Dataset):
                 broad_gene_names = broad_gene_names.set_index("gene_id")
                 broad_gene_names = broad_gene_names.drop_duplicates()
                 self._helper_tables["broad_gene_names"] = broad_gene_names
+                
+                
+        print(' ' * len(loading_msg), end='\r') # Erase the loading message
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
+        print(formatting_msg, end='\r')
 
-                
-                
-        
-        # Add gene names to transcriptomic data 
-        
+        # Add gene names to transcriptomic data  
         df = self._data["transcriptomics"] 
         broad_gene_names = self._helper_tables["broad_gene_names"]
         broad_dict = self._helper_tables["broad_key"]
-        
-        df = broad_gene_names.join(df,how = "left") #merge in gene names keep transcripts that have a gene name
+        df = broad_gene_names.join(df, how = "left") #merge in gene names keep transcripts that have a gene name
         df = df.reset_index()
         df = df.rename(columns= {"transcript_id": "Transcript_ID","gene_id":"Database_ID"})
         df = df.set_index(["Name","Transcript_ID","Database_ID"])
@@ -108,22 +107,8 @@ class BroadPdac(Dataset):
         df = df.sort_index() 
         df = df.T
         df.index.name = "Patient_ID"
+        self._data["transcriptomics"] = df
         
-          # Sort values
-        normal = df.loc[df.index.str.contains('\.N$', regex = True)]
-        normal = normal.sort_values(by=["Patient_ID"])
-        tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
-        tumor = tumor.sort_values(by=["Patient_ID"])
-        all_prot = tumor.append(normal)  
-        
-        self._data["transcriptomics"] = all_prot
-       
-                
-                
-        print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
-        print(formatting_msg, end='\r')
-
-       
+        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

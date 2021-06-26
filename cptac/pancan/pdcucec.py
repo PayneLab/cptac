@@ -60,6 +60,7 @@ class PdcUcec(Dataset):
 
             if file_name == "clinical.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
+                df = df.loc[df.index[df.index.str.contains('^C3[NL]-', regex = True)]] # Drop quality control and ref intensity
                 self._data["clinical"] = df
 
             if file_name == "acetylome.tsv.gz":
@@ -79,7 +80,7 @@ class PdcUcec(Dataset):
                 self._helper_tables["map_ids"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
 
         # Proteomics
@@ -97,8 +98,7 @@ class PdcUcec(Dataset):
         prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
         prot = prot.set_index('Patient_ID')
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
-        # drop quality control rows
-        #prot = prot.loc[prot.index[~ prot.index.str.contains('NX', regex = True)]] #check if can drop NX
+        prot = prot.loc[prot.index[prot.index.str.contains('^C3[NL]-', regex = True)]] # Drop quality control and ref intensity
         self._data["proteomics"] = prot
         
         # Phosphoproteomics
@@ -106,18 +106,18 @@ class PdcUcec(Dataset):
         phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
         phos = phos.set_index('Patient_ID')
         phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
-        # drop quality control rows
-        #phos = phos.loc[phos.index[~ phos.index.str.contains('NX', regex = True)]] 
+        phos = phos.loc[phos.index[phos.index.str.contains('^C3[NL]-', regex = True)]] # Drop quality control and ref intensity
         self._data["phosphoproteomics"] = phos
         
         # Acetylproteomics
         acetyl = self._data["acetylproteomics"]
         acetyl['Patient_ID'] = acetyl['aliquot_submitter_id'].replace(matched_ids) # GTEX ids to patient IDs for normal samples
         acetyl = acetyl.set_index('Patient_ID')
-        acetyl = acetyl.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')         
+        acetyl = acetyl.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
+        acetyl = acetyl.loc[acetyl.index[acetyl.index.str.contains('^C3[NL]-', regex = True)]] # Drop quality control 
         self._data["acetylproteomics"] = acetyl
         
-        self._data = sort_all_rows_pancan(self._data)
+        self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
 
         # NOTE: The code below will not work properly until you have all the 
         # dataframes formatted properly and loaded into the self._data

@@ -79,23 +79,16 @@ class PdcLuad(Dataset):
                 self._helper_tables["map_ids"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
         
+        # Get dictionary to map aliquot to patient IDs 
+        mapping_df = self._helper_tables["map_ids"]
+        matched_ids = mapping_df.to_dict()["patient_ID"]
         
         # Proteomics
-        # Get Patient_IDs 
-        # slice mapping_df to include cancer specific aliquot_IDs 
         prot = self._data["proteomics"]
-        mapping_df = self._helper_tables["map_ids"]
-        aliquot_list = list(prot.aliquot_submitter_id)
-        cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(aliquot_list)]
-        # Create dictionary with aliquot_ID as keys and patient_ID as values
-        matched_ids = {}
-        for i, row in mapping_df.iterrows():
-            matched_ids[row['aliquot_ID']] = row['patient_ID']
-
-        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
+        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(matched_ids) # map aliquots to patient IDs
         prot = prot.set_index('Patient_ID')
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
         self._data["proteomics"] = prot
@@ -114,8 +107,7 @@ class PdcLuad(Dataset):
         #acetyl = acetyl.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
         self._data["acetylproteomics"] = acetyl
 
-        # sort by sample status, then by index
-        #self._data = sort_all_rows(self._data) # need to have sample tumor col
+        self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
         
         # NOTE: The code below will not work properly until you have all the 
         # dataframes formatted properly and loaded into the self._data

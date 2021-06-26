@@ -93,50 +93,36 @@ class BroadLuad(Dataset):
                 broad_gene_names = broad_gene_names.set_index("gene_id")
                 broad_gene_names = broad_gene_names.drop_duplicates()
                 self._helper_tables["broad_gene_names"] = broad_gene_names
-
             
             # converts aliquot id to patient id     
             elif file_name == "aliquot_to_patient_ID.tsv":
                 df = pd.read_csv(file_path, sep = "\t", index_col = 0)
                 self._helper_tables["map_ids"] = df   
+        
                 
-        
-        # Add gene names to transcriptomic data 
-        
+        print(' ' * len(loading_msg), end='\r') # Erase the loading message
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
+        print(formatting_msg, end='\r')
+
+        # Add gene names to transcriptomic data         
         df = self._data["transcriptomics"] 
         broad_gene_names = self._helper_tables["broad_gene_names"]
         broad_dict = self._helper_tables["broad_key"]
         mapping_df = self._helper_tables["map_ids"]
-        aliquot_dict = mapping_df.to_dict()["patient_ID"]
-        
+        aliquot_dict = mapping_df.to_dict()["patient_ID"]        
         df = broad_gene_names.join(df,how = "left") #merge in gene names keep transcripts that have a gene name
         df = df.reset_index()
         df = df.rename(columns= {"transcript_id": "Transcript_ID","gene_id":"Database_ID"})
         df = df.set_index(["Name","Transcript_ID","Database_ID"])
         df = df.rename(columns = broad_dict)# rename columns with CPTAC IDs
-        df = df.rename(columns = aliquot_dict)
-        df = df.sort_index() 
+        df = df.rename(columns = aliquot_dict) 
         df = df.T
         # average duplicates: C3N-00545-03 and C3N-00545-01 were seperated out as two different aliqout ids. 
         # They are from the same sample, so we average them. 
         df = df.groupby("index", level = 0).mean() 
-        df.index.name = "Patient_ID"
-        
-          # Sort values
-        normal = df.loc[df.index.str.contains('\.N$', regex = True)]
-        normal = normal.sort_values(by=["Patient_ID"])
-        tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
-        tumor = tumor.sort_values(by=["Patient_ID"])
-        all_prot = tumor.append(normal)  
-        
-        self._data["transcriptomics"] = all_prot
+        df.index.name = "Patient_ID"     
+        self._data["transcriptomics"] = df
        
-                
-                
-        print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
-        print(formatting_msg, end='\r')
-
-       
-
+        self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
+        
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

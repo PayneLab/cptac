@@ -76,65 +76,41 @@ class BcmLscc(Dataset):
                 df["circ_chromosome"] = df["circ"] +"_" + df["chrom"]
                 df = df.set_index('gene')
                 self._data["circular_RNA"] = df
-    
-            
-           
+   
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
-
         
-        # Add gene names to transcriptomic data 
-        
-        prot = self._data["transcriptomics"]
+        # Add gene names to transcriptomic data         
+        trans_df = self._data["transcriptomics"]
         gene_key = self._helper_tables["gene_key"]
-        transcript = gene_key.join(prot,how = "inner") #keep only gene_ids with gene names
+        transcript = gene_key.join(trans_df, how = "inner") #keep only gene_ids with gene names
         transcript = transcript.reset_index()
-        transcript = transcript.rename(columns={
-         "gene_name":"Name","gene":"Database_ID"})
+        transcript = transcript.rename(columns={"gene_name":"Name","gene":"Database_ID"})
         transcript = transcript.set_index(["Name", "Database_ID"])
         transcript = transcript.sort_index() #alphabetize
         transcript = transcript.T
         transcript.index = transcript.index.str.replace(r"_T", "", regex=True)
         transcript.index = transcript.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
         transcript.index.name = "Patient_ID"
-        
-          # Sort values
-        normal = transcript.loc[transcript.index.str.contains('\.N$', regex = True)]
-        normal = normal.sort_values(by=["Patient_ID"])
-        tumor = transcript.loc[~ transcript.index.str.contains('\.N$', regex = True)]
-        tumor = tumor.sort_values(by=["Patient_ID"])
-        all_transcript = tumor.append(normal)  
-        
-        self._data["transcriptomics"] = all_transcript
+        self._data["transcriptomics"] = transcript
         
         # Add gene names to circular RNA data 
-        circRNA = self._data["circular_RNA"]
-        
+        circRNA = self._data["circular_RNA"]        
         df = gene_key.join(circRNA, how = "inner")
         df = df.reset_index()
-        df = df.rename(columns= {"gene_name": "Name","gene":"Database_ID"}) # change names to match cptac package
-        df = df.set_index(["Name","circ_chromosome", "start","end","Database_ID"]) #create multi-index
-        df.drop(['INDEX', 'circ', 
-                'chrom'], axis=1, inplace=True) 
+        df = df.rename(columns= {"gene_name": "Name", "gene": "Database_ID"}) # change names to match cptac package
+        df = df.set_index(["Name","circ_chromosome", "start", "end", "Database_ID"]) #create multi-index
+        df.drop(['INDEX', 'circ', 'chrom'], axis=1, inplace=True) 
         df = df.sort_index()
         df = df.T
         df.index = df.index.str.replace(r"_T", "", regex=True) # remove Tumor label
         df.index = df.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
-        df.index.name = "Patient_ID"
-        
-        # Sort values
-        normal = df.loc[df.index.str.contains('\.N$', regex = True)]
-        normal = normal.sort_values(by=["Patient_ID"])
-        tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
-        tumor = tumor.sort_values(by=["Patient_ID"])
-        all_prot = tumor.append(normal)  
-        
-        self._data["circular_RNA"] = all_prot
+        df.index.name = "Patient_ID"       
+        self._data["circular_RNA"] = df
       
+        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
 
-
-       
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

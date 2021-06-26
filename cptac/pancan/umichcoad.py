@@ -150,31 +150,24 @@ class UmichCoad(Dataset):
                 
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
         
         if self._version == "1.1": 
-            # Proteomics
-            # Get Patient_IDs
-            prot = self._data['proteomics']
-            mapping_df = self._helper_tables['map_ids']
-            index_list = list(prot.index)
-            cancer_df = mapping_df.loc[mapping_df['Label'].isin(index_list)]
-            # Create dictionary with labels as keys and sample code (case_ID with sample identifier) as values
+            # Get dictionary to map aliquot to patient IDs 
+            # with labels as keys and sample code (case_ID with sample identifier) as values
+            mapping_df = self._helper_tables["map_ids"]
             matched_ids = {}
             for i, row in cancer_df.iterrows():
                 matched_ids[row['Label']] = row['Sample Code']
+        
+            # Proteomics
+            prot = self._data['proteomics']
             prot = prot.reset_index()
             prot = prot.replace(matched_ids) # replace label with Patient_IDs
             prot.Patient_ID = prot.Patient_ID.apply(lambda x: x[1:]+'.N' if x[0] == 'N' else x[1:]) # change normals to have .N
             prot = prot.set_index('Patient_ID')
-            # Sort
-            normal = prot.loc[prot.index.str.contains('\.N$', regex = True)]
-            normal = normal.sort_values(by=["Patient_ID"])
-            tumor = prot.loc[~ prot.index.str.contains('\.N$', regex = True)]
-            tumor = tumor.sort_values(by=["Patient_ID"])
-            all_df = tumor.append(normal)
-            self._data['proteomics'] = all_df
+            self._data['proteomics'] = prot
             
             # Phosphoproteomics
             phos = self._data["phosphoproteomics"] 
@@ -183,14 +176,9 @@ class UmichCoad(Dataset):
             phos = phos.replace(matched_ids) # replace label with Patient_IDs
             phos.Patient_ID = phos.Patient_ID.apply(lambda x: x[1:]+'.N' if x[0] == 'N' else x[1:]) # change normals to have .N
             phos = phos.set_index('Patient_ID')
+            self._data["phosphoproteomics"] = phos
             
-            # Sort values
-            normal_phos = phos.loc[phos.index.str.contains('\.N$', regex = True)]
-            normal_phos = normal_phos.sort_values(by=["Patient_ID"])
-            tumor_phos = phos.loc[~ phos.index.str.contains('\.N$', regex = True)]
-            tumor_phos = tumor_phos.sort_values(by=["Patient_ID"])
-            all_phos = tumor_phos.append(normal_phos)
-            self._data["phosphoproteomics"] = all_phos
+        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
 
         # Get a union of all dataframes' indices, with duplicates removed
         ###FILL: If there are any tables whose index values you don't want

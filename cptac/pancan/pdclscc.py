@@ -108,7 +108,7 @@ class PdcLscc(Dataset):
         phos = self._data["phosphoproteomics"]
         phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
         phos = phos.set_index('Patient_ID')
-        #phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
+        phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
         self._data["phosphoproteomics"] = phos
         
         # Acetylproteomics

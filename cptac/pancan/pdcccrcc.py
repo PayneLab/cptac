@@ -59,16 +59,15 @@ class PdcCcrcc(Dataset):
 
             if file_name == "clinical.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
+                df = df.loc[df.index[df.index.str.contains('^C3[NL]-', regex = True)]] # Drop quality control and ref intensity
                 self._data["clinical"] = df
 
             if file_name == "phosphoproteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                #df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["phosphoproteomics"] = df
 
             if file_name == "proteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                #df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
                 self._data["proteomics"] = df
                 
             elif file_name == "aliquot_to_patient_ID.tsv":
@@ -106,6 +105,8 @@ class PdcCcrcc(Dataset):
         # drop quality control rows
         phos = phos.loc[phos.index[~ phos.index.str.contains('QC', regex = True)]]
         self._data["phosphoproteomics"] = phos
+        
+        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
         
         # NOTE: The code below will not work properly until you have all the 
         # dataframes formatted properly and loaded into the self._data

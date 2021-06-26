@@ -168,8 +168,12 @@ class WashuLuad(Dataset):
                 patient_ids = clinical_df.index.to_list()
                 df = df.loc[df.index.isin(patient_ids)]                
                 self._data["tumor_purity"] = df
-                
-         
+ 
+
+        print(' ' * len(loading_msg), end='\r') # Erase the loading message
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
+        print(formatting_msg, end='\r')
+
         # Combine the two transcriptomics dataframes
         rna_tumor = self._helper_tables.get("transcriptomics_tumor")
         rna_normal = self._helper_tables.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
@@ -185,10 +189,7 @@ class WashuLuad(Dataset):
         df = df.T
         df.index.name = 'Patient_ID'
         self._data["CNV"] = df
-#
-        print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
-        print(formatting_msg, end='\r')
 
-
+        self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
+        
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

@@ -24,20 +24,26 @@ def sort_all_rows_pancan(data_dict):
 
     Returns:
     dict: The dataframe dictionary, with the dataframes sorted by their indices. 
+    The index is also given the standard name ('Patient_ID').
     Keys are str of dataframe names, values are pandas.DataFrame"""
 
     for name in data_dict.keys(): # Loop over the keys so we can alter the values without any issues
         df = data_dict[name]
-        df.index.name = "Patient_ID" # Get the name of the index
-        # Sort normal samples
-        normal = df.loc[df.index.str.contains('\.N$', regex = True)]
-        normal = normal.sort_index() # index should be Patient_ID
-        # Sort tumor samples
-        tumor = df.loc[~ df.index.str.contains('\.N$', regex = True)]
-        tumor = tumor.sort_index()
-        # append normal to tumor
-        all_df = tumor.append(normal)
-        data_dict[name] = all_df
+        if isinstance(df.index, pd.core.indexes.multi.MultiIndex):
+            df.index.rename(['Patient_ID', 'Aliquot'], level = [0,1], inplace = True)
+            new_df = df.sort_values('Patient_ID')
+            data_dict[name] = new_df
+        else:
+            df.index.name = "Patient_ID" # set the name of the index
+            # Sort normal samples
+            normal = df.loc[df.index.str.contains('\.[NC]$', regex = True, na = False)]#'.N' for normal, '.C' for cored normals (in HNSCC)
+            normal = normal.sort_index() # index should be Patient_ID
+            # Sort tumor samples
+            tumor = df.loc[~ df.index.str.contains('\.[NC]$', regex = True, na = False)]
+            tumor = tumor.sort_index()
+            # append normal to tumor
+            all_df = tumor.append(normal)
+            data_dict[name] = all_df
 
     return data_dict
 
@@ -77,7 +83,6 @@ def unionize_indices(dataset, exclude=[]):
     """
     if isinstance(exclude, str): # If it's a single dataframe name, make it a list so we can treat everything the same
         exclude = [exclude]
-
     indices = [df.index for name, df in dataset.items() if name not in exclude]
     master_index = pd.Index([])
     for index in indices:
