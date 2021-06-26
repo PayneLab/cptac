@@ -60,6 +60,7 @@ class PdcGbm(Dataset):
 
             if file_name == "clinical.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
+                df = df.loc[df.index[df.index.str.contains('^C3[NL]-', regex = True)]] # Drop quality control and ref intensity
                 self._data["clinical"] = df
 
             if file_name == "acetylome.tsv.gz":
@@ -83,16 +84,15 @@ class PdcGbm(Dataset):
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
         
-        # Proteomics
-        # Get Patient_IDs 
-        # slice mapping_df to include cancer specific aliquot_IDs 
-        prot = self._data["proteomics"]
-        mapping_df = self._helper_tables["map_ids"]
+        
         # Create dictionary with aliquot_ID as keys and patient_ID as values
+        mapping_df = self._helper_tables["map_ids"]
         matched_ids = {}
         for i, row in mapping_df.iterrows():
-            matched_ids[row['Original Id']] = row['Subject ID']
-
+            matched_ids[row['Original Id']] = row['Subject ID']    
+            
+        # Proteomics
+        prot = self._data["proteomics"]
         prot['Patient_ID'] = prot['case_submitter_id'].replace(matched_ids) # GTEX ids to patient IDs for normal samples
         prot = prot.set_index('Patient_ID')
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
@@ -119,6 +119,8 @@ class PdcGbm(Dataset):
         clin = clin.set_index('Patient_ID')
         clin = clin.drop(['case_submitter_id'], axis = 'columns') 
         self._data["clinical"] = clin
+        
+        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
 
         # NOTE: The code below will not work properly until you have all the 
         # dataframes formatted properly and loaded into the self._data
