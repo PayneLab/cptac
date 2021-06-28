@@ -60,7 +60,7 @@ class PdcGbm(Dataset):
 
             if file_name == "clinical.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
-                df = df.loc[df.index[df.index.str.contains('^C3[NL]-', regex = True)]] # Drop quality control and ref intensity
+                df = df.drop(['ref'], axis = 'index') # Drop quality control and ref intensity
                 self._data["clinical"] = df
 
             if file_name == "acetylome.tsv.gz":

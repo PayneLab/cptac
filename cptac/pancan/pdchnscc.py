@@ -59,6 +59,9 @@ class PdcHnscc(Dataset):
 
             if file_name == "clinical.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
+                drop_rows = ['LungTumor1', 'LungTumor2', 'LungTumor3', 'QC1', 'QC2', 'QC3', 
+                             'QC4', 'QC5', 'QC6', 'QC7', 'QC9', 'pooled sample']
+                df = df.drop(drop_rows, axis = 'index')
                 self._data["clinical"] = df
 
             if file_name == "phosphoproteome.tsv.gz":
@@ -78,7 +81,7 @@ class PdcHnscc(Dataset):
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
         
-        # Proteomics
+        
         # Get Patient_IDs 
         # slice mapping_df to include cancer specific aliquot_IDs 
         prot = self._data["proteomics"]
@@ -90,22 +93,25 @@ class PdcHnscc(Dataset):
         for i, row in mapping_df.iterrows():
             matched_ids[row['aliquot_ID']] = row['patient_ID']
 
+        # Proteomics
         prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
         prot = prot.set_index('Patient_ID')
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
-        # drop quality control rows
-        prot = prot.loc[prot.index[~ prot.index.str.contains('QC', regex = True)]] 
+        prot = prot.drop(['LungTumor1', 'LungTumor2', 'LungTumor3', 'QC1', 'QC2', 'QC3', 
+                  'QC4', 'QC5', 'QC6', 'QC7', 'QC9'], axis = 'index')
         self._data["proteomics"] = prot
-        
         
         # Phosphoproteomics
         phos = self._data["phosphoproteomics"]
         phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
         phos = phos.set_index('Patient_ID')
-        #phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') # 3 duplicate aliquots and case
-        # drop quality control rows
-        phos = phos.loc[phos.index[~ phos.index.str.contains('QC', regex = True)]] 
-        self._data["phosphoproteomics"] = phos
+        #phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') # 3 duplicate aliquots and case 
+        phos = phos.drop(['LungTumor1', 'LungTumor2', 'LungTumor3', 'QC1', 'QC2', 'QC3', 
+                  'QC4', 'QC5', 'QC6', 'QC7', 'QC9', 'pooled sample'], axis = 'index')
+        self._data["phosphoproteomics"] = phos          
+        
+        
+        self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
 
 
         # NOTE: The code below will not work properly until you have all the 
