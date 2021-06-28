@@ -51,8 +51,4 @@ class PancanUcec(PancanDataset):
         join_dict = {k: v._data for k, v in self._datasets.items()}
         self._joining_dataset = JoiningDataset(join_dict)
         
-        for name, df in self._joining_dataset._data.items():
-            print(name)
-            print(df.loc[~ df.index.str.contains('^C3[NL]-',regex=True)])
-        
         self._pancan_unionize_indices()
