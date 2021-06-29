@@ -121,13 +121,7 @@ class WashuUcec(Dataset):
                 df.index = df.index.str.replace('\.T$','', regex = True)
                 df.index = df.index.str.replace('\.A$','.N', regex = True)
                 df.index.name = 'Patient_ID'                
-                # Sort
-                normal = df.loc[df.index.str.contains('\.N$', regex =True)]
-                normal = normal.sort_values(by=["Patient_ID"])
-                tumor = df.loc[~ df.index.str.contains('\.N$', regex =True)]
-                tumor = tumor.sort_values(by=["Patient_ID"])
-                all_df = tumor.append(normal)
-                self._data[miRNA_type+'_miRNA'] = all_df
+                self._data[miRNA_type+'_miRNA'] = df
                 
             elif file_name == "EC_xCell.txt":
                 df = pd.read_csv(file_path, sep = '\t', index_col = 0) 
