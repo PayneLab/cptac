@@ -108,6 +108,7 @@ class PdcHnscc(Dataset):
         #phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') # 3 duplicate aliquots and case 
         phos = phos.drop(['LungTumor1', 'LungTumor2', 'LungTumor3', 'QC1', 'QC2', 'QC3', 
                   'QC4', 'QC5', 'QC6', 'QC7', 'QC9', 'pooled sample'], axis = 'index')
+        phos = map_database_to_gene_pdc(phos, 'refseq') # Map refseq IDs to gene names
         self._data["phosphoproteomics"] = phos          
         
         

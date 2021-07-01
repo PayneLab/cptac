@@ -13,7 +13,59 @@ import pandas as pd
 import numpy as np
 import warnings
 from .exceptions import CptacDevError, ReindexMapError, FailedReindexWarning
+from contextlib import contextmanager
+import sys, os
+import mygene
 
+
+@contextmanager
+def suppress_stdout():
+    """Temporarily stops output from being printed. Use before a function when you don't want its output to
+    be printed. 
+    Example: with suppress_stdout(): 
+                 function()
+    """
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:  
+            yield
+        finally:
+            sys.stdout = old_stdout
+            
+
+def map_database_to_gene_pdc(df, database_name = 'refseq', sep = ':'): 
+    """Add gene name to dataframe based on database IDs. This function is based on the format of PDC files. 
+    Only phosphoproteomics and acetylproteomics need the gene name added. 
+
+    Parameters:
+    df (dict): The dataframe that needs gene names.
+    database_name (str): dataframe name to use with mygene 'scopes' parameter.
+    sep (str): separator to split string with database ID. 
+
+    Returns:
+    df: The dataframe with gene name, database ID and site as a multiindex (sorted by gene name).
+    """
+    
+    df = df.T.reset_index()
+    index_name = df.index.name
+    if index_name is None:
+        df[['Database_ID',"Site"]] = df['index'].str.split(sep, expand=True)
+    else:
+        df[['Database_ID',"Site"]] = df[index_name].str.split(sep, expand=True)
+    
+    id_list = df.Database_ID.to_list()
+    with suppress_stdout():
+        mg = mygene.MyGeneInfo()
+        db_results = mg.querymany(id_list, scopes=database_name, fields='symbol', species='human') # map ID to gene
+    db_to_gene = {results['query']: results['symbol'] for results in db_results \
+                           if 'notfound' not in results.keys()} # get mapping dictionary of ID and gene name
+    df['Name'] = df['Database_ID'].replace(db_to_gene) # Add gene name 
+    df = df.set_index(['Name','Database_ID','Site']) # set multiindex
+    df = df.sort_index(level='Name', axis = 'index') # sort based on gene name
+    df = df.drop('index', axis = 1)
+    df = df.T
+    return df
 
 def sort_all_rows_pancan(data_dict):
     """For all dataframes in the given dictionary, sort them first by sample status, 

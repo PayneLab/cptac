@@ -68,7 +68,8 @@ class BroadUcec(Dataset):
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.set_index(["transcript_id","gene_id"])
                 self._data["transcriptomics"] = df
-#Converts the broad IDs to GDC_id aka the aliquot id 
+            
+            #Converts the broad IDs to GDC_id aka the aliquot id 
             elif file_name == "sample_descriptions.tsv":
                 broad_key = pd.read_csv(file_path, sep="\t")
                 broad_key = broad_key.loc[broad_key['cohort'] == "UCEC"] #get only UCEC keys
@@ -83,8 +84,7 @@ class BroadUcec(Dataset):
                 #covert df to dictionary
                 broad_dict = broad_key.to_dict()["Patient_ID"]
                 self._helper_tables["broad_key"] = broad_dict
-                
-              
+                             
             #has gene names for each database ID    
             elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf":
                 broad_gene_names = read_gtf(file_path)
@@ -94,6 +94,7 @@ class BroadUcec(Dataset):
                 broad_gene_names = broad_gene_names.drop_duplicates()
                 
                 self._helper_tables["broad_gene_names"] = broad_gene_names
+                
             # converts aliquot id to patient id     
             elif file_name == "aliquot_to_patient_ID.tsv":
                 df = pd.read_csv(file_path, sep = "\t", index_col = 0)

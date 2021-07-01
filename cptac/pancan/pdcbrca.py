@@ -82,11 +82,30 @@ class PdcBrca(Dataset):
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
+        
+        # Drop normal aliquots
+        # Explanation: 
+        # There were 2 aliquots for 17 patients in the proteomics data. I created scatterplots to compare the values 
+        # from each aliquot to its respective patient_ID in the original cptac data (flagship values). One aliquot for each 
+        # patient did not correlate well (correlations between 0.001 and 0.4), while the other did (correlations 
+        # between 0.7 and 0.9). Karsten Krug (broad) suggested that the aliquots that did not correlate well are normal samples 
+        # (18 patients had normal samples) which were dropped in downstream analysis because of quality control issues. 
+        # The Patient_IDs with duplicates did have a normal sample run ('prosp-brca-all-samples.txt'). 
+        # Therefore, we drop them here. We keep the other aliquots that did correlate well.
+        drop_aliquots = ['64ee175f-f3ce-446e-bbf4-9b6fa8_D1', '7ac27de9-0932-4ff5-aab8-29c527',
+            '3208e021-1dae-42fd-bd36-0f3c3d', '6c660b6b-bfda-47b0-9499-160d49','241ecd0e-89bd-4d3a-81b3-55a250',
+            '428de0d4-7f84-4075-bae1-352af6', '0a80d3c4-0758-447a-958c-ea868c', '53723086-8858-4395-93d7-0baa68',
+            '1740224c-32d1-4c9f-98c6-653363', '885fe794-a98e-4f81-a284-ac4bb8', '4749ba99-d3b8-4ae3-b6f6-458bc7',
+            '81116212-b7e6-454b-9579-105cf3', '1664b920-5e60-4e3b-9aab-fe121c', '3367406e-d39c-4641-a3e7-44e1f3',
+            'e3d45dc6-66ef-4e0b-9d96-1b5db5', '33adae13-5dbd-4530-a5d5-3763e4', 'acf022b3-7f01-43b3-ac14-86f97d']
+        
+        # Proteomics
+        prot = self._data["proteomics"]
+        prot = prot.drop(drop_aliquots,level = 'aliquot_submitter_id')
+        prot.index = prot.index.droplevel('aliquot_submitter_id')
+        self._data["proteomics"] = prot
 
-        # Sort IDs based on the Patient_ID of the Multiindex 
-        # The Patient_ID and the Aliquot are needed to differentiate duplicate Aliquots 
-        # and Patient_IDs with different values that did not correlate well together
-        # (checked with linear regression).
+        # Sort IDs based on the Patient_ID 
         self._data = sort_all_rows_pancan(self._data)  
 
 
