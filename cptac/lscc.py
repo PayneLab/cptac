@@ -85,7 +85,6 @@ class Lscc(Dataset):
                 "lscc-v3.3-public-methylation-promoter-5utr-gene-level.gct.gz",
                 "lscc-v3.3-public-mirna-mature-tpm-log2.gct.gz",
                 "lscc-v3.3-public-phosphoproteome-ratio-norm-NArm.gct.gz",
-                #"lscc-v3.3-public-proteome-ratio-norm-NArm-gene-level.gct.gz",
                 "lscc-v3.3-public-proteome-ratio-norm-NArm.gct.gz",
                 "lscc-v3.3-public-rnaseq-uq-fpkm-log2-NArm.gct.gz",
                 "lscc-v3.3-public-sample-annotation.csv.gz",
