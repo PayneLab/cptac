@@ -30,7 +30,7 @@ class Lscc(Dataset):
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
-        valid_versions = ["1.0", "3.2", "3.2.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        valid_versions = ["1.0", "3.2", "3.2.1", "3.3"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         data_files = {
             "1.0": [
@@ -76,6 +76,20 @@ class Lscc(Dataset):
                 "lscc-v3.2-rnaseq-uq-fpkm-log2-NArm.gct.gz",
                 "lscc-v3.2-sample-annotation.csv.gz",
                 "lscc-v3.2-ubiquitylome-ratio-norm-NArm.gct.gz"],
+            "3.3": [
+                "lscc-v3.2-mutsig-2cv-umich-v2-lscc-poncptac3-lscc-v3beta.final-analysis-set.maf.gz",
+                "lscc-v3.2-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
+                "lscc-v3.3-public-acetylome-ratio-norm-NArm.gct.gz",
+                "lscc-v3.3-public-circular-rna-rsem-uq-log2.gct.gz",
+                "lscc-v3.3-public-gene-level-cnv-gistic2-log-ratio-all_data_by_genes.gct.gz",
+                "lscc-v3.3-public-methylation-promoter-5utr-gene-level.gct.gz",
+                "lscc-v3.3-public-mirna-mature-tpm-log2.gct.gz",
+                "lscc-v3.3-public-phosphoproteome-ratio-norm-NArm.gct.gz",
+                #"lscc-v3.3-public-proteome-ratio-norm-NArm-gene-level.gct.gz",
+                "lscc-v3.3-public-proteome-ratio-norm-NArm.gct.gz",
+                "lscc-v3.3-public-rnaseq-uq-fpkm-log2-NArm.gct.gz",
+                "lscc-v3.3-public-sample-annotation.csv.gz",
+                "lscc-v3.3-public-ubiquitylome-batch-corrected-ratio-norm-NArm.gct.gz"],
         }
 
         super().__init__(cancer_type="lscc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
@@ -105,7 +119,7 @@ class Lscc(Dataset):
                 df.index.name="Patient_ID"
                 self._data["CNV"] = df
 
-            elif file_name in ["lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz", "lscc-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz", "lscc-v3.2-phosphoproteome-ratio-norm-NArm.gct.gz"]:
+            elif file_name in ["lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz", "lscc-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz", "lscc-v3.2-phosphoproteome-ratio-norm-NArm.gct.gz", "lscc-v3.3-public-phosphoproteome-ratio-norm-NArm.gct.gz"]:
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Drop rows of metadata
                 df = df[gene_filter]
@@ -131,7 +145,7 @@ class Lscc(Dataset):
                 'accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA', 'protein_mw', 'species',
                 'speciesMulti', 'orfCategory', 'accession_number', 'protein_group_num', 'entry_name', 'GeneSymbol']
 
-                if file_name in ["lscc-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz","lscc-v3.2-phosphoproteome-ratio-norm-NArm.gct.gz"]:
+                if file_name in ["lscc-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz","lscc-v3.2-phosphoproteome-ratio-norm-NArm.gct.gz", "lscc-v3.3-public-phosphoproteome-ratio-norm-NArm.gct.gz"]:
                     cols_to_drop.extend(['VMsiteFlanks','Best_numAmbiguousVMsites_sty', 'StartAA'])
                 df = df.drop(columns=cols_to_drop)
                 df = df.apply(pd.to_numeric)
@@ -141,7 +155,7 @@ class Lscc(Dataset):
                 df.index.name="Patient_ID"
                 self._data["phosphoproteomics"] = df
 
-            elif file_name in ["lscc-v1.0-proteome-ratio-norm-NArm.gct.gz", "lscc-v2.0-proteome-ratio-norm-NArm.gct.gz","lscc-v3.2-proteome-ratio-norm-NArm.gct.gz"]:
+            elif file_name in ["lscc-v1.0-proteome-ratio-norm-NArm.gct.gz", "lscc-v2.0-proteome-ratio-norm-NArm.gct.gz","lscc-v3.2-proteome-ratio-norm-NArm.gct.gz", "lscc-v3.3-public-proteome-ratio-norm-NArm.gct.gz"]:
                 df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
@@ -152,7 +166,7 @@ class Lscc(Dataset):
                 'numSpectraProteinObserved', 'protein_mw', 'percentCoverage', 'numPepsUnique',
                 'scoreUnique', 'species', 'orfCategory', 'accession_number',
                 'subgroupNum', 'entry_name']
-                if file_name in ["lscc-v2.0-proteome-ratio-norm-NArm.gct.gz", "lscc-v3.2-proteome-ratio-norm-NArm.gct.gz"]:
+                if file_name in ["lscc-v2.0-proteome-ratio-norm-NArm.gct.gz", "lscc-v3.2-proteome-ratio-norm-NArm.gct.gz", "lscc-v3.3-public-proteome-ratio-norm-NArm.gct.gz"]:
                     cols_to_drop.extend(['numPepsUniqueSubgroupSpecificCI', 'scoreUniqueSubgroupSpecificCI'])
                 df = df.drop(columns=cols_to_drop)
                 df = df.apply(pd.to_numeric)
@@ -165,11 +179,11 @@ class Lscc(Dataset):
 
 
             elif file_name in ["lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz", "lscc-v2.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz","lscc-v3.2-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz"]:
-                 df = pd.read_csv(file_path, sep="\t", dtype=object)
-                 df = df.rename(columns={"Sample.ID": "Patient_ID"})
-                 df = df.set_index("Patient_ID")
+                df = pd.read_csv(file_path, sep="\t", dtype=object)
+                df = df.rename(columns={"Sample.ID": "Patient_ID"})
+                df = df.set_index("Patient_ID")
 
-                 self._data['gene_fusion'] = df
+                self._data['gene_fusion'] = df
 
             elif file_name == "lscc-v1.0-sample-annotation.csv.gz":
                 df = pd.read_csv(file_path, sep=",", dtype=object)
@@ -285,6 +299,44 @@ class Lscc(Dataset):
                 self._data["clinical"]= df
                 self._data['experimental_design'] = experimental_design_df
                 self._data['derived_molecular'] = derived_molecular_df
+                
+            elif file_name == "lscc-v3.3-public-sample-annotation.csv.gz":
+                df = pd.read_csv(file_path, sep=",")
+                filter = df['QC.status'] == "QC.pass" #There are some samples that are internal references. IRs are used for scaling purposes, and don't belong to a single patient, so we want to drop them.
+                df = df[filter]
+                df = df.drop(columns="Participant") #Get rid of the "Participant" column becuase the same information is stored in Sample.ID  which is formatted the way we want.
+                df = df.set_index("Sample.ID")
+                df = df.drop(columns="Sample.IDs")
+                df.index.name="Patient_ID"
+                df = df.rename(columns={"Type":"Sample_Tumor_Normal"})
+                df["Sample_Tumor_Normal"] = df["Sample_Tumor_Normal"].replace("NAT","Normal")
+                #Split the metadata into multiple dataframes
+                #Make experiemntal_set up dataframe
+                experimental_design_cols = ['Experiment', 'Channel', 'QC.status','Aliquot.tmt'] #These are the columns for the experimental_design dataframe
+                experimental_design_df = df[experimental_design_cols]
+                df = df.drop(columns=experimental_design_cols)
+                # #Make a derived_molecular dataframe
+                derived_molecular_cols = ['CIMP.status.meth','TP53.mutation','PTEN.mutation',
+                 'CDKN2A.mutation','KMT2D.mutation','NFE2L2.mutation','ARID1A.mutation',
+                 'CUL3.mutation','BRCA2.mutation','KEAP1.mutation','SUZ12.mutation','NF1.mutation',
+                 'PIK3CA.mutation','NOTCH1.mutation','TP53.mutation.status','PTEN.mutation.status','CDKN2A.mutation.status',
+                 'KMT2D.mutation.status','NFE2L2.mutation.status','ARID1A.mutation.status','CUL3.mutation.status',
+                 'BRCA2.mutation.status','KEAP1.mutation.status','SUZ12.mutation.status','NF1.mutation.status',
+                 'PIK3CA.mutation.status','NOTCH1.mutation.status','CUL3.NFE2L2.KEAP1.mutation.status','KAT6A.scna.wxs',
+                 'SOX2.scna.wxs','TP63.scna.wxs','FGFR1.scna.wxs','CDKN2A.scna.wxs','CDKN2A.pathway.alteration',
+                 'CDKN2A.pathway.alteration.status','PIK3CA.pathway.alteration','PIK3CA.pathway.alteration.status',
+                 'FGFR3.TACC3.fusion.rna','Subtype.TCGA.rna','NMF.cluster','NMF.cluster.core',
+                 'NMF.cluster.membership.score','CIN.wxs','Smoking.Signature.Fraction.wxs','Smoking.Signature.Count.wxs',
+                 'Total.Mutation.Count.wxs','Mutation.Count.ExcludingINDELs.wxs','DNP.Count.wxs','DNP.Count.GG.to.TT.or.CC.to.AA.wxs',
+                 'Smoking.score.wxs','Smoking.Score.Category.wxs','Mutation.Count.Excluding.Silent.wxs','Total.Mutation.Count.per.Mb.wxs',
+                 'Immune.Subtype.Thorsson2018.rna','ESTIMATE.StromalScore.rna','ESTIMATE.ImmuneScore.rna','ESTIMATE.TumorPurity.rna',
+                 'TSNet.Purity.rna','Immune.Cluster.rna','xCell.ImmuneScore.rna','xCell.StromaScore.rna','xCell.MicroenvironmentScore.rna',
+                 'CIBERSORT.AbsoluteScore.rna']
+                derived_molecular_df = df[derived_molecular_cols]
+                df = df.drop(columns = derived_molecular_cols)
+                self._data["clinical"]= df
+                self._data['experimental_design'] = experimental_design_df
+                self._data['derived_molecular'] = derived_molecular_df
 
             elif file_name == "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz":
                 df = pd.read_csv(file_path, sep="\t", dtype=object)
@@ -310,7 +362,7 @@ class Lscc(Dataset):
                 df = df.sort_values(by=["Patient_ID","Gene"])
                 self._data['somatic_mutation'] = df
 
-            elif file_name in ["lscc-v1.0-mirna-mature-tpm-log2.gct.gz","lscc-v2.0-mirna-mature-tpm-log2.gct.gz", "lscc-v3.2-mirna-mature-tpm-log2.gct.gz"]:
+            elif file_name in ["lscc-v1.0-mirna-mature-tpm-log2.gct.gz","lscc-v2.0-mirna-mature-tpm-log2.gct.gz", "lscc-v3.2-mirna-mature-tpm-log2.gct.gz", "lscc-v3.3-public-mirna-mature-tpm-log2.gct.gz"]:
                 df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
                 gene_filter = df['Name'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
@@ -326,7 +378,7 @@ class Lscc(Dataset):
                 df.columns.name=None
                 self._data["miRNA"] = df
 
-            elif file_name in ["lscc-v1.0-rnaseq-uq-fpkm-log2-NArm.gct.gz","lscc-v2.0-rnaseq-uq-fpkm-log2-NArm.gct.gz", "lscc-v3.2-rnaseq-uq-fpkm-log2-NArm.gct.gz"]:
+            elif file_name in ["lscc-v1.0-rnaseq-uq-fpkm-log2-NArm.gct.gz","lscc-v2.0-rnaseq-uq-fpkm-log2-NArm.gct.gz", "lscc-v3.2-rnaseq-uq-fpkm-log2-NArm.gct.gz", "lscc-v3.3-public-rnaseq-uq-fpkm-log2-NArm.gct.gz"]:
                 df = pd.read_csv(file_path, sep="\t", dtype=object,skiprows=2)
                 gene_filter = df['gene_id'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
@@ -340,7 +392,7 @@ class Lscc(Dataset):
                 df.index.name="Patient_ID"
                 self._data["transcriptomics"] = df
 
-            elif file_name in ["lscc-v2.0-acetylome-ratio-norm-NArm.gct.gz","lscc-v3.2-acetylome-ratio-norm-NArm.gct.gz"]:
+            elif file_name in ["lscc-v2.0-acetylome-ratio-norm-NArm.gct.gz","lscc-v3.2-acetylome-ratio-norm-NArm.gct.gz", "lscc-v3.3-public-acetylome-ratio-norm-NArm.gct.gz"]:
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Drop rows of metadata
                 df = df[gene_filter]
@@ -396,7 +448,7 @@ class Lscc(Dataset):
 
                 self._data["acetylproteomics"] = df
 
-            elif file_name in ["lscc-v2.0-gene-level-cnv-gistic2-all_data_by_genes.gct.gz","lscc-v3.2-gene-level-cnv-gistic2-all_data_by_genes.gct.gz", "lscc-v3.2-gene-level-cnv-gistic2-log-ratio-all_data_by_genes.gct.gz"]:
+            elif file_name in ["lscc-v2.0-gene-level-cnv-gistic2-all_data_by_genes.gct.gz","lscc-v3.2-gene-level-cnv-gistic2-all_data_by_genes.gct.gz", "lscc-v3.2-gene-level-cnv-gistic2-log-ratio-all_data_by_genes.gct.gz", "lscc-v3.3-public-gene-level-cnv-gistic2-log-ratio-all_data_by_genes.gct.gz"]:
                 df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
@@ -412,7 +464,7 @@ class Lscc(Dataset):
                 df.index.name="Patient_ID"
                 self._data["CNV"] = df
 
-            elif file_name == "lscc-v3.2-ubiquitylome-ratio-norm-NArm.gct.gz":
+            elif file_name in ["lscc-v3.2-ubiquitylome-ratio-norm-NArm.gct.gz", "lscc-v3.3-public-ubiquitylome-batch-corrected-ratio-norm-NArm.gct.gz"]:
                 df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
@@ -464,7 +516,7 @@ class Lscc(Dataset):
                 df.index.name="Patient_ID"
                 self._data['ubiquitinomics'] = df
 
-            elif file_name == "lscc-v3.2-circular-rna-rsem-uq-log2.gct.gz":
+            elif file_name in ["lscc-v3.2-circular-rna-rsem-uq-log2.gct.gz", "lscc-v3.3-public-circular-rna-rsem-uq-log2.gct.gz"]:
                 df = pd.read_csv(file_path, sep="\t", skiprows = 2, dtype=object)
                 gene_filter = df['geneSymbol'] != 'na' #Filter out rows of metadata
                 df = df[gene_filter]
