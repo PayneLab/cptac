@@ -59,9 +59,9 @@ class PdcHnscc(Dataset):
 
             if file_name == "clinical.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
-                drop_rows = ['LungTumor1', 'LungTumor2', 'LungTumor3', 'QC1', 'QC2', 'QC3', 
+                clin_drop_rows = ['LungTumor1', 'LungTumor2', 'LungTumor3', 'QC1', 'QC2', 'QC3', 
                              'QC4', 'QC5', 'QC6', 'QC7', 'QC9', 'pooled sample']
-                df = df.drop(drop_rows, axis = 'index')
+                df = df.drop(clin_drop_rows, axis = 'index')
                 self._data["clinical"] = df
 
             if file_name == "phosphoproteome.tsv.gz":
@@ -77,37 +77,39 @@ class PdcHnscc(Dataset):
                 df = pd.read_csv(file_path, sep = "\t")
                 self._helper_tables["map_ids"] = df
 
+                
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
         
         
-        # Get Patient_IDs 
-        # slice mapping_df to include cancer specific aliquot_IDs 
-        prot = self._data["proteomics"]
-        mapping_df = self._helper_tables["map_ids"]
-        aliquot_list = list(prot.aliquot_submitter_id)
-        cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(aliquot_list)]
+        # Common rows to drop
+        drop_rows = ['LungTumor1', 'LungTumor2', 'LungTumor3', 'QC1', 'QC2', 'QC3', 
+                  'QC4', 'QC5', 'QC6', 'QC7', 'QC9']
+         
         # Create dictionary with aliquot_ID as keys and patient_ID as values
+        # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
+        # so no need to slice out cancer specific aliquots
+        mapping_df = self._helper_tables["map_ids"]
         matched_ids = {}
         for i, row in mapping_df.iterrows():
             matched_ids[row['aliquot_ID']] = row['patient_ID']
 
         # Proteomics
+        prot = self._data["proteomics"]
         prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
         prot = prot.set_index('Patient_ID')
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
-        prot = prot.drop(['LungTumor1', 'LungTumor2', 'LungTumor3', 'QC1', 'QC2', 'QC3', 
-                  'QC4', 'QC5', 'QC6', 'QC7', 'QC9'], axis = 'index')
+        prot = prot.drop(drop_rows, axis = 'index') # drop quality control rows
         self._data["proteomics"] = prot
         
         # Phosphoproteomics
         phos = self._data["phosphoproteomics"]
+        #import pdb;pdb.set_trace()
         phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
         phos = phos.set_index('Patient_ID')
-        #phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') # 3 duplicate aliquots and case 
-        phos = phos.drop(['LungTumor1', 'LungTumor2', 'LungTumor3', 'QC1', 'QC2', 'QC3', 
-                  'QC4', 'QC5', 'QC6', 'QC7', 'QC9', 'pooled sample'], axis = 'index')
+        phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') # 3 duplicate aliquots and case 
+        phos = phos.drop(drop_rows.append('pooled sample'), axis = 'index') # drop quality control rows
         phos = map_database_to_gene_pdc(phos, 'refseq') # Map refseq IDs to gene names
         self._data["phosphoproteomics"] = phos          
         

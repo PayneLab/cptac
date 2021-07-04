@@ -60,8 +60,8 @@ class PdcLuad(Dataset):
 
             if file_name == "clinical.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
-                drop_rows = ['Internal Reference - Pooled Sample', 'Normal Only IR', 'Taiwanese IR', 'Tumor Only IR']
-                df = df.drop(drop_rows, axis = 'index') # Drop quality control and ref intensity
+                clin_drop_rows = ['Internal Reference - Pooled Sample', 'Normal Only IR', 'Taiwanese IR', 'Tumor Only IR']
+                df = df.drop(clin_drop_rows, axis = 'index') # Drop quality control and ref intensity
                 self._data["clinical"] = df
 
             if file_name == "acetylome.tsv.gz":
@@ -83,8 +83,13 @@ class PdcLuad(Dataset):
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
+        
+        # common rows to drop
+        drop_rows = ['Normal Only IR', 'Taiwanese IR', 'Tumor Only IR']
 
         # Create dictionary with aliquot_ID as keys and patient_ID as values
+        # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
+        # so no need to slice out cancer specific aliquots
         mapping_df = self._helper_tables["map_ids"]
         matched_ids = {}
         for i, row in mapping_df.iterrows():
@@ -102,8 +107,8 @@ class PdcLuad(Dataset):
         phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
         phos = phos.set_index('Patient_ID')
         phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') # 2 duplicate aliquots and case
-        drop_rows = ['Normal Only IR', 'Taiwanese IR', 'Tumor Only IR']
         phos = phos.drop(drop_rows, axis = 'index')
+        phos = map_database_to_gene_pdc(phos, 'refseq') # Map refseq IDs to gene names
         self._data["phosphoproteomics"] = phos
         
         # Acetylproteomics
@@ -112,6 +117,7 @@ class PdcLuad(Dataset):
         acetyl = acetyl.set_index('Patient_ID')
         acetyl = acetyl.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
         acetyl = acetyl.drop(drop_rows, axis = 'index')
+        acetyl = map_database_to_gene_pdc(acetyl, 'refseq') # Map refseq IDs to gene names
         self._data["acetylproteomics"] = acetyl
 
         self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)

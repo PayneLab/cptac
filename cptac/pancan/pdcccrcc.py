@@ -59,9 +59,9 @@ class PdcCcrcc(Dataset):
 
             if file_name == "clinical.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
-                drop_rows = ['NCI7-1', 'NCI7-2', 'NCI7-3', 'NCI7-4', 'NCI7-5', 'Pooled Sample', 
+                clin_drop_rows = ['NCI7-1', 'NCI7-2', 'NCI7-3', 'NCI7-4', 'NCI7-5', 'Pooled Sample', 
                              'QC1', 'QC2', 'QC3', 'QC4', 'QC5', 'QC6', 'QC7', 'QC8']
-                df = df.drop(drop_rows, axis = 'index')
+                df = df.drop(clin_drop_rows, axis = 'index')
                 self._data["clinical"] = df
 
             if file_name == "phosphoproteome.tsv.gz":
@@ -77,26 +77,27 @@ class PdcCcrcc(Dataset):
                 self._helper_tables["map_ids"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
 
-        # Proteomics
-        # Get Patient_IDs 
-        # slice mapping_df to include cancer specific aliquot_IDs 
-        prot = self._data["proteomics"]
-        mapping_df = self._helper_tables["map_ids"]
-        aliquot_list = list(prot.aliquot_submitter_id)
-        cancer_df = mapping_df.loc[mapping_df['aliquot_ID'].isin(aliquot_list)]
+        
+        # Common rows to drop
+        drop_rows = ['QC1', 'QC2', 'QC3', 'QC4', 'QC5', 'QC6', 'QC7', 'QC8',
+                     'NCI7-1', 'NCI7-2', 'NCI7-3', 'NCI7-4', 'NCI7-5']
+        
         # Create dictionary with aliquot_ID as keys and patient_ID as values
+        # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
+        # so no need to slice out cancer specific aliquots
+        mapping_df = self._helper_tables["map_ids"]
         matched_ids = {}
         for i, row in mapping_df.iterrows():
             matched_ids[row['aliquot_ID']] = row['patient_ID']
-
+            
+        # Proteomics
+        prot = self._data["proteomics"]
         prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
         prot = prot.set_index('Patient_ID')
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
-        drop_rows = ['QC1', 'QC2', 'QC3', 'QC4', 'QC5', 'QC6', 'QC7', 'QC8',
-                     'NCI7-1', 'NCI7-2', 'NCI7-3', 'NCI7-4', 'NCI7-5']
         prot = prot.drop(drop_rows, axis = 'index') 
         self._data["proteomics"] = prot
         
@@ -106,6 +107,7 @@ class PdcCcrcc(Dataset):
         phos = phos.set_index('Patient_ID')
         phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
         phos = phos.drop(drop_rows, axis = 'index') 
+        phos = map_database_to_gene_pdc(phos, 'refseq') # Map refseq IDs to gene names
         self._data["phosphoproteomics"] = phos
         
         self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)

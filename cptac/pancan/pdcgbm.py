@@ -87,6 +87,8 @@ class PdcGbm(Dataset):
         
         
         # Create dictionary with aliquot_ID as keys and patient_ID as values
+        # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
+        # so no need to slice out cancer specific aliquots
         mapping_df = self._helper_tables["map_ids"]
         matched_ids = {}
         for i, row in mapping_df.iterrows():

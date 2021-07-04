@@ -109,6 +109,7 @@ class PdcUcec(Dataset):
         phos['Patient_ID'] = phos['Patient_ID'].apply(lambda x: x+'.N' if 'NX' in x else x) # 'NX' are enriched normals
         phos = phos.set_index('Patient_ID')
         phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
+        phos = map_database_to_gene_pdc(phos, 'refseq') # Map refseq IDs to gene names
         self._data["phosphoproteomics"] = phos
         
         # Acetylproteomics
@@ -117,6 +118,7 @@ class PdcUcec(Dataset):
         acetyl['Patient_ID'] = acetyl['Patient_ID'].apply(lambda x: x+'.N' if 'NX' in x else x) # 'NX' are enriched normals
         acetyl = acetyl.set_index('Patient_ID')
         acetyl = acetyl.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
+        acetyl = map_database_to_gene_pdc(acetyl, 'refseq') # Map refseq IDs to gene names
         self._data["acetylproteomics"] = acetyl
         
         self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
