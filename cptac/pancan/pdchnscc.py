@@ -66,7 +66,6 @@ class PdcHnscc(Dataset):
 
             if file_name == "phosphoproteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t")
-                df = df.set_index(["case_submitter_id"])
                 self._data["phosphoproteomics"] = df
 
             if file_name == "proteome.tsv.gz":
@@ -85,7 +84,7 @@ class PdcHnscc(Dataset):
         
         # Common rows to drop
         drop_rows = ['LungTumor1', 'LungTumor2', 'LungTumor3', 'QC1', 'QC2', 'QC3', 
-                  'QC4', 'QC5', 'QC6', 'QC7', 'QC9']
+                  'QC4', 'QC5', 'QC6', 'QC7', 'QC9', 'pooled sample']
          
         # Create dictionary with aliquot_ID as keys and patient_ID as values
         # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
@@ -100,16 +99,15 @@ class PdcHnscc(Dataset):
         prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
         prot = prot.set_index('Patient_ID')
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
-        prot = prot.drop(drop_rows, axis = 'index') # drop quality control rows
+        prot = prot.drop(drop_rows[:-1], axis = 'index') # drop quality control rows
         self._data["proteomics"] = prot
         
         # Phosphoproteomics
         phos = self._data["phosphoproteomics"]
-        #import pdb;pdb.set_trace()
         phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
         phos = phos.set_index('Patient_ID')
         phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') # 3 duplicate aliquots and case 
-        phos = phos.drop(drop_rows.append('pooled sample'), axis = 'index') # drop quality control rows
+        phos = phos.drop(drop_rows, axis = 'index') # drop quality control rows
         phos = map_database_to_gene_pdc(phos, 'refseq') # Map refseq IDs to gene names
         self._data["phosphoproteomics"] = phos          
         
