@@ -81,10 +81,9 @@ class Dataset:
                     pass
  """
 
-            self._version = version # TEMP FOR DEV; REPLACE W/ ABOVE WHEN DONE
-
             # Validate the version
-            self._version = validate_version(version, self._cancer_type, use_context="init", valid_versions=valid_versions)
+            #self._version = validate_version(version, self._cancer_type, use_context="init", valid_versions=valid_versions)
+            self._version = version # TEMP FOR DEV; REPLACE W/ ABOVE WHEN DONE
 
             # Get the paths to the data files
             version_data_files = data_files[self._version] # Get the data files for this version from the data files dictionary

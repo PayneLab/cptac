@@ -171,11 +171,7 @@ class Brca(Dataset):
 
             elif file_name in ["prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz", 
                                 "prosp-brca-v5.4-public-rnaseq-fpkm-log2.gct.gz"]:
-                if self._version in ["3.1", "3.1.1"]:
-                    rows_to_skip = 2
-                elif self._version == "5.4":
-                    rows_to_skip = 57
-                df = pd.read_csv(file_path, sep='\t', skiprows=rows_to_skip, index_col=0, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
+                df = pd.read_csv(file_path, sep='\t', skiprows=2, index_col=0, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
                 df = df[df["geneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for GeneSymbol, so we'll use that to filter them out.
                 df = df.set_index("geneSymbol")
                 df = df.drop(columns="description") # We don't need this.
@@ -186,15 +182,57 @@ class Brca(Dataset):
                 df.index.name = "Patient_ID"
                 self._data["transcriptomics"] = df
 
-            elif file_name == ["prosp-brca-v3.1-sample-annotation.csv.gz", 
-                                "prosp-brca-v5.4-public-sample-annotation.csv.gz"]:
+            elif file_name == "prosp-brca-v3.1-sample-annotation.csv.gz":
                 df = pd.read_csv(file_path, index_col=0)
                 df = df.drop(columns="Participant") # This column is just a duplicate of the index
                 df = df.rename(columns={"Sample.IDs": "Replicate_Measurement_IDs", "Type": "Sample_Tumor_Normal"})
                 df = df.replace("unknown", np.nan)
                 df = df.astype({"Age.in.Month": np.float64})
                 df.index.name = "Patient_ID"
-                self._data["metadata"] = df
+                
+                # Separate the clinical and derived_molecular dataframes
+                clinical = df[[
+                     "Replicate_Measurement_IDs", "Sample_Tumor_Normal", "Age.in.Month", "Gender", "Race", "Human.Readable.Label", "Experiment", "Channel", "Stage", 
+                     "PAM50", "NMF.v2.1", "ER", "PR", "ER.IHC.Score", "PR.IHC.Score", "Coring.or.Excision", "Ischemia.Time.in.Minutes", 
+                     "Ischemia.Decade", "Necrosis", "Tumor.Cellularity", "Total.Cellularity", "In.CR", "QC.status"]]
+                self._data["clinical"] = clinical
+
+                derived_molecular = df[[
+                    "HER2.IHC.Score", "HER2.FISH.Status", "HER2.original", "HER2.Amplified", "HER2.refined", "STARD3.ERBB2.GRB7.protein", 
+                    "HER2.class.Satpathy", "HER2.status.Satpathy", "PAM50.Her2.CNA", "PAM50.Her2.HER2.status", "CDH1.mutation", 
+                    "GATA3.mutation", "MAP3K1.mutation", "PIK3CA.mutation", "PTEN.mutation", "TP53.mutation", "CDH1.mutation.status", 
+                    "GATA3.mutation.status", "MAP3K1.mutation.status", "PIK3CA.mutation.status", "PTEN.mutation.status", "TP53.mutation.status", 
+                    "Number.of.Mutations", "Number.of.Mutated.Genes", "Chromosome.INstability.index.CIN.", "ESTIMATE.TumorPurity", 
+                    "ESTIMATE.ImmuneScore", "ESTIMATE.StromalScore", "xCell.ImmuneScore", "xCell.StromaScore", "Cibersort.Absolute.score", "Stemness.Score"]]
+                self._data["derived_molecular"] = derived_molecular
+                
+            elif file_name == "prosp-brca-v5.4-public-sample-annotation.csv.gz":
+                df = pd.read_csv(file_path, index_col=0)
+                df = df.rename(columns={"Sample.IDs": "Replicate_Measurement_IDs"})
+                df = df.replace("unknown", np.nan)
+                df = df.astype({"Age.in.Month": np.float64})
+                df.index.name = "Patient_ID"
+                
+                #Add tissue type column because it doesn't exist, all tissue should be cancer
+                df["Sample_Tumor_Normal"] = "Tumor"
+                
+                clinical = df[['Replicate_Measurement_IDs', 'Sample_Tumor_Normal', 'TMT.Plex', 'TMT.Channel', 
+                   'Tumor.Stage', 'Ischemia.Time.in.Minutes', 'PAM50', 'NMF.Cluster',
+                   'NMF.Cluster.Membership.Score', 'Age.in.Month', 'Gender', 'Ethnicity',
+                   'ER.Updated.Clinical.Status', 'PR.Clinical.Status',
+                   'ERBB2.Updated.Clinical.Status', 'TNBC.Updated.Clinical.Status',
+                   'ERBB2.Proteogenomic.Status', 'TOP2A.Proteogenomic.Status']]
+                self._data["clinical"] = clinical
+                
+                derived_molecular = df[[
+                   'ERBB2.Gene.Amplified', 'TOP2A.Gene.Amplified', 'ESTIMATE.TumorPurity', 'CIBERSORT.Absolute.Score', 'ESTIMATE.Immune.Score',
+                   'xCell.Immune.Score', 'ESTIMATE.Stromal.Score', 'xCell.Stromal.Score', 'CD3.TILS.Status', 'CD3.TILS.Counts',
+                   'Number.of.non.synonymous.Mutations', 'APOBEC.Signature', 'Chromosome.INstability.index.CIN.', 'Stemness.Score', 'TP53.Mutation.Type', 'PIK3CA.Mutation.Type',
+                   'PTEN.Mutation.Type', 'MAP3K1.Mutation.Type', 'AKT1.Mutation.Type', 'GATA3.Mutation.Type', 'CBFB.Mutation.Type', 'KMT2C.Mutation.Type', 'SF3B1.Mutation.Type',
+                   'ARID1A.Mutation.Type', 'MLLT4.Mutation.Type', 'TP53.Mutation.Status', 'PIK3CA.Mutation.Status', 'PTEN.Mutation.Status',
+                   'MAP3K1.Mutation.Status', 'AKT1.Mutation.Status', 'GATA3.Mutation.Status', 'CBFB.Mutation.Status',
+                   'KMT2C.Mutation.Status', 'SF3B1.Mutation.Status', 'ARID1A.Mutation.Status', 'MLLT4.Mutation.Status']]
+                self._data["derived_molecular"] = derived_molecular
 
             elif file_name == "Breast_One_Year_Clinical_Data_20160927.xls" and self._version == "3.1.1":
                 df = pd.read_excel(file_path)
@@ -230,29 +268,11 @@ class Brca(Dataset):
                 self._data["somatic_mutation"] = df
 
             elif file_name == "prosp-brca-v5.4-public-immune-profiling-scores-combined.gct.gz" and self._version == "5.4":
-                df = pd.read_csv(file_path, sep='\t')
+                df = pd.read_csv(file_path, sep='\t', skiprows=2)
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
-
-        # Separate the clinical and derived_molecular dataframes
-        metadata = self._data["metadata"]
-        del self._data["metadata"] # We'll replace it, split into clinical and derived_molecular
-        clinical = metadata[[
-             "Replicate_Measurement_IDs", "Sample_Tumor_Normal", "Age.in.Month", "Gender", "Race", "Human.Readable.Label", "Experiment", "Channel", "Stage", 
-             "PAM50", "NMF.v2.1", "ER", "PR", "ER.IHC.Score", "PR.IHC.Score", "Coring.or.Excision", "Ischemia.Time.in.Minutes", 
-             "Ischemia.Decade", "Necrosis", "Tumor.Cellularity", "Total.Cellularity", "In.CR", "QC.status"]]
-        self._data["clinical"] = clinical
-
-        derived_molecular = metadata[[
-            "HER2.IHC.Score", "HER2.FISH.Status", "HER2.original", "HER2.Amplified", "HER2.refined", "STARD3.ERBB2.GRB7.protein", 
-            "HER2.class.Satpathy", "HER2.status.Satpathy", "PAM50.Her2.CNA", "PAM50.Her2.HER2.status", "CDH1.mutation", 
-            "GATA3.mutation", "MAP3K1.mutation", "PIK3CA.mutation", "PTEN.mutation", "TP53.mutation", "CDH1.mutation.status", 
-            "GATA3.mutation.status", "MAP3K1.mutation.status", "PIK3CA.mutation.status", "PTEN.mutation.status", "TP53.mutation.status", 
-            "Number.of.Mutations", "Number.of.Mutated.Genes", "Chromosome.INstability.index.CIN.", "ESTIMATE.TumorPurity", 
-            "ESTIMATE.ImmuneScore", "ESTIMATE.StromalScore", "xCell.ImmuneScore", "xCell.StromaScore", "Cibersort.Absolute.score", "Stemness.Score"]]
-        self._data["derived_molecular"] = derived_molecular
 
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data, exclude="followup")
