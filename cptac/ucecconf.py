@@ -32,7 +32,7 @@ class UcecConf(Dataset):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        valid_versions = ["1.0"]
+        valid_versions = ["1.0", "1.1"]
 
         data_files = {
             "1.0": [
@@ -45,7 +45,7 @@ class UcecConf(Dataset):
             "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.0.cct.gz",
             #"UCEC_confirmatory_nglycoform-site_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_phospho_gene_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
-            "UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz", # finished but also didn't have peptides :\
+            "UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_proteomics_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz",
             "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.0.txt.gz",
@@ -56,6 +56,29 @@ class UcecConf(Dataset):
             "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.0.cbt.gz",
             "UCEC_confirmatory_WES_somatic_mutation_v1.0.maf.gz",
             #"UCEC_confirmatory_WGS_SV_tumor_v1.0.txt.gz" #structural_variation - not to be included in 1.0
+            ],
+        "1.1": [
+            "UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz",
+            "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz",
+            "UCEC_confirmatory_meta_table_v1.1.xlsx",
+            "UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.1.cct.gz",
+            "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.1.cct.gz",
+            #"UCEC_confirmatory_nglycoform-site_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz",
+            "UCEC_confirmatory_phospho_gene_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz",
+            "UCEC_confirmatory_phospho_site_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz",
+            "UCEC_confirmatory_proteomics_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz",
+            "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.1.cct.gz",
+            "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.1.txt.gz",
+            "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.1.cct.gz",
+            #"UCEC_confirmatory_RNAseq_isoform_FPKM_removed_circRNA_log2(x+1)_tumor_normal_v1.1.cct.gz",
+            "UCEC_confirmatory_SRM_Direct_tumor_v1.1.cct.gz",
+            "UCEC_confirmatory_SRM_IMAC_tumor_v1.1.cct.gz",
+            "UCEC_confirmatory_SRM_PRISM_tumor_v1.1.cct.gz",
+            "UCEC_confirmatory_WES_cnv_gistic_thresholded_tumor_v1.1.cct.gz",
+            "UCEC_confirmatory_WES_cnv_log2_ratio_tumor_v1.1.cct.gz",
+            "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.1.cbt.gz",
+            "UCEC_confirmatory_WES_somatic_mutation_v1.1.maf.gz",
+            #"UCEC_confirmatory_WGS_SV_tumor_v1.1.txt.gz",
             ],
         }
 
@@ -72,16 +95,18 @@ class UcecConf(Dataset):
 
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
-
-            if file_name == "UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz":
+            
+            if file_name in ["UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v1.0.cct.gz", 
+                                "UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
                 df = df.sort_index()
                 df.index.name = "Patient_ID"
                 df.columns.name = "Name"
                 self._data["acetylproteomics_gene"] = df
-                
-            elif file_name == "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
+            
+            elif file_name in ["UCEC_confirmatory_acetyl_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz", 
+                                "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.reset_index()
                 df[['Name','Database_ID','Site']] = df.idx.str.split("@", expand=True)
@@ -93,7 +118,8 @@ class UcecConf(Dataset):
                 df.index.name = "Patient_ID"
                 self._data["acetylproteomics"] = df
             
-            elif file_name == "UCEC_confirmatory_meta_table_v1.0.xlsx":
+            elif file_name in ["UCEC_confirmatory_meta_table_v1.0.xlsx", 
+                                "UCEC_confirmatory_meta_table_v1.1.xlsx"]:
                 df = pd.read_excel(file_path)
                 df.insert(6, "Proteomics_Tumor_Normal", df["Group"])
                 df.loc[df['Group'] == 'Enriched_Normal', 'Idx'] = df['Idx'] + '.N'
@@ -105,14 +131,16 @@ class UcecConf(Dataset):
                 df.columns.name = "Name"
                 self._data["clinical"] = df
                 
-            elif file_name == "UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.0.cct.gz":
-                df = pd.read_csv(file_path, sep='\t', index_col=0,  na_values=['NA'])
+            elif file_name in ["UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.0.cct.gz", 
+                                "UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.1.cct.gz"]:
+                df = pd.read_csv(file_path, sep='\t', index_col=0, na_values='   NA')
                 df = df.transpose()
                 df.index.name = "Patient_ID"
                 df.columns.name = "Name"
                 self._data["methylation"] = df
             
-            elif file_name == "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.0.cct.gz":
+            elif file_name in ["UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.0.cct.gz",
+                               "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.1.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
                 df = df.sort_index()
@@ -120,7 +148,8 @@ class UcecConf(Dataset):
                 df.columns.name = "Name"
                 self._data["miRNA"] = df
                 
-            elif file_name == "UCEC_confirmatory_phospho_gene_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
+            elif file_name in ["UCEC_confirmatory_phospho_gene_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
+                               "UCEC_confirmatory_phospho_gene_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
                 df = df.sort_index()
@@ -128,7 +157,8 @@ class UcecConf(Dataset):
                 df.columns.name = "Name"
                 self._data["phosphoproteomics_gene"] = df
                 
-            elif file_name == "UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
+            elif file_name in ["UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
+                               "UCEC_confirmatory_phospho_site_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.reset_index()
                 df[['Name','Database_ID','Site']] = df.idx.str.split("@", expand=True)
@@ -140,7 +170,8 @@ class UcecConf(Dataset):
                 df.index.name = "Patient_ID"
                 self._data["phosphoproteomics"] = df
                 
-            elif file_name == "UCEC_confirmatory_proteomics_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz":
+            elif file_name in ["UCEC_confirmatory_proteomics_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
+                               "UCEC_confirmatory_proteomics_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
                 df = df.sort_index()
@@ -148,22 +179,25 @@ class UcecConf(Dataset):
                 df.columns.name = "Name"
                 self._data["proteomics"] = df
                 
-            elif file_name == "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz":
+            elif file_name in ["UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz",
+                               "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.1.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
                 df.index.name = "Patient_ID"
                 df.columns.name = "Name"
                 self._data["circular_RNA"] = df
                 
-            elif file_name == "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.0.txt.gz":
+            elif file_name in ["UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.0.txt.gz", 
+                               "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.1.txt.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.reset_index()
                 df = df.set_index("Sample")
                 df.index.name = "Patient_ID"
                 df.columns.name = "Name"
                 self._data["gene_fusion"] = df
-
-            elif file_name == "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz":
+                
+            elif file_name in ["UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz", 
+                               "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.1.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
                 df = df.sort_index()
@@ -171,30 +205,87 @@ class UcecConf(Dataset):
                 df.columns.name = "Name"
                 self._data["transcriptomics"] = df
                 
-            elif file_name == "UCEC_confirmatory_WES_cnv_gistic_thresholded_tumor_v1.0.cct.gz":
+            # Targeted proteomics is the direct and PRISM SRM data
+            elif file_name == "UCEC_confirmatory_SRM_Direct_tumor_v1.1.cct.gz":
+                df_direct = pd.read_csv(file_path, sep='\t')
+                df_direct[['Name','Peptide']] = df_direct['idx'].str.rsplit("-", 1, expand=True)
+                df_direct = df_direct.set_index(["Name", "Peptide"])
+                df_direct = df_direct.drop(columns=["idx"])
+                df_direct = df_direct.transpose()
+                df_direct = df_direct.sort_index()
+                df_direct.index.name = "Patient_ID"
+                
+                # Merge if we have both
+                if "targeted_proteomics" in self._data:
+                    df_prism = self._data["targeted_proteomics"]
+                    df_combined = pd.concat([df_direct, df_prism])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
+                    self._data["targeted_proteomics"] = df_combined
+                else:
+                    self._data["targeted_proteomics"] = df_direct
+                
+            elif file_name == "UCEC_confirmatory_SRM_PRISM_tumor_v1.1.cct.gz":
+                df_prism = pd.read_csv(file_path, sep='\t')
+                df_prism[['Name','Peptide']] = df_prism['idx'].str.rsplit("-", 1, expand=True)
+                df_prism = df_prism.set_index(["Name", "Peptide"])
+                df_prism = df_prism.drop(columns=["idx"])
+                df_prism = df_prism.transpose()
+                df_prism = df_prism.sort_index()
+                df_prism.index.name = "Patient_ID"
+                
+                # Merge if we have both
+                if "targeted_proteomics" in self._data:
+                    df_direct = self._data["targeted_proteomics"]
+                    df_combined = pd.concat([df_direct, df_prism])
+                    df_combined.index.name = "Patient_ID"
+                    df_combined.columns.name = "Name"
+                    self._data["targeted_proteomics"] = df_combined
+                else:
+                    self._data["targeted_proteomics"] = df_prism
+                    
+            elif file_name == "UCEC_confirmatory_SRM_IMAC_tumor_v1.1.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
                 df = df.sort_index()
-                df.index.name = "Patient_ID"
                 df.columns.name = "Name"
+                df.index.name = "Patient_ID"
+                self._data["targeted_phosphoproteomics"] = df
+                
+            elif file_name in ["UCEC_confirmatory_WES_cnv_gistic_thresholded_tumor_v1.0.cct.gz", 
+                               "UCEC_confirmatory_WES_cnv_gistic_thresholded_tumor_v1.1.cct.gz"]:
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.reset_index()
+                df[['Name','Chromosome']] = df.idx.str.split("|", expand=True)
+                df = df.set_index(["Name"])
+                df = df.drop(columns=["idx", "Chromosome"])
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name = "Patient_ID"
                 self._data["CNV_gistic"] = df
                 
-            elif file_name == "UCEC_confirmatory_WES_cnv_log2_ratio_tumor_v1.0.cct.gz":
+            elif file_name in ["UCEC_confirmatory_WES_cnv_log2_ratio_tumor_v1.0.cct.gz", 
+                               "UCEC_confirmatory_WES_cnv_log2_ratio_tumor_v1.1.cct.gz"]:                
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.reset_index()
+                df[['Name','Chromosome']] = df.idx.str.split("|", expand=True)
+                df = df.set_index(["Name"])
+                df = df.drop(columns=["idx", "Chromosome"])
                 df = df.transpose()
                 df = df.sort_index()
                 df.index.name = "Patient_ID"
-                df.columns.name = "Name"
                 self._data["CNV_log2ratio"] = df
                 
-            elif file_name == "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.0.cbt.gz":
+            elif file_name in ["UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.0.cbt.gz", 
+                               "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.1.cbt.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
                 df.index.name = "Patient_ID"
                 df.columns.name = "Name"
                 self._data["somatic_mutation_binary"] = df
 
-            elif file_name == "UCEC_confirmatory_WES_somatic_mutation_v1.0.maf.gz":
+            elif file_name in ["UCEC_confirmatory_WES_somatic_mutation_v1.0.maf.gz", 
+                               "UCEC_confirmatory_WES_somatic_mutation_v1.1.maf.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0, dtype={88:object})
                 df = df.reset_index()
                 df = df[['Tumor_Sample_Barcode','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
@@ -239,7 +330,7 @@ class UcecConf(Dataset):
         if (not algorithm):
             message = ("Please specify which type of UcecConf CNV data you want: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
-            return InvalidParameterError(message)
+            raise InvalidParameterError(message)
         elif (algorithm == "log2ratio"):
             return super()._get_dataframe("CNV_log2ratio")
         elif (algorithm == "gistic"):
@@ -247,5 +338,5 @@ class UcecConf(Dataset):
         else: 
             message = ("Please specify a valid algorithm type for UcecConf CNV data: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
-            return InvalidParameterError(message)
+            raise InvalidParameterError(message)
 
