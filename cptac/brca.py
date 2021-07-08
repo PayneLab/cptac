@@ -51,7 +51,7 @@ class Brca(Dataset):
             "5.4" : [
                 "prosp-brca-v5.4-public-acetylome-ratio-norm-NArm.gct.gz", 
                 "prosp-brca-v5.4-public-gene-level-cnv-gistic2-all_data_by_genes.gct.gz", 
-                "prosp-brca-v5.4-public-immune-profiling-scores-combined.gct.gz", 
+                #"prosp-brca-v5.4-public-immune-profiling-scores-combined.gct.gz", 
                 "prosp-brca-v5.4-public-phosphoproteome-ratio-norm-NArm.gct.gz", 
                 "prosp-brca-v5.4-public-proteome-ratio-norm-NArm.gct.gz", 
                 #"prosp-brca-v5.4-public-rnaseq-fpkm-log2-row-norm-median-mad.gct.gz", 
@@ -267,8 +267,8 @@ class Brca(Dataset):
 
                 self._data["somatic_mutation"] = df
 
-            elif file_name == "prosp-brca-v5.4-public-immune-profiling-scores-combined.gct.gz" and self._version == "5.4":
-                df = pd.read_csv(file_path, sep='\t', skiprows=2)
+            #elif file_name == "prosp-brca-v5.4-public-immune-profiling-scores-combined.gct.gz" and self._version == "5.4":
+            #    df = pd.read_csv(file_path, sep='\t', skiprows=2)
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
