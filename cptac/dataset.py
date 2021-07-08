@@ -84,19 +84,9 @@ class Dataset:
                 except NoInternetError:
                     pass
 
-<<<<<<< HEAD
-            # Validate the version
-            #self._version = validate_version(version, self._cancer_type, use_context="init", valid_versions=valid_versions)
-            self._version = version # TEMP FOR DEV; REPLACE W/ ABOVE WHEN DONE
-
-=======
-            
-
             # Validate the version
             self._version = validate_version(version, self._cancer_type, use_context="init", valid_versions=valid_versions)
-            #self._version = version # TEMP FOR DEV; REPLACE W/ ABOVE WHEN DONE
-            
->>>>>>> testing
+
             # Get the paths to the data files
             version_data_files = data_files[self._version] # Get the data files for this version from the data files dictionary
             self._data_files_paths = get_version_files_paths(self._cancer_type, self._version, version_data_files)
