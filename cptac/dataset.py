@@ -252,12 +252,22 @@ class Dataset:
             # no additional message will be printed if we have not passed in parameters
             pass
 
-    def list_data(self):
-        """Print list of loaded dataframes and dimensions."""
-        print("Below are the dataframes contained in this dataset:")
+    def get_data_list(self):
+        data_list = {}
         for name in sorted(self._data.keys(), key=str.lower):
             df = self._data[name]
-            print("\t{}\n\t\tDimensions: {}".format(name, df.shape))
+            data_list[name] = {'rows': df.shape[0], 'columns': df.shape[1]}
+        return data_list
+
+    def list_data(self):
+        """Print list of loaded dataframes and dimensions."""
+        print("Below are the dataframes contained in this dataset and their dimensions:\n")
+        datasets = self.get_data_list()
+        for entry in datasets:
+            data = datasets[entry]
+            print(f"{entry}")
+            print(f"\trows: {data['rows']}")
+            print(f"\tcolumns: {data['columns']}")
 
     def list_definitions(self):
         """Print all terms defined in the dataset's list of definitions."""
