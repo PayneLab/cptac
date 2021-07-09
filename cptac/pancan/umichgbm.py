@@ -154,8 +154,7 @@ class UmichGbm(Dataset):
         self._data["proteomics"] = prot
         
         # Phosphoproteomcis 
-        phos = self._data["phosphoproteomics"] 
-        #import pdb; pdb.set_trace() ###
+        phos = self._data["phosphoproteomics"]
         phos = phos.reset_index()
         phos['Patient_ID'] = phos['Patient_ID'].replace(matched_ids) # replace aliquot_IDs with Patient_IDs
         phos['Patient_ID'] = phos['Patient_ID'].apply(lambda x: x+'.N' if 'PT-' in x else x) # GTEX normals start with 'PT-' 
