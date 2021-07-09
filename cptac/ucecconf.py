@@ -247,13 +247,12 @@ class UcecConf(Dataset):
             elif file_name == "UCEC_confirmatory_SRM_IMAC_tumor_v1.1.cct.gz":
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.reset_index()
-                df[['Name','Chromosome']] = df.idx.str.split("|", expand=True)
-                df = df.set_index(["Name"])
-                df = df.drop(columns=["idx", "Chromosome"])
+                df.at[0,'idx'] = "FPSS[+80]PLRIPGGNIY[+80]ISPLK"
+                df['Name'] = "RB1"
+                df = df.rename(columns={"idx":"Peptide"})
+                df = df.set_index(["Name", "Peptide"])
                 df = df.transpose()
                 df = df.sort_index()
-<<<<<<< HEAD
-=======
                 df.columns.name = "Name"
                 df.index.name = "Patient_ID"
                 self._data["targeted_phosphoproteomics"] = df
@@ -267,7 +266,6 @@ class UcecConf(Dataset):
                 df = df.drop(columns=["idx", "Chromosome"])
                 df = df.transpose()
                 df = df.sort_index()
->>>>>>> brca_5.4
                 df.index.name = "Patient_ID"
                 self._data["CNV_gistic"] = df
                 
@@ -345,9 +343,4 @@ class UcecConf(Dataset):
         else: 
             message = ("Please specify a valid algorithm type for UcecConf CNV data: "
             "'log2ratio' or 'gistic'. i.e. get_CNV('gistic')")
-            raise InvalidParameterError(message)
-<<<<<<< HEAD
-            
-=======
-
->>>>>>> brca_5.4
+            raise InvalidParameterError(message) 
