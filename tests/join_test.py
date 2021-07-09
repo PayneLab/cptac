@@ -13,11 +13,16 @@ import pytest
 import cptac
 
 """
-TODO: Things that should happen in a join:
-    - 
+TODO: Things that should happen in a join test:
+    - check for correct error throwing with non-existant data (columns, tables, etc)
+    - check for correct indexing and table sizing
+    - check slicing for correct table sizing
+    - check non-overlapping rows
     - 
 """
+# TODO: Look through Caleb's stuff on tests
+# TODO: Check use cases for standard usage and then try to mess that up
 class TestJoin:
 
-    def test_omics_to_omics(self):
-        pass
+   def join_omics_to_omics_test(self):
+       pass
