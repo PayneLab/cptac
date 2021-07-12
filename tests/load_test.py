@@ -31,6 +31,13 @@ class TestLoad:
             # could do nothing and let people type them in manually
             assert cptac.download(dataset, redownload=True)
 
+            # TODO: add an assertion error test to handle situations when a file is missing a password but it shouldnt' be
+            '''
+            Error output:
+                token = token_tag.get("value")
+                AttributeError: 'NoneType' object has no attribute 'get'
+            '''
+
     def test_invalid_dataset(self):
         with pytest.raises(InvalidParameterError) as exception_raised:
             cptac.download("abc")
