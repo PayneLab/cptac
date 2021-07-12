@@ -19,7 +19,7 @@ class TestLoad:
     def test_public_datasets(self, get_public_datasets):
         for dataset in get_public_datasets:
             # TODO: add way to see dataset-specific failures
-            assert cptac.download(dataset, redownload=True)
+            assert cptac.download(dataset.lower(), redownload=True)
     
     def test_protected_datasets(self, get_restricted_datasets):
         for dataset in get_restricted_datasets:
@@ -29,7 +29,7 @@ class TestLoad:
             #   The problem here is that other users with password access trying to run tests would have to know how to set up the files
             # could figure out how to prompt a system file selection that contains json for the passwords and import that data
             # could do nothing and let people type them in manually
-            assert cptac.download(dataset, redownload=True)
+            assert cptac.download(dataset.lower(), redownload=True)
 
             # TODO: add an assertion error test to handle situations when a file is missing a password but it shouldnt' be
             '''
