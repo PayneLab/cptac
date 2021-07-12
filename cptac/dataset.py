@@ -266,8 +266,8 @@ class Dataset:
         for entry in datasets:
             data = datasets[entry]
             print(f"{entry}")
-            print(f"\trows: {data['rows']}")
-            print(f"\tcolumns: {data['columns']}")
+            print(f"\t{data['rows']} rows")
+            print(f"\t{data['columns']} columns")
 
     def list_definitions(self):
         """Print all terms defined in the dataset's list of definitions."""
