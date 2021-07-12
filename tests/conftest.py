@@ -13,7 +13,7 @@ def get_public_datasets(get_datasets_list):
     public_datasets = []
     for i in data.index:
         if data[i] == "no restrictions":
-            public_datasets.append(i.lower())
+            public_datasets.append(i)
     return public_datasets
 
 # returns list of dataset strings
@@ -23,7 +23,7 @@ def get_restricted_datasets(get_datasets_list):
     restricted_datasets = []
     for i in data.index:
         if data[i] == "password access only":
-            restricted_datasets.append(i.lower())
+            restricted_datasets.append(i)
     return restricted_datasets
 
 # return a list of dataset strings
