@@ -28,7 +28,7 @@ class TestGet:
                 method = getattr(cptac, cancer)
                 cancer_type_objects[cancer] = method()
             except:
-                pytest.fail(f"cptac.{cancer} object was unable to be created")
+                pytest.fail(f"cptac.{cancer} object was unable to be created. Method: {method}")
         
         return cancer_type_objects
 
@@ -80,7 +80,7 @@ class TestGet:
                 getters = item[1]
                 for g in getters:
                     try:
-                        if g == cancer_obj.get_CNV:
+                        if cancer_obj == cptac.UcecConf and g == cancer_obj.get_CNV:
                             g("log2ratio")
                             g("gistic")
                         else:
