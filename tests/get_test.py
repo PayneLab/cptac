@@ -16,16 +16,22 @@ class TestGet:
 
     # return an iterable list of <cptac.[Dataset]> objects
     @pytest.fixture(scope="class")
-    def make_dataset_objects(self, get_all_datasets):
+    def make_public_dataset_objects(self, get_public_datasets):
         """figure out how to pull specific attributes out of cptac to call them"""
-        datasets_set = set(dir(cptac)).intersection(get_all_datasets)
-        for dataset in datasets_set:
+       
+        for dataset in get_public_datasets:
             try: 
-                cptac.dataset()
-
-            except exception:
+                method = getattr(cptac, dataset)
+                method()
+            except:
                 pytest.fail(f"cptac.{dataset} object was unable to be created")
-        pass
 
-    def test_all_getters(self):
+
+    def get_dataset_getters(self, dataset):
+        data_list = []
+        for attribute in getattr(dataset):
+            pass
+
+
+    def test_all_getters(self, make_public_dataset_objects):
         pass
