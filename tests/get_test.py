@@ -9,95 +9,85 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import sys
 import pytest
+import pandas
 import cptac
-from cptac.exceptions import DataFrameNotIncludedError
+from cptac.exceptions import DataFrameNotIncludedError, InvalidParameterError
 
 class TestGet:
 
-    '''
-    return an iterable dict of "cancer name" : <cptac.[Cancer Type]> entries
-        for the cancer types that have publicly available data
-    '''
-    @pytest.fixture(scope="class")
-    def make_public_cancer_type_objects(self, get_public_datasets):
-        cancer_type_objects = {}
-
-        for cancer in get_public_datasets:
-            try: 
-                method = getattr(cptac, cancer)
-                cancer_type_objects[cancer] = method()
-            except:
-                pytest.fail(f"cptac.{cancer} object was unable to be created. Method: {method}")
-        
-        return cancer_type_objects
-
-    '''
-    returns dict of cancer types and their getters
-    format:
-    {
-        "cancer type name" : {
-            cancer type object : [list of getters]
-        },
-    }
-    '''
-    @pytest.fixture(scope="class")
-    def get_cancers_and_dataset_getters(self, make_public_cancer_type_objects):
-        cancer_types_and_getters = {}
-
-        # start with dict of "name" : obj pairs
-        cancer_types = make_public_cancer_type_objects.items()
-        # loop through cancer objects
-        for (name, cancer_obj) in cancer_types:
-            single_cancer_and_getters = {} # will have <cptac.Cancer> : [cptac.Cancer.get_dataset] pairs
-            getters = self.get_getters(cancer_obj)
-            single_cancer_and_getters[cancer_obj] = getters
-            cancer_types_and_getters[name] = single_cancer_and_getters
-
-        return cancer_types_and_getters
-
-    def get_getters(self, cancer_obj, data_list):
-        # make list for dataset_obj's getters
-        getters = []
-        # loop through datasets in the current cancer type
-        for dataset in cancer_obj.get_data_list():
-            function_name = "get_" + dataset
-            if function_name.__contains__("CNV"):
-                function_name = "get_CNV"
-            try: 
-                g = getattr(cancer_obj, function_name)
-                getters.append(g)
-            except:
-                pytest.fail(f"Unable to produce {dataset} getter for the {cancer_obj} cancer type.")
-
+    @pytest.fixture(scope='class')
+    def all_getters(self):
+        getters = set()
+        for attribute in dir(cptac.dataset.Dataset):
+            if attribute.startswith("get_"):
+                getters.add(attribute)
         return getters
+    
+    @pytest.fixture(scope="class")
+    def valid_getters(self, test_public_datasets):
+        '''@return a dict of str(cancers) : set(valid getter strings)'''
+        cancer_sets = test_public_datasets
+        valid_cancer_getters = {}
+        for (cancer_type, cancer_object) in cancer_sets.items():
+            valid_getters = set()
+            for attribute in dir(cancer_type):
+                if attribute.startswith("get_"):
+                    for dataset in cancer_object.get_data_list():
+                        function_name = "get_" + dataset
+                        if attribute == function_name:
+                            valid_getters.add(attribute)
+            valid_cancer_getters[cancer_type] = valid_getters
 
-    def test_all_getters(self, get_cancers_and_dataset_getters):
-        cancers_and_getters = get_cancers_and_dataset_getters # rename for readability
-
-        for cancer in cancers_and_getters.values():
-            for (cancer_obj, getters) in cancer.items():
-                for g in getters:
-                    try:
-                        if cancer_obj == cptac.UcecConf and g == cancer_obj.get_CNV:
-                            g("log2ratio")
-                            g("gistic")
-                        else:
-                            g()
-                    except DataFrameNotIncludedError:
-                        pytest.fail(DataFrameNotIncludedError)
-
-    '''
-    verify that no getters return a dataframe for datasets not in the cancer class
-    '''
-    def test_DataFrameNotIncludedError(self, make_public_cancer_type_objects):
-        # use public cancer type objects
-        cancer_types = make_public_cancer_type_objects.items()
-        for (name, cancer_obj) in cancer_types:
+        return valid_cancer_getters
 
 
-        # find all getters not applicable to each cancer type
-        # verify the correct error is thrown
-        with DataFrameNotIncludedError:
-            pass # call getter here
-        pass
+    ''' Test Invalid Getters '''
+
+    def test_valid_getters(self, valid_getters, test_public_datasets):
+        # use cancer_sets dict {cptac.Cancer : cptac.Cancer instance}
+        cancer_sets = test_public_datasets
+        for (cancer_type, valid_getter_set) in valid_getters.items():
+            for getter in valid_getter_set:
+                g = getattr(cancer_sets[cancer_type], getter)
+                try:
+                    if cancer_type == cptac.UcecConf and getter == "get_CNV":
+                        dataframe = g("log2ratio")
+                        assert type(dataframe) == pandas.DataFrame
+                        
+                        dataframe = g("gistic")
+                        type(dataframe) == pandas.DataFrame
+                    else:
+                        dataframe = g()
+                        assert type(dataframe) == pandas.DataFrame
+                
+                except (DataFrameNotIncludedError, InvalidParameterError) as error:
+                    pytest.fail(f"Calling {g} resulted raised {error}")
+                
+                except:
+                    pytest.fail(f"Calling {g} caused error:\n\t{sys.exc_info()[0]}")
+
+
+    ''' Test Invalid Getters '''
+    
+    @pytest.fixture(scope="class")
+    def invalid_getters(self, all_getters, valid_getters):
+        '''
+        @return dict of str(cancers) : list(invalid getter strings)
+        '''
+        invalid_cancer_getters = {}
+        for (cancer_type, valid_getter_list) in valid_getters.items():
+            invalid_cancer_getters[cancer_type] = all_getters.difference(valid_getter_list)
+
+        return invalid_cancer_getters
+
+    def test_invalid_getters(self, invalid_getters, test_public_datasets):
+        # use cancer_sets dict {cptac.Cancer : cptac.Cancer instance}
+        cancer_sets = test_public_datasets
+        for (cancer_type, invalid_getter_set) in invalid_getters.items():
+            for getter in invalid_getter_set:
+                g = getattr(cancer_sets[cancer_type], getter)
+            # verify the correct error is thrown
+            with pytest.raises(DataFrameNotIncludedError) as exception:
+                g()
