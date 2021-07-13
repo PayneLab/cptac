@@ -75,9 +75,7 @@ class TestGet:
         cancers_and_getters = get_cancers_and_dataset_getters # rename for readability
 
         for cancer in cancers_and_getters.values():
-            for item in cancer.items():
-                cancer_obj = item[0]
-                getters = item[1]
+            for (cancer_obj, getters) in cancer.items():
                 for g in getters:
                     try:
                         if cancer_obj == cptac.UcecConf and g == cancer_obj.get_CNV:
