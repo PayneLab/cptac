@@ -162,6 +162,10 @@ class Dataset:
     def get_phosphoproteomics_gene(self, tissue_type="both"):
         """Get the phosphoproteomics_gene dataframe. The gene level phosphorylation measurement is an aggregate metric which potentially averages together individual measurements of different sites. Use get_phosphoproteomics() to view the data for individual sites."""
         return self._get_dataframe("phosphoproteomics_gene",tissue_type)
+    
+    def get_targeted_phosphoproteomics(self, tissue_type="both"):
+        """Get the targeted_phosphoproteomics dataframe."""
+        return self._get_dataframe("targeted_phosphoproteomics",tissue_type)
 
     def get_phosphosites(self, genes):
         """Returns dataframe with all phosphosites of specified gene or list of genes.
@@ -177,6 +181,10 @@ class Dataset:
     def get_proteomics(self, tissue_type="both"):
         """Get the proteomics dataframe."""
         return self._get_dataframe("proteomics",tissue_type)
+    
+    def get_targeted_proteomics(self, tissue_type="both"):
+        """Get the targeted_proteomics dataframe."""
+        return self._get_dataframe("targeted_proteomics",tissue_type)
 
     def get_transcriptomics(self, tissue_type="both"):
         """Get the transcriptomics dataframe."""
