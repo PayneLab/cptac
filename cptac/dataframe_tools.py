@@ -99,9 +99,37 @@ def sort_all_rows_pancan(data_dict):
 
     return data_dict
 
-def average_replicates(df, common = '\.', to_drop = '\.\d$'):
-    """Returns a df with one row for each patient_ID (all replicates for a patient are averaged)
 
+def rename_duplicate_labels(df, label_type='columns'):
+    """Returns a df with unique labels for columns or indices 
+    Parameters:
+    df (pandas.DataFrame): The df containing duplicate labels.
+    label_type (str): use 'columns' to make unique column labels and 'index' to make unique indices. 
+    
+    Returns:
+    pandas.DataFrame: df with with unique labels. ".i" is appended to every duplicate, increasing incrementally.
+    """
+    if label_type == 'columns':
+        labs = pd.Series(df.columns[:])
+
+        for dup in labs[labs.duplicated()].unique(): 
+            labs[labs[labs == dup].index.values.tolist()] = [dup + '.' + str(i) if i != 0 else dup for i in range(sum(labs == dup))]
+
+        # rename the columns with the labs list.
+        df.columns=labs
+        
+    elif label_type == 'index':
+        labs = pd.Series(df.index[:])
+
+        for dup in labs[labs.duplicated()].unique(): 
+            labs[labs[labs == dup].index.values.tolist()] = [dup + '.' + str(i) if i != 0 else dup for i in range(sum(labs == dup))]
+
+        # rename the columns with the labs list.
+        df.index=labs
+    return df
+
+def average_replicates(df, id_list = [], common = '\.', to_drop = '\.\d$'):
+    """Returns a df with one row for each patient_ID (all replicates for a patient are averaged)
     Parameters:
     df (pandas.DataFrame): The df containing replicates (duplicate entries for the same tissue_type).
     common: regex string that is common between replicates (identifies duplicate entries)
@@ -110,18 +138,21 @@ def average_replicates(df, common = '\.', to_drop = '\.\d$'):
     Returns:
     pandas.DataFrame: df with with replicate rows averaged and one row for each patient_ID.
     """
-    replicate_df = df[df.index.str.contains(common)]
-    patient_ids = pd.Series(replicate_df.index) # create series of replicate IDs to prep removing appended ".i"
-    ids = patient_ids.replace(to_drop, '', regex=True)
-    id_list = list(set(ids)) #id_list contains only patient_IDs of replicates (without #s)
+    # If no list of replicate IDs is given, make list from common regex 
+    if len(id_list) == 0:
+        replicate_df = df[df.index.str.contains(common)]
+        patient_ids = pd.Series(replicate_df.index) # create series of replicate IDs to prep removing appended ".i"
+        ids = patient_ids.replace(to_drop, '', regex=True)
+        id_list = list(set(ids)) #id_list contains only patient_IDs of replicates (without #s)
 
+    new_df = df
     for patient_ID in id_list:
         id_df = df[df.index.str.contains(patient_ID)] # slice out replicates for a single patient
         vals = list(id_df.mean(axis=0)) 
-        df.loc[patient_ID] = vals # add new row to original df with averages of replicates 
+        new_df = new_df.drop(id_df.index.to_list(), axis = 'index') # drop unaveraged rows
+        new_df.loc[patient_ID] = vals # add averaged row
 
-    df = df[~ df.index.str.contains(common)] # drop unaveraged replicate cols (averaged rows are kept)
-    return df
+    return new_df
 
 def unionize_indices(dataset, exclude=[]):
     """Return a union of all indices in a dataset, without duplicates.
