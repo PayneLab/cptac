@@ -126,7 +126,7 @@ class UmichBrca(Dataset):
                 self._helper_tables["map_ids"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = f"Formatting {self.get_cancer_type()} v{self.version()} dataframes..."
+        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
         
         # Get patient IDs with normal samples or replicates (from mapping file)
