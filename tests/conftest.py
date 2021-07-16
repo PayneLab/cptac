@@ -1,8 +1,10 @@
 import pytest
 import cptac
-
+'''
+Setting autouse=True here makes it so that this method always runs before any tests
 # returns a dict of dataset lists
-# key is accessibility: public or private
+# key is accessibility: "public" or "private"
+'''
 @pytest.fixture(scope="session", autouse=True)
 def get_datasets_lists():
     data = cptac.list_datasets()["Data reuse status"]
@@ -21,10 +23,8 @@ def get_datasets_lists():
     
     return dataset_lists
 
-'''
-Setting autouse=True here makes it so that this method always runs before any tests
-'''
-@pytest.fixture(scope="session", autouse=True)
+'''Download all datasets'''
+@pytest.fixture(scope="session")
 def download_datasets(get_datasets_lists):
     # Download public datasets
     for cancer in get_datasets_lists["public"]:
