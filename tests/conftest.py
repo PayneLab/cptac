@@ -3,8 +3,8 @@ import cptac
 
 # returns a dict of dataset lists
 # key is accessibility: public or private
-@pytest.fixture(scope="session")
-def get_datasets_list():
+@pytest.fixture(scope="session", autouse=True)
+def get_datasets_lists():
     data = cptac.list_datasets()["Data reuse status"]
 
     public_datasets = []
@@ -21,4 +21,30 @@ def get_datasets_list():
     
     return dataset_lists
 
-    
+'''
+Setting autouse=True here makes it so that this method always runs before any tests
+'''
+@pytest.fixture(scope="session", autouse=True)
+def download_datasets(get_datasets_lists):
+    # Download public datasets
+    for cancer in get_datasets_lists["public"]:
+        try:
+            cptac.download(cancer, redownload=True)
+        except:
+            pytest.fail(f"Unable to download data for {cancer} dataset.")
+
+    # TODO: Download restricted datasets
+            
+    return True
+
+@pytest.fixture(scope="session", autouse=True)
+def get_public_dataset_objects(get_datasets_lists):
+    cancer_dict = {}
+    for cancer_data_set in get_datasets_lists["public"]:
+        cancer = getattr(cptac, cancer_data_set)
+        try:
+            cancer_dict[cancer] = cancer()
+        except:
+            pytest.fail(f"unable to create {cancer} object")
+        
+    return cancer_dict, True
