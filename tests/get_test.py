@@ -17,6 +17,8 @@ from cptac.exceptions import DataFrameNotIncludedError, InvalidParameterError
 
 class TestGet:
 
+    ''' FIXTURES '''
+
     @pytest.fixture(scope='class')
     def all_getters(self):
         getters = set()
@@ -42,8 +44,21 @@ class TestGet:
 
         return valid_cancer_getters
 
+    @pytest.fixture(scope="class")
+    def invalid_getters(self, all_getters, valid_getters):
+        '''
+        @return dict of str(cancers) : list(invalid getter strings)
+        '''
+        invalid_cancer_getters = {}
+        for (cancer_type, valid_getter_list) in valid_getters.items():
+            invalid_cancer_getters[cancer_type] = all_getters.difference(valid_getter_list)
 
-    ''' Test Valid Getters '''
+        return invalid_cancer_getters
+
+
+
+
+    ''' TESTS '''
 
     def test_valid_getters(self, valid_getters, get_public_dataset_objects):
         # use cancer_sets dict {cptac.Cancer : cptac.Cancer instance}
@@ -67,20 +82,6 @@ class TestGet:
                 
                 except:
                     pytest.fail(f"Calling {g} caused error:\n\t{sys.exc_info()[0]}")
-
-
-    ''' Test Invalid Getters '''
-    
-    @pytest.fixture(scope="class")
-    def invalid_getters(self, all_getters, valid_getters):
-        '''
-        @return dict of str(cancers) : list(invalid getter strings)
-        '''
-        invalid_cancer_getters = {}
-        for (cancer_type, valid_getter_list) in valid_getters.items():
-            invalid_cancer_getters[cancer_type] = all_getters.difference(valid_getter_list)
-
-        return invalid_cancer_getters
 
     def test_invalid_getters(self, invalid_getters, get_public_dataset_objects):
         # use cancer_sets dict {cptac.Cancer : cptac.Cancer instance}
