@@ -26,9 +26,9 @@ class TestGet:
         return getters
     
     @pytest.fixture(scope="class")
-    def valid_getters(self, test_public_datasets):
+    def valid_getters(self, get_public_dataset_objects):
         '''@return a dict of str(cancers) : set(valid getter strings)'''
-        cancer_sets = test_public_datasets
+        cancer_sets = get_public_dataset_objects
         valid_cancer_getters = {}
         for (cancer_type, cancer_object) in cancer_sets.items():
             valid_getters = set()
@@ -45,9 +45,9 @@ class TestGet:
 
     ''' Test Invalid Getters '''
 
-    def test_valid_getters(self, valid_getters, test_public_datasets):
+    def test_valid_getters(self, valid_getters, get_public_dataset_objects):
         # use cancer_sets dict {cptac.Cancer : cptac.Cancer instance}
-        cancer_sets = test_public_datasets
+        cancer_sets = get_public_dataset_objects
         for (cancer_type, valid_getter_set) in valid_getters.items():
             for getter in valid_getter_set:
                 g = getattr(cancer_sets[cancer_type], getter)
@@ -82,9 +82,9 @@ class TestGet:
 
         return invalid_cancer_getters
 
-    def test_invalid_getters(self, invalid_getters, test_public_datasets):
+    def test_invalid_getters(self, invalid_getters, get_public_dataset_objects):
         # use cancer_sets dict {cptac.Cancer : cptac.Cancer instance}
-        cancer_sets = test_public_datasets
+        cancer_sets = get_public_dataset_objects
         for (cancer_type, invalid_getter_set) in invalid_getters.items():
             for getter in invalid_getter_set:
                 g = getattr(cancer_sets[cancer_type], getter)
