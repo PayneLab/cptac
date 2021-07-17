@@ -278,7 +278,7 @@ class Dataset:
             raise NoDefinitionsError("No definitions provided for this dataset.")
 
     def get_genotype_all_vars(self, mutations_genes, mutations_filter=None, show_location=True, mutation_hotspot=None):
-        """Return a dataframe that has the mutation type and wheather or not it is a multiple mutation
+        """Return a dataframe that has the mutation type and whether or not it is a multiple mutation
         Parameters:
         mutation_genes (str, or list or array-like of str): The gene(s) to get mutation data for.
         mutations_filter (list, optional):  List of mutations to prioritize when filtering out multiple mutations, in order of priority.
