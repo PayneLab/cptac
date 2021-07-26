@@ -137,7 +137,9 @@ class UmichBrca(Dataset):
         #   '01BR027','11BR025', '11BR047', '11BR028', '11BR020', '20BR008', '11BR024', '11BR023', '11BR015', '11BR006'
         map_df = self._helper_tables["map_ids"]
         # Get IDs with replicates 
-        replicate_list = map_df.loc[map_df.id.str.contains('REP')].Participant.to_list() 
+        replicate_list = list(set(map_df.loc[map_df.id.str.contains('REP')].Participant))
+        replicate_list.remove('RetroIR') 
+        replicate_list = [x[1:] for x in replicate_list]
         # Get IDs with normals 
         norm_df = map_df.loc[map_df.Type == 'Adjacent_Normal'] # get all patient_IDs with normal samples
         norm_df.index = norm_df.Participant.apply(lambda x: x[1:]+'.1') #remove initial 'X' and add '.1' (did not correlate well)
@@ -159,19 +161,18 @@ class UmichBrca(Dataset):
         # A file showing all the correlations can be found at: 
         # https://docs.google.com/spreadsheets/d/1_wVNzig3CH77eu2ouUM_qZHW3tB1tnA02An1TKVZsQQ/edit?usp=sharing
         
-        # Proteomics
-        prot = self._data["proteomics"]
-        prot = prot.loc[ ~ prot.index.isin(not_tumor)] # drop rows that don't correlate well with respective cptac tumor 
-        prot = average_replicates(prot)# average 8 replicates (determined from mapping file and correlations) 
-        # checked that the remaining IDs with ".i" are replicates
-        self._data["proteomics"] = prot
+        if self._version == "1.0":
+            # Proteomics
+            prot = self._data["proteomics"]
+            prot = prot.loc[ ~ prot.index.isin(not_tumor)] # drop rows that don't correlate well with respective cptac tumor 
+            prot = average_replicates(prot, replicate_list) # average 7 IDs with replicates  
+            self._data["proteomics"] = prot
 
-        # Phosphoproteomics
-        phos = self._data["phosphoproteomics"]
-        phos = phos.loc[ ~ phos.index.isin(not_tumor)] # drop rows that don't correlate well with respective cptac tumor 
-        phos = average_replicates(phos)# average 8 replicates (determined from mapping file and correlations) 
-        #checked that the remaining IDs with ".i" are replicates
-        self._data["phosphoproteomics"] = phos
+            # Phosphoproteomics
+            phos = self._data["phosphoproteomics"]
+            phos = phos.loc[ ~ phos.index.isin(not_tumor)] # drop rows that don't correlate well with respective cptac tumor 
+            phos = average_replicates(phos, replicate_list) # average 7 IDs with replicates
+            self._data["phosphoproteomics"] = phos
         
         self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
         

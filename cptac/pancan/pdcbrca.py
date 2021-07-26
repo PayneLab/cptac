@@ -89,19 +89,21 @@ class PdcBrca(Dataset):
         # 7 IDs with replicates: '11BR031', '11BR053', '11BR036', '11BR060', '14BR005', '11BR011', '21BR010'
         replicates = ['11BR031', '11BR053', '11BR036', '11BR060', '14BR005', '11BR011', '21BR010']
         
-        # Drop normal aliquots
-        # Explanation: 
-        # There were 2 aliquots for 17 patients in the proteomics data. I created scatterplots to compare the values 
-        # from each aliquot to its respective patient_ID in the original cptac data (flagship values). One aliquot for each 
-        # patient did not correlate well (correlations between 0.001 and 0.4), while the other did (correlations 
-        # between 0.7 and 0.9). Karsten Krug (broad) suggested that the aliquots that did not correlate well are normal samples 
+        # Drop normal aliquots 
+        # There were 2 aliquots for 17 patients in the proteomics data. I calculated pearson correlations 
+        # and created scatterplots to compare the values from each aliquot to its respective patient_ID in the 
+        # original cptac data (flagship values). One aliquot for each patient did not correlate well 
+        # (correlations between 0.001 and 0.4), while the other did (correlations between 0.7 and 0.9). 
+        # Karsten Krug from the Broad suggested that the aliquots that did not correlate well are likely normal samples 
         # (18 patients had normal samples) which were dropped in downstream analysis because of quality control issues. 
-        # The Patient_IDs with 2 aliquots did have a normal sample run ('prosp-brca-all-samples.txt'). 
-        # Therefore, we drop them here. We keep the other aliquots that did correlate well.
-        # Of the 18 IDs with normal samples, 21BR010 only had one aliquot and it did not correlate well so it was dropped.
-        # A file showing all the correlations can be found at: 
-        # https://docs.google.com/spreadsheets/d/1_wVNzig3CH77eu2ouUM_qZHW3tB1tnA02An1TKVZsQQ/edit?usp=sharing
-        drop_aliquots = ['64ee175f-f3ce-446e-bbf4-9b6fa8_D1', '7ac27de9-0932-4ff5-aab8-29c527',
+        # The Patient_IDs with 2 aliquots did have a normal sample run (see mapping file 'prosp-brca-all-samples.txt').
+        # Therefore, we drop them here. We kept the other aliquots that did correlate well. Of the 18 IDs with normal 
+        # samples, 21BR010 only had one aliquot and it did not correlate well so it was dropped. I checked that the 
+        # aliquots we dropped were normal samples using the biospecimen manifest for Brca proteomics on the PDC website 
+        # under the biospecimen tab.
+        # A file showing all our correlations can be found at: 
+        # https://docs.google.com/spreadsheets/d/1jkcWno5y9665V0wMdCIt-hbY3AY_8JXxUb9jS1vNx14/edit?usp=sharing
+        drop_normals = ['64ee175f-f3ce-446e-bbf4-9b6fa8_D1', '7ac27de9-0932-4ff5-aab8-29c527',
             '3208e021-1dae-42fd-bd36-0f3c3d', '6c660b6b-bfda-47b0-9499-160d49','241ecd0e-89bd-4d3a-81b3-55a250',
             '428de0d4-7f84-4075-bae1-352af6', '0a80d3c4-0758-447a-958c-ea868c', '53723086-8858-4395-93d7-0baa68',
             '1740224c-32d1-4c9f-98c6-653363', '885fe794-a98e-4f81-a284-ac4bb8', '4749ba99-d3b8-4ae3-b6f6-458bc7',
@@ -111,14 +113,18 @@ class PdcBrca(Dataset):
         
         # Proteomics
         prot = self._data["proteomics"]
-        prot = prot.drop(drop_aliquots, level = 'aliquot_submitter_id') # drop normal aliquots (QC issues)
+        prot = prot.drop(drop_normals, level = 'aliquot_submitter_id') # drop normal aliquots (QC issues)
         prot = prot.rename(index={'604':'CPT000814'}) # use the aliquot for 604 
         prot.index = prot.index.droplevel('aliquot_submitter_id')
         self._data["proteomics"] = prot
         
+        # Note -> At the time this code was added, phospho only had all NaN values. In an email recieved 06/29/21, 
+        # Paul Rudnick said the phospho study was brocken. Whenever the phospho data is fixed, this 
+        # code should work to drop normal aliquots and average replicates. It would be a good idea to check when 
+        # the new data is ready though. 
         # Phosphoproteomics
         phos = self._data["phosphoproteomics"]
-        phos = phos.drop(drop_aliquots, level = 'aliquot_submitter_id') # drop normal aliquots (QC issues)
+        phos = phos.drop(drop_normals, level = 'aliquot_submitter_id') # drop normal aliquots (QC issues)
         phos = phos.rename(index={'604':'CPT000814'}) # use the aliquot for 604
         phos.index = phos.index.droplevel('aliquot_submitter_id')
         phos = rename_duplicate_labels(phos, 'index') # give replicates unique names (checked that only replicates remain)
@@ -128,7 +134,7 @@ class PdcBrca(Dataset):
         
         # Acetylproteomics
         acetyl = self._data["acetylproteomics"]
-        acetyl = acetyl.drop(drop_aliquots, level = 'aliquot_submitter_id') # drop normal aliquots (QC issues)
+        acetyl = acetyl.drop(drop_normals, level = 'aliquot_submitter_id') # drop normal aliquots (QC issues)
         acetyl = acetyl.rename(index={'604':'CPT000814'}) # use the aliquot for 604
         acetyl.index = acetyl.index.droplevel('aliquot_submitter_id') # drop aliquots
         acetyl = rename_duplicate_labels(acetyl, 'index') # give replicates unique names (checked only that replicates remain)
