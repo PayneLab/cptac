@@ -47,12 +47,14 @@ def map_database_to_gene_pdc(df, database_name = 'refseq', sep = ':'):
     df: The dataframe with gene name, database ID and site as a multiindex (sorted by gene name).
     """
     
-    df = df.T.reset_index()
-    index_name = df.index.name
-    if index_name is None:
-        df[['Database_ID',"Site"]] = df['index'].str.split(sep, expand=True)
+    if isinstance(df.index, pd.core.indexes.multi.MultiIndex):
+        was_multiindex = True
+        df = df.reset_index() # make index not a multiindex
     else:
-        df[['Database_ID',"Site"]] = df[index_name].str.split(sep, expand=True)
+        was_multiindex = False
+        
+    df = df.T.reset_index()
+    df[['Database_ID',"Site"]] = df.iloc[:, 0].str.split(sep, expand=True) # first column is reset index  
     
     id_list = df.Database_ID.to_list()
     with suppress_stdout():
@@ -65,6 +67,11 @@ def map_database_to_gene_pdc(df, database_name = 'refseq', sep = ':'):
     df = df.sort_index(level='Name', axis = 'index') # sort based on gene name
     df = df.drop('index', axis = 1)
     df = df.T
+    
+    if was_multiindex == True:
+        df = df.set_index([df.columns[-1], df.columns[-2]])
+        df.index.names = ['case_submitter_id','aliquot_submitter_id']
+        
     return df
 
 def sort_all_rows_pancan(data_dict):
@@ -132,6 +139,9 @@ def average_replicates(df, id_list = [], common = '\.', to_drop = '\.\d$'):
     """Returns a df with one row for each patient_ID (all replicates for a patient are averaged)
     Parameters:
     df (pandas.DataFrame): The df containing replicates (duplicate entries for the same tissue_type).
+    id_list: list of IDs with replicates (use the ID format that is common between replicates so the 
+            list can be used to slice out all replicates for that ID). Make sure the IDs 
+            in the list include the symbol that distinguishes normal samples ('.N' or '-N').
     common: regex string that is common between replicates (identifies duplicate entries)
     to_drop: regex string to drop to find each patient_ID that has replicates (used to slice out all replicates)
     
@@ -147,7 +157,13 @@ def average_replicates(df, id_list = [], common = '\.', to_drop = '\.\d$'):
 
     new_df = df
     for patient_ID in id_list:
-        id_df = df[df.index.str.contains(patient_ID)] # slice out replicates for a single patient
+        # Can slice only normals with patient_ID because of '.N'
+        if '.N' in patient_ID or '-N' in patient_ID:
+            id_df = df[df.index.str.contains(patient_ID, regex = True)] # slice out replicates for a single patient
+        # If tumor, need to slice out normals
+        else:
+            id_df = df[df.index.str.contains(patient_ID, regex = True) & ~ df.index.str.contains('N$', regex = True)] # don't include normals
+        print(id_df.index.to_list())
         vals = list(id_df.mean(axis=0)) 
         new_df = new_df.drop(id_df.index.to_list(), axis = 'index') # drop unaveraged rows
         new_df.loc[patient_ID] = vals # add averaged row
