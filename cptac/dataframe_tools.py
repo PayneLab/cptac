@@ -76,7 +76,7 @@ def map_database_to_gene_pdc(df, database_name = 'refseq', sep = ':'):
 
 def sort_all_rows_pancan(data_dict):
     """For all dataframes in the given dictionary, sort them first by sample status, 
-    with tumor samples first, and then by the index.
+    with tumor samples first, and then by the index. Also sorts columns by the first level. 
 
     Parameters:
     data_dict (dict): The dataframe dictionary of the dataset.
@@ -85,9 +85,10 @@ def sort_all_rows_pancan(data_dict):
     dict: The dataframe dictionary, with the dataframes sorted by their indices. 
     The index is also given the standard name ('Patient_ID').
     Keys are str of dataframe names, values are pandas.DataFrame"""
-
+    
     for name in data_dict.keys(): # Loop over the keys so we can alter the values without any issues
         df = data_dict[name]
+        df = df.sort_index(axis = 'columns', level = 0) # sort columns based on first level
         if isinstance(df.index, pd.core.indexes.multi.MultiIndex):
             df.index.rename(['Patient_ID', 'Aliquot'], level = [0,1], inplace = True)
             new_df = df.sort_values('Patient_ID')
@@ -102,7 +103,7 @@ def sort_all_rows_pancan(data_dict):
             tumor = tumor.sort_index()
             # append normal to tumor
             all_df = tumor.append(normal)
-            data_dict[name] = all_df
+            data_dict[name] = all_df 
 
     return data_dict
 
@@ -163,7 +164,6 @@ def average_replicates(df, id_list = [], common = '\.', to_drop = '\.\d$'):
         # If tumor, need to slice out normals
         else:
             id_df = df[df.index.str.contains(patient_ID, regex = True) & ~ df.index.str.contains('N$', regex = True)] # don't include normals
-        print(id_df.index.to_list())
         vals = list(id_df.mean(axis=0)) 
         new_df = new_df.drop(id_df.index.to_list(), axis = 'index') # drop unaveraged rows
         new_df.loc[patient_ID] = vals # add averaged row
