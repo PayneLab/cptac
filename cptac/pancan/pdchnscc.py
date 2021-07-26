@@ -71,10 +71,13 @@ class PdcHnscc(Dataset):
             if file_name == "proteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", dtype={"case_submitter_id": "O"})
                 self._data["proteomics"] = df
-                
+             
+            # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
+            # so no need to slice out cancer specific aliquots
             elif file_name == "aliquot_to_patient_ID.tsv":
-                df = pd.read_csv(file_path, sep = "\t")
-                self._helper_tables["map_ids"] = df
+                df = pd.read_csv(file_path, sep = "\t", index_col = 'aliquot_ID', usecols = ['aliquot_ID', 'patient_ID'])
+                map_dict = df.to_dict()['patient_ID'] # Create dictionary with aliquot_ID as keys and patient_ID as values
+                self._helper_tables["map_ids"] = map_dict
 
                 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
@@ -86,17 +89,12 @@ class PdcHnscc(Dataset):
         drop_rows = ['LungTumor1', 'LungTumor2', 'LungTumor3', 'QC1', 'QC2', 'QC3', 
                   'QC4', 'QC5', 'QC6', 'QC7', 'QC9', 'pooled sample']
          
-        # Create dictionary with aliquot_ID as keys and patient_ID as values
-        # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
-        # so no need to slice out cancer specific aliquots
-        mapping_df = self._helper_tables["map_ids"]
-        matched_ids = {}
-        for i, row in mapping_df.iterrows():
-            matched_ids[row['aliquot_ID']] = row['patient_ID']
-
+        # Get dictionary with aliquot_ID as keys and patient_ID as values
+        mapping_dict = self._helper_tables["map_ids"]
+        
         # Proteomics
         prot = self._data["proteomics"]
-        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
+        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(mapping_dict) # aliquots to patient IDs
         prot = prot.set_index('Patient_ID')
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
         prot = prot.drop(drop_rows[:-1], axis = 'index') # drop quality control rows
@@ -104,10 +102,16 @@ class PdcHnscc(Dataset):
         
         # Phosphoproteomics
         phos = self._data["phosphoproteomics"]
-        phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
+        phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(mapping_dict) # aliquots to patient IDs
         phos = phos.set_index('Patient_ID')
+        # drop replicate that didn't correlate well (0.676) with the other 2 replcates for C3L-02617 (so can average)
+        phos = phos.loc[phos.aliquot_submitter_id != 'CPT0229210003']  
         phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') # 3 duplicate aliquots and case 
         phos = phos.drop(drop_rows, axis = 'index') # drop quality control rows
+        # 3 IDs had the same case and aliquots IDs with different values. I ran a linear regression
+        # to check how well these IDs correlated to their duplicates and they correlated well 
+        # (pearson correlation around 0.8), so we averaged the duplicates for each case ID.
+        phos = average_replicates(phos, ['C3L-02617', 'C3L-00994.N', 'C3L-02617.N']) 
         phos = map_database_to_gene_pdc(phos, 'refseq') # Map refseq IDs to gene names
         self._data["phosphoproteomics"] = phos          
         
