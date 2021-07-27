@@ -82,26 +82,26 @@ class UcecConf(Dataset):
             ],
         "1.2": [
 #             "UCEC_confirmatory_meta_table_v1.2.xlsx",
-#             "UCEC_confirmatory_Direct_SRM_tumor_v1.2.cct.gz",
-#             "UCEC_confirmatory_IMAC_SRM_tumor_v1.2.cct.gz",
-#             "UCEC_confirmatory_PRISM_SRM_tumor_v1.2.cct.gz",
-#             "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.2.cct.gz",
-#             "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.2.cct.gz",
-#             "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.2.txt.gz",
+            "UCEC_confirmatory_SRM_Direct_tumor_v1.2.cct.gz",
+            "UCEC_confirmatory_SRM_IMAC_tumor_v1.2.cct.gz",
+            "UCEC_confirmatory_SRM_PRISM_tumor_v1.2.cct.gz",
+            "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.2.cct.gz",
+            "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.2.cct.gz",
+            "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.2.txt.gz",
 #             "UCEC_confirmatory_RNAseq_isoform_FPKM_removed_circRNA_log2(x+1)_tumor_normal_v1.2.cct.gz",
 #             "UCEC_confirmatory_WGS_cnv_gistic_thresholded_tumor_v1.2.cct.gz",
 #             "UCEC_confirmatory_WGS_cnv_log2_ratio_tumor_v1.2.cct.gz",
-#             "UCEC_confirmatory_WES_somatic_mutation_gene_level_v1.2.cbt.gz",
-#             "UCEC_confirmatory_WES_somatic_mutation_v1.2.maf.gz",
+            "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.2.cbt.gz",
+            "UCEC_confirmatory_WES_somatic_mutation_v1.2.maf.gz",
 #             "UCEC_confirmatory_WGS_SV_tumor_v1.2.txt.gz",
             "UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v1.2.cct.gz",
             "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log2_tumor_normal_v1.2.cct.gz",
-#             "UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.2.cct.gz",
-#             "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.2.cct.gz",
+            "UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.2.cct.gz",
+            "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.2.cct.gz",
 #             "UCEC_confirmatory_nglycoform-site_ratio_median_polishing_log2_tumor_normal_v1.2.cct.gz",
-#             "UCEC_confirmatory_phospho_gene_ratio_median_polishing_log2_tumor_normal_v1.2.cct.gz",
-#             "UCEC_confirmatory_phospho_site_ratio_median_polishing_log2_tumor_normal_v1.2.cct.gz",
-#             "UCEC_confirmatory_proteomics_ratio_median_polishing_log2_tumor_normal_v1.2.cct.gz",
+            "UCEC_confirmatory_phospho_gene_ratio_median_polishing_log2_tumor_normal_v1.2.cct.gz",
+            "UCEC_confirmatory_phospho_site_ratio_median_polishing_log2_tumor_normal_v1.2.cct.gz",
+            "UCEC_confirmatory_proteomics_ratio_median_polishing_log2_tumor_normal_v1.2.cct.gz",
 
             ],
         }
@@ -158,7 +158,8 @@ class UcecConf(Dataset):
                 self._data["clinical"] = df
                 
             elif file_name in ["UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.0.cct.gz", 
-                                "UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.1.cct.gz"]:
+                               "UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.1.cct.gz",
+                               "UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v1.2.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0, na_values='   NA')
                 df = df.transpose()
                 df.index.name = "Patient_ID"
@@ -166,7 +167,8 @@ class UcecConf(Dataset):
                 self._data["methylation"] = df
             
             elif file_name in ["UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.0.cct.gz",
-                               "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.1.cct.gz"]:
+                               "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.1.cct.gz",
+                               "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v1.2.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
                 df = df.sort_index()
@@ -175,7 +177,8 @@ class UcecConf(Dataset):
                 self._data["miRNA"] = df
                 
             elif file_name in ["UCEC_confirmatory_phospho_gene_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
-                               "UCEC_confirmatory_phospho_gene_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz"]:
+                               "UCEC_confirmatory_phospho_gene_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz",
+                               "UCEC_confirmatory_phospho_gene_ratio_median_polishing_log2_tumor_normal_v1.2.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
                 df = df.sort_index()
@@ -184,7 +187,8 @@ class UcecConf(Dataset):
                 self._data["phosphoproteomics_gene"] = df
                 
             elif file_name in ["UCEC_confirmatory_phospho_site_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
-                               "UCEC_confirmatory_phospho_site_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz"]:
+                               "UCEC_confirmatory_phospho_site_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz",
+                               "UCEC_confirmatory_phospho_site_ratio_median_polishing_log2_tumor_normal_v1.2.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.reset_index()
                 df[['Name','Database_ID','Site']] = df.idx.str.split("@", expand=True)
@@ -197,7 +201,8 @@ class UcecConf(Dataset):
                 self._data["phosphoproteomics"] = df
                 
             elif file_name in ["UCEC_confirmatory_proteomics_ratio_median_polishing_log22_tumor_normal_v1.0.cct.gz",
-                               "UCEC_confirmatory_proteomics_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz"]:
+                               "UCEC_confirmatory_proteomics_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz",
+                               "UCEC_confirmatory_proteomics_ratio_median_polishing_log2_tumor_normal_v1.2.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
                 df = df.sort_index()
@@ -206,7 +211,8 @@ class UcecConf(Dataset):
                 self._data["proteomics"] = df
                 
             elif file_name in ["UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz",
-                               "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.1.cct.gz"]:
+                               "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.1.cct.gz",
+                               "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v1.2.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
                 df.index.name = "Patient_ID"
@@ -214,7 +220,8 @@ class UcecConf(Dataset):
                 self._data["circular_RNA"] = df
                 
             elif file_name in ["UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.0.txt.gz", 
-                               "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.1.txt.gz"]:
+                               "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.1.txt.gz",
+                               "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.2.txt.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.reset_index()
                 df = df.set_index("Sample")
@@ -223,7 +230,8 @@ class UcecConf(Dataset):
                 self._data["gene_fusion"] = df
                 
             elif file_name in ["UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.0.cct.gz", 
-                               "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.1.cct.gz"]:
+                               "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.1.cct.gz",
+                               "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.2.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
                 df = df.sort_index()
@@ -232,7 +240,7 @@ class UcecConf(Dataset):
                 self._data["transcriptomics"] = df
                 
             # Targeted proteomics is the direct and PRISM SRM data
-            elif file_name == "UCEC_confirmatory_SRM_Direct_tumor_v1.1.cct.gz":
+            elif file_name in ["UCEC_confirmatory_SRM_Direct_tumor_v1.1.cct.gz", "UCEC_confirmatory_SRM_Direct_tumor_v1.2.cct.gz"]:
                 df_direct = pd.read_csv(file_path, sep='\t')
                 df_direct[['Name','Peptide']] = df_direct['idx'].str.rsplit("-", 1, expand=True)
                 df_direct = df_direct.set_index(["Name", "Peptide"])
@@ -251,7 +259,7 @@ class UcecConf(Dataset):
                 else:
                     self._data["targeted_proteomics"] = df_direct
                 
-            elif file_name == "UCEC_confirmatory_SRM_PRISM_tumor_v1.1.cct.gz":
+            elif file_name in ["UCEC_confirmatory_SRM_PRISM_tumor_v1.1.cct.gz", "UCEC_confirmatory_SRM_PRISM_tumor_v1.2.cct.gz"]:
                 df_prism = pd.read_csv(file_path, sep='\t')
                 df_prism[['Name','Peptide']] = df_prism['idx'].str.rsplit("-", 1, expand=True)
                 df_prism = df_prism.set_index(["Name", "Peptide"])
@@ -270,7 +278,7 @@ class UcecConf(Dataset):
                 else:
                     self._data["targeted_proteomics"] = df_prism
                     
-            elif file_name == "UCEC_confirmatory_SRM_IMAC_tumor_v1.1.cct.gz":
+            elif file_name in ["UCEC_confirmatory_SRM_IMAC_tumor_v1.1.cct.gz", "UCEC_confirmatory_SRM_IMAC_tumor_v1.2.cct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.reset_index()
                 df.at[0,'idx'] = "FPSS[+80]PLRIPGGNIY[+80]ISPLK"
@@ -308,7 +316,8 @@ class UcecConf(Dataset):
                 self._data["CNV_log2ratio"] = df
                 
             elif file_name in ["UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.0.cbt.gz", 
-                               "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.1.cbt.gz"]:
+                               "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.1.cbt.gz",
+                               "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.2.cbt.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df = df.transpose()
                 df.index.name = "Patient_ID"
@@ -316,7 +325,8 @@ class UcecConf(Dataset):
                 self._data["somatic_mutation_binary"] = df
 
             elif file_name in ["UCEC_confirmatory_WES_somatic_mutation_v1.0.maf.gz", 
-                               "UCEC_confirmatory_WES_somatic_mutation_v1.1.maf.gz"]:
+                               "UCEC_confirmatory_WES_somatic_mutation_v1.1.maf.gz",
+                               "UCEC_confirmatory_WES_somatic_mutation_v1.2.maf.gz"]:
                 df = pd.read_csv(file_path, sep='\t', index_col=0, dtype={88:object})
                 df = df.reset_index()
                 df = df[['Tumor_Sample_Barcode','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
