@@ -76,9 +76,12 @@ class PdcLuad(Dataset):
                 df = pd.read_csv(file_path, sep="\t")
                 self._data["proteomics"] = df
                 
+            # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
+            # so no need to slice out cancer specific aliquots
             elif file_name == "aliquot_to_patient_ID.tsv":
-                df = pd.read_csv(file_path, sep = "\t")
-                self._helper_tables["map_ids"] = df
+                df = pd.read_csv(file_path, sep = "\t", index_col = 'aliquot_ID', usecols = ['aliquot_ID', 'patient_ID'])
+                map_dict = df.to_dict()['patient_ID'] # Create dictionary with aliquot_ID as keys and patient_ID as values
+                self._helper_tables["map_ids"] = map_dict
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
@@ -87,37 +90,35 @@ class PdcLuad(Dataset):
         # common rows to drop
         drop_rows = ['Normal Only IR', 'Taiwanese IR', 'Tumor Only IR']
 
-        # Create dictionary with aliquot_ID as keys and patient_ID as values
-        # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
-        # so no need to slice out cancer specific aliquots
-        mapping_df = self._helper_tables["map_ids"]
-        matched_ids = {}
-        for i, row in mapping_df.iterrows():
-            matched_ids[row['aliquot_ID']] = row['patient_ID']
+        # Get dictionary with aliquot_ID as keys and patient_ID as values
+        mapping_dict = self._helper_tables["map_ids"]
         
         # Proteomics
         prot = self._data["proteomics"]
-        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(matched_ids) # map aliquots to patient IDs
+        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(mapping_dict) # map aliquots to patient IDs
         prot = prot.set_index('Patient_ID')
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
         self._data["proteomics"] = prot
         
         # Phosphoproteomics
         phos = self._data["phosphoproteomics"]
-        phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
+        phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(mapping_dict) # aliquots to patient IDs
         phos = phos.set_index('Patient_ID')
         phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') # 2 duplicate aliquots and case
         phos = phos.drop(drop_rows, axis = 'index')
+        # these duplicates had high correlations with their tumor flagship samples, so we average them
+        phos = average_replicates(phos, ['C3N-02379', 'C3N-02587']) 
         phos = map_database_to_gene_pdc(phos, 'refseq') # Map refseq IDs to gene names
         self._data["phosphoproteomics"] = phos
         
         # Acetylproteomics
         acetyl = self._data["acetylproteomics"]
-        acetyl['Patient_ID'] = acetyl['aliquot_submitter_id'].replace(matched_ids) # GTEX ids to patient IDs for normal samples
+        acetyl['Patient_ID'] = acetyl['aliquot_submitter_id'].replace(mapping_dict) # GTEX ids to patient IDs for normal samples
         acetyl = acetyl.set_index('Patient_ID')
         acetyl = acetyl.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
         acetyl = acetyl.drop(drop_rows, axis = 'index')
         acetyl = map_database_to_gene_pdc(acetyl, 'refseq') # Map refseq IDs to gene names
+        #acetyl = average_replicates(acetyl, ['C3N-02379', 'C3N-02587']) # need to run correlation analysis test to check these correlate well
         self._data["acetylproteomics"] = acetyl
 
         self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
