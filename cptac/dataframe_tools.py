@@ -136,7 +136,7 @@ def rename_duplicate_labels(df, label_type='columns'):
         df.index=labs
     return df
 
-def average_replicates(df, id_list = [], common = '\.', to_drop = '\.\d$'):
+def average_replicates(df, id_list = [], normal_identifier = '.N', common = '\.', to_drop = '\.\d$'):
     """Returns a df with one row for each patient_ID (all replicates for a patient are averaged)
     Parameters:
     df (pandas.DataFrame): The df containing replicates (duplicate entries for the same tissue_type).
@@ -158,12 +158,16 @@ def average_replicates(df, id_list = [], common = '\.', to_drop = '\.\d$'):
 
     new_df = df
     for patient_ID in id_list:
-        # Can slice only normals with patient_ID because of '.N'
-        if '.N' in patient_ID or '-N' in patient_ID:
+        # Can slice only normals with patient_ID because of normal identifier (won't slice out tumors)
+        if normal_identifier in patient_ID:
             id_df = df[df.index.str.contains(patient_ID, regex = True)] # slice out replicates for a single patient
         # If tumor, need to slice out normals
         else:
-            id_df = df[df.index.str.contains(patient_ID, regex = True) & ~ df.index.str.contains('N$', regex = True)] # don't include normals
+            if normal_identifier == '.N':
+                normal_identifier = '\.N' # prep for regex use
+            id_df = df[df.index.str.contains(patient_ID, regex = True) & \
+                       ~ df.index.str.contains(normal_identifier, regex = True)] # don't include normals
+        #print(id_df.index.to_list())
         vals = list(id_df.mean(axis=0)) 
         new_df = new_df.drop(id_df.index.to_list(), axis = 'index') # drop unaveraged rows
         new_df.loc[patient_ID] = vals # add averaged row
