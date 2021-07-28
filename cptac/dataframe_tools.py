@@ -55,6 +55,7 @@ def map_database_to_gene_pdc(df, database_name = 'refseq', sep = ':'):
         
     df = df.T.reset_index()
     df[['Database_ID',"Site"]] = df.iloc[:, 0].str.split(sep, expand=True) # first column is reset index  
+    df.Site = df.Site.str.upper() # capitalize all amino acids sites (for consistency)
     
     id_list = df.Database_ID.to_list()
     with suppress_stdout():
@@ -62,7 +63,7 @@ def map_database_to_gene_pdc(df, database_name = 'refseq', sep = ':'):
         db_results = mg.querymany(id_list, scopes=database_name, fields='symbol', species='human') # map ID to gene
     db_to_gene = {results['query']: results['symbol'] for results in db_results \
                            if 'notfound' not in results.keys()} # get mapping dictionary of ID and gene name
-    df['Name'] = df['Database_ID'].replace(db_to_gene) # Add gene name 
+    df['Name'] = df['Database_ID'].replace(db_to_gene) # add gene name 
     df = df.set_index(['Name','Site','Database_ID']) # set multiindex
     df = df.sort_index(level='Name', axis = 'index') # sort based on gene name
     df = df.drop('index', axis = 1)
