@@ -63,7 +63,7 @@ def map_database_to_gene_pdc(df, database_name = 'refseq', sep = ':'):
     db_to_gene = {results['query']: results['symbol'] for results in db_results \
                            if 'notfound' not in results.keys()} # get mapping dictionary of ID and gene name
     df['Name'] = df['Database_ID'].replace(db_to_gene) # Add gene name 
-    df = df.set_index(['Name','Database_ID','Site']) # set multiindex
+    df = df.set_index(['Name','Site','Database_ID']) # set multiindex
     df = df.sort_index(level='Name', axis = 'index') # sort based on gene name
     df = df.drop('index', axis = 1)
     df = df.T
@@ -156,7 +156,7 @@ def average_replicates(df, id_list = [], normal_identifier = '.N', common = '\.'
         ids = patient_ids.replace(to_drop, '', regex=True)
         id_list = list(set(ids)) #id_list contains only patient_IDs of replicates (without #s)
 
-    new_df = df
+    new_df = df.copy()
     for patient_ID in id_list:
         # Can slice only normals with patient_ID because of normal identifier (won't slice out tumors)
         if normal_identifier in patient_ID:
@@ -164,9 +164,11 @@ def average_replicates(df, id_list = [], normal_identifier = '.N', common = '\.'
         # If tumor, need to slice out normals
         else:
             if normal_identifier == '.N':
-                normal_identifier = '\.N' # prep for regex use
+                norm_regex = '\.N' # prep for regex use
+            else:
+                norm_regex = normal_identifier
             id_df = df[df.index.str.contains(patient_ID, regex = True) & \
-                       ~ df.index.str.contains(normal_identifier, regex = True)] # don't include normals
+                       ~ df.index.str.contains(norm_regex, regex = True)] # don't include normals
         #print(id_df.index.to_list())
         vals = list(id_df.mean(axis=0)) 
         new_df = new_df.drop(id_df.index.to_list(), axis = 'index') # drop unaveraged rows
