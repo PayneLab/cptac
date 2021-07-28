@@ -25,14 +25,16 @@ TODO: Things that should happen in a join test:
 # TODO: Check use cases for standard usage and then try to mess that up
 class TestJoin:
 
-    @pytest.fixture(scope="class")
-    def all_joiners(self):
-        joiners = set()
-        for attribute in dir(cptac.dataset.Dataset):
-            if attribute.startswith("join"):
-                joiners.add(attribute)
-        return joiners
+    # @pytest.fixture(scope="class")
+    # def all_joiners(self):
+    #     joiners = set()
+    #     for attribute in dir(cptac.dataset.Dataset):
+    #         if attribute.startswith("join"):
+    #             joiners.add(attribute)
+    #     return joiners
 
+
+    '''Change this method to a non fixture that just combines two types of datasets'''
     @pytest.fixture(scope="class")
     def all_omics_combos(self, get_public_dataset_objects):
         omics_lists_by_cancer = dict()
@@ -61,3 +63,18 @@ class TestJoin:
                 joiner = getattr(cancer_object, "join_omics_to_omics")
                 df = joiner(omics_1[dataset], omics_2[dataset])
                 assert df.shape[1] == expected_columns
+
+    def test_join_omics_to_mutations():
+        pass
+
+    def test_join_metadata_to_metadata():
+        pass
+
+    def test_join_metadata_to_omics():
+        pass
+
+    def test_join_metadata_to_mutations():
+        pass
+
+    def test_multi_join():
+        pass
