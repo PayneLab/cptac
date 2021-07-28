@@ -59,28 +59,27 @@ class UmichBrca(Dataset):
             #Proteomics
             if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
-                df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # Get protein identifier 
-                df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # Get protein name 
+                df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
+                df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # get protein name 
                 df = df.set_index(['Name', 'Database_ID']) # set multiindex
                 df = df.drop(columns = ['Index', 'MaxPepProb', 'NumberPSM', 'Gene']) # drop unnecessary  columns
                 df = df.transpose()
-                ref_intensities = df.loc["ReferenceIntensity"] # Get reference intensities to use to calculate ratios 
-                df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values
+                ref_intensities = df.loc["ReferenceIntensity"] # get reference intensities to use to calculate ratios 
+                df = df.subtract(ref_intensities, axis="columns") # subtract reference intensities from all the values
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
                 
-                # drop ending of CPT retrospective samples to match cptac
+                # drop ending of CPT retrospective samples to match cptac 
                 df = df.rename(index={'CPT0008140004':'CPT000814', 'CPT0018460005': 'CPT001846', 
-                                      '604':'CPT000814'}) # 604 mapped to CPT000814 in pdc index
+                                      '604':'CPT000814'}) # 604 mapped to CPT000814 in the proteomics file from the PDC pipeline 
     
                 drop_cols = ['RetroIR', 'RetroIR.1',
                    'RefInt_Pool01', 'RefInt_Pool02', 'RefInt_Pool03', 'RefInt_Pool04',
                    'RefInt_Pool05', 'RefInt_Pool06', 'RefInt_Pool07', 'RefInt_Pool08',
                    'RefInt_Pool09', 'RefInt_Pool10', 'RefInt_Pool11', 'RefInt_Pool12',
                    'RefInt_Pool13', 'RefInt_Pool14', 'RefInt_Pool15', 'RefInt_Pool16',
-                   'RefInt_Pool17']
-                # Drop quality control and ref intensity cols
-                df = df.drop(drop_cols, axis = 'index')
+                   'RefInt_Pool17']                
+                df = df.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
                 self._data["proteomics"] = df
                 
             #Phosphoproteomics    
@@ -120,6 +119,9 @@ class UmichBrca(Dataset):
                 df = df.drop(drop_cols, axis = 'index')
                 self._data["phosphoproteomics"] = df
             
+            
+            # prosp-brca-all-samples.txt shows which patient IDs have normal samples and which have replicates 
+            # This file can be found on Box under CPTAC/cptac/pancan/helper_files
             if file_name == "prosp-brca-all-samples.txt":
                 df = pd.read_csv(file_path, sep = "\t")
                 df = df[['Participant', 'id', 'Type']]
@@ -129,9 +131,7 @@ class UmichBrca(Dataset):
         formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
         
-        # Get patient IDs with normal samples or replicates (from mapping file)
-        # prosp-brca-all-samples.txt shows which patient IDs have normal samples and which have replicates. This file
-        # can be found on Box under CPTAC/cptac/pancan/helper_files 
+        # Get patient IDs with normal samples or replicates (from mapping file)         
         # 7 IDs with replicates: '11BR031', '11BR053', '11BR036', '11BR060', '14BR005', '11BR011', '21BR010'
         # 18 IDs with normals: '11BR074', '11BR073', '20BR007', '21BR010', '11BR017', '05BR029', '18BR003', '11BR030',
         #   '01BR027','11BR025', '11BR047', '11BR028', '11BR020', '20BR008', '11BR024', '11BR023', '11BR015', '11BR006'
@@ -145,21 +145,22 @@ class UmichBrca(Dataset):
         norm_df.index = norm_df.Participant.apply(lambda x: x[1:]+'.1') #remove initial 'X' and add '.1' (did not correlate well)
         not_tumor = norm_df.index.to_list()
         
-        # Drop samples that don't correlate well with the original cptac tumor values (likely normals)
+        # Drop samples that don't correlate well with the original cptac tumor values
         # The proteomics and phosphoproteomics file contained duplicate patient IDs with unique values. 18 of these were IDs 
-        # with both tumor and normal samples (according to mapping file). To find which ID contained values nearest to the 
-        # original cptac tumor measurements, we ran a linear regression to compare flagship values to each of the 
-        # duplicate patient ID values. The first occurrance of every patient ID in the file with a normal sample showed 
-        # a high correlation with the flagship values (average around 0.9). The second occurrence showed a low correlation 
-        # with the flagship tumor values (average around  0.2). In Brca, normal samples were dropped in downstream analysis 
-        # because of quality control issues. Therefore, we dropped the second occurrence of the 18 patient IDs with a normal 
-        # sample because they did not correlate well with the flagship tumor values and are likely normal samples.
-        # There were 8 replicates shown in the mapping file (prosp-brca-all-samples.txt). A linear regression was used to check
-        # that these correlated well with their respective flagship cptac tumor values. Replicates were averaged (consistent with 
-        # the handling of other replicates in the pancan module).
-        # notes:  21BR010.1 had a correlation of 0.275 (so dropped), and 21BR010.2 had correlation of 0.848 (so averaged)
-        # A file showing all the correlations can be found at: 
-        # https://docs.google.com/spreadsheets/d/1_wVNzig3CH77eu2ouUM_qZHW3tB1tnA02An1TKVZsQQ/edit?usp=sharing
+        # with both tumor and normal samples (according to the mapping file). To find which ID contained values nearest to the 
+        # original cptac tumor measurements, we calculated pearson correlations and created scatterplots to compare 
+        # flagship values to each of the duplicate patient ID values. The first occurrance of every patient ID in the 
+        # file with a normal sample showed a high correlation with the flagship values (average around 0.9). 
+        # The second occurrence showed a low correlation with the flagship tumor values (average around  0.2). 
+        # In Brca, normal samples were dropped in downstream analysis because of quality control issues. Therefore, we dropped 
+        # the second occurrence of the 18 patient IDs with a normal sample because they did not correlate well with the 
+        # flagship tumor values and are likely normal samples. There were 7 IDs with replicates shown in the mapping file 
+        # (prosp-brca-all-samples.txt). The same method was used to check that these correlated well with their respective 
+        # flagship cptac tumor values. Replicates were averaged (consistent with the handling of other replicates in the pancan 
+        # module).
+        # note:  21BR010.1 had a correlation of 0.275 (so dropped), and 21BR010.2 had correlation of 0.848 (so averaged)        
+        # A file containing the correlations can be found at: 
+        # https://docs.google.com/spreadsheets/d/1jkcWno5y9665V0wMdCIt-hbY3AY_8JXxUb9jS1vNx14/edit?usp=sharing
         
         if self._version == "1.0":
             # Proteomics
@@ -174,7 +175,9 @@ class UmichBrca(Dataset):
             phos = average_replicates(phos, replicate_list) # average 7 IDs with replicates
             self._data["phosphoproteomics"] = phos
         
-        self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
+        
+        # Sort rows (tumor first then normal) and columns by first level (protein/gene name)
+        self._data = sort_all_rows_pancan(self._data)  
         
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

@@ -66,27 +66,15 @@ class UmichCoad(Dataset):
             # Proteomics
             if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t")
-                df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # Get protein identifier 
-                df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # Get protein name 
+                df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
+                df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # get protein name 
                 df = df.set_index(['Name', 'Database_ID']) # set multiindex
                 df = df.drop(columns = ['Index', 'MaxPepProb', 'NumberPSM', 'Gene']) # drop unnecessary  columns
                 df = df.transpose()
-                ref_intensities = df.loc["ReferenceIntensity"] # Get reference intensities to use to calculate ratios 
-                df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values
+                ref_intensities = df.loc["ReferenceIntensity"] # get reference intensities to use to calculate ratios 
+                df = df.subtract(ref_intensities, axis="columns") # subtract reference intensities from all the values
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
-
-                drop_cols = ['colonRef22-2', 'RefInt_ColonRef01', 'RefInt_ColonRef02',
-                   'RefInt_ColonRef03', 'RefInt_ColonRef04', 'RefInt_ColonRef05',
-                   'RefInt_ColonRef06', 'RefInt_ColonRef07', 'RefInt_ColonRef08',
-                   'RefInt_ColonRef09', 'RefInt_ColonRef10', 'RefInt_ColonRef11',
-                   'RefInt_ColonRef12', 'RefInt_ColonRef13', 'RefInt_ColonRef14',
-                   'RefInt_ColonRef15', 'RefInt_ColonRef16', 'RefInt_ColonRef17',
-                   'RefInt_ColonRef18', 'RefInt_ColonRef19', 'RefInt_ColonRef20',
-                   'RefInt_ColonRef21', 'RefInt_ColonRef22-1']
-                
-                # Drop qauality control and ref intensity cols
-                df = df.drop(drop_cols, axis = 'index')
                 self._data["proteomics"] = df              
                 
             
@@ -97,37 +85,37 @@ class UmichCoad(Dataset):
                 df[['Database_ID','Transcript_ID',"Gene_ID","Havana_gene","Havana_transcript","Transcript","Name","Site"]] = df.Index.str.split("\\|",expand=True)
                 df[['num1','start',"end","detected_phos","localized_phos","Site"]] = df.Site.str.split("_",expand=True) 
 
-                 # Some rows have at least one localized phosphorylation site, but also have other phosphorylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
-                unlocalized_to_drop = df.index[~df["detected_phos"].eq(df["localized_phos"]) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)]# dectected_phos of the split "Index" column is number of phosphorylations detected, and localized_phos is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
+                # Some rows have at least one localized phosphorylation site, but also have other 
+                # phosphorylations that aren't localized. We'll drop those rows, if their localized sites 
+                # are duplicated in another row, to avoid creating duplicates, because we only preserve information 
+                # about the localized sites in a given row. However, if the localized sites aren't duplicated in 
+                # another row, we'll keep the row.
+                unlocalized_to_drop = df.index[~df["detected_phos"].eq(df["localized_phos"]) & \
+                                               df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)]
+                # dectected_phos of the split "Index" column is number of phosphorylations detected, and 
+                # localized_phos is number of phosphorylations localized, so if the two values aren't equal, 
+                #the row has at least one unlocalized site
                 df = df.drop(index=unlocalized_to_drop)
 
                 df = df[df['Site'].notna()] # only keep columns with phospho site 
-                df = df.set_index(['Name', 'Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns, in this order.
+                df = df.set_index(['Name', 'Site', 'Peptide', 'Database_ID']) # create a multiindex in this order.
                 #drop columns not needed in df 
-                df.drop([ 'Gene', "Index","num1","start","end","detected_phos","localized_phos","Havana_gene","Havana_transcript","MaxPepProb","Gene_ID","Transcript_ID","Transcript"], axis=1, inplace=True)
+                df.drop(['Gene',  "Index", "num1", "start", "end", "detected_phos", "localized_phos", "Havana_gene", "Havana_transcript", "MaxPepProb", "Gene_ID", "Transcript_ID", "Transcript"], axis=1, inplace=True)
 
-                df = df.T #transpose df 
+                df = df.transpose() 
                 ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
-                df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values, to get ratios
+                df = df.subtract(ref_intensities, axis="columns") # Subtract ref intensities from all the values, to get ratios
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
-                drop_cols = ['colonRef22-2', 'RefInt_ColonRef01', 'RefInt_ColonRef02',
-                   'RefInt_ColonRef03', 'RefInt_ColonRef04', 'RefInt_ColonRef05',
-                   'RefInt_ColonRef06', 'RefInt_ColonRef07', 'RefInt_ColonRef08',
-                   'RefInt_ColonRef09', 'RefInt_ColonRef10', 'RefInt_ColonRef11',
-                   'RefInt_ColonRef12', 'RefInt_ColonRef13', 'RefInt_ColonRef14',
-                   'RefInt_ColonRef15', 'RefInt_ColonRef16', 'RefInt_ColonRef17',
-                   'RefInt_ColonRef18', 'RefInt_ColonRef19', 'RefInt_ColonRef20',
-                   'RefInt_ColonRef21', 'RefInt_ColonRef22-1']
-                # Drop qauality control and ref intensity cols
-                df = df.drop(drop_cols, axis = 'index')
                 df.index.name = 'Patient_ID'
                 self._data["phosphoproteomics"] = df
             
-            # mapping file to get patient_IDs
+            
+            # Mapping file to convert aliquots to patient_IDs for Colon
+            # This file can be found on Box under CPTAC/cptac/pancan/helper_files
             elif file_name == "CRC_Prospective sample info.xlsx":
-                df = pd.read_excel(file_path)
-                df = df[['Label','Sample Code']]
-                self._helper_tables["map_ids"] = df
+                df = pd.read_excel(file_path, index_col = 'Label', usecols = ['Label', 'Sample Code'])
+                map_dict = df.to_dict()['Sample Code'] # create dictionary with aliquots as keys and patient IDs as values
+                self._helper_tables["map_ids"] = map_dict
 
             '''
             if file_name == "S039_BCprospective_observed_0920.tsv.gz":
@@ -153,32 +141,47 @@ class UmichCoad(Dataset):
         formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
         
-        if self._version == "1.1": 
-            # Get dictionary to map aliquot to patient IDs 
-            # with labels as keys and sample code (case_ID with sample identifier) as values
-            mapping_df = self._helper_tables["map_ids"]
-            matched_ids = {}
-            for i, row in mapping_df.iterrows():
-                matched_ids[row['Label']] = row['Sample Code']
+        drop_cols = ['colonRef22-2', 'RefInt_ColonRef01', 'RefInt_ColonRef02',
+                   'RefInt_ColonRef03', 'RefInt_ColonRef04', 'RefInt_ColonRef05',
+                   'RefInt_ColonRef06', 'RefInt_ColonRef07', 'RefInt_ColonRef08',
+                   'RefInt_ColonRef09', 'RefInt_ColonRef10', 'RefInt_ColonRef11',
+                   'RefInt_ColonRef12', 'RefInt_ColonRef13', 'RefInt_ColonRef14',
+                   'RefInt_ColonRef15', 'RefInt_ColonRef16', 'RefInt_ColonRef17',
+                   'RefInt_ColonRef18', 'RefInt_ColonRef19', 'RefInt_ColonRef20',
+                   'RefInt_ColonRef21', 'RefInt_ColonRef22-1']
         
+        # Proteomics
+        prot = self._data['proteomics']
+        prot = prot.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
+         
+        # Phosphoproteomics    
+        phos = self._data["phosphoproteomics"] 
+        phos = phos.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
+
+        
+        if self._version == "1.1":            
+            # Get dictionary to map aliquot to patient IDs  
+            mapping_dict = self._helper_tables["map_ids"]
+            
             # Proteomics
-            prot = self._data['proteomics']
             prot = prot.reset_index()
-            prot = prot.replace(matched_ids) # replace label with Patient_IDs
+            prot['Patient_ID'] = prot['Patient_ID'].replace(mapping_dict) # replace aliquots with Patient_IDs
             prot.Patient_ID = prot.Patient_ID.apply(lambda x: x[1:]+'.N' if x[0] == 'N' else x[1:]) # change normals to have .N
             prot = prot.set_index('Patient_ID')
-            self._data['proteomics'] = prot
-            
-            # Phosphoproteomics
-            phos = self._data["phosphoproteomics"] 
-            phos.index.name = 'Patient_ID'
+ 
+            # Phosphoproteomics                        
             phos = phos.reset_index()
-            phos = phos.replace(matched_ids) # replace label with Patient_IDs
+            phos['Patient_ID'] = phos['Patient_ID'].replace(mapping_dict) # replace aliquots with Patient_IDs
             phos.Patient_ID = phos.Patient_ID.apply(lambda x: x[1:]+'.N' if x[0] == 'N' else x[1:]) # change normals to have .N
             phos = phos.set_index('Patient_ID')
-            self._data["phosphoproteomics"] = phos
             
-        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
+          
+        self._data['proteomics'] = prot
+        self._data["phosphoproteomics"] = phos
+        
+        
+        # Sort rows (tumor first then normal) and columns by first level (protein/gene name)
+        self._data = sort_all_rows_pancan(self._data) 
 
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

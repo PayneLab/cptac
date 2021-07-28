@@ -59,13 +59,13 @@ class UmichLuad(Dataset):
             
             if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
-                df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # Get protein identifier 
-                df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # Get protein name 
+                df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
+                df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # get protein name 
                 df = df.set_index(['Name', 'Database_ID']) # set multiindex
                 df = df.drop(columns = ['Index', 'MaxPepProb', 'NumberPSM', 'Gene']) # drop unnecessary  columns
                 df = df.transpose()
-                ref_intensities = df.loc["ReferenceIntensity"] # Get reference intensities to use to calculate ratios 
-                df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values
+                ref_intensities = df.loc["ReferenceIntensity"] # get reference intensities to use to calculate ratios 
+                df = df.subtract(ref_intensities, axis="columns") # subtract reference intensities from all the values
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
                 self._data["proteomics"] = df
@@ -92,19 +92,36 @@ class UmichLuad(Dataset):
                 #drop columns not needed in df 
                 df.drop(['Gene', "Index", "num1", "start", "end", "detected_phos", "localized_phos", "Havana_gene", 
                          "Havana_transcript", "MaxPepProb", "Gene_ID", "Transcript_ID", "Transcript"], axis=1, inplace=True)
+                df = df.transpose()
+                ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
+                df = df.subtract(ref_intensities, axis="columns") # Subtract ref intensities from all the values, to get ratios
+                df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 self._data["phosphoproteomics"] = df
 
             
             # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
             # so no need to slice out cancer specific aliquots
+            # This file can be found on Box under CPTAC/cptac/pancan/helper_files
             elif file_name == "aliquot_to_patient_ID.tsv":
                 df = pd.read_csv(file_path, sep = "\t", index_col = 'aliquot_ID', usecols = ['aliquot_ID', 'patient_ID'])
-                map_dict = df.to_dict()['patient_ID'] # Create dictionary with aliquot_ID as keys and patient_ID as values
+                map_dict = df.to_dict()['patient_ID'] # create dictionary with aliquot_ID as keys and patient_ID as values
                 self._helper_tables["map_ids"] = map_dict
+        
         
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
+        
+        # There were 2 duplicate IDs (aliquot mapped to the same tissue type and case ID) in the proteomic 
+        # and phosphoproteomic data. I used the Payne lab mapping file "aliquot_to_patient_ID.tsv" to determine 
+        # the tissue type for these duplicates. They were all tumor samples. Next, I ran a pearson correlation 
+        # to check how well the values from each aliquot correlated to its respective tumor flagship sample. 
+        # Each aliquot had a high correlation with the flagship values which indicates that they are replicates. 
+        # I also created a scatterplot for each aliquot and flagship pair. The linear scatterplots indicated
+        # similarity between the aliquot and flagship values. As the duplicate IDs were both tumor samples and 
+        # correlated well with the flagship values, we averaged them.
+        # A file containing the correlations can be found at: 
+        # https://docs.google.com/spreadsheets/d/1jkcWno5y9665V0wMdCIt-hbY3AY_8JXxUb9jS1vNx14/edit?usp=sharing
         
         # Drop quality control and ref intensity cols
         drop_cols = ['TumorOnlyIR01', 'NormalOnlyIR02', 'TumorOnlyIR03', 
@@ -118,35 +135,31 @@ class UmichLuad(Dataset):
                    'RefInt_pool20', 'RefInt_pool21', 'RefInt_pool22', 'RefInt_pool23',
                    'RefInt_pool24', 'RefInt_pool25']
 
-        # Get dictionary with aliquot_ID as keys and patient_ID as values
+        # Get dictionary with aliquots as keys and patient IDs as values
         mapping_dict = self._helper_tables["map_ids"]
 
         # Proteomics   
         prot = self._data["proteomics"]
-        prot = prot.rename(index = mapping_dict) # replace aliquot_IDs with Patient_IDs
-        # manually map duplicates - aliquots in mapping file but didn't map because of the appended ".1" 
+        prot = prot.rename(index = mapping_dict) # replace aliquots with patient IDs (normals have .N appended)
+        # manually map duplicates - these aliquots are in the mapping file but they didn't map because of the appended ".1" 
         prot = prot.rename(index = {'CPT0146580004.1':'C3N-02379.1', 'CPT0148080004.1':'C3N-02587.1'}) 
-        # these duplicates had high correlations with their tumor flagship samples, so we average them
+        # these duplicates correlated well with their tumor flagship samples, so we average them
         prot = average_replicates(prot, ['C3N-02379', 'C3N-02587'])
         prot = prot.drop(drop_cols, axis = 'index')
         self._data["proteomics"] = prot
         
         # Phosphoproteomics 
         phos = self._data["phosphoproteomics"] 
-        phos = phos.transpose()
-        phos = phos.rename(index = mapping_dict)# rename NAT ID columns with .N 
-        # manually map duplicates - aliquots in mapping file but didn't map because of the appended ".1" 
-        phos = phos.rename(index = {'CPT0146580004.1':'C3N-02379.1', 'CPT0148080004.1':'C3N-02587.1'}) 
-        ref_intensities = phos.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
-        phos = phos.subtract(ref_intensities, axis="columns") # Subtract ref intensities from all the values, to get ratios
-        phos = phos.iloc[1:,:] # drop ReferenceIntensity row   
-        # these duplicates had high correlations with their tumor flagship samples, so we average them
-        phos = average_replicates(phos, ['C3N-02379', 'C3N-02587'])         
         phos = phos.drop(drop_cols, axis = 'index')
+        phos = phos.rename(index = mapping_dict) # replace aliquots with patient IDs (normals have .N appended) 
+        # manually map duplicates - these aliquots are in the mapping file, but they didn't map because of the appended ".1" 
+        phos = phos.rename(index = {'CPT0146580004.1':'C3N-02379.1', 'CPT0148080004.1':'C3N-02587.1'}) 
+        # these duplicates correlated well with their tumor flagship samples, so we average them
+        phos = average_replicates(phos, ['C3N-02379', 'C3N-02587'])         
         self._data["phosphoproteomics"] = phos
         
         
-        # Sort IDs (tumor first then normal)
+        # Sort rows (tumor first then normal) and columns by first level (protein/gene name)
         self._data = sort_all_rows_pancan(self._data)  
 
 

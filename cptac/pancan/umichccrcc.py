@@ -61,23 +61,15 @@ class UmichCcrcc(Dataset):
             
             if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
-                df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # Get protein identifier 
-                df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # Get protein name 
+                df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
+                df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # get protein name 
                 df = df.set_index(['Name', 'Database_ID']) # set multiindex
                 df = df.drop(columns = ['Index', 'MaxPepProb', 'NumberPSM', 'Gene']) # drop unnecessary  columns
                 df = df.transpose()
-                ref_intensities = df.loc["ReferenceIntensity"] # Get reference intensities to use to calculate ratios 
-                df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values
+                ref_intensities = df.loc["ReferenceIntensity"] # get reference intensities to use to calculate ratios 
+                df = df.subtract(ref_intensities, axis="columns") # subtract reference intensities from all the values
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
-    
-                # Drop quality control and ref intensity cols
-                drop_cols = ['NCI7-1','NCI7-2','NCI7-3','NCI7-4','NCI7-5', 'QC1', 'QC2', 'QC3', 'QC4', 'QC5', 'QC6', 'QC7', 
-                            'QC8', 'RefInt_pool01', 'RefInt_pool02', 'RefInt_pool03', 'RefInt_pool04', 'RefInt_pool05', 
-                            'RefInt_pool06', 'RefInt_pool07', 'RefInt_pool08', 'RefInt_pool09', 'RefInt_pool10', 'RefInt_pool11', 
-                            'RefInt_pool12', 'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15', 'RefInt_pool16', 'RefInt_pool17', 
-                            'RefInt_pool18', 'RefInt_pool19', 'RefInt_pool20', 'RefInt_pool21', 'RefInt_pool22', 'RefInt_pool23']
-                df = df.drop(drop_cols, axis = 'index')
                 self._data["proteomics"] = df
  
                 
@@ -92,7 +84,11 @@ class UmichCcrcc(Dataset):
                 # are duplicated in another row, to avoid creating duplicates, because we only preserve 
                 # information about the localized sites in a given row. However, if the localized sites aren't 
                 # duplicated in another row, we'll keep the row.
-                unlocalized_to_drop = df.index[~df["detected_phos"].eq(df["localized_phos"]) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)]# dectected_phos of the split "Index" column is number of phosphorylations detected, and localized_phos is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
+                unlocalized_to_drop = df.index[~df["detected_phos"].eq(df["localized_phos"]) & \
+                                               df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)]
+                # dectected_phos of the split "Index" column is number of phosphorylations detected, and 
+                # localized_phos is number of phosphorylations localized, so if the two values aren't equal, 
+                # the row has at least one unlocalized site
                 df = df.drop(index=unlocalized_to_drop)
 
                 df = df[df['Site'].notna()] # only keep columns with phospho site 
@@ -100,11 +96,20 @@ class UmichCcrcc(Dataset):
                 #drop columns not needed in df 
                 df.drop(['Gene', "Index", "num1", "start", "end", "detected_phos", "localized_phos", "Havana_gene", 
                          "Havana_transcript", "MaxPepProb", "Gene_ID","Transcript_ID", "Transcript"], axis=1, inplace=True)
+                df = df.transpose()
+                ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities (prep to calculate ratios) 
+                df = df.subtract(ref_intensities, axis="columns") # Subtract refintensities from all the values, to get ratios
+                df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 self._data["phosphoproteomics"] = df
                 
+                
+            # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
+            # so there is no need to slice out cancer specific aliquots
+            # This file can be found on Box under CPTAC/cptac/pancan/helper_files
             elif file_name == "aliquot_to_patient_ID.tsv":
-                df = pd.read_csv(file_path, sep = "\t")
-                self._helper_tables["map_ids"] = df
+                df = pd.read_csv(file_path, sep = "\t", index_col = 'aliquot_ID', usecols = ['aliquot_ID', 'patient_ID'])
+                map_dict = df.to_dict()['patient_ID'] # create dictionary with aliquot_ID as keys and patient_ID as values
+                self._helper_tables["map_ids"] = map_dict
       
             '''
             elif file_name == "S039_BCprospective_observed_0920.tsv.gz":
@@ -130,38 +135,31 @@ class UmichCcrcc(Dataset):
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
         
+        drop_cols = ['NCI7-1','NCI7-2','NCI7-3','NCI7-4','NCI7-5', 'QC1', 'QC2', 'QC3', 'QC4', 'QC5', 'QC6', 'QC7', 
+                    'QC8', 'RefInt_pool01', 'RefInt_pool02', 'RefInt_pool03', 'RefInt_pool04', 'RefInt_pool05', 
+                    'RefInt_pool06', 'RefInt_pool07', 'RefInt_pool08', 'RefInt_pool09', 'RefInt_pool10', 'RefInt_pool11', 
+                    'RefInt_pool12', 'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15', 'RefInt_pool16', 'RefInt_pool17', 
+                    'RefInt_pool18', 'RefInt_pool19', 'RefInt_pool20', 'RefInt_pool21', 'RefInt_pool22', 'RefInt_pool23']
         
-        # Get dictionary to map aliquot to patient IDs 
-        # Create dictionary with aliquot_ID as keys and patient_ID as values
-        mapping_df = self._helper_tables["map_ids"]
-        matched_ids = {}
-        for i, row in mapping_df.iterrows():
-            matched_ids[row['aliquot_ID']] = row['patient_ID']
+        
+        # Get dictionary with aliquot_ID as keys and patient_ID as values
+        mapping_dict = self._helper_tables["map_ids"]
         
         # Proteomics
         prot = self._data["proteomics"]
-        prot = prot.reset_index()
-        prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
-        prot = prot.set_index('Patient_ID')
+        prot = prot.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
+        prot = prot.rename(index = mapping_dict) # replace aliquot_IDs with Patient_IDs (normal samples have .N appended)
         self._data["proteomics"] = prot
         
         # Phosphoproteomics 
-        phos = self._data["phosphoproteomics"]       
-        phos = phos.rename(columns = matched_ids)# rename NAT ID columns with .N 
-        phos = phos.T #transpose df 
-        ref_intensities = phos.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
-        phos = phos.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values, to get ratios
-        phos = phos.iloc[1:,:] # drop ReferenceIntensity row 
-        drop_cols_phos = ['NCI7-1','QC1','QC2','QC3','NCI7-2','NCI7-3','QC4','NCI7-4','NCI7-5','QC5',
-         'QC6','QC7','QC8','RefInt_pool01','RefInt_pool02','RefInt_pool03', 'RefInt_pool04','RefInt_pool05', 
-         'RefInt_pool06','RefInt_pool07','RefInt_pool08','RefInt_pool09','RefInt_pool10','RefInt_pool11',
-         'RefInt_pool12','RefInt_pool13','RefInt_pool14','RefInt_pool15','RefInt_pool16','RefInt_pool17',
-         'RefInt_pool18','RefInt_pool19','RefInt_pool20','RefInt_pool21','RefInt_pool22','RefInt_pool23']
-          # Drop quality control and ref intensity cols
-        phos = phos.drop(drop_cols_phos, axis = 'index')        
+        phos = self._data["phosphoproteomics"] 
+        phos = phos.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
+        phos = phos.rename(index = mapping_dict) # replace aliquot_IDs with Patient_IDs (normal samples have .N appended)  
         self._data["phosphoproteomics"] = phos
         
-        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
+        
+        # Sort rows (tumor first then normal) and columns by first level (protein/gene name)
+        self._data = sort_all_rows_pancan(self._data) 
 
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

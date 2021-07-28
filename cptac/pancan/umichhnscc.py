@@ -60,13 +60,13 @@ class UmichHnscc(Dataset):
             
             if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
-                df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # Get protein identifier 
-                df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # Get protein name 
+                df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
+                df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # get protein name 
                 df = df.set_index(['Name', 'Database_ID']) # set multiindex
                 df = df.drop(columns = ['Index', 'MaxPepProb', 'NumberPSM', 'Gene']) # drop unnecessary  columns
                 df = df.transpose()
-                ref_intensities = df.loc["ReferenceIntensity"] # Get reference intensities to use to calculate ratios 
-                df = df.subtract(ref_intensities, axis="columns") # Subtract reference intensities from all the values 
+                ref_intensities = df.loc["ReferenceIntensity"] # get reference intensities to use to calculate ratios 
+                df = df.subtract(ref_intensities, axis="columns") # subtract reference intensities from all the values 
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
                 self._data["proteomics"] = df              
@@ -121,7 +121,17 @@ class UmichHnscc(Dataset):
         
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
-        print(formatting_msg, end='\r')
+        print(formatting_msg, end='\r')               
+        
+        # There were 4 labels with "-duplicate" appended in proteomics and phosphoproteomics files.
+        # I ran a pearson correlation to check how well the values from each duplicate correlated to 
+        # the other duplicates for the same case ID. Three of the duplicates correlated well with their 
+        # respective case IDs. C3L-02617-N-duplicate2 did not correlate well with the other C3L-02617 duplicates, 
+        # so we dropped it and averaged the other two. I also created a scatterplot to compare each duplicate to 
+        # the first occurence of its case ID. The linear scatterplots indicated similarity between the aliquots. 
+        # We averaged the duplicates that correlated well together and were the same tissue type.        
+        # A file containing the correlations can be found at: 
+        # https://docs.google.com/spreadsheets/d/1jkcWno5y9665V0wMdCIt-hbY3AY_8JXxUb9jS1vNx14/edit?usp=sharing
         
         drop_cols = ['128C', 'QC2', 'QC3', 'QC4', '129N', 'LungTumor1', 'Pooled-sample14',
                    'LungTumor2', 'QC6', 'LungTumor3', 'Pooled-sample17', 'QC7',
@@ -133,35 +143,31 @@ class UmichHnscc(Dataset):
                    'RefInt_pool19', 'RefInt_pool20']    
         
         # Proteomics
-        prot = self._data["proteomics"]
-        # Drop quality control and ref intensity cols
-        prot = prot.drop(drop_cols, axis = 'index')
-        # Drop duplicate that did not correlate well with flagship sample
-        prot = prot.drop(['C3L-02617-N-duplicate2'], axis = 'index')
-        # These duplicates had a high correlation with their respective flagship sample so we average them.
+        prot = self._data["proteomics"]        
+        prot = prot.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols        
+        prot = prot.drop(['C3L-02617-N-duplicate2'], axis = 'index') # drop duplicate that did not correlate well  
+        # These IDs had a high correlation with their respective duplicates, so we average them
         # duplicates: 'C3L-02617-T-duplicate', 'C3L-00994-N-duplicate', 'C3L-02617-N-duplicate'
-        prot = average_replicates(prot, ['C3L-02617-T','C3L-02617-N','C3L-00994-N']) 
+        prot = average_replicates(prot, ['C3L-02617-T','C3L-02617-N','C3L-00994-N'], normal_identifier = '-N') 
         prot.index = prot.index.str.replace('-T$','', regex = True)
         prot.index = prot.index.str.replace('-N$','.N', regex = True)
-        prot.index = prot.index.str.replace('-C$','.C', regex = True) # 6 cored normal samples
-        prot = prot.sort_values(by = 'Name', axis = 'columns') # sort columns by protein name
+        prot.index = prot.index.str.replace('-C$','.C', regex = True) # 6 cored normal samples in Hnscc
         self._data["proteomics"] = prot
         
         # Phosphoproteomics
         phos = self._data["phosphoproteomics"]
-        # Drop quality control and ref intensity cols
-        phos = phos.drop(drop_cols, axis = 'index')
-        # Drop duplicate that did not correlate well with flagship sample
-        phos = phos.drop(['C3L-02617-N-duplicate2'], axis = 'index')
-        # average duplicates that correlated well to flagship sample
-        phos = average_replicates(phos, ['C3L-02617-T','C3L-02617-N','C3L-00994-N']) 
+        phos = phos.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols        
+        phos = phos.drop(['C3L-02617-N-duplicate2'], axis = 'index') # drop duplicate that did not correlate well
+        # average IDs that correlated well to their respective duplicates
+        phos = average_replicates(phos, ['C3L-02617-T','C3L-02617-N','C3L-00994-N'], normal_identifier = '-N') 
         phos.index = phos.index.str.replace('-T$','', regex = True)
         phos.index = phos.index.str.replace('-N$','.N', regex = True)
-        phos.index = phos.index.str.replace('-C$','.C', regex = True) # 6 cored normal samples
-        phos = phos.sort_values(by = 'Name', axis = 'columns') # sort columns by protein name
+        phos.index = phos.index.str.replace('-C$','.C', regex = True) # 6 cored normal samples in Hnscc
         self._data["phosphoproteomics"] = phos
 
-        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
+        
+        # Sort rows (tumor first then normal) and columns by first level (protein/gene name)
+        self._data = sort_all_rows_pancan(self._data) 
         
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
