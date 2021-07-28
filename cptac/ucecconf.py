@@ -81,7 +81,7 @@ class UcecConf(Dataset):
             #"UCEC_confirmatory_WGS_SV_tumor_v1.1.txt.gz",
             ],
         "1.2": [
-#             "UCEC_confirmatory_meta_table_v1.2.xlsx",
+            "UCEC_confirmatory_meta_table_v1.2.xlsx",
             "UCEC_confirmatory_SRM_Direct_tumor_v1.2.cct.gz",
             "UCEC_confirmatory_SRM_IMAC_tumor_v1.2.cct.gz",
             "UCEC_confirmatory_SRM_PRISM_tumor_v1.2.cct.gz",
@@ -145,7 +145,8 @@ class UcecConf(Dataset):
                 self._data["acetylproteomics"] = df
             
             elif file_name in ["UCEC_confirmatory_meta_table_v1.0.xlsx", 
-                                "UCEC_confirmatory_meta_table_v1.1.xlsx"]:
+                               "UCEC_confirmatory_meta_table_v1.1.xlsx",
+                               "UCEC_confirmatory_meta_table_v1.2.xlsx"]:
                 df = pd.read_excel(file_path)
                 df.insert(6, "Proteomics_Tumor_Normal", df["Group"])
                 df.loc[df['Group'] == 'Enriched_Normal', 'Idx'] = df['Idx'] + '.N'
