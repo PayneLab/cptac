@@ -89,8 +89,8 @@ class UcecConf(Dataset):
             "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v1.2.cct.gz",
             "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v1.2.txt.gz",
 #             "UCEC_confirmatory_RNAseq_isoform_FPKM_removed_circRNA_log2(x+1)_tumor_normal_v1.2.cct.gz",
-#             "UCEC_confirmatory_WGS_cnv_gistic_thresholded_tumor_v1.2.cct.gz",
-#             "UCEC_confirmatory_WGS_cnv_log2_ratio_tumor_v1.2.cct.gz",
+            "UCEC_confirmatory_WGS_cnv_gistic_thresholded_tumor_v1.2.cct.gz",
+            "UCEC_confirmatory_WGS_cnv_log2_ratio_tumor_v1.2.cct.gz",
             "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.2.cbt.gz",
             "UCEC_confirmatory_WES_somatic_mutation_v1.2.maf.gz",
 #             "UCEC_confirmatory_WGS_SV_tumor_v1.2.txt.gz",
@@ -280,8 +280,7 @@ class UcecConf(Dataset):
                     self._data["targeted_proteomics"] = df_prism
                     
             elif file_name in ["UCEC_confirmatory_SRM_IMAC_tumor_v1.1.cct.gz", "UCEC_confirmatory_SRM_IMAC_tumor_v1.2.cct.gz"]:
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.reset_index()
+                df = pd.read_csv(file_path, sep='\t')
                 df.at[0,'idx'] = "FPSS[+80]PLRIPGGNIY[+80]ISPLK"
                 df['Name'] = "RB1"
                 df = df.rename(columns={"idx":"Peptide"})
@@ -293,9 +292,9 @@ class UcecConf(Dataset):
                 self._data["targeted_phosphoproteomics"] = df
                 
             elif file_name in ["UCEC_confirmatory_WES_cnv_gistic_thresholded_tumor_v1.0.cct.gz", 
-                               "UCEC_confirmatory_WES_cnv_gistic_thresholded_tumor_v1.1.cct.gz"]:
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.reset_index()
+                               "UCEC_confirmatory_WES_cnv_gistic_thresholded_tumor_v1.1.cct.gz",
+                               "UCEC_confirmatory_WGS_cnv_gistic_thresholded_tumor_v1.2.cct.gz"]:
+                df = pd.read_csv(file_path, sep='\t')
                 df[['Name','Chromosome']] = df.idx.str.split("|", expand=True)
                 df = df.set_index(["Name"])
                 df = df.drop(columns=["idx", "Chromosome"])
@@ -305,9 +304,9 @@ class UcecConf(Dataset):
                 self._data["CNV_gistic"] = df
                 
             elif file_name in ["UCEC_confirmatory_WES_cnv_log2_ratio_tumor_v1.0.cct.gz", 
-                               "UCEC_confirmatory_WES_cnv_log2_ratio_tumor_v1.1.cct.gz"]:                
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.reset_index()
+                               "UCEC_confirmatory_WES_cnv_log2_ratio_tumor_v1.1.cct.gz",
+                               "UCEC_confirmatory_WGS_cnv_log2_ratio_tumor_v1.2.cct.gz"]:
+                df = pd.read_csv(file_path, sep='\t')
                 df[['Name','Chromosome']] = df.idx.str.split("|", expand=True)
                 df = df.set_index(["Name"])
                 df = df.drop(columns=["idx", "Chromosome"])
@@ -328,8 +327,7 @@ class UcecConf(Dataset):
             elif file_name in ["UCEC_confirmatory_WES_somatic_mutation_v1.0.maf.gz", 
                                "UCEC_confirmatory_WES_somatic_mutation_v1.1.maf.gz",
                                "UCEC_confirmatory_WES_somatic_mutation_v1.2.maf.gz"]:
-                df = pd.read_csv(file_path, sep='\t', index_col=0, dtype={88:object})
-                df = df.reset_index()
+                df = pd.read_csv(file_path, sep='\t', dtype={88:object})
                 df = df[['Tumor_Sample_Barcode','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
                 df['Tumor_Sample_Barcode'] = df['Tumor_Sample_Barcode'].apply(lambda s: s[:-2])
                 df = df.rename(columns={
