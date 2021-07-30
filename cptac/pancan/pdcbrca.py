@@ -60,6 +60,7 @@ class PdcBrca(Dataset):
             if file_name == "clinical.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
                 df = df.drop(['Internal Reference - Pooled Sample', 'RetroIR'])
+                df = df.rename(index={'604':'CPT000814'}) # use the aliquot for 604
                 self._data["clinical"] = df
 
             if file_name == "acetylome.tsv.gz":
