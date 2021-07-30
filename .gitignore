@@ -28,53 +28,62 @@ cptac/pancan/data_bcmbrca/*
 cptac/pancan/data_broadbrca/*
 cptac/pancan/data_umichbrca/*
 cptac/pancan/data_washubrca/*
+cptac/pancan/data_pdcbrca/*
 
 cptac/pancan/data_bcmccrcc/*
 cptac/pancan/data_broadccrcc/*
 cptac/pancan/data_umichccrcc/*
 cptac/pancan/data_washuccrcc/*
+cptac/pancan/data_pdcccrcc/*
 
 cptac/pancan/data_bcmcoad/*
 cptac/pancan/data_broadcoad/*
 cptac/pancan/data_umichcoad/*
 cptac/pancan/data_washucoad/*
+cptac/pancan/data_pdccoad/*
 
 cptac/pancan/data_bcmgbm/*
 cptac/pancan/data_broadgbm/*
 cptac/pancan/data_umichgbm/*
 cptac/pancan/data_washugbm/*
+cptac/pancan/data_pdcgbm/*
 
 cptac/pancan/data_bcmhnscc/*
 cptac/pancan/data_broadhnscc/*
 cptac/pancan/data_umichhnscc/*
 cptac/pancan/data_washuhnscc/*
+cptac/pancan/data_pdchnscc/*
 
 cptac/pancan/data_bcmlscc/*
 cptac/pancan/data_broadlscc/*
 cptac/pancan/data_umichlscc/*
 cptac/pancan/data_washulscc/*
+cptac/pancan/data_pdclscc/*
 
 cptac/pancan/data_bcmluad/*
 cptac/pancan/data_broadluad/*
 cptac/pancan/data_umichluad/*
 cptac/pancan/data_washuluad/*
+cptac/pancan/data_pdcluad/*
 
 cptac/pancan/data_bcmov/*
 cptac/pancan/data_broadov/*
 cptac/pancan/data_umichov/*
 cptac/pancan/data_washuov/*
+cptac/pancan/data_pdcov/*
 
 cptac/pancan/data_bcmucec/*
 cptac/pancan/data_broaducec/*
 cptac/pancan/data_umichucec/*
 cptac/pancan/data_washuucec/*
+cptac/pancan/data_pdcucec/*
 
 cptac/pancan/data_bcmpdac/*
 cptac/pancan/data_broadpdac/*
 cptac/pancan/data_umichpdac/*
 cptac/pancan/data_washupdac/*
+cptac/pancan/data_pdcpdac/*
 
-cptac/pancan/data_pdc*
 
 # Exclude files that are downloaded by utils functions
 cptac/utils/data/corum_protein_complexes.tsv.zip
