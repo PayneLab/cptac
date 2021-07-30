@@ -190,6 +190,10 @@ class Dataset:
         """Get the transcriptomics dataframe."""
         return self._get_dataframe("transcriptomics", tissue_type)
 
+    def get_ubiquitinomics(self, tissue_type="both"):
+        """Get the ubiquitinomics dataframe."""
+        return self._get_dataframe("ubiquitinomics", tissue_type)
+
     # Methods to get mutations dataframes
     def get_gene_fusion(self):
         """Get the gene_fusion dataframe."""

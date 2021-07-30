@@ -49,6 +49,7 @@ class Brca(Dataset):
                 "prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz",
                 "prosp-brca-v3.1-sample-annotation.csv.gz"],
             "5.4" : [
+                "prosp-brca-v3.0-v1.4.somatic.variants.070918.maf.gz",
                 "prosp-brca-v5.4-public-acetylome-ratio-norm-NArm.gct.gz", 
                 "prosp-brca-v5.4-public-gene-level-cnv-gistic2-all_data_by_genes.gct.gz", 
                 #"prosp-brca-v5.4-public-immune-profiling-scores-combined.gct.gz", 
@@ -252,7 +253,7 @@ class Brca(Dataset):
 
                 self._data["followup"] = df
 
-            elif file_name == "prosp-brca-v3.0-v1.4.somatic.variants.070918.maf.gz" and self._version == "3.1.1":
+            elif file_name == "prosp-brca-v3.0-v1.4.somatic.variants.070918.maf.gz":
                 df = pd.read_csv(file_path, sep='\t')
                 df = df.rename(columns={"Sample.ID": "Patient_ID"})
 
