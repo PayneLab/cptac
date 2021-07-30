@@ -159,8 +159,8 @@ class UmichBrca(Dataset):
         # flagship cptac tumor values. Replicates were averaged (consistent with the handling of other replicates in the pancan 
         # module).
         # note:  21BR010.1 had a correlation of 0.275 (so dropped), and 21BR010.2 had correlation of 0.848 (so averaged)        
-        # A file containing the correlations can be found at: 
-        # https://docs.google.com/spreadsheets/d/1jkcWno5y9665V0wMdCIt-hbY3AY_8JXxUb9jS1vNx14/edit?usp=sharing
+        # A file containing the correlations can be downloaded at: 
+        # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
         
         if self._version == "1.0":
             # Proteomics

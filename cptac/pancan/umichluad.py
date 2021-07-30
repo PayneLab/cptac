@@ -120,8 +120,8 @@ class UmichLuad(Dataset):
         # I also created a scatterplot for each aliquot and flagship pair. The linear scatterplots indicated
         # similarity between the aliquot and flagship values. As the duplicate IDs were both tumor samples and 
         # correlated well with the flagship values, we averaged them.
-        # A file containing the correlations can be found at: 
-        # https://docs.google.com/spreadsheets/d/1jkcWno5y9665V0wMdCIt-hbY3AY_8JXxUb9jS1vNx14/edit?usp=sharing
+        # A file containing the correlations can be downloaded at: 
+        # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
         
         # Drop quality control and ref intensity cols
         drop_cols = ['TumorOnlyIR01', 'NormalOnlyIR02', 'TumorOnlyIR03', 
@@ -140,12 +140,12 @@ class UmichLuad(Dataset):
 
         # Proteomics   
         prot = self._data["proteomics"]
+        prot = prot.drop(drop_cols, axis = 'index')
         prot = prot.rename(index = mapping_dict) # replace aliquots with patient IDs (normals have .N appended)
         # manually map duplicates - these aliquots are in the mapping file but they didn't map because of the appended ".1" 
         prot = prot.rename(index = {'CPT0146580004.1':'C3N-02379.1', 'CPT0148080004.1':'C3N-02587.1'}) 
         # these duplicates correlated well with their tumor flagship samples, so we average them
-        prot = average_replicates(prot, ['C3N-02379', 'C3N-02587'])
-        prot = prot.drop(drop_cols, axis = 'index')
+        prot = average_replicates(prot, ['C3N-02379', 'C3N-02587'])        
         self._data["proteomics"] = prot
         
         # Phosphoproteomics 

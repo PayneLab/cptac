@@ -129,12 +129,12 @@ class UmichPdac(Dataset):
         
         # Proteomics
         prot = self._data["proteomics"]  
-        prot = prot.rename(index = mapping_dict) # replace aliquots with patient IDs (normal samples have .N appended)
+        prot = prot.rename(index = mapping_dict) # replace aliquots with patient IDs (normals have .N) 
         self._data["proteomics"] = prot
         
         # Phosphoproteomics 
         phos = self._data["phosphoproteomics"]
-        phos = phos.rename(index = mapping_dict) # replace aliquots with patient IDs (normal samples have .N appended)        
+        phos = phos.rename(index = mapping_dict) # replace aliquots with patient IDs (normals have .N)     
         self._data["phosphoproteomics"] = phos
         
         

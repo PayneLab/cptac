@@ -130,8 +130,8 @@ class UmichHnscc(Dataset):
         # so we dropped it and averaged the other two. I also created a scatterplot to compare each duplicate to 
         # the first occurence of its case ID. The linear scatterplots indicated similarity between the aliquots. 
         # We averaged the duplicates that correlated well together and were the same tissue type.        
-        # A file containing the correlations can be found at: 
-        # https://docs.google.com/spreadsheets/d/1jkcWno5y9665V0wMdCIt-hbY3AY_8JXxUb9jS1vNx14/edit?usp=sharing
+        # A file containing the correlations can be downloaded at: 
+        # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
         
         drop_cols = ['128C', 'QC2', 'QC3', 'QC4', '129N', 'LungTumor1', 'Pooled-sample14',
                    'LungTumor2', 'QC6', 'LungTumor3', 'Pooled-sample17', 'QC7',
