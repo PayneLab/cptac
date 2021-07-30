@@ -36,7 +36,7 @@ class PdcPdac(Dataset):
 
         data_files = {
             "1.0": [
-                #"clinical.tsv.gz", # error with download function
+                "clinical.tsv.gz", # error with download function
                 "phosphoproteome.tsv.gz",
                 "proteome.tsv.gz",
                 "aliquot_to_patient_ID.tsv"
