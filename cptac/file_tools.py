@@ -153,7 +153,7 @@ def get_index(dataset):
         dataset_version_search = os.path.join(dataset_path, dataset_version_pattern)
         version_dirs = glob.glob(dataset_version_search)
         if len(version_dirs) > 0:  
-            raise MissingFileError(f"Missing file '{index_file}'. Call the download function (either 'cptac.download' or 'cptac.pancan.download', depending on which module you're using) to download it, passing '{dataset}' to the 'dataset' parameter.")
+            raise MissingFileError(f"Missing file '{index_file}'. Call the download function (either 'cptac.download' or 'cptac.pancan.download', depending on which module you're using) to download it, passing '{dataset}' to the 'dataset' parameter, and passing 'True' to the 'redownload' parameter.")
         else:
             raise DatasetNotInstalledError(f"{dataset} dataset is not installed. To install, call the download function (either 'cptac.download' or 'cptac.pancan.download', depending on which module you're using), passing '{dataset}' to the 'dataset' parameter.")
 
