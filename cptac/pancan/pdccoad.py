@@ -70,11 +70,12 @@ class PdcCoad(Dataset):
                 df = pd.read_csv(file_path, sep="\t")
                 self._data["proteomics"] = df
                 
-            # mapping file to get patient_IDs
+            # Mapping file to convert aliquots to patient_IDs for Colon
+            # This file can be found on Box under CPTAC/cptac/pancan/helper_files
             elif file_name == "CRC_Prospective sample info.xlsx":
-                df = pd.read_excel(file_path)
-                df = df[['Label','Sample Code']]
-                self._helper_tables["map_ids"] = df
+                df = pd.read_excel(file_path, index_col = 'Label', usecols = ['Label', 'Sample Code'])
+                map_dict = df.to_dict()['Sample Code'] # create dictionary with aliquots as keys and patient IDs as values
+                self._helper_tables["map_ids"] = map_dict
                 
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
@@ -82,31 +83,29 @@ class PdcCoad(Dataset):
         print(formatting_msg, end='\r')
         
 
-        # Create dictionary with 'Label' as keys and 'Sample Code' (case_ID with sample identifier) as values
-        # CRC_Prospective sample info.xlsx only contains colon aliquots
-        mapping_df = self._helper_tables['map_ids']
-        matched_ids = {}
-        for i, row in mapping_df.iterrows():
-            matched_ids[row['Label']] = row['Sample Code']
+        # Get dictionary to map label to patient IDs  
+        mapping_dict = self._helper_tables["map_ids"]
             
         # Proteomics
         prot = self._data['proteomics']
-        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(matched_ids) # replace label with Patient_IDs
-        prot.Patient_ID = prot.Patient_ID.apply(lambda x: x[1:]+'.N' if x[0] == 'N' else x[1:]) # change normals to have .N
+        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(mapping_dict) # replace label with Patient_IDs
+        prot.Patient_ID = prot.Patient_ID.apply(lambda x: x[1:]+'.N' if x[0] == 'N' else x[1:]) # change normals to have '.N'
         prot = prot.set_index('Patient_ID')
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')        
         self._data['proteomics'] = prot
 
         # Phosphoproteomics
         phos = self._data["phosphoproteomics"] 
-        phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(matched_ids) # replace 
-        phos.Patient_ID = phos.Patient_ID.apply(lambda x: x[1:]+'.N' if x[0] == 'N' else x[1:]) # change normals to have .N
+        phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(mapping_dict) # replace label with Patient_IDs 
+        phos.Patient_ID = phos.Patient_ID.apply(lambda x: x[1:]+'.N' if x[0] == 'N' else x[1:]) # change normals to have '.N'
         phos = phos.set_index('Patient_ID')
         phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
-        phos = map_database_to_gene_pdc(phos, 'refseq') # Map refseq IDs to gene names
+        phos = map_database_to_gene_pdc(phos, 'refseq') # map refseq IDs to gene names
         self._data["phosphoproteomics"] = phos
        
-        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
+    
+        # Sort rows (tumor first then normal) and columns by first level (protein/gene name)
+        self._data = sort_all_rows_pancan(self._data) 
         
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

@@ -100,9 +100,11 @@ class PdcBrca(Dataset):
         # Therefore, we drop them here. We kept the other aliquots that did correlate well. Of the 18 IDs with normal 
         # samples, 21BR010 only had one aliquot and it did not correlate well so it was dropped. I checked that the 
         # aliquots we dropped were normal samples using the biospecimen manifest for Brca proteomics on the PDC website 
-        # under the biospecimen tab.
-        # A file showing all our correlations can be found at: 
-        # https://docs.google.com/spreadsheets/d/1jkcWno5y9665V0wMdCIt-hbY3AY_8JXxUb9jS1vNx14/edit?usp=sharing
+        # under the biospecimen tab. I checked that the normal aliquots are the same for all omics, so we also dropped
+        # them for phosphoproteomics and acetylproteomics. 
+        # A file containing the correlations can be downloaded at: 
+        # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
+        
         drop_normals = ['64ee175f-f3ce-446e-bbf4-9b6fa8_D1', '7ac27de9-0932-4ff5-aab8-29c527',
             '3208e021-1dae-42fd-bd36-0f3c3d', '6c660b6b-bfda-47b0-9499-160d49','241ecd0e-89bd-4d3a-81b3-55a250',
             '428de0d4-7f84-4075-bae1-352af6', '0a80d3c4-0758-447a-958c-ea868c', '53723086-8858-4395-93d7-0baa68',
@@ -118,8 +120,8 @@ class PdcBrca(Dataset):
         prot.index = prot.index.droplevel('aliquot_submitter_id')
         self._data["proteomics"] = prot
         
-        # Note -> At the time this code was added, phospho only had all NaN values. In an email recieved 06/29/21, 
-        # Paul Rudnick said the phospho study was brocken. Whenever the phospho data is fixed, this 
+        # Note -> At the time this code was added, phospho had all NaN values. In an email recieved 06/29/21, 
+        # Paul Rudnick said the phospho study was broken. Whenever the phospho data is fixed, this 
         # code should work to drop normal aliquots and average replicates. It would be a good idea to check when 
         # the new data is ready though. 
         # Phosphoproteomics
@@ -127,9 +129,8 @@ class PdcBrca(Dataset):
         phos = phos.drop(drop_normals, level = 'aliquot_submitter_id') # drop normal aliquots (QC issues)
         phos = phos.rename(index={'604':'CPT000814'}) # use the aliquot for 604
         phos.index = phos.index.droplevel('aliquot_submitter_id')
-        phos = rename_duplicate_labels(phos, 'index') # give replicates unique names (checked that only replicates remain)
         phos = average_replicates(phos, id_list = replicates) # average replicates
-        phos = map_database_to_gene_pdc(phos, 'refseq') # Map refseq IDs to gene names
+        phos = map_database_to_gene_pdc(phos, 'refseq') # map refseq IDs to gene names
         self._data["phosphoproteomics"] = phos
         
         # Acetylproteomics
@@ -137,12 +138,12 @@ class PdcBrca(Dataset):
         acetyl = acetyl.drop(drop_normals, level = 'aliquot_submitter_id') # drop normal aliquots (QC issues)
         acetyl = acetyl.rename(index={'604':'CPT000814'}) # use the aliquot for 604
         acetyl.index = acetyl.index.droplevel('aliquot_submitter_id') # drop aliquots
-        acetyl = rename_duplicate_labels(acetyl, 'index') # give replicates unique names (checked only that replicates remain)
         acetyl = average_replicates(acetyl, id_list = replicates) # average replicates
-        acetyl = map_database_to_gene_pdc(acetyl, 'refseq') # Map refseq IDs to gene names
+        acetyl = map_database_to_gene_pdc(acetyl, 'refseq') # map refseq IDs to gene names
         self._data["acetylproteomics"] = acetyl
 
-        # Sort IDs based on the Patient_ID 
+        
+        # Sort rows (tumor first then normal) and columns by first level (protein/gene name)
         self._data = sort_all_rows_pancan(self._data)  
 
 

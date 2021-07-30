@@ -61,7 +61,7 @@ class PdcLuad(Dataset):
             if file_name == "clinical.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", index_col=0)
                 clin_drop_rows = ['Internal Reference - Pooled Sample', 'Normal Only IR', 'Taiwanese IR', 'Tumor Only IR']
-                df = df.drop(clin_drop_rows, axis = 'index') # Drop quality control and ref intensity
+                df = df.drop(clin_drop_rows, axis = 'index') # drop quality control and ref intensity
                 self._data["clinical"] = df
 
             if file_name == "acetylome.tsv.gz":
@@ -77,17 +77,27 @@ class PdcLuad(Dataset):
                 self._data["proteomics"] = df
                 
             # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
-            # so no need to slice out cancer specific aliquots
+            # so there is no need to slice out cancer specific aliquots
             elif file_name == "aliquot_to_patient_ID.tsv":
                 df = pd.read_csv(file_path, sep = "\t", index_col = 'aliquot_ID', usecols = ['aliquot_ID', 'patient_ID'])
-                map_dict = df.to_dict()['patient_ID'] # Create dictionary with aliquot_ID as keys and patient_ID as values
+                map_dict = df.to_dict()['patient_ID'] # create dictionary with aliquot_ID as keys and patient_ID as values
                 self._helper_tables["map_ids"] = map_dict
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
         
-        # common rows to drop
+        # There were 2 duplicate IDs (same case ID and aliquot) in the phosphoproteomics and acetylproteomics data.
+        # I used the mapping file "aliquot_to_patient_ID.tsv" to determine the tissue type for these duplicates. 
+        # They were all tumor samples. Next, I ran a pearson correlation to check how well the values from each 
+        # aliquot correlated to its respective flagship sample.  I also created a scatterplot for each aliquot 
+        # and flagship pair. For phosphoproteomics, each aliquot correlated well with its flagship sample
+        # so we averaged them. For acetylproteomics, the second occurrence of the duplicates correlated better 
+        # with the flagship values, so we dropped the first ocurrence. 
+        # A file containing the correlations can be downloaded at: 
+        # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
+        
+        # Common rows to drop
         drop_rows = ['Normal Only IR', 'Taiwanese IR', 'Tumor Only IR']
 
         # Get dictionary with aliquot_ID as keys and patient_ID as values
@@ -95,33 +105,38 @@ class PdcLuad(Dataset):
         
         # Proteomics
         prot = self._data["proteomics"]
-        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(mapping_dict) # map aliquots to patient IDs
+        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(mapping_dict) # map aliquots to patient IDs (normals have '.N')
         prot = prot.set_index('Patient_ID')
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
         self._data["proteomics"] = prot
         
         # Phosphoproteomics
         phos = self._data["phosphoproteomics"]
-        phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(mapping_dict) # aliquots to patient IDs
+        phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(mapping_dict) # map aliquots to patient IDs (normals have '.N')
         phos = phos.set_index('Patient_ID')
-        phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') # 2 duplicate aliquots and case
+        phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
         phos = phos.drop(drop_rows, axis = 'index')
-        # these duplicates had high correlations with their tumor flagship samples, so we average them
+        # these duplicates had high correlations with their tumor flagship samples, so we average them (see long comment above)
         phos = average_replicates(phos, ['C3N-02379', 'C3N-02587']) 
-        phos = map_database_to_gene_pdc(phos, 'refseq') # Map refseq IDs to gene names
+        phos = map_database_to_gene_pdc(phos, 'refseq') # map refseq IDs to gene names
         self._data["phosphoproteomics"] = phos
         
         # Acetylproteomics
         acetyl = self._data["acetylproteomics"]
-        acetyl['Patient_ID'] = acetyl['aliquot_submitter_id'].replace(mapping_dict) # GTEX ids to patient IDs for normal samples
+        acetyl['Patient_ID'] = acetyl['aliquot_submitter_id'].replace(mapping_dict) # aliquots to patient IDs (normals have '.N')
         acetyl = acetyl.set_index('Patient_ID')
         acetyl = acetyl.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
         acetyl = acetyl.drop(drop_rows, axis = 'index')
-        acetyl = map_database_to_gene_pdc(acetyl, 'refseq') # Map refseq IDs to gene names
-        #acetyl = average_replicates(acetyl, ['C3N-02379', 'C3N-02587']) # need to run correlation analysis test to check these correlate well
+        acetyl = map_database_to_gene_pdc(acetyl, 'refseq') # map refseq IDs to gene names
+        acetyl = rename_duplicate_labels(acetyl, 'index') # add ".1" to the second ocurrence of the IDs with duplicates
+        # drop 1st occurrence - didn't correlate as well with flagship
+        acetyl = acetyl.drop(['C3N-02379', 'C3N-02587'], axis = 'index') 
+        acetyl = acetyl.rename(index = {'C3N-02379.1':'C3N-02379', 'C3N-02587.1': 'C3N-02587'})# delete '.1' duplicate identifier 
         self._data["acetylproteomics"] = acetyl
 
-        self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
+        
+        # Sort rows (tumor first then normal) and columns by first level (protein/gene name)
+        self._data = sort_all_rows_pancan(self._data)  
         
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

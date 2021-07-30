@@ -71,26 +71,27 @@ class PdcOv(Dataset):
                 df = pd.read_csv(file_path, sep="\t")
                 self._data["proteomics"] = df
                 
+            # This file maps Ov aliquots to patient IDs (case ID with tissue type) and 
+            # can be found on Box under CPTAC/cptac/pancan/helper_files
             elif file_name == "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv":
-                ov_map = pd.read_csv(file_path, sep = ",", index_col = 0)
-                ov_map = ov_map.loc[ov_map.index[~ ov_map.index.str.contains('JHU', regex = True)]] # drop so doesn't map to NA
-                self._helper_tables["map_ids"] = ov_map
+                ov_map = pd.read_csv(file_path, sep = ",", usecols = ['specimen', 'sample'])
+                ov_map = ov_map.loc[~ ov_map['sample'].str.contains('JHU', regex = True)] # drop quality control rows
+                ov_map = ov_map.set_index('specimen')
+                map_dict = ov_map.to_dict()['sample'] # create dictionary with aliquots as keys and patient IDs as values
+                self._helper_tables["map_ids"] = map_dict
              
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
 
-        # Create mapping dictionary with aliquot_ID as keys and patient_ID as values
-        # OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv (mapping file) only has ovarian aliquots
-        mapping_df = self._helper_tables["map_ids"]
-        matched_ids = {}
-        for i, row in mapping_df.iterrows():
-            matched_ids[row['specimen']] = row['sample']
+        
+        # Get dictionary with aliquots as keys and patient IDs as values
+        mapping_dict = self._helper_tables["map_ids"]
         
         # Proteomics
         prot = self._data["proteomics"]
-        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(matched_ids) # replace aliquots
+        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(mapping_dict) # replace aliquot with patient IDs 
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
         prot = prot.set_index('Patient_ID')
         prot.index = prot.index.str.replace('-T$','', regex = True)
@@ -99,15 +100,17 @@ class PdcOv(Dataset):
 
         # Phosphoproteomics 
         phos_df = self._data["phosphoproteomics"]
-        phos_df['Patient_ID'] = phos_df['aliquot_submitter_id'].replace(matched_ids)
+        phos_df['Patient_ID'] = phos_df['aliquot_submitter_id'].replace(mapping_dict) # replace aliquot with patient IDs 
         phos_df = phos_df.set_index('Patient_ID')
         phos_df = phos_df.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
         phos_df.index = phos_df.index.str.replace('-T$','', regex = True)
         phos_df.index = phos_df.index.str.replace('-N$','.N', regex = True)  
-        phos_df = map_database_to_gene_pdc(phos_df, 'refseq') # Map refseq IDs to gene names
+        phos_df = map_database_to_gene_pdc(phos_df, 'refseq') # map refseq IDs to gene names
         self._data["phosphoproteomics"] = phos_df
         
-        self._data = sort_all_rows_pancan(self._data) # Sort ids (tumor first then normal)
+        
+        # Sort rows (tumor first then normal) and columns by first level (protein/gene name)
+        self._data = sort_all_rows_pancan(self._data) 
 
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
