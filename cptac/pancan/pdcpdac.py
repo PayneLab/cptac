@@ -88,6 +88,11 @@ class PdcPdac(Dataset):
         # Get dictionary with aliquots as keys and patient IDs as values
         mapping_dict = self._helper_tables["map_ids"]
         
+        # Clinical
+        clin = self._data["clinical"]
+        clin = clin.drop(drop_rows + ['WU-pooled sample', 'pooled sample'], axis = 'index') # drop quality control and references
+        self._data["clinical"] = clin
+        
         # Proteomics
         prot = self._data["proteomics"]        
         prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(mapping_dict) # aliquots to patient IDs (normals have '.N')
