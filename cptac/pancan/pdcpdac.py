@@ -85,6 +85,11 @@ class PdcPdac(Dataset):
         drop_rows = ['KoreanReference1', 'KoreanReference2', 'KoreanReference3',
              'QC1', 'QC2', 'QC3', 'QC4', 'QC5', 'QC6', 'WU-PDA1']
         
+        # These 8 aliquots were not in the mapping file. Yize said they are all normal samples.
+        manually_mapped = {'CPT0347760002': 'C3L-07032.N', 'CPT0347790002': 'C3L-07033.N',
+            'CPT0347820002': 'C3L-07034.N', 'CPT0347850002': 'C3L-07035.N', 'CPT0347880002': 'C3L-07036.N',
+            'CPT0355180003': 'C3L-03513.N', 'CPT0355190003': 'C3L-03515.N', 'CPT0355200003': 'C3L-03514.N'}
+        
         # Get dictionary with aliquots as keys and patient IDs as values
         mapping_dict = self._helper_tables["map_ids"]
         
@@ -97,6 +102,7 @@ class PdcPdac(Dataset):
         prot = self._data["proteomics"]        
         prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(mapping_dict) # aliquots to patient IDs (normals have '.N')
         prot = prot.set_index('Patient_ID')
+        prot = prot.rename(index = manually_mapped) # map 8 aliquots that were not in the mapping file
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
         prot = prot.drop(drop_rows, axis = 'index') # drop quality control and references
         self._data["proteomics"] = prot
@@ -105,6 +111,7 @@ class PdcPdac(Dataset):
         phos = self._data["phosphoproteomics"]
         phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(mapping_dict) # aliquots to patient IDs (normals have '.N')
         phos = phos.set_index('Patient_ID')
+        phos = phos.rename(index = manually_mapped) # map 8 aliquots that were not in the mapping file
         phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')        
         phos = phos.drop(drop_rows + ['WU-pooled sample', 'pooled sample'], axis = 'index') # drop quality control and references
         phos = map_database_to_gene_pdc(phos, 'refseq') # map refseq IDs to gene names

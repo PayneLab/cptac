@@ -124,17 +124,25 @@ class UmichPdac(Dataset):
         print(formatting_msg, end='\r')
         
         
+        # These 8 aliquots were not in the mapping file. Yize said they are all normal samples.
+        manually_mapped = {'CPT0347760002': 'C3L-07032.N', 'CPT0347790002': 'C3L-07033.N',
+            'CPT0347820002': 'C3L-07034.N', 'CPT0347850002': 'C3L-07035.N', 'CPT0347880002': 'C3L-07036.N',
+            'CPT0355180003': 'C3L-03513.N', 'CPT0355190003': 'C3L-03515.N', 'CPT0355200003': 'C3L-03514.N'}
+        
+        
         # Get dictionary to map aliquots to patient IDs 
         mapping_dict = self._helper_tables["map_ids"]
         
         # Proteomics
         prot = self._data["proteomics"]  
-        prot = prot.rename(index = mapping_dict) # replace aliquots with patient IDs (normals have .N) 
+        prot = prot.rename(index = mapping_dict) # replace aliquots with patient IDs (normals have .N)
+        prot = prot.rename(index = manually_mapped) # map 8 aliquots that were not in the mapping file
         self._data["proteomics"] = prot
         
         # Phosphoproteomics 
         phos = self._data["phosphoproteomics"]
-        phos = phos.rename(index = mapping_dict) # replace aliquots with patient IDs (normals have .N)     
+        phos = phos.rename(index = mapping_dict) # replace aliquots with patient IDs (normals have .N) 
+        phos = phos.rename(index = manually_mapped) # map 8 aliquots that were not in the mapping file
         self._data["phosphoproteomics"] = phos
         
         
