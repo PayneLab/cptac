@@ -74,7 +74,7 @@ class PancanDataset:
         """Get a CNV dataframe from the specified data source."""
         return self._get_dataframe("CNV", source, tissue_type, imputed=imputed)
 
-    def get_deconvolution(self, deconv_algorithm=None, source='washu', tissue_type="both", imputed=False):
+    def get_deconvolution(self, source='washu', deconv_algorithm=None, tissue_type="both", imputed=False):
         """Get a deconvolution dataframe from the specified data source.
         
         Parameters:
