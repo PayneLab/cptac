@@ -187,7 +187,7 @@ class PancanDataset:
     def get_cancer_type(self):
         return self._cancer_type
     
-    def list_sources_data(self):
+    def list_data_sources(self):
         """Print which sources provide each data type.
         
         Parameters:
