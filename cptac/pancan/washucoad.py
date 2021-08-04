@@ -16,6 +16,7 @@ import warnings
 import datetime
 import logging
 from gtfparse import read_gtf
+from boxnotes2html import BoxNote
 
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
@@ -57,8 +58,8 @@ class WashuCoad(Dataset):
                 "README_CIBERSORT",
                 "README_xCell",
                 "README_somatic_mutation_WXS",
-                "README_WashU_CNV_wgs",
-                "README_gene_expression"
+                "README_gene_expression",
+                "README.boxnote"
             ]
         }
 
@@ -153,28 +154,28 @@ class WashuCoad(Dataset):
             # README files
             elif file_name == "README_miRNA":
                 with open(file_path, 'r') as reader:
-                    self._readmefiles["readme_miRNA"] = reader.read()
+                    self._readme_files["readme_miRNA"] = reader.read()
                     
             elif file_name == "README_CIBERSORT":
                 with open(file_path, 'r') as reader:
-                    self._readmefiles["readme_cibersort"] = reader.read()
+                    self._readme_files["readme_cibersort"] = reader.read()
                     
             elif file_name == "README_xCell":
                 with open(file_path, 'r') as reader:
-                    self._readmefiles["readme_xcell"] = reader.read()
+                    self._readme_files["readme_xcell"] = reader.read()
             
             elif file_name == "README_somatic_mutation_WXS":
                 with open(file_path, 'r') as reader:
-                    self._readmefiles["readme_somatic_mutation"] = reader.read()
-                    
-            elif file_name == "README_WashU_CNV_wgs":
-                with open(file_path, 'r') as reader:
-                    self._readmefiles["readme_cnv"] = reader.read()
+                    self._readme_files["readme_somatic_mutation"] = reader.read()
                     
             elif file_name == "README_gene_expression":
                 with open(file_path, 'r') as reader:
-                    self._readmefiles["readme_transcriptomics"] = reader.read()
-                
+                    self._readme_files["readme_transcriptomics"] = reader.read()
+               
+            elif file_name == "README.boxnote":
+                note = BoxNote.from_file(file_path)
+                self._readme_files["readme_cnv"] = note.as_text()
+    
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."

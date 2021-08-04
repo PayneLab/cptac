@@ -122,7 +122,8 @@ class PancanDataset:
         """Get the readme docs for the specified data type and source."""
         if source in self._datasets.keys():
             obj = self._datasets[source] 
-            print(obj._data['readme_'+data])
+            print('README file for ' + data, '\n')
+            print(obj._readme_files['readme_'+data])
             return 0
         else:
             raise ex.DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
