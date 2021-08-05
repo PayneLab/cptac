@@ -18,7 +18,16 @@ class Cancer:
         ]
 
     def __init__(self, cancer_type, cancer_object):
-        # TODO: add docstring here
+        """
+        Initialize a Cancer object.
+
+        Cancer class is used as a wrapper for cptac.[Cancer] objects that will be tested.
+
+        Parameters:
+        cancer_type (string): name of the cancer
+        cancer_object (cptac.[Cancer]): Instance of the cptac.[Cancer] class
+
+        """
         self.cancer_type = cancer_type
         self.cancer_object = cancer_object
 

@@ -1,6 +1,6 @@
 import pytest
 import cptac
-import cancer
+from cancer import Cancer
 '''
 Setting autouse=True here makes it so that this method always runs before any tests
 # returns a dict of dataset lists
@@ -49,10 +49,10 @@ Return a dict of this format:
 def get_cancer_test_units(get_datasets_lists):
     cancer_wrappers = list()
     for cancer_name in get_datasets_lists["public"]:
-        cancer = getattr(cptac, cancer_name)
+        c = getattr(cptac, cancer_name)
         try:
-            cancer_wrappers.append(cancer.Cancer(cancer_name, cancer()))
+            cancer_wrappers.append(Cancer(cancer_name, c()))
         except:
-            pytest.fail(f"unable to create {cancer} object")
+            pytest.fail(f"unable to create {c} object")
         
     return cancer_wrappers, True
