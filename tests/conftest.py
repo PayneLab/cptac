@@ -1,5 +1,6 @@
 import pytest
 import cptac
+import cancer
 '''
 Setting autouse=True here makes it so that this method always runs before any tests
 # returns a dict of dataset lists
@@ -37,14 +38,21 @@ def download_datasets(get_datasets_lists):
             
     return True
 
+'''
+Return a dict of this format:
+{
+    "cancer name" : <Cancer Object>,
+    ...
+}
+'''
 @pytest.fixture(scope="session", autouse=True)
-def get_public_dataset_objects(get_datasets_lists):
-    cancer_dict = {}
-    for cancer_data_set in get_datasets_lists["public"]:
-        cancer = getattr(cptac, cancer_data_set)
+def get_cancer_test_units(get_datasets_lists):
+    cancer_wrappers = list()
+    for cancer_name in get_datasets_lists["public"]:
+        cancer = getattr(cptac, cancer_name)
         try:
-            cancer_dict[cancer] = cancer()
+            cancer_wrappers.append(cancer.Cancer(cancer_name, cancer()))
         except:
             pytest.fail(f"unable to create {cancer} object")
         
-    return cancer_dict, True
+    return cancer_wrappers, True
