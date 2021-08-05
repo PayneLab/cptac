@@ -17,78 +17,31 @@ from cptac.exceptions import DataFrameNotIncludedError, InvalidParameterError
 
 class TestGet:
 
-    ''' FIXTURES '''
-
-    @pytest.fixture(scope='class')
-    def all_getters(self):
-        getters = set()
-        for attribute in dir(cptac.dataset.Dataset):
-            if attribute.startswith("get_"):
-                getters.add(attribute)
-        return getters
-    
-    @pytest.fixture(scope="class")
-    def valid_getters(self, get_public_dataset_objects):
-        '''@return a dict of str(cancers) : set(valid getter strings)'''
-        cancer_sets = get_public_dataset_objects[0]
-        valid_cancer_getters = {}
-        for (cancer_type, cancer_object) in cancer_sets.items():
-            valid_getters = set()
-            for attribute in dir(cancer_type):
-                if attribute.startswith("get_"):
-                    for dataset in cancer_object.get_data_list():
-                        function_name = "get_" + dataset
-                        if attribute == function_name:
-                            valid_getters.add(attribute)
-            valid_cancer_getters[cancer_type] = valid_getters
-
-        return valid_cancer_getters
-
-    @pytest.fixture(scope="class")
-    def invalid_getters(self, all_getters, valid_getters):
-        '''
-        @return dict of str(cancers) : list(invalid getter strings)
-        '''
-        invalid_cancer_getters = {}
-        for (cancer_type, valid_getter_list) in valid_getters.items():
-            invalid_cancer_getters[cancer_type] = all_getters.difference(valid_getter_list)
-
-        return invalid_cancer_getters
-
-
-
-
-    ''' TESTS '''
-
-    def test_valid_getters(self, valid_getters, get_public_dataset_objects):
-        # use cancer_sets dict {cptac.Cancer : cptac.Cancer instance}
-        cancer_sets = get_public_dataset_objects[0]
-        for (cancer_type, valid_getter_set) in valid_getters.items():
-            for getter in valid_getter_set:
-                g = getattr(cancer_sets[cancer_type], getter)
+    def test_valid_getters(self, valid_getters, get_cancer_test_units):
+        test_units = get_cancer_test_units[0]
+        for cancer in test_units:
+            for (getter_name, getter) in cancer.valid_getters.items():
                 try:
-                    if cancer_type == cptac.UcecConf and getter == "get_CNV":
-                        dataframe = g("log2ratio")
+                    if cancer.cancer_type == "UcecConf" and getter_name == "get_CNV":
+                        dataframe = getter("log2ratio")
                         assert type(dataframe) == pandas.DataFrame
                         
-                        dataframe = g("gistic")
+                        dataframe = getter("gistic")
                         type(dataframe) == pandas.DataFrame
                     else:
-                        dataframe = g()
+                        dataframe = getter()
                         assert type(dataframe) == pandas.DataFrame
                 
                 except (DataFrameNotIncludedError, InvalidParameterError) as error:
-                    pytest.fail(f"Calling {g} resulted raised {error}")
+                    pytest.fail(f"Calling {getter} resulted raised {error}")
                 
                 except:
-                    pytest.fail(f"Calling {g} caused error:\n\t{sys.exc_info()[0]}")
+                    pytest.fail(f"Calling {getter} caused error:\n\t{sys.exc_info()[0]}")
 
-    def test_invalid_getters(self, invalid_getters, get_public_dataset_objects):
-        # use cancer_sets dict {cptac.Cancer : cptac.Cancer instance}
-        cancer_sets = get_public_dataset_objects[0]
-        for (cancer_type, invalid_getter_set) in invalid_getters.items():
-            for getter in invalid_getter_set:
-                g = getattr(cancer_sets[cancer_type], getter)
+    def test_invalid_getters(self, get_cancer_test_units):
+        test_units = get_cancer_test_units[0]
+        for cancer in test_units:
+            for (getter_name, getter) in cancer.invalid_getters.items():
             # verify the correct error is thrown
-            with pytest.raises(DataFrameNotIncludedError) as exception:
-                g()
+                with pytest.raises(DataFrameNotIncludedError) as exception:
+                    getter()
