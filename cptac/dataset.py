@@ -66,9 +66,9 @@ class Dataset:
         self._valid_metadata_dfs = [
             "clinical",
             "derived_molecular",
-             "experimental_design",
-             #"followup", # Right now there are duplicate rows, so don't include follow up tables for joins.
-             ] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in Ccrcc, because they both have multiple rows for each sample.
+            "experimental_design",
+            #"followup", # Right now there are duplicate rows, so don't include follow up tables for joins.
+            ] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in Ccrcc, because they both have multiple rows for each sample.
         
         # Initialize the _cancer_type instance variable
         self._cancer_type = cancer_type.lower()
