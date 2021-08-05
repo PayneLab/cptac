@@ -25,37 +25,12 @@ TODO: Things that should happen in a join test:
 # TODO: Check use cases for standard usage and then try to mess that up
 class TestJoin:
 
-    # @pytest.fixture(scope="class")
-    # def all_joiners(self):
-    #     joiners = set()
-    #     for attribute in dir(cptac.dataset.Dataset):
-    #         if attribute.startswith("join"):
-    #             joiners.add(attribute)
-    #     return joiners
+    def _combinations(self, get_cancer_test_units, dict1, dict2):
+       #combo_list = [ (a, b) for a, b in itertools.product(list1, list2) ]
+       pass
 
-
-    '''Change this method to a non fixture that just combines two types of datasets'''
-    @pytest.fixture(scope="class")
-    def all_omics_combos(self, get_public_dataset_objects):
-        omics_lists_by_cancer = dict()
-        
-        # iterate through cancer objects
-        cancer_sets = get_public_dataset_objects[0]
-        for (cancer_type, cancer_object) in cancer_sets.items():
-            omics_list = list() # list of omics datasets for current cancer
-            # iterate through datasets of each cancer
-            for (dataset, dimensions) in cancer_object.get_data_list().items():
-                # check for 'omics' datasets and add to omics list for current cancer
-                if dataset.__contains__("omics"):
-                    omics_list.append((dataset, dimensions)) #including dimensions
-            # make list of omics pairings to be used in join tests
-            omics_combos = [(a, b) for a, b in itertools.combinations(omics_list, 2)]
-            omics_lists_by_cancer[cancer_object] = omics_combos
-
-        return omics_lists_by_cancer
-
-    def test_join_omics_to_omics(self, all_omics_combos):
-        for (cancer_object, omics_combos) in all_omics_combos.items():
+    def test_join_omics_to_omics(self, get_cancer_test_units):
+        for (cancer_object, omics_combos) in self._combinations(self._list_omics()).items():
             for (omics_1, omics_2) in omics_combos:
                 dimensions = 1
                 dataset = 0
@@ -64,17 +39,17 @@ class TestJoin:
                 df = joiner(omics_1[dataset], omics_2[dataset])
                 assert df.shape[1] == expected_columns
 
-    def test_join_omics_to_mutations():
+    def test_join_omics_to_mutations(self, get_cancer_test_units):
         pass
 
-    def test_join_metadata_to_metadata():
+    def test_join_metadata_to_metadata(self, get_cancer_test_units):
         pass
 
-    def test_join_metadata_to_omics():
+    def test_join_metadata_to_omics(self, get_cancer_test_units):
         pass
 
-    def test_join_metadata_to_mutations():
+    def test_join_metadata_to_mutations(self, get_cancer_test_units):
         pass
 
-    def test_multi_join():
+    def test_multi_join(self, get_cancer_test_units):
         pass
