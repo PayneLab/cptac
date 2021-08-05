@@ -59,7 +59,8 @@ class WashuCoad(Dataset):
                 "README_xCell",
                 "README_somatic_mutation_WXS",
                 "README_gene_expression",
-                "README.boxnote"
+                "README.boxnote",
+                "README_ESTIMATE_WashU"
             ]
         }
 
@@ -151,7 +152,6 @@ class WashuCoad(Dataset):
                 df = df.loc[df.index.isin(patient_ids)]                
                 self._data["tumor_purity"] = df
             
-            # README files
             elif file_name == "README_miRNA":
                 with open(file_path, 'r') as reader:
                     self._readme_files["readme_miRNA"] = reader.read()
@@ -174,9 +174,13 @@ class WashuCoad(Dataset):
                
             elif file_name == "README.boxnote":
                 note = BoxNote.from_file(file_path)
-                self._readme_files["readme_cnv"] = note.as_text()
-    
+                self._readme_files["readme_cnv"] = note.as_text()    
 
+            elif file_name == "README_ESTIMATE_WashU":
+                with open(file_path, 'r') as reader:
+                    self._readme_files["readme_tumor_purity"] = reader.read()
+                    
+                    
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
