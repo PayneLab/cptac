@@ -14,6 +14,7 @@ import numpy as np
 import os
 import warnings
 import datetime
+from boxnotes2html import BoxNote
 
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
@@ -38,14 +39,18 @@ class UmichOv(Dataset):
         data_files = {
             "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
                     "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv",
-                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv"
+                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
+                    "README_v3.boxnote", # proteomics 
+                    "README.boxnote" # phosphoproteomics
                     #"S039_BCprospective_observed_0920.tsv.gz",
                     #"S039_BCprospective_imputed_0920.tsv.gz"
              ],
                     
              "1.1": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",                    
                      "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv", 
-                     "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv"
+                     "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv",
+                    "README_v3.boxnote", # proteomics 
+                    "README.boxnote" # phosphoproteomics
             ]
         }
 
@@ -114,6 +119,14 @@ class UmichOv(Dataset):
                 ov_map = ov_map.set_index('specimen')
                 map_dict = ov_map.to_dict()['sample'] # create dictionary with aliquots as keys and patient IDs as values
                 self._helper_tables["map_ids"] = map_dict
+                
+            elif file_name == "README_v3.boxnote":
+                note = BoxNote.from_file(file_path)
+                self._readme_files["readme_proteomics"] = note.as_text()
+                
+            elif file_name == "README.boxnote":
+                note = BoxNote.from_file(file_path)
+                self._readme_files["readme_phosphoproteomics"] = note.as_text()
 
             '''
             elif file_name == "S039_BCprospective_observed_0920.tsv.gz":

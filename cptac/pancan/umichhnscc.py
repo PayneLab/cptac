@@ -14,6 +14,7 @@ import numpy as np
 import os
 import warnings
 import datetime
+from boxnotes2html import BoxNote
 
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
@@ -37,7 +38,9 @@ class UmichHnscc(Dataset):
 
         data_files = {
             "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
-                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv"
+                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
+                    "README_v3.boxnote", # proteomics 
+                    "README.boxnote" # phosphoproteomics
                 #"S039_BCprospective_observed_0920.tsv.gz",
                 #"S039_BCprospective_imputed_0920.tsv.gz"
             ]
@@ -98,6 +101,14 @@ class UmichHnscc(Dataset):
                 df = df.subtract(ref_intensities, axis="columns") # Subtract ref intensities from all the values, to get ratios
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 self._data["phosphoproteomics"] = df
+                
+            elif file_name == "README_v3.boxnote":
+                note = BoxNote.from_file(file_path)
+                self._readme_files["readme_proteomics"] = note.as_text()
+                
+            elif file_name == "README.boxnote":
+                note = BoxNote.from_file(file_path)
+                self._readme_files["readme_phosphoproteomics"] = note.as_text()
             
             '''
             if file_name == "S039_BCprospective_observed_0920.tsv.gz":
