@@ -1,5 +1,7 @@
 # How to release a new version of the cptac package
 
+The cptac package is available on two different distribution services, PyPI and Bioconda. If you make a versioned release, you must update it with *both* services. Below are the general instructions for how to do this. Note that PyPI release is fairly simple, but Bioconda relase involves outside parties and some verification. So read up and follow these directions.
+
 1. Make sure to update:
     1. cptac/version.py
     2. Development status in setup.py
