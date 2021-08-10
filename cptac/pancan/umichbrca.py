@@ -14,6 +14,7 @@ import numpy as np
 import os
 import warnings
 import datetime
+from boxnotes2html import BoxNote
 
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
@@ -38,7 +39,9 @@ class UmichBrca(Dataset):
         data_files = {
             "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
                     "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
-                    "prosp-brca-all-samples.txt"
+                    "prosp-brca-all-samples.txt",
+                    "README_v3.boxnote", # proteomics 
+                    "README.boxnote" # phosphoproteomics 
             ]
         }
 
@@ -126,6 +129,14 @@ class UmichBrca(Dataset):
                 df = pd.read_csv(file_path, sep = "\t")
                 df = df[['Participant', 'id', 'Type']]
                 self._helper_tables["map_ids"] = df
+                
+            elif file_name == "README_v3.boxnote":
+                note = BoxNote.from_file(file_path)
+                self._readme_files["readme_proteomics"] = note.as_text()
+                
+            elif file_name == "README.boxnote":
+                note = BoxNote.from_file(file_path)
+                self._readme_files["readme_phosphoproteomics"] = note.as_text()
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
