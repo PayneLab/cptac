@@ -14,7 +14,6 @@ import numpy as np
 import os
 import warnings
 import datetime
-from boxnotes2html import BoxNote
 
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
@@ -103,12 +102,10 @@ class UmichHnscc(Dataset):
                 self._data["phosphoproteomics"] = df
                 
             elif file_name == "README_v3.boxnote":
-                note = BoxNote.from_file(file_path)
-                self._readme_files["readme_proteomics"] = note.as_text()
+                self._readme_files["readme_proteomics"] = get_boxnote_text(file_path)
                 
             elif file_name == "README.boxnote":
-                note = BoxNote.from_file(file_path)
-                self._readme_files["readme_phosphoproteomics"] = note.as_text()
+                self._readme_files["readme_phosphoproteomics"] = get_boxnote_text(file_path)
             
             '''
             if file_name == "S039_BCprospective_observed_0920.tsv.gz":

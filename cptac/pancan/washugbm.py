@@ -16,7 +16,6 @@ import warnings
 import datetime
 import logging
 from gtfparse import read_gtf
-from boxnotes2html import BoxNote
 
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
@@ -194,8 +193,7 @@ class WashuGbm(Dataset):
                     self._readme_files["readme_transcriptomics"] = reader.read()
                
             elif file_name == "README.boxnote":
-                note = BoxNote.from_file(file_path)
-                self._readme_files["readme_cnv"] = note.as_text()
+                self._readme_files["readme_cnv"] = get_boxnote_text(file_path)
             
             elif file_name == "README_ESTIMATE_WashU":
                 with open(file_path, 'r') as reader:

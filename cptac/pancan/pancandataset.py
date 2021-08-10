@@ -30,30 +30,30 @@ class PancanDataset:
         #ignore logging messages
         logger = logging.getLogger()
         logger.setLevel(logging.CRITICAL)
-        
+
 
     # Clinical table getters
-    def get_clinical(self, source = 'mssm', tissue_type="both", imputed=False):
+    def get_clinical(self, source='mssm', tissue_type="both", imputed=False):
         """Get the clinical dataframe from the specified data source."""
         return self._get_dataframe("clinical", source, tissue_type, imputed=imputed)
-    
-    def get_demographic(self, source = 'mssm', tissue_type="both", imputed=False):
+
+    def get_demographic(self, source='mssm', tissue_type="both", imputed=False):
         """Get the demographic dataframe from the specified data source."""
         return self._get_dataframe("demographic", source, tissue_type, imputed=imputed)
-    
-    def get_medical_conditions(self, source = 'mssm', tissue_type="both", imputed=False):
+
+    def get_medical_conditions(self, source='mssm', tissue_type="both", imputed=False):
         """Get the medical_conditions dataframe from the specified data source."""
         return self._get_dataframe("medical_conditions", source, tissue_type, imputed=imputed)
-    
-    def get_previous_cancer(self, source = 'mssm', tissue_type="both", imputed=False):
+
+    def get_previous_cancer(self, source='mssm', tissue_type="both", imputed=False):
         """Get the previous_cancer dataframe from the specified data source."""
         return self._get_dataframe("previous_cancer", source, tissue_type, imputed=imputed)
-    
-    def get_cancer_diagnosis(self, source = 'mssm', tissue_type="both", imputed=False):
+
+    def get_cancer_diagnosis(self, source='mssm', tissue_type="both", imputed=False):
         """Get the cancer_diagnosis dataframe from the specified data source."""
         return self._get_dataframe("cancer_diagnosis", source, tissue_type, imputed=imputed)
-    
-    def get_followup(self, source = 'mssm', tissue_type="both", imputed=False):
+
+    def get_followup(self, source='mssm', tissue_type="both", imputed=False):
         """Get the followup dataframe from the specified data source."""
         return self._get_dataframe("followup", source, tissue_type, imputed=imputed)
 
@@ -61,16 +61,16 @@ class PancanDataset:
     def get_acetylproteomics(self, source, tissue_type="both", imputed=False):
         """Get the acetylproteomics dataframe from the specified data source."""
         return self._get_dataframe("acetylproteomics", source, tissue_type, imputed=imputed)
-    
+
     def get_ubiquitylomics(self, source, tissue_type="both", imputed=False):
         """Get the ubiquitylomics dataframe from the specified data source."""
         return self._get_dataframe("ubiquitylomics", source, tissue_type, imputed=imputed)
 
-    def get_circular_RNA(self,source = "bcm", tissue_type="both", imputed=False):
+    def get_circular_RNA(self, source="bcm", tissue_type="both", imputed=False):
         """Get a circular RNA dataframe from the specified data source."""
         return self._get_dataframe("circular_RNA", source, tissue_type, imputed=imputed)
-    
-    def get_CNV(self,source = "washu", tissue_type="both", imputed=False):
+
+    def get_CNV(self, source="washu", tissue_type="both", imputed=False):
         """Get a CNV dataframe from the specified data source."""
         return self._get_dataframe("CNV", source, tissue_type, imputed=imputed)
 
@@ -86,8 +86,8 @@ class PancanDataset:
             raise ex.InvalidParameterError(f"Please pass a valid value to the 'deconv_algorithm' parameter to specify which algorithm you want deconvolution data from. Valid options are {valid_algs}.")
 
         return self._get_dataframe(deconv_algorithm, source, tissue_type, imputed=imputed)
-    
-    def get_miRNA(self, source = 'washu', miRNA_type = 'total', tissue_type="both", imputed=False):
+
+    def get_miRNA(self, source='washu', miRNA_type='total', tissue_type="both", imputed=False):
         """Get miRNA dataframe from the specified data source.
         
         Parameters:
@@ -96,15 +96,15 @@ class PancanDataset:
         """
         return self._get_dataframe(miRNA_type+'_miRNA', source, tissue_type, imputed=imputed)
     
-    def get_phosphoproteomics(self, source = "umich", tissue_type="both", imputed=False):
+    def get_phosphoproteomics(self, source="umich", tissue_type="both", imputed=False):
         """Get the phosphoproteomics dataframe from the specified data source."""
         return self._get_dataframe("phosphoproteomics", source, tissue_type, imputed=imputed)
 
-    def get_proteomics(self, source = "umich", tissue_type="both", imputed=False):
+    def get_proteomics(self, source="umich", tissue_type="both", imputed=False):
         """Get the proteomics dataframe from the specified data source."""
         return self._get_dataframe("proteomics", source, tissue_type, imputed=imputed)
 
-    def get_somatic_mutation(self, source = "harmonized", tissue_type="both", imputed=False):
+    def get_somatic_mutation(self, source="harmonized", tissue_type="both", imputed=False):
         """Get the somatic mutation dataframe from the specified data source."""
         ''' source (str): Select data generated by a certain institution. Default is harmonized. "washu" is also available'''
         return self._get_dataframe("somatic_mutation", source, tissue_type, imputed=imputed)
@@ -114,11 +114,11 @@ class PancanDataset:
         """source (str): Select data generated by a certain institution. Available sources are ['washu','bcm','broad']."""
         return self._get_dataframe("transcriptomics", source, tissue_type, imputed=imputed)
     
-    def get_tumor_purity(self, source = 'washu', tissue_type="both", imputed=False):
+    def get_tumor_purity(self, source='washu', tissue_type="both", imputed=False):
         """Get the tumor purity dataframe from the specified data source."""
         return self._get_dataframe("tumor_purity", source, tissue_type, imputed=imputed)
     
-    def get_docs(self, data, source = 'washu', tissue_type="both", imputed=False):
+    def get_docs(self, data, source='washu', tissue_type="both", imputed=False):
         """Get the readme docs for the specified data type and source."""
         if source in self._datasets.keys():
             obj = self._datasets[source] 
@@ -127,7 +127,7 @@ class PancanDataset:
             return 0
         else:
             raise ex.DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
-     
+
     # Join functions
     def join_omics_to_omics(
         self, 
@@ -141,7 +141,7 @@ class PancanDataset:
         quiet=False, 
         tissue_type="both"
     ):
-        
+
         df1_name = f"{df1_source}_{df1_name}"
         df2_name = f"{df2_source}_{df2_name}"
         
@@ -280,7 +280,7 @@ class PancanDataset:
         mutations_filter = ["Deletion",
                                     'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', #tuncation
                                     'Missense_Mutation_hotspot',
-    	                           'Missense_Mutation',
+                                    'Missense_Mutation',
                                     'Amplification',
                                     'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site' ,
                                     'De_Novo_Start_Out_Frame' ,'De_Novo_Start_In_Frame', 
@@ -442,4 +442,3 @@ class PancanDataset:
         if show_location == False: df = df.drop(columns="Location") #if they don't want us to show the location, drop it
        
         return df
-    
