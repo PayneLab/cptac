@@ -144,9 +144,7 @@ def get_boxnote_text(filepath):
 
     Returns: the text of the boxfile as a string
     """
-    
-    #I'm really not sure if this needs to specify the encoding, but I suppose it can't hurt
-    #Also I am not sure if it should specify "r" as in open the file for reading
+
     f = open(filepath, encoding="utf8")
     text = json.loads(f.read())["atext"]["text"]
     f.close()
