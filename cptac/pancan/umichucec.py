@@ -18,6 +18,7 @@ import datetime
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
+from cptac.utils import get_boxnote_text
 
 
 class UmichUcec(Dataset):
