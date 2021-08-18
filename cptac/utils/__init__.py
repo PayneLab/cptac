@@ -42,6 +42,7 @@ from .other_utils import (
         get_hgnc_protein_lists,
 
         # Other functions
+        get_boxnote_text,
         get_frequently_mutated,
         reduce_multiindex,
         parse_hotspot,

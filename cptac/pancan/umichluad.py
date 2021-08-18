@@ -14,11 +14,11 @@ import numpy as np
 import os
 import warnings
 import datetime
-from boxnotes2html import BoxNote
 
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
+from cptac.utils import get_boxnote_text
 
 
 class UmichLuad(Dataset):
@@ -111,12 +111,12 @@ class UmichLuad(Dataset):
                 self._helper_tables["map_ids"] = map_dict
                 
             elif file_name == "README_v3.boxnote":
-                note = BoxNote.from_file(file_path)
-                self._readme_files["readme_proteomics"] = note.as_text()
+                text = get_boxnote_text(file_path)
+                self._readme_files["readme_proteomics"] = text
                 
             elif file_name == "README.boxnote":
-                note = BoxNote.from_file(file_path)
-                self._readme_files["readme_phosphoproteomics"] = note.as_text()
+                text = get_boxnote_text(file_path)
+                self._readme_files["readme_phosphoproteomics"] = text
         
         
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
