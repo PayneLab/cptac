@@ -1,0 +1,38 @@
+# YAML 1.2
+---
+authors: 
+  -
+    family-names: Lindgren
+    given-names: "Caleb M."
+    orcid: "https://orcid.org/0000-0001-6484-9757"
+  -
+    family-names: Adams
+    given-names: "David W."
+  -
+    family-names: Kimball
+    given-names: Benjamin
+  -
+    family-names: Boekweg
+    given-names: Hannah
+  -
+    family-names: Tayler
+    given-names: Sadie
+  -
+    family-names: Pugh
+    given-names: "Samuel L."
+  -
+    family-names: Payne
+    given-names: "Samuel H."
+cff-version: "1.1.0"
+date-released: 2021-02-09
+doi: "10.1021/acs.jproteome.0c00919"
+keywords: 
+  - Cancer
+  - Genetics
+  - Genomics
+  - Proteomics
+  - Software
+message: "If you use this software, please cite it using these metadata."
+title: "Simplified and Unified Access to Cancer Proteogenomic Data"
+version: "0.9.6"
+...

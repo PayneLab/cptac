@@ -18,6 +18,7 @@ import datetime
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
+from cptac.utils import get_boxnote_text
 
 
 class UmichLuad(Dataset):
@@ -38,7 +39,9 @@ class UmichLuad(Dataset):
         data_files = {
             "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",                    
                     "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
-                    "aliquot_to_patient_ID.tsv"              
+                    "aliquot_to_patient_ID.tsv",
+                    "README_v3.boxnote", # proteomics 
+                    "README.boxnote" # phosphoproteomics              
             ]
         }
 
@@ -106,6 +109,14 @@ class UmichLuad(Dataset):
                 df = pd.read_csv(file_path, sep = "\t", index_col = 'aliquot_ID', usecols = ['aliquot_ID', 'patient_ID'])
                 map_dict = df.to_dict()['patient_ID'] # create dictionary with aliquot_ID as keys and patient_ID as values
                 self._helper_tables["map_ids"] = map_dict
+                
+            elif file_name == "README_v3.boxnote":
+                text = get_boxnote_text(file_path)
+                self._readme_files["readme_proteomics"] = text
+                
+            elif file_name == "README.boxnote":
+                text = get_boxnote_text(file_path)
+                self._readme_files["readme_phosphoproteomics"] = text
         
         
         print(' ' * len(loading_msg), end='\r') # Erase the loading message

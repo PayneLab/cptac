@@ -18,6 +18,7 @@ import datetime
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
+from cptac.utils import get_boxnote_text
 
 
 class UmichPdac(Dataset):
@@ -38,7 +39,9 @@ class UmichPdac(Dataset):
         data_files = {
             "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
                     "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
-                    "aliquot_to_patient_ID.tsv"
+                    "aliquot_to_patient_ID.tsv",
+                    "README_v3.boxnote", # proteomics 
+                    "README.boxnote" # phosphoproteomics
              
             ]
         }
@@ -118,10 +121,22 @@ class UmichPdac(Dataset):
                 map_dict = df.to_dict()['patient_ID'] # create dictionary with aliquots as keys and patient IDs as values
                 self._helper_tables["map_ids"] = map_dict
                 
+            elif file_name == "README_v3.boxnote":
+                self._readme_files["readme_proteomics"] = get_boxnote_text(file_path)
+                
+            elif file_name == "README.boxnote":
+                self._readme_files["readme_phosphoproteomics"] = get_boxnote_text(file_path)
+                
         
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
+        
+        
+        # These 8 aliquots were not in the mapping file. Yize said they are all normal samples.
+        manually_mapped = {'CPT0347760002': 'C3L-07032.N', 'CPT0347790002': 'C3L-07033.N',
+            'CPT0347820002': 'C3L-07034.N', 'CPT0347850002': 'C3L-07035.N', 'CPT0347880002': 'C3L-07036.N',
+            'CPT0355180003': 'C3L-03513.N', 'CPT0355190003': 'C3L-03515.N', 'CPT0355200003': 'C3L-03514.N'}
         
         
         # Get dictionary to map aliquots to patient IDs 
@@ -129,12 +144,14 @@ class UmichPdac(Dataset):
         
         # Proteomics
         prot = self._data["proteomics"]  
-        prot = prot.rename(index = mapping_dict) # replace aliquots with patient IDs (normals have .N) 
+        prot = prot.rename(index = mapping_dict) # replace aliquots with patient IDs (normals have .N)
+        prot = prot.rename(index = manually_mapped) # map 8 aliquots that were not in the mapping file
         self._data["proteomics"] = prot
         
         # Phosphoproteomics 
         phos = self._data["phosphoproteomics"]
-        phos = phos.rename(index = mapping_dict) # replace aliquots with patient IDs (normals have .N)     
+        phos = phos.rename(index = mapping_dict) # replace aliquots with patient IDs (normals have .N) 
+        phos = phos.rename(index = manually_mapped) # map 8 aliquots that were not in the mapping file
         self._data["phosphoproteomics"] = phos
         
         

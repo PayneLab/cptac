@@ -9,6 +9,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import json
 import os
 import pandas as pd
 import numpy as np
@@ -134,6 +135,20 @@ def search(term):
     print(message, end='\r')
     webbrowser.open(url)
     print(" " * len(message), end='\r') # Erase the message
+    
+def get_boxnote_text(filepath):
+    """Convert a boxnote to plain text.
+
+    Parameters:
+    filepath (str): the path to the boxfile
+
+    Returns: the text of the boxfile as a string
+    """
+
+    f = open(filepath, encoding="utf8")
+    text = json.loads(f.read())["atext"]["text"]
+    f.close()
+    return text
 
 def reduce_multiindex(df, levels_to_drop=None, flatten=False, sep='_', tuples=False, quiet=False):
     """Drop levels from and/or flatten the column axis of a dataframe with a column multiindex.
@@ -208,7 +223,7 @@ def reduce_multiindex(df, levels_to_drop=None, flatten=False, sep='_', tuples=Fa
     return df
 
 """
-Takes a cancer object and find the frequently
+Takes a cancer object and finds the frequently
 mutated genes (in the tumor samples) compared to the cutoff.
 
 @Param cancer_object:

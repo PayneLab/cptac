@@ -40,7 +40,7 @@ class Dataset:
         self._data = {}
         self._helper_tables = {}
         self._definitions = {}
-        self._readmefiles = {}
+        self._readme_files = {}
 
          # Assign the valid dfs lists, but make them instance variables so they're easy to override if needed
          # These are the omics dataframes that are valid for use in the utilities functions

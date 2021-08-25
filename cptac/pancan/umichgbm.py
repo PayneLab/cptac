@@ -18,6 +18,7 @@ import datetime
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
+from cptac.utils import get_boxnote_text
 
 
 class UmichGbm(Dataset):
@@ -38,7 +39,9 @@ class UmichGbm(Dataset):
         data_files = {
             "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
                     "aliquot_to_patient_ID.tsv",
-                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv"
+                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
+                    "README_v3.boxnote", # proteomics 
+                    "README.boxnote" # phosphoproteomics                    
                 #"S039_BCprospective_observed_0920.tsv.gz",
                 #"S039_BCprospective_imputed_0920.tsv.gz"
             ]
@@ -109,6 +112,12 @@ class UmichGbm(Dataset):
                 df = pd.read_csv(file_path, sep = "\t", index_col = 'aliquot_ID', usecols = ['aliquot_ID', 'patient_ID'])
                 mapping_dict = df.to_dict()['patient_ID'] # create dictionary with aliquots as keys and patient IDs as values
                 self._helper_tables["map_ids"] = mapping_dict
+                
+            elif file_name == "README_v3.boxnote":
+                self._readme_files["readme_proteomics"] = get_boxnote_text(file_path)
+                
+            elif file_name == "README.boxnote":
+                self._readme_files["readme_phosphoproteomics"] = get_boxnote_text(file_path)
 
             '''
             elif file_name == "S039_BCprospective_observed_0920.tsv.gz":

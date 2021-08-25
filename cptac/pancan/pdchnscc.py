@@ -97,6 +97,11 @@ class PdcHnscc(Dataset):
         # Common rows to drop
         drop_rows = ['LungTumor1', 'LungTumor2', 'LungTumor3', 'QC1', 'QC2', 'QC3', 
                   'QC4', 'QC5', 'QC6', 'QC7', 'QC9', 'pooled sample']
+        
+        # These 6 aliquots were not in the mapping file. They are all normal samples.
+        manually_mapped = {'CPT0169740004': 'C3L-00994.N', 'CPT0229220002': 'C3L-02617.N',
+            'CPT0163250003': 'C3N-01757.N', 'CPT0235470002': 'C3N-03042.N',
+            'CPT0278700002': 'C3L-04350.N', 'CPT0281470002':'C3L-05257.N'}
          
         # Get dictionary with aliquot_ID as keys and patient_ID as values
         mapping_dict = self._helper_tables["map_ids"]
@@ -105,14 +110,16 @@ class PdcHnscc(Dataset):
         prot = self._data["proteomics"]
         prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(mapping_dict) # aliquots to patient IDs (normals have '.N')
         prot = prot.set_index('Patient_ID')
+        prot = prot.rename(index = manually_mapped) # map 6 aliquots that were not in the mapping file
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
-        prot = prot.drop(drop_rows[:-1], axis = 'index') # drop quality control rows
+        prot = prot.drop(drop_rows[:-1], axis = 'index') # drop quality control rows (last in drop_rows not in proteomics)
         self._data["proteomics"] = prot
         
         # Phosphoproteomics
         phos = self._data["phosphoproteomics"]
         phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(mapping_dict) # aliquots to patient IDs (normals have '.N')
         phos = phos.set_index('Patient_ID')
+        phos = phos.rename(index = manually_mapped) # map 6 aliquots that were not in the mapping file
         # drop aliquot that didn't correlate well (0.676) with the other 2 replcates for C3L-02617 (see long comment above)
         phos = phos.loc[phos.aliquot_submitter_id != 'CPT0229210003']  
         phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 

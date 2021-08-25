@@ -18,6 +18,7 @@ import datetime
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
+from cptac.utils import get_boxnote_text
 
 
 class UmichCoad(Dataset):
@@ -38,14 +39,18 @@ class UmichCoad(Dataset):
         data_files = {
             "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
                     "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
-                    "CRC_Prospective sample info.xlsx"
+                    "CRC_Prospective sample info.xlsx",
+                    "README_v3.boxnote", # proteomics 
+                    "README.boxnote" # phosphoproteomics
                 #"S039_BCprospective_observed_0920.tsv.gz",
                 #"S039_BCprospective_imputed_0920.tsv.gz"
             ],
             
             "1.1": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
                     "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
-                    "CRC_Prospective sample info.xlsx"
+                    "CRC_Prospective sample info.xlsx",
+                    "README_v3.boxnote", # proteomics 
+                    "README.boxnote" # phosphoproteomics
             ]
         }
 
@@ -116,6 +121,12 @@ class UmichCoad(Dataset):
                 df = pd.read_excel(file_path, index_col = 'Label', usecols = ['Label', 'Sample Code'])
                 map_dict = df.to_dict()['Sample Code'] # create dictionary with aliquots as keys and patient IDs as values
                 self._helper_tables["map_ids"] = map_dict
+                
+            elif file_name == "README_v3.boxnote":
+                self._readme_files["readme_proteomics"] = get_boxnote_text(file_path)
+                
+            elif file_name == "README.boxnote":
+                self._readme_files["readme_phosphoproteomics"] = get_boxnote_text(file_path)
 
             '''
             if file_name == "S039_BCprospective_observed_0920.tsv.gz":

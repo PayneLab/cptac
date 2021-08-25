@@ -18,6 +18,7 @@ import datetime
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
+from cptac.utils import get_boxnote_text
 
 
 class UmichBrca(Dataset):
@@ -38,7 +39,9 @@ class UmichBrca(Dataset):
         data_files = {
             "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
                     "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
-                    "prosp-brca-all-samples.txt"
+                    "prosp-brca-all-samples.txt",
+                    "README_v3.boxnote", # proteomics 
+                    "README.boxnote" # phosphoproteomics 
             ]
         }
 
@@ -126,6 +129,12 @@ class UmichBrca(Dataset):
                 df = pd.read_csv(file_path, sep = "\t")
                 df = df[['Participant', 'id', 'Type']]
                 self._helper_tables["map_ids"] = df
+                
+            elif file_name == "README_v3.boxnote":
+                self._readme_files["readme_proteomics"] = get_boxnote_text(file_path)
+                
+            elif file_name == "README.boxnote":
+                self._readme_files["readme_phosphoproteomics"] = get_boxnote_text(file_path)
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."

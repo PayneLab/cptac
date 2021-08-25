@@ -209,7 +209,9 @@ class Brca(Dataset):
                 
             elif file_name == "prosp-brca-v5.4-public-sample-annotation.csv.gz":
                 df = pd.read_csv(file_path, index_col=0)
-                df = df.rename(columns={"Sample.IDs": "Replicate_Measurement_IDs"})
+                df = df.rename(columns={"Sample.IDs": "Replicate_Measurement_IDs", "Tumor.Stage": "Stage"})
+                #Note: The information here is the same as before, but the column has a different name. Anyone trying to get this information will have a hard time unless we rename it
+                #Or at least make it known in the update notes that there has been a change and let people know about it
                 df = df.replace("unknown", np.nan)
                 df = df.astype({"Age.in.Month": np.float64})
                 df.index.name = "Patient_ID"
@@ -218,7 +220,7 @@ class Brca(Dataset):
                 df["Sample_Tumor_Normal"] = "Tumor"
                 
                 clinical = df[['Replicate_Measurement_IDs', 'Sample_Tumor_Normal', 'TMT.Plex', 'TMT.Channel', 
-                   'Tumor.Stage', 'Ischemia.Time.in.Minutes', 'PAM50', 'NMF.Cluster',
+                   'Stage', 'Ischemia.Time.in.Minutes', 'PAM50', 'NMF.Cluster',
                    'NMF.Cluster.Membership.Score', 'Age.in.Month', 'Gender', 'Ethnicity',
                    'ER.Updated.Clinical.Status', 'PR.Clinical.Status',
                    'ERBB2.Updated.Clinical.Status', 'TNBC.Updated.Clinical.Status',
