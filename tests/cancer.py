@@ -1,3 +1,15 @@
+#   Copyright 2018 Samuel Payne sam_payne@byu.edu
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#       http://www.apache.org/licenses/LICENSE-2.0
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+
 #   The purpose of this class is to organize a cancer object's datasets by
 #   type. dataset.py in the cptac package defines a lot of methods and members
 #   but there is no built-in way to call them in batches by type for testing.
@@ -58,19 +70,22 @@ class Cancer:
             if attribute.startswith("get_"):
                 all_getters.add(attribute)
 
-        # sift valid and invalid getters
-        datasets = self.cancer_object.get_data_list().items()
-        for (dataset, dimensions) in datasets:
-            getter_name = "get_" + dataset
-            if getter_name not in all_getters:
-                g = getattr(self.cancer_object, getter_name)
-                self.invalid_getters[getter_name] = g
+        ### sift valid and invalid getters
+        datasets = self.cancer_object.get_data_list().keys()
 
-            elif getter_name in all_getters:
-                g = getattr(self.cancer_object, getter_name)
-                self.valid_getters[getter_name] = g
+        # valid getters
+        for d in datasets:
+            getter_name = "get_" + d
+            valid_getter = getattr(self.cancer_object, getter_name)
+            self.valid_getters[getter_name] = valid_getter
 
-            else:
-                raise Exception(f"{getter_name} unable to be sorted.")
+        # invalid getters
+        for getter in all_getters:
+            if getter_name not in self.valid_getters.keys():
+                if getter_name.startswith("CNV") and self.cancer_type == "Ucecconf":
+                    pass
+                else:
+                    g = getattr(self.cancer_object, getter_name)
+                    self.invalid_getters[getter_name] = g
 
     
