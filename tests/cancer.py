@@ -75,17 +75,17 @@ class Cancer:
 
         # valid getters
         for d in datasets:
-            getter_name = "get_" + d
-            valid_getter = getattr(self.cancer_object, getter_name)
-            self.valid_getters[getter_name] = valid_getter
+            if d.startswith("CNV") and self.cancer_type == "Ucecconf":
+                getter_name = "get_CNV"
+            else:
+                getter_name = "get_" + d
+                valid_getter = getattr(self.cancer_object, getter_name)
+                self.valid_getters[getter_name] = valid_getter
 
         # invalid getters
         for getter in all_getters:
             if getter_name not in self.valid_getters.keys():
-                if getter_name.startswith("CNV") and self.cancer_type == "Ucecconf":
-                    pass
-                else:
-                    g = getattr(self.cancer_object, getter_name)
-                    self.invalid_getters[getter_name] = g
+                g = getattr(self.cancer_object, getter_name)
+                self.invalid_getters[getter_name] = g
 
     
