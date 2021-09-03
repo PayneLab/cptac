@@ -25,19 +25,15 @@ TODO: Things that should happen in a join test:
 # TODO: Check use cases for standard usage and then try to mess that up
 class TestJoin:
 
-    def _combinations(self, get_cancer_test_units, dict1, dict2):
-       #combo_list = [ (a, b) for a, b in itertools.product(list1, list2) ]
-       pass
+    def _combinations(self, list1):
+       combo_list = [ (a, b) for a, b in itertools.combinations(list1, 2) ]
+       return combo_list
 
     def test_join_omics_to_omics(self, get_cancer_test_units):
-        for (cancer_object, omics_combos) in self._combinations(self._list_omics()).items():
-            for (omics_1, omics_2) in omics_combos:
-                dimensions = 1
-                dataset = 0
-                expected_columns = omics_1[dimensions]["columns"] + omics_2[dimensions]["columns"]
-                joiner = getattr(cancer_object, "join_omics_to_omics")
-                df = joiner(omics_1[dataset], omics_2[dataset])
-                assert df.shape[1] == expected_columns
+        # verify that each join produces a dataframe with the expected number of rows and columns
+        for cancer in get_cancer_test_units:
+
+            pass
 
     def test_join_omics_to_mutations(self, get_cancer_test_units):
         pass
