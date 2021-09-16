@@ -1,6 +1,9 @@
 import pytest
 import cptac
-from cancer import Cancer
+import sys
+# TODO: figure out what cwd of pytest is
+sys.path.insert(0, "cptac/tests/")
+from tests.cancer import Cancer
 '''
 Setting autouse=True here makes it so that this method always runs before any tests
 # returns a dict of dataset lists

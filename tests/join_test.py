@@ -29,11 +29,19 @@ class TestJoin:
        combo_list = [ (a, b) for a, b in itertools.combinations(list1, 2) ]
        return combo_list
 
+    # verify that each join produces a dataframe with the expected number of rows and columns
     def test_join_omics_to_omics(self, get_cancer_test_units):
-        # verify that each join produces a dataframe with the expected number of rows and columns
+        # loop through cancers
         for cancer in get_cancer_test_units:
-
-            pass
+            # generate omics combos per cancer and iterate
+            omics_combos = self._combinations(cancer.omics)
+            for o in omics_combos:
+                # test the join
+                omics1 = o[0]
+                omics2 = o[1]
+                expected_size = (omics1.shape[0] + omics2.shape[0], omics1.shape[1] + omics2.shape[1])
+                df = cancer.join_omics(o[0], o[2])
+                assert df.shape == expected_size
 
     def test_join_omics_to_mutations(self, get_cancer_test_units):
         pass

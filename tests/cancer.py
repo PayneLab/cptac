@@ -14,8 +14,7 @@
 #   type. dataset.py in the cptac package defines a lot of methods and members
 #   but there is no built-in way to call them in batches by type for testing.
 
-from _typeshed import Self
-
+import pytest
 
 class Cancer:
 
@@ -56,6 +55,7 @@ class Cancer:
 
     def _sort_datasets(self):
         # categorize datasets for join tests
+        # omics, metadata, 
         datasets = self.cancer_object.get_data_list().items()
         for (dataset, dimensions) in datasets:
             if dataset in Cancer.metadata_types:
@@ -75,12 +75,15 @@ class Cancer:
 
         # valid getters
         for d in datasets:
-            if d.startswith("CNV") and self.cancer_type == "Ucecconf":
-                getter_name = "get_CNV"
-            else:
-                getter_name = "get_" + d
-                valid_getter = getattr(self.cancer_object, getter_name)
-                self.valid_getters[getter_name] = valid_getter
+            try: 
+                if d.startswith("CNV") and self.cancer_type == "Ucecconf":
+                    getter_name = "get_CNV"
+                else:
+                    getter_name = "get_" + d
+                    valid_getter = getattr(self.cancer_object, getter_name)
+                    self.valid_getters[getter_name] = valid_getter
+            except:
+                pytest.fail(f"unable to add get {d} attribute")
 
         # invalid getters
         for getter in all_getters:
