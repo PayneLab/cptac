@@ -49,6 +49,7 @@ class Brca(Dataset):
                 "prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz",
                 "prosp-brca-v3.1-sample-annotation.csv.gz"],
             "5.4" : [
+                "prosp-brca-v3.0-v1.4.somatic.variants.070918.maf.gz",
                 "prosp-brca-v5.4-public-acetylome-ratio-norm-NArm.gct.gz", 
                 "prosp-brca-v5.4-public-gene-level-cnv-gistic2-all_data_by_genes.gct.gz", 
                 #"prosp-brca-v5.4-public-immune-profiling-scores-combined.gct.gz", 
@@ -208,7 +209,9 @@ class Brca(Dataset):
                 
             elif file_name == "prosp-brca-v5.4-public-sample-annotation.csv.gz":
                 df = pd.read_csv(file_path, index_col=0)
-                df = df.rename(columns={"Sample.IDs": "Replicate_Measurement_IDs"})
+                df = df.rename(columns={"Sample.IDs": "Replicate_Measurement_IDs", "Tumor.Stage": "Stage"})
+                #Note: The information here is the same as before, but the column has a different name. Anyone trying to get this information will have a hard time unless we rename it
+                #Or at least make it known in the update notes that there has been a change and let people know about it
                 df = df.replace("unknown", np.nan)
                 df = df.astype({"Age.in.Month": np.float64})
                 df.index.name = "Patient_ID"
@@ -217,7 +220,7 @@ class Brca(Dataset):
                 df["Sample_Tumor_Normal"] = "Tumor"
                 
                 clinical = df[['Replicate_Measurement_IDs', 'Sample_Tumor_Normal', 'TMT.Plex', 'TMT.Channel', 
-                   'Tumor.Stage', 'Ischemia.Time.in.Minutes', 'PAM50', 'NMF.Cluster',
+                   'Stage', 'Ischemia.Time.in.Minutes', 'PAM50', 'NMF.Cluster',
                    'NMF.Cluster.Membership.Score', 'Age.in.Month', 'Gender', 'Ethnicity',
                    'ER.Updated.Clinical.Status', 'PR.Clinical.Status',
                    'ERBB2.Updated.Clinical.Status', 'TNBC.Updated.Clinical.Status',
@@ -252,7 +255,7 @@ class Brca(Dataset):
 
                 self._data["followup"] = df
 
-            elif file_name == "prosp-brca-v3.0-v1.4.somatic.variants.070918.maf.gz" and self._version == "3.1.1":
+            elif file_name == "prosp-brca-v3.0-v1.4.somatic.variants.070918.maf.gz":
                 df = pd.read_csv(file_path, sep='\t')
                 df = df.rename(columns={"Sample.ID": "Patient_ID"})
 

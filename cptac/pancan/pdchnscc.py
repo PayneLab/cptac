@@ -71,48 +71,67 @@ class PdcHnscc(Dataset):
             if file_name == "proteome.tsv.gz":
                 df = pd.read_csv(file_path, sep="\t", dtype={"case_submitter_id": "O"})
                 self._data["proteomics"] = df
-                
+             
+            # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
+            # so there is no need to slice out cancer specific aliquots
             elif file_name == "aliquot_to_patient_ID.tsv":
-                df = pd.read_csv(file_path, sep = "\t")
-                self._helper_tables["map_ids"] = df
+                df = pd.read_csv(file_path, sep = "\t", index_col = 'aliquot_ID', usecols = ['aliquot_ID', 'patient_ID'])
+                map_dict = df.to_dict()['patient_ID'] # create dictionary with aliquot_ID as keys and patient_ID as values
+                self._helper_tables["map_ids"] = map_dict
 
                 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
         print(formatting_msg, end='\r')
         
+        # There were 3 duplicate IDs (same case ID and aliquot) in the phosphoproteomic data. 
+        # I used the Payne lab mapping file "aliquot_to_patient_ID.tsv" to determine the tissue type for these duplicates. 
+        # Next, I ran a pearson correlation to check how well the values from each aliquot correlated to 
+        # the other duplicates for the same case ID. Each of the duplicate aliquots correlated well. 
+        # The one unique aliquot for C3L-02617 did not correlate well with the other aliquots, so we dropped it 
+        # and averaged the other two. I also created a scatterplot to compare each pair of aliquots for a case ID. 
+        # We averaged the duplicate IDs because they correlated well together and were the same tissue type.
+        # A file containing the correlations can be downloaded at: 
+        # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx       
         
         # Common rows to drop
         drop_rows = ['LungTumor1', 'LungTumor2', 'LungTumor3', 'QC1', 'QC2', 'QC3', 
                   'QC4', 'QC5', 'QC6', 'QC7', 'QC9', 'pooled sample']
+        
+        # These 6 aliquots were not in the mapping file. They are all normal samples.
+        manually_mapped = {'CPT0169740004': 'C3L-00994.N', 'CPT0229220002': 'C3L-02617.N',
+            'CPT0163250003': 'C3N-01757.N', 'CPT0235470002': 'C3N-03042.N',
+            'CPT0278700002': 'C3L-04350.N', 'CPT0281470002':'C3L-05257.N'}
          
-        # Create dictionary with aliquot_ID as keys and patient_ID as values
-        # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
-        # so no need to slice out cancer specific aliquots
-        mapping_df = self._helper_tables["map_ids"]
-        matched_ids = {}
-        for i, row in mapping_df.iterrows():
-            matched_ids[row['aliquot_ID']] = row['patient_ID']
-
+        # Get dictionary with aliquot_ID as keys and patient_ID as values
+        mapping_dict = self._helper_tables["map_ids"]
+        
         # Proteomics
         prot = self._data["proteomics"]
-        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
+        prot['Patient_ID'] = prot['aliquot_submitter_id'].replace(mapping_dict) # aliquots to patient IDs (normals have '.N')
         prot = prot.set_index('Patient_ID')
+        prot = prot.rename(index = manually_mapped) # map 6 aliquots that were not in the mapping file
         prot = prot.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
-        prot = prot.drop(drop_rows[:-1], axis = 'index') # drop quality control rows
+        prot = prot.drop(drop_rows[:-1], axis = 'index') # drop quality control rows (last in drop_rows not in proteomics)
         self._data["proteomics"] = prot
         
         # Phosphoproteomics
         phos = self._data["phosphoproteomics"]
-        phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(matched_ids) # aliquots to patient IDs
+        phos['Patient_ID'] = phos['aliquot_submitter_id'].replace(mapping_dict) # aliquots to patient IDs (normals have '.N')
         phos = phos.set_index('Patient_ID')
-        phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') # 3 duplicate aliquots and case 
+        phos = phos.rename(index = manually_mapped) # map 6 aliquots that were not in the mapping file
+        # drop aliquot that didn't correlate well (0.676) with the other 2 replcates for C3L-02617 (see long comment above)
+        phos = phos.loc[phos.aliquot_submitter_id != 'CPT0229210003']  
+        phos = phos.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns') 
         phos = phos.drop(drop_rows, axis = 'index') # drop quality control rows
+        # average IDs that correlated well with their duplicates (see long comment above)
+        phos = average_replicates(phos, ['C3L-02617', 'C3L-00994.N', 'C3L-02617.N']) 
         phos = map_database_to_gene_pdc(phos, 'refseq') # Map refseq IDs to gene names
         self._data["phosphoproteomics"] = phos          
         
         
-        self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
+        # Sort rows (tumor first then normal) and columns by first level (protein/gene name)
+        self._data = sort_all_rows_pancan(self._data) 
         
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

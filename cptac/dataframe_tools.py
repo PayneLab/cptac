@@ -47,12 +47,15 @@ def map_database_to_gene_pdc(df, database_name = 'refseq', sep = ':'):
     df: The dataframe with gene name, database ID and site as a multiindex (sorted by gene name).
     """
     
-    df = df.T.reset_index()
-    index_name = df.index.name
-    if index_name is None:
-        df[['Database_ID',"Site"]] = df['index'].str.split(sep, expand=True)
+    if isinstance(df.index, pd.core.indexes.multi.MultiIndex):
+        was_multiindex = True
+        df = df.reset_index() # make index not a multiindex
     else:
-        df[['Database_ID',"Site"]] = df[index_name].str.split(sep, expand=True)
+        was_multiindex = False
+        
+    df = df.T.reset_index()
+    df[['Database_ID',"Site"]] = df.iloc[:, 0].str.split(sep, expand=True) # first column is reset index  
+    df.Site = df.Site.str.upper() # capitalize all amino acids sites (for consistency)
     
     id_list = df.Database_ID.to_list()
     with suppress_stdout():
@@ -60,16 +63,21 @@ def map_database_to_gene_pdc(df, database_name = 'refseq', sep = ':'):
         db_results = mg.querymany(id_list, scopes=database_name, fields='symbol', species='human') # map ID to gene
     db_to_gene = {results['query']: results['symbol'] for results in db_results \
                            if 'notfound' not in results.keys()} # get mapping dictionary of ID and gene name
-    df['Name'] = df['Database_ID'].replace(db_to_gene) # Add gene name 
-    df = df.set_index(['Name','Database_ID','Site']) # set multiindex
+    df['Name'] = df['Database_ID'].replace(db_to_gene) # add gene name 
+    df = df.set_index(['Name','Site','Database_ID']) # set multiindex
     df = df.sort_index(level='Name', axis = 'index') # sort based on gene name
     df = df.drop('index', axis = 1)
     df = df.T
+    
+    if was_multiindex == True:
+        df = df.set_index([df.columns[-1], df.columns[-2]])
+        df.index.names = ['case_submitter_id','aliquot_submitter_id']
+        
     return df
 
 def sort_all_rows_pancan(data_dict):
     """For all dataframes in the given dictionary, sort them first by sample status, 
-    with tumor samples first, and then by the index.
+    with tumor samples first, and then by the index. Also sorts columns by the first level. 
 
     Parameters:
     data_dict (dict): The dataframe dictionary of the dataset.
@@ -78,9 +86,10 @@ def sort_all_rows_pancan(data_dict):
     dict: The dataframe dictionary, with the dataframes sorted by their indices. 
     The index is also given the standard name ('Patient_ID').
     Keys are str of dataframe names, values are pandas.DataFrame"""
-
+    
     for name in data_dict.keys(): # Loop over the keys so we can alter the values without any issues
         df = data_dict[name]
+        df = df.sort_index(axis = 'columns', level = 0) # sort columns based on first level
         if isinstance(df.index, pd.core.indexes.multi.MultiIndex):
             df.index.rename(['Patient_ID', 'Aliquot'], level = [0,1], inplace = True)
             new_df = df.sort_values('Patient_ID')
@@ -95,33 +104,78 @@ def sort_all_rows_pancan(data_dict):
             tumor = tumor.sort_index()
             # append normal to tumor
             all_df = tumor.append(normal)
-            data_dict[name] = all_df
+            data_dict[name] = all_df 
 
     return data_dict
 
-def average_replicates(df, common = '\.', to_drop = '\.\d$'):
-    """Returns a df with one row for each patient_ID (all replicates for a patient are averaged)
 
+def rename_duplicate_labels(df, label_type='columns'):
+    """Returns a df with unique labels for columns or indices 
+    Parameters:
+    df (pandas.DataFrame): The df containing duplicate labels.
+    label_type (str): use 'columns' to make unique column labels and 'index' to make unique indices. 
+    
+    Returns:
+    pandas.DataFrame: df with with unique labels. ".i" is appended to every duplicate, increasing incrementally.
+    """
+    if label_type == 'columns':
+        labs = pd.Series(df.columns[:])
+
+        for dup in labs[labs.duplicated()].unique(): 
+            labs[labs[labs == dup].index.values.tolist()] = [dup + '.' + str(i) if i != 0 else dup for i in range(sum(labs == dup))]
+
+        # rename the columns with the labs list.
+        df.columns=labs
+        
+    elif label_type == 'index':
+        labs = pd.Series(df.index[:])
+
+        for dup in labs[labs.duplicated()].unique(): 
+            labs[labs[labs == dup].index.values.tolist()] = [dup + '.' + str(i) if i != 0 else dup for i in range(sum(labs == dup))]
+
+        # rename the columns with the labs list.
+        df.index=labs
+    return df
+
+def average_replicates(df, id_list = [], normal_identifier = '.N', common = '\.', to_drop = '\.\d$'):
+    """Returns a df with one row for each patient_ID (all replicates for a patient are averaged)
     Parameters:
     df (pandas.DataFrame): The df containing replicates (duplicate entries for the same tissue_type).
+    id_list: list of IDs with replicates (use the ID format that is common between replicates so the 
+            list can be used to slice out all replicates for that ID). Make sure the IDs 
+            in the list include the symbol that distinguishes normal samples ('.N' or '-N').
     common: regex string that is common between replicates (identifies duplicate entries)
     to_drop: regex string to drop to find each patient_ID that has replicates (used to slice out all replicates)
     
     Returns:
     pandas.DataFrame: df with with replicate rows averaged and one row for each patient_ID.
     """
-    replicate_df = df[df.index.str.contains(common)]
-    patient_ids = pd.Series(replicate_df.index) # create series of replicate IDs to prep removing appended ".i"
-    ids = patient_ids.replace(to_drop, '', regex=True)
-    id_list = list(set(ids)) #id_list contains only patient_IDs of replicates (without #s)
+    # If no list of replicate IDs is given, make list from common regex 
+    if len(id_list) == 0:
+        replicate_df = df[df.index.str.contains(common)]
+        patient_ids = pd.Series(replicate_df.index) # create series of replicate IDs to prep removing appended ".i"
+        ids = patient_ids.replace(to_drop, '', regex=True)
+        id_list = list(set(ids)) #id_list contains only patient_IDs of replicates (without #s)
 
+    new_df = df.copy()
     for patient_ID in id_list:
-        id_df = df[df.index.str.contains(patient_ID)] # slice out replicates for a single patient
+        # Can slice only normals with patient_ID because of normal identifier (won't slice out tumors)
+        if normal_identifier in patient_ID:
+            id_df = df[df.index.str.contains(patient_ID, regex = True)] # slice out replicates for a single patient
+        # If tumor, need to slice out normals
+        else:
+            if normal_identifier == '.N':
+                norm_regex = '\.N' # prep for regex use
+            else:
+                norm_regex = normal_identifier
+            id_df = df[df.index.str.contains(patient_ID, regex = True) & \
+                       ~ df.index.str.contains(norm_regex, regex = True)] # don't include normals
+        #print(id_df.index.to_list())
         vals = list(id_df.mean(axis=0)) 
-        df.loc[patient_ID] = vals # add new row to original df with averages of replicates 
+        new_df = new_df.drop(id_df.index.to_list(), axis = 'index') # drop unaveraged rows
+        new_df.loc[patient_ID] = vals # add averaged row
 
-    df = df[~ df.index.str.contains(common)] # drop unaveraged replicate cols (averaged rows are kept)
-    return df
+    return new_df
 
 def unionize_indices(dataset, exclude=[]):
     """Return a union of all indices in a dataset, without duplicates.

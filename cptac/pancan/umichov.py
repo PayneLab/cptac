@@ -18,6 +18,7 @@ import datetime
 from cptac.dataset import Dataset
 from cptac.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
+from cptac.utils import get_boxnote_text
 
 
 class UmichOv(Dataset):
@@ -38,14 +39,18 @@ class UmichOv(Dataset):
         data_files = {
             "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
                     "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv",
-                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv"
+                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
+                    "README_v3.boxnote", # proteomics 
+                    "README.boxnote" # phosphoproteomics
                     #"S039_BCprospective_observed_0920.tsv.gz",
                     #"S039_BCprospective_imputed_0920.tsv.gz"
              ],
                     
              "1.1": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",                    
                      "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv", 
-                     "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv"
+                     "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv",
+                    "README_v3.boxnote", # proteomics 
+                    "README.boxnote" # phosphoproteomics
             ]
         }
 
@@ -66,26 +71,18 @@ class UmichOv(Dataset):
             
             if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
-                df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # Get protein identifier 
-                df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # Get protein name 
+                df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
+                df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # get protein name 
                 df = df.set_index(['Name', 'Database_ID']) # set multiindex
                 df = df.drop(columns = ['Index', 'MaxPepProb', 'NumberPSM', 'Gene']) # drop unnecessary  columns
-                df = df.transpose()
-                # Get reference intensities to use to calculate ratios
-                ref_intensities = df.loc["ReferenceIntensity"]  
-                # Subtract reference intensities from all the values
-                df = df.subtract(ref_intensities, axis="columns") 
+                df = df.transpose()                
+                ref_intensities = df.loc["ReferenceIntensity"]  # get reference intensities to use to calculate ratios
+                df = df.subtract(ref_intensities, axis="columns") # subtract reference intensities from all the values
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 df.index.name = 'Patient_ID'
-                # drop ref intensity and quality control 
-                df = df.loc[df.index[~ df.index.str.contains('JHU', regex = True)]] 
+                df = df.loc[df.index[~ df.index.str.contains('JHU', regex = True)]] # drop ref intensity and quality control 
                 self._data["proteomics"] = df
-            
-            elif file_name == "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv":
-                ov_map = pd.read_csv(file_path, sep = ",", index_col = 0)
-                # drop so doesn't map to NA
-                ov_map = ov_map.loc[ov_map.index[~ ov_map.index.str.contains('JHU', regex = True)]] 
-                self._helper_tables["map_ids"] = ov_map
+                
                 
             elif file_name == "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
@@ -112,6 +109,23 @@ class UmichOv(Dataset):
                 df = df.subtract(ref_intensities, axis="columns")#Subtract reference intensities from all the values (get ratios)
                 df = df.iloc[1:,:] # drop ReferenceIntensity row 
                 self._data["phosphoproteomics"] = df
+               
+            
+            # This file maps Ov aliquots to patient IDs (case ID with tissue type) and 
+            # can be found on Box under CPTAC/cptac/pancan/helper_files
+            elif file_name == "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv":
+                ov_map = pd.read_csv(file_path, sep = ",", usecols = ['specimen', 'sample'])
+                ov_map = ov_map.loc[~ ov_map['sample'].str.contains('JHU', regex = True)] # drop quality control rows
+                ov_map = ov_map.set_index('specimen')
+                map_dict = ov_map.to_dict()['sample'] # create dictionary with aliquots as keys and patient IDs as values
+                self._helper_tables["map_ids"] = map_dict
+                
+            elif file_name == "README_v3.boxnote":
+                text = get_boxnote_text(file_path)
+                self._readme_files["readme_proteomics"] = text
+                
+            elif file_name == "README.boxnote":
+                self._readme_files["readme_phosphoproteomics"] = get_boxnote_text(file_path)
 
             '''
             elif file_name == "S039_BCprospective_observed_0920.tsv.gz":
@@ -138,32 +152,26 @@ class UmichOv(Dataset):
         print(formatting_msg, end='\r')
            
         if self._version == "1.1":         
-            # Create dictionary with aliquot_ID as keys and patient_ID as values
-            # OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv (mapping file) only has ovarian aliquots
-            mapping_df = self._helper_tables["map_ids"]
-            matched_ids = {}
-            for i, row in mapping_df.iterrows():
-                matched_ids[row['specimen']] = row['sample']
+            # Get dictionary with aliquots as keys and patient IDs as values
+            mapping_dict = self._helper_tables["map_ids"]
 
             # Proteomics    
             prot = self._data["proteomics"]
-            prot = prot.reset_index()
-            prot = prot.replace(matched_ids) # replace aliquot_IDs with Patient_IDs
-            prot = prot.set_index('Patient_ID')       
+            prot = prot.rename(index = mapping_dict) # replace aliquot with patient IDs (normals have -N appended)       
             prot.index = prot.index.str.replace('-T$','', regex = True)
             prot.index = prot.index.str.replace('-N$','.N', regex = True)  
             self._data["proteomics"] = prot
                 
             # Phosphoproteomics 
-            phos_df = self._data["phosphoproteomics"]
-            phos_df = phos_df.reset_index()
-            phos_df = phos_df.replace(matched_ids)
-            phos_df = phos_df.set_index('Patient_ID')            
-            phos_df.index = phos_df.index.str.replace('-T$','', regex = True)
-            phos_df.index = phos_df.index.str.replace('-N$','.N', regex = True)  
-            self._data["phosphoproteomics"] = phos_df
+            phos = self._data["phosphoproteomics"]
+            phos = phos.rename(index = mapping_dict) # replace aliquot with patient IDs (normals have -N appended)         
+            phos.index = phos.index.str.replace('-T$','', regex = True)
+            phos.index = phos.index.str.replace('-N$','.N', regex = True)  
+            self._data["phosphoproteomics"] = phos
 
-        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
+            
+        # Sort rows (tumor first then normal) and columns by first level (protein/gene name)
+        self._data = sort_all_rows_pancan(self._data) 
         
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message

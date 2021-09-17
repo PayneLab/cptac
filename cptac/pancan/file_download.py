@@ -86,12 +86,19 @@ def download(dataset, version="latest", redownload=False):
 
     if dataset.startswith("pdc"):
         box_token = get_box_token()
-        mapping = cptac.download(dataset, version=version, redownload=redownload, _box_auth=True, _box_token=box_token) # all cancers need helper file
-        omics = _pdc_download(dataset, version=version, redownload=redownload)        
-        if omics and mapping:
-            return True
-        else:
-            return False 
+        if dataset != 'pdcbrca': # pdcbrca is the only dataset that doesn't need a mapping file for PDC
+            mapping = cptac.download(dataset, version=version, redownload=redownload, _box_auth=True, _box_token=box_token) # download helper file for mapping aliquots to patient IDs        
+            omics = _pdc_download(dataset, version=version, redownload=redownload)        
+            if omics and mapping:
+                return True
+            else:
+                return False
+        else: # pdcbrca only needs omics
+            omics = _pdc_download(dataset, version=version, redownload=redownload)
+            if omics:
+                return True
+            else:
+                return False
 
     elif dataset.startswith("pancan") or dataset == "all":
         box_token = get_box_token()

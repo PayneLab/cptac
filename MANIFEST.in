@@ -76,3 +76,4 @@ include cptac/pancan/data_bcmpdac/index_urls.tsv
 include cptac/pancan/data_broadpdac/index_urls.tsv
 include cptac/pancan/data_umichpdac/index_urls.tsv
 include cptac/pancan/data_washupdac/index_urls.tsv
+include cptac/pancan/data_pdcpdac/index_urls.tsv

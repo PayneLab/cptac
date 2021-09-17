@@ -40,7 +40,7 @@ class Dataset:
         self._data = {}
         self._helper_tables = {}
         self._definitions = {}
-        self._readmefiles = {}
+        self._readme_files = {}
 
          # Assign the valid dfs lists, but make them instance variables so they're easy to override if needed
          # These are the omics dataframes that are valid for use in the utilities functions
@@ -189,6 +189,10 @@ class Dataset:
     def get_transcriptomics(self, tissue_type="both"):
         """Get the transcriptomics dataframe."""
         return self._get_dataframe("transcriptomics", tissue_type)
+
+    def get_ubiquitinomics(self, tissue_type="both"):
+        """Get the ubiquitinomics dataframe."""
+        return self._get_dataframe("ubiquitinomics", tissue_type)
 
     # Methods to get mutations dataframes
     def get_gene_fusion(self):

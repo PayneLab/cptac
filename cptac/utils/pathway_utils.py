@@ -146,12 +146,14 @@ def get_interacting_proteins_bioplex(protein, secondary_interactions=False):
         sort_values(by=["pInt", "pNI"], ascending=[False, True]).\
         reset_index()
 
-    # Combine the two series, sorting by index so that they end up in order of
-    # priority, in case we filter in the future.
-    all_interactions = bioplex_interactions["SymbolA"].\
-        append(bioplex_interactions["SymbolB"]).\
-        sort_index().\
-        tolist()
+    # Get all interactions with the protein of interest
+    A_df = bioplex_interactions.loc[bioplex_interactions['SymbolA'] == protein]
+    B_df = bioplex_interactions.loc[bioplex_interactions['SymbolB'] == protein]
+
+    A_interactions = list(A_df['SymbolB'])
+    B_interactions = list(B_df['SymbolA'])
+
+    all_interactions = list(set(A_interactions + B_interactions))
 
     if secondary_interactions:
         secondary_interactions_list = []
