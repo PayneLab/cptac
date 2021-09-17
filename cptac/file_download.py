@@ -9,9 +9,12 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from flask import Flask, cli, request
-from threading import Thread
-from pathlib import Path
+import threading
+from queue import Queue
+
+from werkzeug import Request
+from werkzeug import Response
+from werkzeug.serving import make_server
 
 import webbrowser
 import time
@@ -27,11 +30,6 @@ from .exceptions import InvalidParameterError, NoInternetError, DownloadFailedEr
 # Some websites don't like requests from sources without a user agent. Let's preempt that issue.
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
 HEADERS = {'User-Agent': USER_AGENT}
-
-# For a rudimentary data sharing between processes
-path_here = os.path.abspath(os.path.dirname(__file__))
-LOCK_PATH = os.path.join(path_here, "lock.tmp")
-CODE_FILE_PATH = os.path.join(path_here, "code.tmp")
 
 def download(dataset, version="latest", redownload=False, _box_auth=False, _box_token=None):
     """Download data files for the specified datasets. Defaults to downloading latest version on server.
@@ -285,34 +283,12 @@ def download_file(url, path, server_hash, password=None, _box_token=None, file_m
     file_name = path.split(os.sep)[-1]
     raise DownloadFailedError(f"Download failed for {file_name}.")
 
-# Set up a localhost server to receive access token
-app = Flask(__name__)
-
-@app.route('/receive')
-def receive():
-
-    # Get the temporary access code
-    code = request.args.get('code')
-
-    # Create our "lock flag" file
-    Path(LOCK_PATH).touch()
-
-    # Save the code
-    with open(CODE_FILE_PATH, "w") as code_file:
-        code_file.write(code)
-
-    # Remove lock flag
-    os.remove(LOCK_PATH)
-
-    # Shutdown the server. This will allow the thread it's running on to finish as well.
-    request.environ.get("werkzeug.server.shutdown")()
-
-    return "Authentication successful. You can close this window."
-
 def get_box_token():
 
-    # Don't show starting message from server
-    cli.show_server_banner = lambda *_: None
+    @Request.application
+    def receive(request):
+        q.put(request.args.get('code'))
+        return Response("Authentication successful. You can close this window.", 200)
 
     # Don't show logs from server
     log = logging.getLogger('werkzeug')
@@ -324,27 +300,19 @@ def get_box_token():
     client_secret = "a5xNE1qj4Z4H3BSJEDVfzbxtmxID6iKY"
     login_url = f"{base_url}?client_id={client_id}&response_type=code"
 
-    # Start the server
-    server = Thread(target=app.run, kwargs={"port": "8003"})
-    server.start()
+    q = Queue()
+    s = make_server("localhost", 8003, receive)
+    t = threading.Thread(target=s.serve_forever)
+    t.start()
 
     # Send the user to the "Grant access" page
     webbrowser.open(login_url)
     login_msg = "Please login to Box on the webpage that was just opened and grant access for cptac to download files through your account. If you accidentally closed the browser window, press Ctrl+C and call the download function again."
     print(login_msg)
 
-    # Get the temporary access code from the server on the child process
-    temp_code = None
-    while temp_code is None:
-        if os.path.isfile(CODE_FILE_PATH) and not os.path.isfile(LOCK_PATH):
-            with open(CODE_FILE_PATH) as code_file:
-                temp_code = code_file.read()
-            os.remove(CODE_FILE_PATH)
-        else:
-            time.sleep(1)
-
-    # Wait for the server process to finish. Note in the receive endpoint handler shuts down the server automatically after receiving the code, so we don't need to worry about trying to kill it.
-    server.join()
+    temp_code = q.get(block=True)
+    s.shutdown()
+    t.join()
 
     # Use the temporary access code to get the long term access token
     token_url = "https://api.box.com/oauth2/token";
