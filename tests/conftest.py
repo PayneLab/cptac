@@ -6,13 +6,14 @@ sys.path.insert(0, "cptac/tests/")
 from tests.cancer import Cancer
 import curses
 
-###
+
 # Setting autouse=True here makes it so that this method always runs before any tests
-# returns a dict of dataset lists
-# key is accessibility: "public" or "private"
-###
 @pytest.fixture(scope="session", autouse=True)
 def get_datasets_lists():
+    '''
+    Returns: a dict of dataset lists
+        keys = ["public", "private"]
+    '''
     curses.wrapper
     print(f"Getting dataset lists (public and private)...", end='\r')
     data = cptac.list_datasets()["Data reuse status"]
@@ -47,15 +48,13 @@ def download_datasets(get_datasets_lists):
             
     return True
 
-'''
-Return a dict of this format:
-{
-    "cancer name" : <Cancer Object>,
-    ...
-}
-'''
+
 @pytest.fixture(scope="session", autouse=True)
 def get_cancer_test_units(get_datasets_lists):
+    '''
+    Returns: a dict of this format:
+        { "cancer name" : <Cancer Object>, ... }
+    '''
     cancer_wrappers = list()
     for cancer_name in get_datasets_lists["public"]:
         c = getattr(cptac, cancer_name)

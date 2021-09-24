@@ -17,8 +17,8 @@ from cptac.exceptions import DataFrameNotIncludedError, InvalidParameterError
 
 class TestGet:
 
-    def test_valid_getters(self, valid_getters, get_cancer_test_units):
-        test_units = get_cancer_test_units[0]
+    def test_valid_getters(self, get_cancer_test_units):
+        test_units = get_cancer_test_units
         for cancer in test_units:
             for (getter_name, getter) in cancer.valid_getters.items():
                 try:
@@ -39,7 +39,7 @@ class TestGet:
                     pytest.fail(f"Calling {getter} caused error:\n\t{sys.exc_info()[0]}")
 
     def test_invalid_getters(self, get_cancer_test_units):
-        test_units = get_cancer_test_units[0]
+        test_units = get_cancer_test_units
         for cancer in test_units:
             for (getter_name, getter) in cancer.invalid_getters.items():
             # verify the correct error is thrown
