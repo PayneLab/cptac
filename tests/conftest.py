@@ -4,13 +4,17 @@ import sys
 # TODO: figure out what cwd of pytest is
 sys.path.insert(0, "cptac/tests/")
 from tests.cancer import Cancer
-'''
-Setting autouse=True here makes it so that this method always runs before any tests
+import curses
+
+###
+# Setting autouse=True here makes it so that this method always runs before any tests
 # returns a dict of dataset lists
 # key is accessibility: "public" or "private"
-'''
+###
 @pytest.fixture(scope="session", autouse=True)
 def get_datasets_lists():
+    curses.wrapper
+    print(f"Getting dataset lists (public and private)...", end='\r')
     data = cptac.list_datasets()["Data reuse status"]
 
     public_datasets = []
@@ -27,12 +31,14 @@ def get_datasets_lists():
     
     return dataset_lists
 
-'''Download all datasets'''
-@pytest.fixture(scope="session")
+### Download all datasets
+# Must have autouse=True or else this never gets called
+@pytest.fixture(scope="session", autouse=False)
 def download_datasets(get_datasets_lists):
     # Download public datasets
     for cancer in get_datasets_lists["public"]:
         try:
+            print(f"Downloading {cancer}...", end='\r')
             cptac.download(cancer, redownload=True)
         except:
             pytest.fail(f"Unable to download data for {cancer} dataset.")
@@ -54,8 +60,9 @@ def get_cancer_test_units(get_datasets_lists):
     for cancer_name in get_datasets_lists["public"]:
         c = getattr(cptac, cancer_name)
         try:
+            print(f"Creating {c} object...", end='\r')
             cancer_wrappers.append(Cancer(cancer_name, c()))
         except:
             pytest.fail(f"unable to create {c} object")
         
-    return cancer_wrappers, True
+    return cancer_wrappers

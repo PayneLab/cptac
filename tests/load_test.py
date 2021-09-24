@@ -25,4 +25,4 @@ class TestLoad:
         assert exception_raised.type == InvalidParameterError
     
     def test_dataset_object_creation(self, get_public_dataset_objects):
-        assert get_public_dataset_objects[1]
+        assert get_public_dataset_objects == True

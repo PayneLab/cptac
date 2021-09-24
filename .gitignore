@@ -6,6 +6,7 @@ dist/
 build/
 .DS_Store
 .python-version
+*.icloud
 
 # Exclude data files, since they're stored remotely
 
