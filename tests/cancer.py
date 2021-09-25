@@ -28,6 +28,23 @@ class Cancer:
                 #'followup'
         ]
 
+    valid_omics_dfs = [
+            'acetylproteomics',
+            'circular_RNA',
+            'CNV',
+            'lincRNA',
+            'lipidomics',
+            'metabolomics',
+            'miRNA',
+            'phosphoproteomics',
+            'phosphoproteomics_gene',
+            'proteomics',
+            'somatic_mutation_binary',
+            'transcriptomics', 
+            'CNV_log2ratio',
+            'CNV_gistic'
+             ]
+
     def __init__(self, cancer_type, cancer_object):
         """
         Initialize a Cancer object.
@@ -60,7 +77,7 @@ class Cancer:
         for (dataset, dimensions) in datasets:
             if dataset in Cancer.metadata_types:
                 self.metadata.append(dataset)
-            elif dataset.__contains__('omics'):
+            elif dataset in Cancer.valid_omics_dfs:
                 self.omics.append(dataset)
 
     def _sort_getters(self):
@@ -90,5 +107,19 @@ class Cancer:
             if getter_name not in self.valid_getters.keys():
                 g = getattr(self.cancer_object, getter_name)
                 self.invalid_getters[getter_name] = g
+
+    def get_dataset(self, dataset, CNV_type="log2ratio"):
+        '''
+        Args:
+            dataset: the desired dataset
+            CNV_type: if the desired dataset is CNV and the cancer type is Ucecconf,
+                you can specify which version of the dataset is returned.
+
+        Returns: 
+            adataframe for the dataset desired
+        '''
+        if dataset == "CNV" and self.cancer_type == "Ucecconf":
+            return self.valid_getters["get_CNV"](CNV_type)
+        return self.valid_getters["get_" + dataset]()
 
     

@@ -21,13 +21,13 @@ TODO: Things that should happen in a join test:
     - check non-overlapping rows
     - 
 """
-# TODO: Look through Caleb's stuff on tests
+
 # TODO: Check use cases for standard usage and then try to mess that up
 class TestJoin:
 
     def _combinations(self, list1):
-       combo_list = [ (a, b) for a, b in itertools.combinations(list1, 2) ]
-       return combo_list
+        combo_list = [ (a, b) for a, b in itertools.combinations(list1, 2) ]
+        return combo_list
 
     # verify that each join produces a dataframe with the expected number of rows and columns
     def test_join_omics_to_omics(self, get_cancer_test_units):
@@ -35,13 +35,15 @@ class TestJoin:
         for cancer in get_cancer_test_units:
             # generate omics combos per cancer and iterate
             omics_combos = self._combinations(cancer.omics)
+            # test each combo
             for o in omics_combos:
-                # test the join
                 omics1 = o[0]
+                omics1_df = cancer.get_dataset(omics1)
                 omics2 = o[1]
-                expected_size = (omics1.shape[0] + omics2.shape[0], omics1.shape[1] + omics2.shape[1])
-                df = cancer.join_omics(o[0], o[2])
-                assert df.shape == expected_size
+                omics2_df = cancer.get_dataset(omics2)
+                expected_columns = omics1_df.shape[1] + omics2_df.shape[1]
+                df = cancer.cancer_object.join_omics_to_omics(omics1, omics2)
+                assert df.shape[1] == expected_columns[1]
 
     def test_join_omics_to_mutations(self, get_cancer_test_units):
         pass

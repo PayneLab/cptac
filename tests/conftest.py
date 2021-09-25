@@ -14,7 +14,7 @@ def get_datasets_lists():
     Returns: a dict of dataset lists
         keys = ["public", "private"]
     '''
-    curses.wrapper
+    #curses.wrapper
     print(f"Getting dataset lists (public and private)...", end='\r')
     data = cptac.list_datasets()["Data reuse status"]
 
