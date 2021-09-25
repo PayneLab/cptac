@@ -32,17 +32,9 @@ class TestJoin:
         # loop through cancers
         for cancer in get_cancer_test_units:
             # generate omics combos per cancer
-            omics_combos = self._combinations(cancer.omics)
+            combos = self._combinations(cancer.omics)
             # test each combo
-            for o in omics_combos:
-                omics1 = o[0]
-                omics1_df = cancer.get_dataset(omics1)
-                omics2 = o[1]
-                omics2_df = cancer.get_dataset(omics2)
-                expected_columns = omics1_df.shape[1] + omics2_df.shape[1]
-                df = cancer.cancer_object.join_omics_to_omics(omics1, omics2)
-                # verify the join worked based on column counts
-                assert df.shape[1] == expected_columns
+            self._run_combos(cancer, combos, cancer.cancer_object.join_omics_to_omics)
 
     def test_join_omics_to_mutations(self, get_cancer_test_units):
         pass
@@ -53,16 +45,7 @@ class TestJoin:
             # generate metadata combos per cancer
             combos = self._combinations(cancer.metadata)
             # test each combo
-            for c in combos:
-                # ds is for dataset
-                ds1 = c[0]
-                ds1_df = cancer.get_dataset(ds1)
-                ds2 = c[1]
-                ds2_df = cancer.get_dataset(ds2)
-                expected_columns = ds1_df.shape[1] + ds2_df.shape[1]
-                df = cancer.cancer_object.join_metadata_to_metadata(ds1, ds2)
-                # verify the join worked based on column counts
-                assert df.shape[1] == expected_columns
+            self._run_combos(cancer, combos, cancer.cancer_object.join_metadata_to_metadata)
 
     def test_join_metadata_to_omics(self, get_cancer_test_units):
         # loop through cancers
@@ -70,16 +53,7 @@ class TestJoin:
             # generate metadata combos per cancer
             combos = self._combinations(cancer.metadata, cancer.omics)
             # test each combo
-            for c in combos:
-                # ds is for dataset
-                ds1 = c[0]
-                ds1_df = cancer.get_dataset(ds1)
-                ds2 = c[1]
-                ds2_df = cancer.get_dataset(ds2)
-                expected_columns = ds1_df.shape[1] + ds2_df.shape[1]
-                df = cancer.cancer_object.join_metadata_to_omics(ds1, ds2)
-                # verify the join worked based on column counts
-                assert df.shape[1] == expected_columns
+            self._run_combos(cancer, combos, cancer.cancer_object.join_metadata_to_omics)
 
     def test_join_metadata_to_mutations(self, get_cancer_test_units):
         pass
@@ -88,9 +62,33 @@ class TestJoin:
         pass
 
     def _combinations(self, list1, list2=None):
+        '''
+        Returns:
+            unique list of combo tuples
+        '''
         if not list2:
             combo_list = [ (a, b) for a, b in itertools.combinations(list1, 2) ] 
         else:
             combo_list = [ (a, b) for a, b in itertools.product(list1, list2) ]
         
         return combo_list
+
+    def _run_combos(self, cancer, combos, func):
+        '''
+        Test each combo
+
+        Args:
+            cancer: the cancer whose data will be tested
+            combos: the combos to be run
+            func: the function the combos will be tested on
+        '''
+        for c in combos:
+                # ds is for dataset
+                ds1 = c[0]
+                ds1_df = cancer.get_dataset(ds1)
+                ds2 = c[1]
+                ds2_df = cancer.get_dataset(ds2)
+                expected_columns = ds1_df.shape[1] + ds2_df.shape[1]
+                df = func(ds1, ds2)
+                # verify the join worked based on column counts
+                assert df.shape[1] == expected_columns
