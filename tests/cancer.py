@@ -68,6 +68,7 @@ class Cancer:
 
         self._sort_datasets()
         self._sort_getters()
+        self._gather_mutation_genes()
 
 
     def _sort_datasets(self):
@@ -108,6 +109,10 @@ class Cancer:
                 g = getattr(self.cancer_object, getter_name)
                 self.invalid_getters[getter_name] = g
 
+    def _gather_mutation_genes(self):
+        if "somatic_mutation" in self.cancer_object.get_data_list():
+            self.mutation_genes = self.cancer_object.get_somatic_mutation()["Gene"].tolist()
+
     def get_dataset(self, dataset, CNV_type="log2ratio"):
         '''
         Args:
@@ -121,5 +126,14 @@ class Cancer:
         if dataset == "CNV" and self.cancer_type == "Ucecconf":
             return self.valid_getters["get_CNV"](CNV_type)
         return self.valid_getters["get_" + dataset]()
+
+    def get_omics(self):
+        return self.omics
+
+    def get_metadata(self):
+        return self.metadata
+    
+    def get_mutation_genes(self):
+        self.mutation_genes
 
     
