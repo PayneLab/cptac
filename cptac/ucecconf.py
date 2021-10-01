@@ -32,7 +32,7 @@ class UcecConf(Dataset):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        valid_versions = ["1.0", "1.1", "1.2", "2.0"]
+        valid_versions = ["1.0", "1.1", "1.2", "2.0", "2.0.1"]
 
         data_files = {
             "1.0": [
@@ -122,6 +122,26 @@ class UcecConf(Dataset):
             "UCEC_confirmatory_WGS_cnv_log2_ratio_tumor_v2.0.cct.gz",
 #             "UCEC_confirmatory_WGS_SV_tumor_v2.0.txt.gz",
             ],
+        "2.0.1": [
+            "UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v2.0.cct.gz",
+            "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log2_tumor_normal_v2.0.cct.gz",
+            "UCEC_confirmatory_meta_table_v2.0.1.xlsx",
+            "UCEC_confirmatory_methylation_gene_level_beta_value_tumor_v2.0.cct.gz",
+            "UCEC_confirmatory_miRNAseq_miRNA_TPM_log2(x+1)_tumor_normal_v2.0.cct.gz",
+            "UCEC_confirmatory_phospho_gene_ratio_median_polishing_log2_tumor_normal_v2.0.cct.gz",
+            "UCEC_confirmatory_phospho_site_ratio_median_polishing_log2_tumor_normal_v2.0.cct.gz",
+            "UCEC_confirmatory_proteomics_ratio_median_polishing_log2_tumor_normal_v2.0.cct.gz",
+            "UCEC_confirmatory_RNAseq_circRNA_RSEM_UQ_log2(x+1)_tumor_normal_v2.0.cct.gz",
+            "UCEC_confirmatory_RNAseq_gene_fusion_tumor_v2.0.txt.gz",
+            "UCEC_confirmatory_RNAseq_gene_RSEM_removed_circRNA_UQ_log2(x+1)_tumor_normal_v2.0.cct.gz",
+            "UCEC_confirmatory_SRM_Direct_tumor_v2.0.cct.gz",
+            "UCEC_confirmatory_SRM_IMAC_tumor_v2.0.cct.gz",
+            "UCEC_confirmatory_SRM_PRISM_tumor_v2.0.cct.gz",
+            "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.2.cbt.gz",
+            "UCEC_confirmatory_WES_somatic_mutation_v2.0.maf.gz",
+            "UCEC_confirmatory_WGS_cnv_gistic_thresholded_tumor_v2.0.cct.gz",
+            "UCEC_confirmatory_WGS_cnv_log2_ratio_tumor_v2.0.cct.gz",
+            ],
         }
 
         # Call the parent class __init__ function
@@ -167,7 +187,8 @@ class UcecConf(Dataset):
             elif file_name in ["UCEC_confirmatory_meta_table_v1.0.xlsx", 
                                "UCEC_confirmatory_meta_table_v1.1.xlsx",
                                "UCEC_confirmatory_meta_table_v1.2.xlsx",
-                               "UCEC_confirmatory_meta_table_v2.0.xlsx"]:
+                               "UCEC_confirmatory_meta_table_v2.0.xlsx",
+                               "UCEC_confirmatory_meta_table_v2.0.1.xlsx"]:
                 df = pd.read_excel(file_path)
                 df.insert(6, "Proteomics_Tumor_Normal", df["Group"])
                 df.loc[df['Group'] == 'Enriched_Normal', 'Idx'] = df['Idx'] + '.N'
