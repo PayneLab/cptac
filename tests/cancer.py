@@ -45,6 +45,24 @@ class Cancer:
             'CNV_gistic'
              ]
 
+    important_mutation_genes = ["TP53", "KRAS", "ARID1A", "PTEN", "EGFR"]
+
+    multi_join_types = [
+        "acetylproteomics", 
+        "CNV",
+        "CNV_gistic",
+        "CNV_log2ratio",
+        "phosphoproteomics", 
+        "phosphoproteomics_gene", 
+        "proteomics", 
+        "somatic_mutation_binary", 
+        "somatic_mutation", 
+        "transcriptomics", 
+        "clinical", 
+        "derived_molecular", 
+        "experimental_design"
+    ]
+
     def __init__(self, cancer_type, cancer_object):
         """
         Initialize a Cancer object.
@@ -65,6 +83,7 @@ class Cancer:
 
         self.valid_getters = dict()
         self.invalid_getters = dict()
+        self.multi_joinables = dict()
 
         self._sort_datasets()
         self._sort_getters()
@@ -74,12 +93,15 @@ class Cancer:
     def _sort_datasets(self):
         # categorize datasets for join tests
         # omics, metadata, 
+        
         datasets = self.cancer_object.get_data_list().items()
         for (dataset, dimensions) in datasets:
             if dataset in Cancer.metadata_types:
                 self.metadata.append(dataset)
             elif dataset in Cancer.valid_omics_dfs:
                 self.omics.append(dataset)
+            if dataset in ["clinical", "transcriptomics", "proteomics"]:
+                self.multi_joinables[dataset] = list()
 
     def _sort_getters(self):
         # collect all possible getters
@@ -110,8 +132,12 @@ class Cancer:
                 self.invalid_getters[getter_name] = g
 
     def _gather_mutation_genes(self):
+        self.mutation_genes = list()
         if "somatic_mutation" in self.cancer_object.get_data_list():
-            self.mutation_genes = self.cancer_object.get_somatic_mutation()["Gene"].tolist()
+            recorded_genes = self.cancer_object.get_somatic_mutation()["Gene"].tolist()
+            for g in self.important_mutation_genes:
+               if g in recorded_genes:
+                   self.mutation_genes.append(g)
 
     def get_dataset(self, dataset, CNV_type="log2ratio"):
         '''
@@ -134,6 +160,6 @@ class Cancer:
         return self.metadata
     
     def get_mutation_genes(self):
-        self.mutation_genes
+        return self.mutation_genes
 
     
