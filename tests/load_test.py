@@ -13,26 +13,27 @@ import pytest
 import cptac
 from cptac.exceptions import InvalidParameterError 
 
-'''class for testing the loading of datasets'''
 class TestLoad:
+    '''
+    A class for testing the loading of datasets
 
-    def test_public_datasets(self, get_public_datasets):
-        for dataset in get_public_datasets:
-            # TODO: add way to see dataset-specific failures
-            assert cptac.download(dataset, redownload=True)
-    
-    def test_protected_datasets(self, get_restricted_datasets):
-        for dataset in get_restricted_datasets:
-            # TODO: figure out how to handle passwords
-            # could add a directory outside of the package that contains a dict of the passwords.
-            #   Then figure out how to import that dict
-            #   The problem here is that other users with password access trying to run tests would have to know how to set up the files
-            # could figure out how to prompt a system file selection that contains json for the passwords and import that data
-            # could do nothing and let people type them in manually
-            assert cptac.download(dataset, redownload=True)
+    Methods
+    -------
+    test_datasets_download:
+        test downloading the datasets
+    test_invalid_dataset:
+        verify that the correct error is raised for attempting to download a non-existent dataset
+    test_dataset_object_creation:
+        verifies that all the Cancer objects have been created for further tests
+    '''
+
+    def test_datasets_download(self, download_datasets):
+        assert download_datasets
 
     def test_invalid_dataset(self):
         with pytest.raises(InvalidParameterError) as exception_raised:
             cptac.download("abc")
         assert exception_raised.type == InvalidParameterError
     
+    def test_dataset_object_creation(self, get_cancer_test_units):
+        assert get_cancer_test_units

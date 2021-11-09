@@ -66,9 +66,9 @@ class Dataset:
         self._valid_metadata_dfs = [
             "clinical",
             "derived_molecular",
-             "experimental_design",
-             #"followup", # Right now there are duplicate rows, so don't include follow up tables for joins.
-             ] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in Ccrcc, because they both have multiple rows for each sample.
+            "experimental_design",
+            #"followup", # Right now there are duplicate rows, so don't include follow up tables for joins.
+            ] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in Ccrcc, because they both have multiple rows for each sample.
         
         # Initialize the _cancer_type instance variable
         self._cancer_type = cancer_type.lower()
@@ -256,12 +256,22 @@ class Dataset:
             # no additional message will be printed if we have not passed in parameters
             pass
 
-    def list_data(self):
-        """Print list of loaded dataframes and dimensions."""
-        print("Below are the dataframes contained in this dataset:")
+    def get_data_list(self):
+        data_list = {}
         for name in sorted(self._data.keys(), key=str.lower):
             df = self._data[name]
-            print("\t{}\n\t\tDimensions: {}".format(name, df.shape))
+            data_list[name] = {'rows': df.shape[0], 'columns': df.shape[1]}
+        return data_list
+
+    def list_data(self):
+        """Print list of loaded dataframes and dimensions."""
+        print("Below are the dataframes contained in this dataset and their dimensions:\n")
+        datasets = self.get_data_list()
+        for entry in datasets:
+            data = datasets[entry]
+            print(f"{entry}")
+            print(f"\t{data['rows']} rows")
+            print(f"\t{data['columns']} columns")
 
     def list_definitions(self):
         """Print all terms defined in the dataset's list of definitions."""
@@ -272,7 +282,7 @@ class Dataset:
             raise NoDefinitionsError("No definitions provided for this dataset.")
 
     def get_genotype_all_vars(self, mutations_genes, mutations_filter=None, show_location=True, mutation_hotspot=None):
-        """Return a dataframe that has the mutation type and wheather or not it is a multiple mutation
+        """Return a dataframe that has the mutation type and whether or not it is a multiple mutation
         Parameters:
         mutation_genes (str, or list or array-like of str): The gene(s) to get mutation data for.
         mutations_filter (list, optional):  List of mutations to prioritize when filtering out multiple mutations, in order of priority.
