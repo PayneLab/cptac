@@ -34,7 +34,7 @@ def get_datasets_lists():
 
 ### Download all datasets
 # Must have autouse=True or else this never gets called
-@pytest.fixture(scope="session", autouse=False)
+@pytest.fixture(scope="session", autouse=True)
 def download_datasets(get_datasets_lists):
     # Download public datasets
     for cancer in get_datasets_lists["public"]:
