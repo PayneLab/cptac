@@ -1,0 +1,31 @@
+# This workflow checks and tests various things to assure full functionality
+
+name: Tests
+
+# Controls when the workflow will run
+on:
+  # This workflow will run whenever code is pushed to the master branch
+  push:
+    branches: [ master ]
+
+  # Allows running workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+          pip install pytest
+      - name: Run pytest
+        run: |
+          cd tests
+          pytest
