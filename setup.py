@@ -41,7 +41,7 @@ setup(name='cptac',
 		'mygene>=3.2.2'
 	],
 	classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
         'License :: OSI Approved :: Apache Software License',
