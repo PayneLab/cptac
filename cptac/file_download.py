@@ -267,7 +267,7 @@ def download_file(url, path, server_hash, password=None, _box_token=None, file_m
 
             response.raise_for_status() # Raises a requests.HTTPError if the response code was unsuccessful
         except requests.RequestException: # Parent class for all exceptions in the requests module
-            raise NoInternetError("Insufficient internet. Check your internet connection.") from None
+            raise NoInternetError("Insufficient internet. Check your internet connection.") #from None
             
         local_hash = hash_bytes(response.content)
         if local_hash == server_hash: # Only replace the old file if the new one downloaded successfully.
