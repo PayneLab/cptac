@@ -80,10 +80,12 @@ STUDY_IDS_MAP = {
 }
 
 
-def download(dataset, version="latest", redownload=False):
+def download(dataset, version="latest", redownload=False, box_token=None):
 
     dataset = dataset.lower()
-    box_token = get_box_token()
+
+    if box_token is None:
+        box_token = get_box_token()
 
     if dataset.startswith("pdc"):
 
@@ -120,7 +122,7 @@ def download(dataset, version="latest", redownload=False):
         for source in sources:
 
             if source.startswith("pdc"):
-                single_success = download(source, version=version, redownload=redownload)
+                single_success = download(source, version=version, redownload=redownload, box_token=box_token)
             else:
                 single_success = cptac.download(source, version=version, redownload=redownload, _box_auth=True, _box_token=box_token)
 
@@ -130,7 +132,7 @@ def download(dataset, version="latest", redownload=False):
         return overall_success
 
     else:
-        return cptac.download(dataset, version=version, redownload=redownload, _box_auth=True)
+        return cptac.download(dataset, version=version, redownload=redownload, _box_auth=True, _box_token=box_token)
 
 def download_pdc_id(pdc_id, _download_msg=True):
     """Download a PDC dataset by its PDC study id.
