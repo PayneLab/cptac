@@ -17,7 +17,7 @@ import warnings
 
 import cptac
 from cptac.file_download import get_box_token
-from cptac.exceptions import DatasetAlreadyInstalledWarning, InvalidParameterError, NoInternetError, PdcDownloadError
+from cptac.exceptions import CptacDevError, DatasetAlreadyInstalledWarning, InvalidParameterError, NoInternetError, PdcDownloadError
 
 from .pancanbrca import SOURCES as BRCA_SOURCES
 from .pancanccrcc import SOURCES as CCRCC_SOURCES
@@ -83,25 +83,13 @@ STUDY_IDS_MAP = {
 def download(dataset, version="latest", redownload=False):
 
     dataset = dataset.lower()
+    box_token = get_box_token()
 
     if dataset.startswith("pdc"):
-        box_token = get_box_token()
-        if dataset != 'pdcbrca': # pdcbrca is the only dataset that doesn't need a mapping file for PDC
-            mapping = cptac.download(dataset, version=version, redownload=redownload, _box_auth=True, _box_token=box_token) # download helper file for mapping aliquots to patient IDs        
-            omics = _pdc_download(dataset, version=version, redownload=redownload)        
-            if omics and mapping:
-                return True
-            else:
-                return False
-        else: # pdcbrca only needs omics
-            omics = _pdc_download(dataset, version=version, redownload=redownload)
-            if omics:
-                return True
-            else:
-                return False
+
+        return _pdc_download(dataset, version=version, redownload=redownload, box_token=box_token)
 
     elif dataset.startswith("pancan") or dataset == "all":
-        box_token = get_box_token()
 
         if dataset == "pancanbrca":
             sources = BRCA_SOURCES
@@ -211,7 +199,7 @@ def list_pdc_datasets():
 
 # Helper functions
     
-def _pdc_download(dataset, version, redownload):
+def _pdc_download(dataset, version, redownload, box_token):
     """Download data for the specified cancer type from the PDC."""
 
     dataset = str.lower(dataset)
@@ -219,48 +207,51 @@ def _pdc_download(dataset, version, redownload):
     if dataset == "pdcall":
         overall_result = True
         for dataset in STUDY_IDS_MAP.keys():
-            if not pdc_download(dataset, version, redownload):
+            if not _pdc_download(dataset, version, redownload):
                 overall_result = False
 
         return overall_result
 
     if not dataset.startswith("pdc"):
-        raise InvalidParameterError(f"pdc_download function can only be used for PDC datasets, which start with the prefix 'pdc'. You tried to download '{dataset}'.")
+        raise InvalidParameterError(f"_pdc_download function can only be used for PDC datasets, which start with the prefix 'pdc'. You tried to download '{dataset}'.")
 
     if dataset not in STUDY_IDS_MAP.keys():
         raise InvalidParameterError(f"PDC dataset must be one of the following:\n{list(STUDY_IDS_MAP.keys())}\nYou passed '{dataset}'.")
 
     dataset_ids = STUDY_IDS_MAP[dataset]
 
-    # Get the directory to where to store the data, and see if it exists
+    # Download the file for mapping aliquots to patient IDs
+    if not cptac.download(dataset, version=version, redownload=redownload, _box_auth=True, _box_token=box_token):
+        return False
+
     path_here = os.path.abspath(os.path.dirname(__file__))
     cancer_dir = os.path.join(path_here, f"data_{dataset}")
 
-    if os.path.isdir(cancer_dir):
+    # Check that the index file exists. If not, there was an uncaught error in the mapping file download.
+    index_path = os.path.join(cancer_dir, "index.txt")
+    if not os.path.isfile(index_path):
+        raise CptacDevError(f"Index file not found at {index_path}. Mapping file download probably failed.")
 
-        index_path = os.path.join(cancer_dir, "index.txt")
-
-        # Check that they also have the index
-        if not os.path.isfile(index_path):
-            redownload = True
-        else:
-            # The PDC doesn't have a versioning scheme for the tables they serve, so originally we just called it version 0.0 but later decided it would be better to call it 1.0. So, check if theirs is called 0.0; if so, replace it with 1.0.
-
-            with open(index_path, "r") as index_file:
-                first_line = index_file.readline()
-
-            if first_line.startswith("#0.0"):
-                redownload=True
-
-        if redownload:
-            shutil.rmtree(cancer_dir)
-        else:
-
-            return True
-
-    os.mkdir(cancer_dir)
+    # See what data files we need to download
     data_dir = os.path.join(cancer_dir, f"{dataset}_v1.0")
-    os.mkdir(data_dir)
+
+    # If any of the files are missing, we're going to delete any remaining and redownload all, in case the missing files are a sign of a previous data problem
+    data_files = [f"{data_type}.tsv.gz" for data_type in dataset_ids.keys()] + ["clinical.tsv.gz"]
+    for data_file in data_files:
+        data_file_path = os.path.join(data_dir, data_file)
+        if not os.path.isfile(data_file_path):
+            redownload = True
+            break
+
+    if redownload:
+        for data_file in data_files:
+            data_file_path = os.path.join(data_dir, data_file)
+            if os.path.isfile(data_file_path):
+                os.remove(data_file_path)
+    else:
+        return True # If all the files are there and the user didn't ask to redownload, we're done.
+
+    # Now download all the data files
 
     # We'll combine all the clinical tables in case there are differences
     master_clin = pd.DataFrame()
@@ -297,12 +288,6 @@ def _pdc_download(dataset, version, redownload):
 
     master_clin.to_csv(os.path.join(data_dir, "clinical.tsv.gz"), sep="\t")
 
-    # Write a dummy index with just version numbers
-    index_path = os.path.join(cancer_dir, "index.txt")
-
-    with open(index_path, "w") as index_file:
-        index_file.write("#1.0\n")
-        
     # Erase update
     print(" " * len(save_msg), end="\r")
 

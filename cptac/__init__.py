@@ -9,12 +9,13 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import pandas as pd
-import webbrowser
-import os.path as path
 import io
+import os.path as path
+import pandas as pd
 import sys
+import threading
 import warnings
+import webbrowser
 
 # Function imports
 from .file_download import download
@@ -87,13 +88,17 @@ def _warning_displayer(message, category, filename, lineno, file=None, line=None
 warnings.showwarning = _warning_displayer # And our custom warning displayer
 warnings.simplefilter("always", category=CptacWarning) # Edit the warnings filter to show multiple occurences of cptac-generated warnings
 
-# Check whether the package is up-to-date
-version_url = "https://byu.box.com/shared/static/kbwivmqnrdnn5im2gu6khoybk5a3rfl0.txt"
-try:
-    remote_version = _download_text(version_url)
-except NoInternetError:
-    pass
-else:
-    local_version = version()
-    if remote_version != local_version:
-        warnings.warn(f"Your version of cptac ({local_version}) is out-of-date. Latest is {remote_version}. Please run 'pip install --upgrade cptac' to update it.", OldPackageVersionWarning, stacklevel=2)
+# Check in background whether the package is up-to-date
+def check_version():
+    version_url = "https://byu.box.com/shared/static/kbwivmqnrdnn5im2gu6khoybk5a3rfl0.txt"
+    try:
+        remote_version = _download_text(version_url)
+    except NoInternetError:
+        pass
+    else:
+        local_version = version()
+        if remote_version != local_version:
+            warnings.warn(f"Your version of cptac ({local_version}) is out-of-date. Latest is {remote_version}. Please run 'pip install --upgrade cptac' to update it.", OldPackageVersionWarning, stacklevel=2)
+
+version_check_thread = threading.Thread(target=check_version)
+version_check_thread.start() # We don't join because we want this to just finish in the background and not block the main thread

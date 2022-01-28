@@ -51,7 +51,7 @@ class WashuCcrcc(Dataset):
                 "ccRCC_total_miRNA_combined.tsv",               
                 "CIBERSORT.Output_Abs_ccRCC.txt",
                 "ccRCC_xCell.txt",
-                "CCRCC.gene_level.from_seg.filtered.tsv",
+                "ccRCC.gene_level.from_seg.filtered.tsv",
                 "gencode.v22.annotation.gtf.gz",
                 "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
                 "README_miRNA",
@@ -153,7 +153,7 @@ class WashuCcrcc(Dataset):
                 df.index = df.index.str.replace(r'-A$', '.N', regex=True)
                 self._data["cibersort"] = df
                 
-            elif file_name == "CCRCC.gene_level.from_seg.filtered.tsv":
+            elif file_name == "ccRCC.gene_level.from_seg.filtered.tsv":
                 df = pd.read_csv(file_path, sep="\t")
                 df = df.rename(columns={"Gene": "Name"})
                 df = df.set_index("Name")
