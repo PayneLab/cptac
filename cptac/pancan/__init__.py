@@ -9,6 +9,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from cptac.file_download import get_box_token
+
 from .file_download import download, download_pdc_id, list_pdc_datasets
 
 from .pdcbrca import PdcBrca
