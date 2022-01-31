@@ -36,6 +36,7 @@ You can access the tutorials and use cases as static webpages using the links be
 - [Tutorial 4: Understanding multi-indexes](https://paynelab.github.io/cptac/tutorial04_multiindex.html)
 - [Tutorial 5: How to keep up to date with new package and data releases](https://paynelab.github.io/cptac/tutorial05_updates.html)
 - [Tutorial 6: Easy integration with R](https://paynelab.github.io/cptac/tutorial06_cptac_in_R.html)
+- [Tutorial 7: Accessing pancan data from the harmonized pipeline](https://paynelab.github.io/cptac/tutorial07_pancan.html)
 
 ### Use cases
 - [Use Case 1: Comparing transcriptomics and proteomics](https://paynelab.github.io/cptac/usecase01_omics.html)
