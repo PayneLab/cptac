@@ -300,9 +300,6 @@ class PancanDataset:
             if isinstance(cnv.keys(), pd.core.indexes.multi.MultiIndex):
                 cnv = ut.reduce_multiindex(df=cnv, levels_to_drop=['Database_ID'])       
             gene_cnv = cnv[[mutations_genes]]
-#             mutation_col = gene_cnv.apply(lambda row: 'Deletion' if row[mutations_genes] <=-.2 else
-#                                                       'Amplification' if row[mutations_genes] >=.2 else
-#                                                       'No_Mutation', axis=1)
             df = gene_cnv.assign(Mutation = gene_cnv.apply(lambda row: 'Deletion' if row[mutations_genes] <=-.2 else
                                                       'Amplification' if row[mutations_genes] >=.2 else
                                                       'No_Mutation', axis=1))
