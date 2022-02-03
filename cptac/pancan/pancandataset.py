@@ -200,7 +200,6 @@ class PancanDataset:
 
         for source in sorted(self._datasets.keys()):
             for df_name in sorted(self._datasets[source]._data.keys()):
-
                 if df_name in ["cibersort", "xcell"]:
                     df_name = f"deconvolution_{df_name}" # For clarity
 
@@ -278,7 +277,7 @@ class PancanDataset:
         #If they don't give us a filter, this is the default.
            
         mutations_filter = ["Deletion",
-                                    'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', #tuncation
+                                    'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', #truncation
                                     'Missense_Mutation_hotspot',
                                     'Missense_Mutation',
                                     'Amplification',
@@ -293,29 +292,20 @@ class PancanDataset:
         noncodings = ["Intron", "RNA", "3'Flank", "Splice_Region", "5'UTR", "5'Flank", "3'UTR"]
 
 
-
         #check that gene is in the somatic_mutation DataFrame
         somatic_mutation = self.get_somatic_mutation()
-        if mutations_genes not in somatic_mutation["Gene"].unique(): #if the gene isn't in the somacic mutations df it will still have CNV data that we want
-            def add_del_and_amp_no_somatic(row):
-                if row[mutations_genes] <= -.2:
-                    mutations = 'Deletion'
-
-                elif row[mutations_genes] >= .2:
-                    mutations = 'Amplification'
-                else:
-                    mutations = "No_Mutation"
-
-                return mutations
-            
+        if mutations_genes not in somatic_mutation["Gene"].unique(): #if the gene isn't in the somatic mutations df it will still have CNV data that we want             
             cnv = self.get_CNV(source = omics_source)
             #drop the database index from ccrcc and brca
             if isinstance(cnv.keys(), pd.core.indexes.multi.MultiIndex):
-                drop = ['Database_ID']
-                cnv = ut.reduce_multiindex(df=cnv, levels_to_drop=drop)       
+                cnv = ut.reduce_multiindex(df=cnv, levels_to_drop=['Database_ID'])       
             gene_cnv = cnv[[mutations_genes]]
-            mutation_col = gene_cnv.apply(add_del_and_amp_no_somatic, axis=1)
-            df = gene_cnv.assign(Mutation = mutation_col)
+#             mutation_col = gene_cnv.apply(lambda row: 'Deletion' if row[mutations_genes] <=-.2 else
+#                                                       'Amplification' if row[mutations_genes] >=.2 else
+#                                                       'No_Mutation', axis=1)
+            df = gene_cnv.assign(Mutation = gene_cnv.apply(lambda row: 'Deletion' if row[mutations_genes] <=-.2 else
+                                                      'Amplification' if row[mutations_genes] >=.2 else
+                                                      'No_Mutation', axis=1))
             return df
 
 
@@ -324,8 +314,8 @@ class PancanDataset:
                 
 
         #drop the database index 
-        drop = ['Database_ID']
-        combined = ut.reduce_multiindex(df=combined, levels_to_drop=drop)
+        combined = ut.reduce_multiindex(df=combined, levels_to_drop=['Database_ID'])
+        print(combined) #DELETEME
 
 
         #If there are hotspot mutations, append 'hotspot' to the mutation type so that it's prioritized correctly
@@ -348,6 +338,7 @@ class PancanDataset:
             combined['hotspot'] = combined.apply(mark_hotspot_locations, axis=1)
             combined[mutations_genes+"_Mutation"] = combined['hotspot']
             combined = combined.drop(columns='hotspot')
+        return combined
      
 
         # Based on cnv make a new column with mutation type that includes deletions and amplifications
