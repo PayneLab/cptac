@@ -145,7 +145,8 @@ class UmichCoad(Dataset):
                 df.columns.name = 'Name'
                 df = average_replicates(df)
                 df = df.sort_values(by=["Patient_ID"])
-                self._data["proteomics_imputed"] = df'''
+                self._data["proteomics_imputed"] = df
+            '''
                 
           
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
