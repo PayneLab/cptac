@@ -9,6 +9,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from operator import inv
 import os
 import pandas as pd
 import requests
@@ -82,57 +83,25 @@ STUDY_IDS_MAP = {
 
 def download(dataset, version="latest", redownload=False, box_token=None):
 
-    dataset = dataset.lower()
+    if type(dataset) is str:
+
+        dataset = dataset.lower()
+        if dataset.startswith("pdc"):
+            return _pdc_download(dataset, version=version, redownload=redownload, box_token=box_token)
+        
+        if dataset.startswith("pancan") or dataset == "all":
+            download = _download_by_cancer
+    
+    elif type(dataset) is dict:
+        download = _download_by_source
+
+    else:
+        raise InvalidParameterError(f"the dataset parameter must be a string of the cancer type (e.g. 'pancanbrca') or a dictionary {{'source' : datatype}} (e.g. {{'broad': 'CNV'}})")
 
     if box_token is None:
         box_token = get_box_token()
 
-    if dataset.startswith("pdc"):
-
-        return _pdc_download(dataset, version=version, redownload=redownload, box_token=box_token)
-
-    elif dataset.startswith("pancan") or dataset == "all":
-
-        if dataset == "pancanbrca":
-            sources = BRCA_SOURCES
-        elif dataset == "pancanccrcc":
-            sources = CCRCC_SOURCES
-        elif dataset == "pancancoad":
-            sources = COAD_SOURCES
-        elif dataset == "pancangbm":
-            sources = GBM_SOURCES
-        elif dataset == "pancanhnscc":
-            sources = HNSCC_SOURCES
-        elif dataset == "pancanlscc":
-            sources = LSCC_SOURCES
-        elif dataset == "pancanluad":
-            sources = LUAD_SOURCES
-        elif dataset == "pancanov":
-            sources = OV_SOURCES
-        elif dataset == "pancanucec":
-            sources = UCEC_SOURCES
-        elif dataset == "pancanpdac":
-            sources = PDAC_SOURCES
-        elif dataset == "all":
-            sources = sorted(set(BRCA_SOURCES + CCRCC_SOURCES + COAD_SOURCES + GBM_SOURCES + HNSCC_SOURCES + LSCC_SOURCES + LUAD_SOURCES + OV_SOURCES + UCEC_SOURCES + PDAC_SOURCES))
-        else:
-            raise InvalidParameterError(f"{dataset} is not a valid dataset.")
-
-        overall_success = True
-        for source in sources:
-
-            if source.startswith("pdc"):
-                single_success = download(source, version=version, redownload=redownload, box_token=box_token)
-            else:
-                single_success = cptac.download(source, version=version, redownload=redownload, _box_auth=True, _box_token=box_token)
-
-            if not single_success:
-                overall_success = False
-
-        return overall_success
-
-    else:
-        return cptac.download(dataset, version=version, redownload=redownload, _box_auth=True, _box_token=box_token)
+    return download(dataset, version, redownload, box_token)
 
 def download_pdc_id(pdc_id, _download_msg=True):
     """Download a PDC dataset by its PDC study id.
@@ -200,6 +169,93 @@ def list_pdc_datasets():
             print(f"\t{data_type}: {STUDY_IDS_MAP[dataset][data_type]}")
 
 # Helper functions
+def _download_by_cancer(dataset, version, redownload, box_token):
+    '''Download PDC data by cancer (brca, hnscc, etc.)
+    '''
+    if dataset.startswith("pancan") or dataset == "all":
+
+        if dataset == "pancanbrca":
+            sources = BRCA_SOURCES
+        elif dataset == "pancanccrcc":
+            sources = CCRCC_SOURCES
+        elif dataset == "pancancoad":
+            sources = COAD_SOURCES
+        elif dataset == "pancangbm":
+            sources = GBM_SOURCES
+        elif dataset == "pancanhnscc":
+            sources = HNSCC_SOURCES
+        elif dataset == "pancanlscc":
+            sources = LSCC_SOURCES
+        elif dataset == "pancanluad":
+            sources = LUAD_SOURCES
+        elif dataset == "pancanov":
+            sources = OV_SOURCES
+        elif dataset == "pancanucec":
+            sources = UCEC_SOURCES
+        elif dataset == "pancanpdac":
+            sources = PDAC_SOURCES
+        elif dataset == "all":
+            sources = sorted(set(BRCA_SOURCES + CCRCC_SOURCES + COAD_SOURCES + GBM_SOURCES + HNSCC_SOURCES + LSCC_SOURCES + LUAD_SOURCES + OV_SOURCES + UCEC_SOURCES + PDAC_SOURCES))
+        else:
+            raise InvalidParameterError(f"{dataset} is not a valid dataset.")
+
+        overall_success = True
+        for source in sources:
+
+            if source.startswith("pdc"):
+                single_success = download(source, version=version, redownload=redownload, box_token=box_token)
+            else:
+                single_success = cptac.download(source, version=version, redownload=redownload, _box_auth=True, _box_token=box_token)
+
+            if not single_success:
+                overall_success = False
+
+        return overall_success
+
+    else:
+        return cptac.download(dataset, version=version, redownload=redownload, _box_auth=True, _box_token=box_token)
+
+def _download_by_source(dataset, version, redownload, box_token):
+    '''Download PDC data by source (broad, washu, etc.)
+    dataset: a dict of form {datatype : source} or {source : datatype}
+        datatype should be a string
+        source can be a string or a list of strings
+    '''
+    # verify all sources are valid
+    for source in dataset.keys():
+        invalid_sources = set()
+        # TODO get valid sources from somewhere
+        if source not in valid_sources:
+            invalid_sources.add(source)
+            
+        if len(invalid_sources) > 0:
+            raise InvalidParameterError(f"Invalid source(s) detected: {invalid_sources}")
+
+    # all valid sources for all cancer types
+    SOURCES = sorted(set(BRCA_SOURCES + CCRCC_SOURCES + COAD_SOURCES + GBM_SOURCES + HNSCC_SOURCES + LSCC_SOURCES + LUAD_SOURCES + OV_SOURCES + UCEC_SOURCES + PDAC_SOURCES))
+    
+    overall_success = True
+    for source, datatype in dataset.items():
+
+        if type(dataset) is not list:
+            datatype = list([datatype])
+        
+        if source.startswith("pdc"):
+            warnings.warn(f"Individual pdc datatypes are unable to be downloaded individually. Downloading all datatypes...")
+            single_success = download(source, version=version, redownload=redownload, box_token=box_token)
+            if not single_success:
+                overall_success = False
+        else:
+            # get data for all cancer types from the given source
+            for s in SOURCES:
+                if s.startswith(source):
+                    # TODO: add provision for datatype variable in cptac.download
+                    single_success = cptac.download(source, datatype=datatype, version=version, redownload=redownload, _box_auth=True, _box_token=box_token)
+                    if not single_success:
+                        overall_success = False
+
+    return overall_success
+                
     
 def _pdc_download(dataset, version, redownload, box_token):
     """Download data for the specified cancer type from the PDC."""
