@@ -173,10 +173,42 @@ def get_index(dataset):
                 file_name = line_list[0]
                 file_hash = line_list[1]
                 file_url = line_list[2]
+                file_datatype = line_list[3]
                 index[version][file_name] = {}
                 index[version][file_name]["hash"] = file_hash
                 index[version][file_name]["url"] = file_url
+                index[version][file_name]["datatype"] = file_datatype
     return index
+
+def get_filtered_version_index(version_index, datatypes, source):
+    """Filter the version index to only include the desired dtypes.
+    
+    Also checks for invalid or unavailable datatypes.
+
+    Parameters:
+    version_index (dict): The version index dictionary
+    datatypes (list of str): The datatypes desired
+    source: The source from where the datatypes will be loaded 
+
+    Returns:
+    dict: The filtered version index
+    """
+    found_datatypes = list()
+    filtered_version_index = dict()
+
+    # add the files of the desired datatypes to a new dict (filtered_version_index)
+    for file_name in version_index.keys():
+        if version_index[file_name]['datatype'] in datatypes:
+            filtered_version_index[file_name] = version_index[file_name]
+            found_datatypes.append(version_index[file_name]['datatype'])
+    
+    # check for invalid and unavailable datatypes
+    if len(found_datatypes == 0):
+        raise InvalidParameterError(f"None of the specified data types were found for the {source} source: {datatypes}")
+    if set(found_datatypes) != set(datatypes):
+        warnings.warn(f"These datatypes were not found for the {source} source: {set(datatypes) - set(found_datatypes)}")
+
+    return filtered_version_index
 
 def parse_tsv_dict(path):
     """Read in a dictionary from the given two column tsv file.

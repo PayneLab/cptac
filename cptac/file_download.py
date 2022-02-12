@@ -31,11 +31,12 @@ from .exceptions import InvalidParameterError, NoInternetError, DownloadFailedEr
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
 HEADERS = {'User-Agent': USER_AGENT}
 
-def download(dataset, version="latest", redownload=False, _box_auth=False, _box_token=None):
+def download(dataset, datatypes=None, version="latest", redownload=False, _box_auth=False, _box_token=None):
     """Download data files for the specified datasets. Defaults to downloading latest version on server.
 
     Parameters:
     dataset (str): The name of the dataset to download data for, or "all" to download data for all datasets
+    datatypes (list of str): The datatypes desired if lazy loading pancan data
     version (str, optional): Which version of the data files to download. Defaults to latest on server.
     redownload (bool, optional): Whether to redownload the data files, even if that version of the data is already downloaded. Default False.
     _box_auth (bool, optional): Whether to download the files using Box file IDs and OAuth2 authentication. Default False.
@@ -89,8 +90,13 @@ def download(dataset, version="latest", redownload=False, _box_auth=False, _box_
     # Construct the path to the directory for this version
     version_path = os.path.join(dataset_path, f"{dataset}_v{version}")
 
-    # See if they've downloaded this version before. Get list of files to download.
+    # Get the index for the desired version
+    # If datatypes are specified, filter out the undesired datatypes
     version_index = index.get(version)
+    if datatypes is not None:
+        version_index = get_filtered_version_index(version_index=version_index, datatypes=datatypes, source=dataset)
+
+    # See if they've downloaded this version before. Get list of files to download.
     if os.path.isdir(version_path):
         if redownload:
             files_to_download = list(version_index.keys())
