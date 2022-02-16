@@ -290,7 +290,7 @@ def get_genotype_all_vars(self, mutations_gene, omics_source, mutations_filter=N
 
 
         #combine the cnv and mutations dataframe
-        combined = self.join_omics_to_mutations(omics_df_name="CNV", mutations_genes, mutation_hotspot = ['p.L113del'] = mutations_gene, omics_genes = mutations_gene, omics_source = omics_source)
+        combined = self.join_omics_to_mutations(omics_df_name="CNV", mutations_genes = mutations_gene, mutation_hotspot = mutation_hotspot, omics_genes = mutations_gene, omics_source = omics_source)
         combined = ut.reduce_multiindex(df=combined, levels_to_drop=['Database_ID'])
         combined["mutations_list"] = np.empty((len(combined), 0)).tolist()
         
