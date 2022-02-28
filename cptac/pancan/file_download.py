@@ -11,6 +11,7 @@
 
 from operator import inv
 import os
+from unittest.loader import VALID_MODULE_NAME
 import pandas as pd
 import requests
 import shutil
@@ -30,6 +31,8 @@ from .pancanluad import SOURCES as LUAD_SOURCES
 from .pancanov import SOURCES as OV_SOURCES
 from .pancanucec import SOURCES as UCEC_SOURCES
 from .pancanpdac import SOURCES as PDAC_SOURCES
+
+VALID_SOURCES = ['bcm', 'broad', 'mssm', 'pdc', 'umich', 'washu', 'harmonized']
 
 STUDY_IDS_MAP = {
     "pdcbrca": {
@@ -224,12 +227,11 @@ def _download_by_source(dataset, version, redownload, box_token):
     # verify all sources are valid
     for source in dataset.keys():
         invalid_sources = set()
-        # TODO get valid sources from somewhere
-        if source not in valid_sources:
+        if source.lower() not in VALID_SOURCES:
             invalid_sources.add(source)
             
         if len(invalid_sources) > 0:
-            raise InvalidParameterError(f"Invalid source(s) detected: {invalid_sources}")
+            raise InvalidParameterError(f"Invalid source(s) detected: {invalid_sources}. Valid sources include {VALID_SOURCES}.")
 
     # all valid sources for all cancer types
     SOURCES = sorted(set(BRCA_SOURCES + CCRCC_SOURCES + COAD_SOURCES + GBM_SOURCES + HNSCC_SOURCES + LSCC_SOURCES + LUAD_SOURCES + OV_SOURCES + UCEC_SOURCES + PDAC_SOURCES))
@@ -238,7 +240,7 @@ def _download_by_source(dataset, version, redownload, box_token):
     for source, datatype in dataset.items():
 
         if type(dataset) is not list:
-            datatype = list([datatype])
+            datatypes = list([datatype])
         
         if source.startswith("pdc"):
             warnings.warn(f"Individual pdc datatypes are unable to be downloaded individually. Downloading all datatypes...")
@@ -249,8 +251,7 @@ def _download_by_source(dataset, version, redownload, box_token):
             # get data for all cancer types from the given source
             for s in SOURCES:
                 if s.startswith(source):
-                    # TODO: add provision for datatype variable in cptac.download
-                    single_success = cptac.download(source, datatype=datatype, version=version, redownload=redownload, _box_auth=True, _box_token=box_token)
+                    single_success = cptac.download(dataset='all', source=source, datatypes=datatypes, version=version, redownload=redownload, _box_auth=True, _box_token=box_token)
                     if not single_success:
                         overall_success = False
 

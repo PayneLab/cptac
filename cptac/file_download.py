@@ -31,7 +31,7 @@ from .exceptions import InvalidParameterError, NoInternetError, DownloadFailedEr
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
 HEADERS = {'User-Agent': USER_AGENT}
 
-def download(dataset, datatypes=None, version="latest", redownload=False, _box_auth=False, _box_token=None):
+def download(dataset, source=None, datatypes=None, version="latest", redownload=False, _box_auth=False, _box_token=None):
     """Download data files for the specified datasets. Defaults to downloading latest version on server.
 
     Parameters:
@@ -63,19 +63,39 @@ def download(dataset, datatypes=None, version="latest", redownload=False, _box_a
         "ucecconf",
     ]
 
+    pancan_datasets = [
+        "brca",
+        "ccrcc",
+        "coad",
+        "gbm",
+        "hnscc",
+        "lscc",
+        "luad",
+        "ov",
+        "pdac",
+        "ucec",
+    ]
+
     if dataset in datasets and _box_auth:
         raise InvalidParameterError(f"You are trying to use the cptac.pancan.download function to download the {dataset} dataset. This is the wrong function; that dataset is not associated with the cptac.pancan module. Please instead use the regular cptac.download function.")
 
     # Process the optional "all" parameter
     if dataset == "all":
+
+        # handle pancan scenarios
+        if source is not None:
+            datasets = pancan_datasets
+
         overall_result = True
         for dataset in datasets:
-            if not download(dataset, redownload=redownload):
+            if not download(dataset, source=source, datatypes=datatypes, version=version, redownload=redownload, _box_auth=_box_auth, _box_token=_box_token):
                 overall_result = False
-
+        
         return overall_result
 
     # Get our dataset path
+    if source is not None: # handle pancan scenario
+        dataset = str.join([source, dataset])
     dataset_path = get_dataset_path(dataset)
 
     # Update the index
@@ -93,7 +113,7 @@ def download(dataset, datatypes=None, version="latest", redownload=False, _box_a
     # Get the index for the desired version
     # If datatypes are specified, filter out the undesired datatypes
     version_index = index.get(version)
-    if datatypes is not None:
+    if datatypes is not None and datatypes != "all":
         version_index = get_filtered_version_index(version_index=version_index, datatypes=datatypes, source=dataset)
 
     # See if they've downloaded this version before. Get list of files to download.

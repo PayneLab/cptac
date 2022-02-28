@@ -17,6 +17,7 @@ from cptac.exceptions import DataFrameNotIncludedError, InvalidParameterError
 
 class TestGet:
 
+    # from cancer test units, grab the dict of function names and function pointers for valid getters and test them to make sure they return a dataframe object
     def test_valid_getters(self, get_cancer_test_units):
         test_units = get_cancer_test_units
         for cancer in test_units:

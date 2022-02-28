@@ -198,7 +198,7 @@ def get_filtered_version_index(version_index, datatypes, source):
 
     # add the files of the desired datatypes to a new dict (filtered_version_index)
     for file_name in version_index.keys():
-        if version_index[file_name]['datatype'] in datatypes:
+        if version_index[file_name]['datatype'] in datatypes or version_index[file_name]['datatype'] == 'mapping':
             filtered_version_index[file_name] = version_index[file_name]
             found_datatypes.append(version_index[file_name]['datatype'])
     
