@@ -15,6 +15,7 @@ cptac/data_ccrcc/*
 cptac/data_colon/*
 cptac/data_endometrial/*
 cptac/data_gbm/*
+cptac/data_gbmconf/*
 cptac/data_hnscc/*
 cptac/data_lscc/*
 cptac/data_luad/*
@@ -96,6 +97,7 @@ cptac/utils/data/hgnc_protein_families.tsv
 !cptac/data_colon/index_urls.tsv
 !cptac/data_endometrial/index_urls.tsv
 !cptac/data_gbm/index_urls.tsv
+!cptac/data_gbmconf/index_urls.tsv
 !cptac/data_hnscc/index_urls.tsv
 !cptac/data_lscc/index_urls.tsv
 !cptac/data_luad/index_urls.tsv
