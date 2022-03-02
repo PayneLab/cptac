@@ -209,14 +209,8 @@ class PancanDataset:
                 else:
                     data_sources[df_name] = [source]
 
-        data_sources = pd.\
-        DataFrame(data_sources).\
-        transpose().\
-        sort_index().\
-        reset_index()
-
+        data_sources = pd.DataFrame(data_sources).transpose().sort_index().reset_index()
         data_sources.columns=["Data type", "Available sources"]
-
         return data_sources
         
 
@@ -319,16 +313,17 @@ def get_genotype_all_vars(self, mutations_gene, omics_source, mutations_filter=N
         if mutations_filter == None:
             mutations_filter = ["Deletion",
                                     'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', #truncation
-                                    'Missense_Mutation_hotspot','Missense_Mutation',
+                                    'Missense_Mutation',
                                     'Amplification',
                                     'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site' ,
                                     'De_Novo_Start_Out_Frame' ,'De_Novo_Start_In_Frame', 
                                     'Start_Codon_Ins', 'Start_Codon_SNP', 
                                     'Silent',
                                     'Wildtype_Tumor']
-        mutations_filter = {mutation : 2 * rank + 1 for rank, mutation in enumerate(mutations_filter)}
-        hotspot_filter = {mutation + "_hotspot" : rank for rank, mutation in enumerate(mutations_filter)}
-        mutations_filter.update(hotspot_filter)
+        if mutation_hotspot != None:
+            mutations_filter = {mutation : 2 * rank + 1 for rank, mutation in enumerate(mutations_filter)}
+            hotspot_filter = {mutation + "_hotspot" : rank for rank, mutation in enumerate(mutations_filter)}
+            mutations_filter.update(hotspot_filter)
 
         # Although seemingly complex, the following four lines do the following:
         # 1. For each row, link (zip) the items in the ["mutations_list"] and ["locations_list"] columns together
