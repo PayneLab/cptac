@@ -18,7 +18,7 @@ from .file_download import update_index
 from .dataframe_tools import *
 from .exceptions import FailedReindexWarning, ReindexMapError
 
-class Ovarian(Dataset):
+class AwgOv(Dataset):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the ovarian dataframes as values in the self._data dict variable, with names as keys, and format them properly.

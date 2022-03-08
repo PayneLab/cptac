@@ -31,13 +31,14 @@ SOURCES = [
     "harmonized"
 ]
 
-class PancanHnscc(PancanDataset):
+class Hnscc(PancanDataset):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with HNSCC data and provide an interface to them."""
 
         super().__init__(cancer_type="pancanhnscc", version=version, no_internet=no_internet)
         
+        self._datasets["awg"] = AwgHnscc(no_internet=no_internet, version=self._get_version("awg"))
         self._datasets["bcm"] = BcmHnscc(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["broad"] = BroadHnscc(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanhnscc')

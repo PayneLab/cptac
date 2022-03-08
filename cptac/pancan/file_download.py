@@ -9,28 +9,27 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from operator import inv
+
 import os
 from unittest.loader import VALID_MODULE_NAME
 import pandas as pd
 import requests
-import shutil
 import warnings
 
 import cptac
 from cptac.file_download import get_box_token
-from cptac.exceptions import CptacDevError, DatasetAlreadyInstalledWarning, InvalidParameterError, NoInternetError, PdcDownloadError
+from cptac.exceptions import CptacDevError, InvalidParameterError, NoInternetError, PdcDownloadError
 
-from .pancanbrca import SOURCES as BRCA_SOURCES
-from .pancanccrcc import SOURCES as CCRCC_SOURCES
-from .pancancoad import SOURCES as COAD_SOURCES
-from .pancangbm import SOURCES as GBM_SOURCES
-from .pancanhnscc import SOURCES as HNSCC_SOURCES
-from .pancanlscc import SOURCES as LSCC_SOURCES
-from .pancanluad import SOURCES as LUAD_SOURCES
-from .pancanov import SOURCES as OV_SOURCES
-from .pancanucec import SOURCES as UCEC_SOURCES
-from .pancanpdac import SOURCES as PDAC_SOURCES
+from .brca import SOURCES as BRCA_SOURCES
+from .ccrcc import SOURCES as CCRCC_SOURCES
+from .coad import SOURCES as COAD_SOURCES
+from .gbm import SOURCES as GBM_SOURCES
+from .hnscc import SOURCES as HNSCC_SOURCES
+from .lscc import SOURCES as LSCC_SOURCES
+from .luad import SOURCES as LUAD_SOURCES
+from .ov import SOURCES as OV_SOURCES
+from .ucec import SOURCES as UCEC_SOURCES
+from .pdac import SOURCES as PDAC_SOURCES
 
 VALID_SOURCES = ['bcm', 'broad', 'mssm', 'pdc', 'umich', 'washu', 'harmonized']
 

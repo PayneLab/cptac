@@ -30,13 +30,14 @@ SOURCES = [
     "harmonized"
 ]
 
-class PancanOv(PancanDataset):
+class Ov(PancanDataset):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with OV data and provide an interface to them."""
 
         super().__init__(cancer_type="pancanov", version=version, no_internet=no_internet)
         
+        self._datasets["awg"] = AwgOv(no_internet=no_internet, version=self._get_version("awg"))
         self._datasets["bcm"] = BcmOv(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["broad"] = BroadOv(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanov')

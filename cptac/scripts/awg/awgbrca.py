@@ -17,10 +17,10 @@ from .dataset import Dataset
 from .dataframe_tools import *
 from .exceptions import FailedReindexWarning, ReindexMapError
 
-class Brca(Dataset):
+class AwgBrca(Dataset):
 
     def __init__(self, version="latest", no_internet=False):
-        """Load all of the brca dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+        """Load all of the awgbrca dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".

@@ -31,13 +31,14 @@ SOURCES = [
     "harmonized"
 ]
 
-class PancanBrca(PancanDataset):
+class Brca(PancanDataset):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with BRCA data and provide an interface to them."""
 
         super().__init__(cancer_type="pancanbrca", version=version, no_internet=no_internet)
 
+        self._datasets["awg"] = AwgBrca(no_internet=no_internet, version=self._get_version("awg"))
         self._datasets["bcm"] = BcmBrca(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["broad"] = BroadBrca(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanbrca')

@@ -32,13 +32,14 @@ SOURCES = [
     
 ]
 
-class PancanPdac(PancanDataset):
+class Pdac(PancanDataset):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with PDAC data and provide an interface to them."""
 
         super().__init__(cancer_type="pancanpdac", version=version, no_internet=no_internet)
 
+        self._datasets["awg"] = AwgPdac(no_internet=no_internet, version=self._get_version("awg"))
         self._datasets["bcm"] = BcmPdac(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["broad"] = BroadPdac(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanpdac')

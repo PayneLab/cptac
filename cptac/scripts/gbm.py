@@ -32,13 +32,14 @@ SOURCES = [
     "harmonized"
 ]
 
-class PancanGbm(PancanDataset):
+class Gbm(PancanDataset):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with GBM data and provide an interface to them."""
 
         super().__init__(cancer_type="pancangbm", version=version, no_internet=no_internet)
 
+        self._datasets["awg"] = AwgGbm(no_internet=no_internet, version=self._get_version("awg"))
         self._datasets["bcm"] = BcmGbm(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["broad"] = BroadGbm(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancangbm')

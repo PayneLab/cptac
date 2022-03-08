@@ -19,7 +19,7 @@ from .dataset import Dataset
 from .dataframe_tools import *
 from .exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError, InvalidParameterError
 
-class UcecConf(Dataset):
+class AwgConfUcec(Dataset):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the dataframes as values in the self._data dict variable, with names as keys, and format them properly.

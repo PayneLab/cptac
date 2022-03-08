@@ -31,13 +31,14 @@ SOURCES = [
     "harmonized"
 ]
 
-class PancanLscc(PancanDataset):
+class Lscc(PancanDataset):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with LSCC data and provide an interface to them."""
 
         super().__init__(cancer_type="pancanlscc", version=version, no_internet=no_internet)
         
+        self._datasets["awg"] = AwgLscc(no_internet=no_internet, version=self._get_version("awg"))
         self._datasets["bcm"] = BcmLscc(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["broad"] = BroadLscc(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanlscc')

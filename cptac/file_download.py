@@ -9,93 +9,112 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import threading
-from queue import Queue
-
-from werkzeug import Request
-from werkzeug import Response
-from werkzeug.serving import make_server
-
-import webbrowser
-import time
+import bs4
+import getpass
 import logging
 import os
 import requests
-import getpass
-import bs4
+import threading
+import warnings
+import webbrowser
 
 from .file_tools import *
-from .exceptions import InvalidParameterError, NoInternetError, DownloadFailedError
+from .exceptions import CptacDevError, DownloadFailedError, InvalidParameterError, NoInternetError, PdcDownloadError
+from queue import Queue
+from werkzeug import Request, Response
+from werkzeug.serving import make_server
+
+# TODO: Move Study ids map to another file?
+STUDY_IDS_MAP = {
+    "pdcbrca": {
+        "acetylome": "PDC000239", # Prospective Breast BI Acetylome
+        "phosphoproteome": "PDC000121", # Prospective BRCA Phosphoproteome S039-2
+        "proteome": "PDC000120", # Prospective BRCA Proteome S039-1
+    },
+    "pdcccrcc": {
+        "phosphoproteome": "PDC000128", # CPTAC CCRCC Discovery Study - Phosphoproteme S044-2
+        "proteome": "PDC000127", # CPTAC CCRCC Discovery Study - Proteome S044-1
+    },
+    "pdccoad": {
+        "phosphoproteome": "PDC000117", # Prospective COAD Phosphoproteome S037-3
+        "proteome": "PDC000116", # Prospective COAD Proteome S037-2
+    },
+    "pdcgbm": {
+        "acetylome": "PDC000245", # CPTAC GBM Discovery Study - Acetylome
+        "phosphoproteome": "PDC000205", # CPTAC GBM Discovery Study - Phosphoproteome
+        "proteome": "PDC000204", # CPTAC GBM Discovery Study - Proteome
+    },
+    "pdchnscc": {
+        "phosphoproteome": "PDC000222", # CPTAC HNSCC Discovery Study - Phosphoproteome
+        "proteome": "PDC000221", # CPTAC HNSCC Discovery Study - Proteome
+    },
+    "pdclscc": {
+        "acetylome": "PDC000233", # CPTAC LSCC Discovery Study - Acetylome
+        "phosphoproteome": "PDC000232", # CPTAC LSCC Discovery Study - Phosphoproteome
+        "proteome": "PDC000234", # CPTAC LSCC Discovery Study - Proteome
+        "ubiquitylome": "PDC000237", # CPTAC LSCC Discovery Study - Ubiquitylome
+    },
+    "pdcluad": {
+        "acetylome": "PDC000224", # CPTAC LUAD Discovery Study - Acetylome
+        "phosphoproteome": "PDC000149", # CPTAC LUAD Discovery Study - Phosphoproteome
+        "proteome": "PDC000153", # CPTAC LUAD Discovery Study - Proteome
+    },
+    "pdcov": {
+        "phosphoproteome": "PDC000119", # Prospective OV Phosphoproteome S038-3
+        "proteome": "PDC000118", # Prospective OV Proteome S038-2
+    },
+    "pdcpdac": {
+        "proteome": "PDC000270", # CPTAC PDAC Discovery Study - Proteome
+        "phosphoproteome": "PDC000271", # CPTAC PDAC Discovery Study - Phosphoproteome
+    },
+    "pdcucec": {
+        "acetylome": "PDC000226", # CPTAC UCEC Discovery Study - Acetylome
+        "phosphoproteome": "PDC000126", # UCEC Discovery - Phosphoproteome S043-2
+        "proteome": "PDC000125", # UCEC Discovery - Proteome S043-1
+    },
+}
 
 # Some websites don't like requests from sources without a user agent. Let's preempt that issue.
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
 HEADERS = {'User-Agent': USER_AGENT}
 
-def download(dataset, source=None, datatypes=None, version="latest", redownload=False, _box_auth=False, _box_token=None):
-    """Download data files for the specified datasets. Defaults to downloading latest version on server.
+def download(sources, cancers='all', version="latest", redownload=False):
+    """Download data files for the specified cancers, sources, and datatypes. Defaults to downloading latest version on server.
 
     Parameters:
-    dataset (str): The name of the dataset to download data for, or "all" to download data for all datasets
-    datatypes (list of str): The datatypes desired if lazy loading pancan data
+    sources (dict): Keys are source names (str), values are the datatypes (list of str)
+    cancers (list of str): The cancers for which the sources/datatypes will be downloaded
     version (str, optional): Which version of the data files to download. Defaults to latest on server.
     redownload (bool, optional): Whether to redownload the data files, even if that version of the data is already downloaded. Default False.
-    _box_auth (bool, optional): Whether to download the files using Box file IDs and OAuth2 authentication. Default False.
-    _box_token (str, optional): The OAuth2 token for Box, if already generated. Default None.
 
     Returns:
     bool: Indicates whether download was successful.
     """
 
-    dataset = dataset.lower()
+    # check if sources parameter is valid
+    _validate_sources(sources)
+    
+    # check if cancers parameter is valid
+    _validate_cancers(cancers)
 
-    # Check that they're using the right download function
-    datasets = [
-        "brca",
-        "ccrcc",
-        "colon",
-        "endometrial",
-        "gbm",
-        "hnscc",
-        "lscc",
-        "luad",
-        "ovarian",
-        "pdac",
-        "ucecconf",
-    ]
+    # iterate through cancers and sources and download corresonding data files
+    global box_toxen
+    box_token = None
+    if cancers == 'all': cancers = # get cancers
+    success = True
+    for cancer in cancers:
+        for source, datatypes in sources.items():
+            if not _stream(cancer, source, datatypes, redownload=redownload):
+                success = False
 
-    pancan_datasets = [
-        "brca",
-        "ccrcc",
-        "coad",
-        "gbm",
-        "hnscc",
-        "lscc",
-        "luad",
-        "ov",
-        "pdac",
-        "ucec",
-    ]
+    return success
 
-    if dataset in datasets and _box_auth:
-        raise InvalidParameterError(f"You are trying to use the cptac.pancan.download function to download the {dataset} dataset. This is the wrong function; that dataset is not associated with the cptac.pancan module. Please instead use the regular cptac.download function.")
 
-    # Process the optional "all" parameter
-    if dataset == "all":
-
-        # handle pancan scenarios
-        if source is not None:
-            datasets = pancan_datasets
-
-        overall_result = True
-        for dataset in datasets:
-            if not download(dataset, source=source, datatypes=datatypes, version=version, redownload=redownload, _box_auth=_box_auth, _box_token=_box_token):
-                overall_result = False
-        
-        return overall_result
+def _stream(cancer, source, datatypes, redownload):
+   
+    dataset = source + cancer
 
     # Get our dataset path
-    if source is not None: # handle pancan scenario
-        dataset = str.join([source, dataset])
     dataset_path = get_dataset_path(dataset)
 
     # Update the index
@@ -113,11 +132,45 @@ def download(dataset, source=None, datatypes=None, version="latest", redownload=
     # Get the index for the desired version
     # If datatypes are specified, filter out the undesired datatypes
     version_index = index.get(version)
-    if datatypes is not None and datatypes != "all":
+    if datatypes != "all":
         version_index = get_filtered_version_index(version_index=version_index, datatypes=datatypes, source=dataset)
 
-    # See if they've downloaded this version before. Get list of files to download.
-    if os.path.isdir(version_path):
+    # Get list of files to download.
+    files_to_download = _gather_files(version_path=version_path, version_index=version_index, redownload=redownload)
+
+    # Download the files
+    password = None
+    total_files = len(files_to_download)
+
+    # verify box token or login to box and get a new token
+    if source is not 'awg':
+        _authenticate()
+
+    for data_file in files_to_download:
+
+        file_index = version_index.get(data_file)
+        server_hash = file_index.get("hash")
+        file_url = file_index.get("url")
+
+        file_path = os.path.join(version_path, data_file)
+        file_number = files_to_download.index(data_file) + 1
+
+        downloaded_path = download_file(file_url, file_path, server_hash, password=password, _box_token=box_token, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
+
+        while downloaded_path == "wrong_password":
+            if password is None:
+                password = getpass.getpass(prompt=f'Password for {dataset} dataset: ') # We manually specify the prompt parameter so it shows up in Jupyter Notebooks
+            else:
+                password = getpass.getpass(prompt="Wrong password. Try again: ")
+            print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
+            print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
+
+            downloaded_path = download_file(file_url, file_path, server_hash, password=password, _box_token=box_token, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
+
+    return True
+
+def _gather_files(version_path, version_index, redownload):
+    if os.path.isdir(version_path): # See if they've downloaded this version before. 
         if redownload:
             files_to_download = list(version_index.keys())
         else:
@@ -134,40 +187,25 @@ def download(dataset, source=None, datatypes=None, version="latest", redownload=
                 files_to_download.append(data_file)
 
             if len(files_to_download) == 0:
-                return True
+                return None
     else:
         os.mkdir(version_path)
         files_to_download = list(version_index.keys())
 
-    # Download the files
-    password = None
-    total_files = len(files_to_download)
+    return files_to_download
 
-    if _box_auth and _box_token is None:
-        _box_token = get_box_token()
+def _authenticate():
+    if box_token is None:
+        global box_token
+        box_token = get_box_token()
 
-    for data_file in files_to_download:
+def _validate_sources(sources):
+    if type(sources) is not dict:
+        raise InvalidParameterError("Sources must be a dict of form {'source':['datatypes']}. 'all' is a valid source and datatype.")
 
-        file_index = version_index.get(data_file)
-        server_hash = file_index.get("hash")
-        file_url = file_index.get("url")
-
-        file_path = os.path.join(version_path, data_file)
-        file_number = files_to_download.index(data_file) + 1
-
-        downloaded_path = download_file(file_url, file_path, server_hash, password=password, _box_token=_box_token, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
-
-        while downloaded_path == "wrong_password":
-            if password is None:
-                password = getpass.getpass(prompt=f'Password for {dataset} dataset: ') # We manually specify the prompt parameter so it shows up in Jupyter Notebooks
-            else:
-                password = getpass.getpass(prompt="Wrong password. Try again: ")
-            print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
-            print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
-
-            downloaded_path = download_file(file_url, file_path, server_hash, password=password, _box_token=_box_token, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
-
-    return True
+def _validate_cancers(cancers):
+    if type(cancers) is str and cancers == 'all':
+        pass
 
 def update_index(dataset):
     """Check if the index of the given dataset is up to date with server version, and update it if needed.

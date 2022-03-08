@@ -24,16 +24,16 @@ from .pdcov import PdcOv
 from .pdcpdac import PdcPdac
 from .pdcucec import PdcUcec
 
-from .pancanbrca import PancanBrca
-from .pancanccrcc import PancanCcrcc
-from .pancancoad import PancanCoad
-from .pancangbm import PancanGbm
-from .pancanhnscc import PancanHnscc
-from .pancanlscc import PancanLscc
-from .pancanluad import PancanLuad
-from .pancanov import PancanOv
-from .pancanucec import PancanUcec
-from .pancanpdac import PancanPdac
+from .brca import PancanBrca
+from .ccrcc import PancanCcrcc
+from .coad import PancanCoad
+from .gbm import PancanGbm
+from .hnscc import PancanHnscc
+from .lscc import PancanLscc
+from .luad import PancanLuad
+from .ov import PancanOv
+from .ucec import PancanUcec
+from .pdac import PancanPdac
 
 def list_datasets(print_list=True):
     """Print available datasets in the cptac.pancan module.

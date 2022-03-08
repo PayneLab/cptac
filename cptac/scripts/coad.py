@@ -31,13 +31,14 @@ SOURCES = [
     "broadcoad"
 ]
 
-class PancanCoad(PancanDataset):
+class Coad(PancanDataset):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with COAD data and provide an interface to them."""
 
         super().__init__(cancer_type="pancancoad", version=version, no_internet=no_internet)
 
+        self._datasets["awg"] = AwgCoad(no_internet=no_internet, version=self._get_version("awg"))
         self._datasets["bcm"] = BcmCoad(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["broad"] = BroadCoad(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancancoad')

@@ -33,13 +33,14 @@ SOURCES = [
     
 ]
 
-class PancanUcec(PancanDataset):
+class Ucec(PancanDataset):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with UCEC data and provide an interface to them."""
 
         super().__init__(cancer_type="pancanucec", version=version, no_internet=no_internet)
 
+        self._datasets["awg"] = AwgUcec(no_internet=no_internet, version=self._get_version("awg"))
         self._datasets["bcm"] = BcmUcec(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["broad"] = BroadUcec(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanucec')
