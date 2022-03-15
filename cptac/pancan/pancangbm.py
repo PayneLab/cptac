@@ -42,7 +42,7 @@ class PancanGbm(PancanDataset):
         self._datasets["bcm"] = BcmGbm(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["broad"] = BroadGbm(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancangbm')
-#         self._datasets["pdc"] = PdcGbm(no_internet=no_internet, version=self._get_version("pdc"))
+        self._datasets["pdc"] = PdcGbm(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichGbm(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuGbm(no_internet=no_internet, version=self._get_version("washu"))
         self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancangbm')

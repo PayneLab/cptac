@@ -42,7 +42,7 @@ class PancanPdac(PancanDataset):
         self._datasets["bcm"] = BcmPdac(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["broad"] = BroadPdac(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanpdac')
-#         self._datasets["pdc"] = PdcPdac(no_internet=no_internet, version=self._get_version("pdc"))
+        self._datasets["pdc"] = PdcPdac(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichPdac(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuPdac(no_internet=no_internet, version=self._get_version("washu"))
         self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanpdac')
