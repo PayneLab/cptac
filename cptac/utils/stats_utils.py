@@ -75,101 +75,94 @@ the significant results will be returned as a dataframe, sorted by p-value.
 '''
 
 def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, equal_var=True, return_all=False, correction_method='bonferroni', mincount=3, pval_return_corrected=True, quiet=False):
-    try:
-        '''Verify precondition that label column exists and has exactly 2 unique values'''
-        label_values = df[label_column].unique()
-        if len(label_values) != 2:
-            print("Incorrectly Formatted Dataframe! Label column must have exactly 2 unique values.")
-            return None
-
-        '''Partition dataframe into two sets, one for each of the two unique values from the label column'''
-        partition1 = df.loc[df[label_column] == label_values[0]]
-        partition2 = df.loc[df[label_column] == label_values[1]]
-
-        '''If no comparison columns specified, use all columns except the specified labed column'''
-        if not comparison_columns:
-            comparison_columns = list(df.columns)
-            comparison_columns.remove(label_column)
-
-        '''Determine the number of real valued columns on which we will do t-tests'''
-        number_of_comparisons = len(comparison_columns)
-
-        '''Store comparisons and p-values in two arrays'''
-        comparisons = []
-        pvals = []
-
-        '''Loop through each comparison column, perform the t-test, and record the p-val'''
-
-        for column in comparison_columns:
-            if len(partition1[column].dropna(axis=0)) <= mincount:
-                continue
-            elif len(partition2[column].dropna(axis=0)) <= mincount:
-                continue
-            else:
-
-                group1 = partition1[column].dropna(axis=0)
-                group2 = partition2[column].dropna(axis=0)
-
-                if (np.std(group1) == 0 or np.std(group2) == 0) and not quiet:
-                    warnings.warn(f"At least one group for column {column} had a standard deviation of zero.", StDevWarning)
-
-                stat, pval = scipy.stats.ttest_ind(
-                    a=group1,
-                    b=group2, 
-                    equal_var=equal_var
-                )
-
-                if pd.notna(pval):
-                    comparisons.append(column)
-                    pvals.append(pval)
-                elif not quiet:
-                    warnings.warn(f"pval for column {column} was NaN. pval dropped.", PvalWarning)
-
-        if len(pvals) == 0: # None of the groups had enough members to pass the mincount
-            raise InvalidParameterError("No groups had enough members to pass mincount; no tests run.")
-
-        '''Correct for multiple testing to determine if each comparison meets the new cutoff'''
-        results = statsmodels.stats.multitest.multipletests(pvals=pvals, alpha=alpha, method=correction_method)
-        reject = results[0]
-
-        '''Format results in a pandas dataframe'''
-        results_df = pd.DataFrame(columns=['Comparison','P_Value'])
-
-        '''If return all, add all comparisons and p-values to dataframe'''
-        if return_all:
-            if pval_return_corrected:
-                results_df['Comparison'] = comparisons
-                results_df['P_Value'] = results[1]
-
-            else:
-                results_df['Comparison'] = comparisons
-                results_df['P_Value'] = pvals
-
-            '''Else only add significant comparisons'''
-        else:
-            for i in range(0, len(reject)):
-                if reject[i]:
-                    if pval_return_corrected:
-                        results_df = results_df.append({'Comparison':comparisons[i],'P_Value':results[1][i]}, ignore_index=True)
-                    else:
-                        results_df = results_df.append({'Comparison':comparisons[i],'P_Value':pvals[i]}, ignore_index=True)
-
-
-        '''Sort dataframe by ascending p-value'''
-        results_df = results_df.sort_values(by='P_Value', ascending=True)
-        results_df = results_df.reset_index(drop=True)
-
-        '''If results df is not empty, return it, else return None'''
-        if len(results_df) > 0:
-            return results_df
-        else:
-            return None
-
-
-    except:
-        print("Incorrectly Formatted Dataframe!")
+    '''Verify precondition that label column exists and has exactly 2 unique values'''
+    label_values = df[label_column].unique()
+    if len(label_values) != 2:
+        print("Incorrectly Formatted Dataframe! Label column must have exactly 2 unique values.")
         return None
 
+    '''Partition dataframe into two sets, one for each of the two unique values from the label column'''
+    partition1 = df.loc[df[label_column] == label_values[0]]
+    partition2 = df.loc[df[label_column] == label_values[1]]
+
+    '''If no comparison columns specified, use all columns except the specified labed column'''
+    if not comparison_columns:
+        comparison_columns = list(df.columns)
+        comparison_columns.remove(label_column)
+
+    '''Determine the number of real valued columns on which we will do t-tests'''
+    number_of_comparisons = len(comparison_columns)
+
+    '''Store comparisons and p-values in two arrays'''
+    comparisons = []
+    pvals = []
+
+    '''Loop through each comparison column, perform the t-test, and record the p-val'''
+
+    for column in comparison_columns:
+        if len(partition1[column].dropna(axis=0)) <= mincount:
+            continue
+        elif len(partition2[column].dropna(axis=0)) <= mincount:
+            continue
+        else:
+
+            group1 = partition1[column].dropna(axis=0)
+            group2 = partition2[column].dropna(axis=0)
+
+            if (np.std(group1) == 0 or np.std(group2) == 0) and not quiet:
+                warnings.warn(f"At least one group for column {column} had a standard deviation of zero.", StDevWarning)
+
+            stat, pval = scipy.stats.ttest_ind(
+                a=group1,
+                b=group2, 
+                equal_var=equal_var
+            )
+
+            if pd.notna(pval):
+                comparisons.append(column)
+                pvals.append(pval)
+            elif not quiet:
+                warnings.warn(f"pval for column {column} was NaN. pval dropped.", PvalWarning)
+
+    if len(pvals) == 0: # None of the groups had enough members to pass the mincount
+        raise InvalidParameterError("No groups had enough members to pass mincount; no tests run.")
+
+    '''Correct for multiple testing to determine if each comparison meets the new cutoff'''
+    results = statsmodels.stats.multitest.multipletests(pvals=pvals, alpha=alpha, method=correction_method)
+    reject = results[0]
+
+    '''Format results in a pandas dataframe'''
+    results_df = pd.DataFrame(columns=['Comparison','P_Value'])
+
+    '''If return all, add all comparisons and p-values to dataframe'''
+    if return_all:
+        if pval_return_corrected:
+            results_df['Comparison'] = comparisons
+            results_df['P_Value'] = results[1]
+
+        else:
+            results_df['Comparison'] = comparisons
+            results_df['P_Value'] = pvals
+
+        '''Else only add significant comparisons'''
+    else:
+        for i in range(0, len(reject)):
+            if reject[i]:
+                if pval_return_corrected:
+                    results_df = results_df.append({'Comparison':comparisons[i],'P_Value':results[1][i]}, ignore_index=True)
+                else:
+                    results_df = results_df.append({'Comparison':comparisons[i],'P_Value':pvals[i]}, ignore_index=True)
+
+
+    '''Sort dataframe by ascending p-value'''
+    results_df = results_df.sort_values(by='P_Value', ascending=True)
+    results_df = results_df.reset_index(drop=True)
+
+    '''If results df is not empty, return it, else return None'''
+    if len(results_df) > 0:
+        return results_df
+    else:
+        return None
 
 '''
 @Param df: Dataframe.Each column is a different gene/ comparison. Rows contains numeric values (such as proteomics) for correlation test
