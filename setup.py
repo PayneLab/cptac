@@ -1,4 +1,5 @@
 from setuptools import setup
+from setuptools import find_packages 
 import os.path as path
 
 # Get the path to our current directory
@@ -24,7 +25,11 @@ setup(name='cptac',
 	author='Dr. Samuel Payne',
 	author_email='sam_payne@byu.edu',
 	license='Apache 2.0',
-	packages=['cptac','cptac.utils','cptac.pancan'],
+	packages=find_packages(
+        where='.',
+        include=['cptac*'],  # ["*"] by default
+        exclude=[],  # empty by default
+    ),
 	install_requires=[
 		'numpy>=1.16.3',
 		'pandas>=1.2.0',
