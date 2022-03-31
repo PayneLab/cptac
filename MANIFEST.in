@@ -1,3 +1,4 @@
+# General files
 include README.md
 include cptac/options.tsv
 
@@ -5,7 +6,7 @@ include cptac/utils/data/BioPlex_293T_Network_10K_Dec_2019.tsv.gz
 include cptac/utils/data/Uniprot_Proteome.tsv.gz
 include cptac/utils/data/WikiPathwaysDataframe.tsv.gz
 
-
+# awg files
 include cptac/data/data_awg_brca/index_urls.tsv
 include cptac/data/data_awg_ccrcc/index_urls.tsv
 include cptac/data/data_awg_coad/index_urls.tsv
@@ -17,8 +18,10 @@ include cptac/data/data_awg_ov/index_urls.tsv
 include cptac/data/data_awg_pdac/index_urls.tsv
 include cptac/data/data_awg_ucec/index_urls.tsv
 
+# awgconf files
 include cptac/data_awgconf_ucec/index_urls.tsv
 
+# bcm files
 include cptac/data/data_bcm_brca/index_urls.tsv
 include cptac/data/data_bcm_ccrcc/index_urls.tsv
 include cptac/data/data_bcm_coad/index_urls.tsv
@@ -30,6 +33,7 @@ include cptac/data/data_bcm_ov/index_urls.tsv
 include cptac/data/data_bcm_pdac/index_urls.tsv
 include cptac/data/data_bcm_ucec/index_urls.tsv
 
+# broad files
 include cptac/data/data_broad_brca/index_urls.tsv
 include cptac/data/data_broad_ccrcc/index_urls.tsv
 include cptac/data/data_broad_coad/index_urls.tsv
@@ -41,9 +45,11 @@ include cptac/data/data_broad_ov/index_urls.tsv
 include cptac/data/data_broad_pdac/index_urls.tsv
 include cptac/data/data_broad_ucec/index_urls.tsv
 
+# harmonized and mssm files
 include cptac/data/data_harmonized/index_urls.tsv
 include cptac/data/data_mssmclinical/index_urls.tsv
 
+# pdc files
 include cptac/data/data_pdc_brca/index_urls.tsv
 include cptac/data/data_pdc_ccrcc/index_urls.tsv
 include cptac/data/data_pdc_coad/index_urls.tsv
@@ -55,6 +61,7 @@ include cptac/data/data_pdc_ov/index_urls.tsv
 include cptac/data/data_pdc_pdac/index_urls.tsv
 include cptac/data/data_pdc_ucec/index_urls.tsv
 
+# umich files
 include cptac/data/data_umich_brca/index_urls.tsv
 include cptac/data/data_umich_ccrcc/index_urls.tsv
 include cptac/data/data_umich_coad/index_urls.tsv
@@ -66,6 +73,7 @@ include cptac/data/data_umich_ov/index_urls.tsv
 include cptac/data/data_umich_pdac/index_urls.tsv
 include cptac/data/data_umich_ucec/index_urls.tsv
 
+# washu files
 include cptac/data/data_washu_brca/index_urls.tsv
 include cptac/data/data_washu_ccrcc/index_urls.tsv
 include cptac/data/data_washu_coad/index_urls.tsv
