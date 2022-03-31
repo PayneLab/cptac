@@ -1,7 +1,6 @@
 # General files
 include README.md
 include cptac/options.tsv
-
 include cptac/utils/data/BioPlex_293T_Network_10K_Dec_2019.tsv.gz
 include cptac/utils/data/Uniprot_Proteome.tsv.gz
 include cptac/utils/data/WikiPathwaysDataframe.tsv.gz
