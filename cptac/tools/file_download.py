@@ -18,11 +18,16 @@ import threading
 import warnings
 import webbrowser
 
-from .file_tools import *
-from .exceptions import CptacDevError, DownloadFailedError, InvalidParameterError, NoInternetError, PdcDownloadError
+import cptac
+from cptac.tools.file_tools import *
+from cptac.exceptions import CptacDevError, DownloadFailedError, InvalidParameterError, NoInternetError, PdcDownloadError
 from queue import Queue
 from werkzeug import Request, Response
 from werkzeug.serving import make_server
+
+# making box token global here allows for it to be used repeatedly as the _stream function gets called over and over.
+# eventually authentication will be deprecated, otherwise we would make the authentication through box cleaner
+__BOX_TOKEN__ = None
 
 # TODO: Move Study ids map to another file?
 STUDY_IDS_MAP = {
@@ -95,55 +100,60 @@ def download(sources, cancers='all', version="latest", redownload=False):
     _validate_sources(sources)
     
     # check if cancers parameter is valid
-    _validate_cancers(cancers)
+    if cancers != 'all':
+        _validate_cancers(cancers)
 
     # iterate through cancers and sources and download corresonding data files
-    global box_toxen
-    box_token = None
-    if cancers == 'all': cancers = # get cancers
+    if cancers == 'all': cancers = cptac.get_cancer_options()
     success = True
     for cancer in cancers:
         for source, datatypes in sources.items():
-            if not _stream(cancer, source, datatypes, redownload=redownload):
+            if type(datatypes) is not list:
+                datatypes = list([datatypes])
+            if not _stream(cancer, source, datatypes, version=version, redownload=redownload):
                 success = False
 
     return success
 
 
-def _stream(cancer, source, datatypes, redownload):
+def _stream(cancer, source, datatypes, version, redownload):
    
-    dataset = source + cancer
+    dataset = source + "_" + cancer
 
     # Get our dataset path
     dataset_path = get_dataset_path(dataset)
 
     # Update the index
-    update_index(dataset)
+    update_index(dataset=dataset)
 
     # Load the index
     index = get_index(dataset)
 
     # Validate the version number, including parsing if it's "latest"
-    version = validate_version(version, dataset, use_context="download")
+    version_number = validate_version(version, dataset, use_context="download")
 
     # Construct the path to the directory for this version
-    version_path = os.path.join(dataset_path, f"{dataset}_v{version}")
+    version_path = os.path.join(dataset_path, f"{dataset}_v{version_number}")
 
     # Get the index for the desired version
     # If datatypes are specified, filter out the undesired datatypes
-    version_index = index.get(version)
+    version_index = index.get(version_number)
     if datatypes != "all":
         version_index = get_filtered_version_index(version_index=version_index, datatypes=datatypes, source=dataset)
 
     # Get list of files to download.
     files_to_download = _gather_files(version_path=version_path, version_index=version_index, redownload=redownload)
+   
+    # Retrurn true if no new files to download
+    if files_to_download is None: 
+        return True
 
-    # Download the files
+    # Else Download the files
     password = None
     total_files = len(files_to_download)
 
     # verify box token or login to box and get a new token
-    if source is not 'awg':
+    if source != 'awg':
         _authenticate()
 
     for data_file in files_to_download:
@@ -155,7 +165,7 @@ def _stream(cancer, source, datatypes, redownload):
         file_path = os.path.join(version_path, data_file)
         file_number = files_to_download.index(data_file) + 1
 
-        downloaded_path = download_file(file_url, file_path, server_hash, password=password, _box_token=box_token, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
+        downloaded_path = download_file(file_url, file_path, server_hash,source=source, password=password, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
 
         while downloaded_path == "wrong_password":
             if password is None:
@@ -165,7 +175,7 @@ def _stream(cancer, source, datatypes, redownload):
             print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
             print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
 
-            downloaded_path = download_file(file_url, file_path, server_hash, password=password, _box_token=box_token, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
+            downloaded_path = download_file(file_url, file_path, source, server_hash, password=password, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
 
     return True
 
@@ -195,13 +205,19 @@ def _gather_files(version_path, version_index, redownload):
     return files_to_download
 
 def _authenticate():
-    if box_token is None:
-        global box_token
-        box_token = get_box_token()
+    global __BOX_TOKEN__
+    if __BOX_TOKEN__ is None:
+        __BOX_TOKEN__ = get_box_token()
 
 def _validate_sources(sources):
     if type(sources) is not dict:
         raise InvalidParameterError("Sources must be a dict of form {'source':['datatypes']}. 'all' is a valid source and datatype.")
+    
+    valid_sources = cptac.get_source_options()
+    for s in sources:
+        if s not in valid_sources:
+            raise InvalidParameterError(f"{s} is not a valid source! Call cptac.list_datasets() for valid options.")
+    
 
 def _validate_cancers(cancers):
     if type(cancers) is str and cancers == 'all':
@@ -244,7 +260,7 @@ def update_index(dataset):
             return True
 
     index_url = urls_dict.get(index_file)
-    download_file(index_url, index_path, server_index_hash, file_message=f"{dataset} index")
+    download_file(url=index_url, path=index_path, server_hash=server_index_hash, file_message=f"{dataset} index")
 
     if os.path.isfile(index_path):
         local_index_hash = hash_file(index_path)
@@ -273,15 +289,15 @@ def download_text(url):
     text = response.text.strip()
     return text
 
-def download_file(url, path, server_hash, password=None, _box_token=None, file_message=None, file_number=None, total_files=None): 
+def download_file(url, path, server_hash, source=None, password=None, file_message=None, file_number=None, total_files=None): 
     """Download a file from a given url to the specified location.
 
     Parameters:
     url (str): The direct download url for the file.
     path (str): The path to the file (not just the directory) to save the file to on the local machine.
+    source(str): The source the file is coming from to help determine authentication needs
     server_hash (str): The hash for the file, to check it against. If check fails, try download one more time, then throw an exception.
     password (str, optional): If the file is password protected, the password for it. Unneeded otherwise.
-    _box_token (str, optional): The OAuth2 token for Box, if we're downloading a file that needs that. Default of None ignores that option.
     file_message (str, optional): Identifing message about the file, to be printed while it's downloading. Default None will cause the full file name to be printed.
     file_number (int, optional): Which file this is in a batch of files, if you want to print a "File 1/15", "File 2/15", etc. sort of message. Must also pass total_files parameter.
     total_files (int, optional): The total number of files in the download batch, if you're printing that. Must also pass file_number parameter.
@@ -302,16 +318,18 @@ def download_file(url, path, server_hash, password=None, _box_token=None, file_m
 
     for i in range(2):
         try:
-            if _box_token is not None: # We are using Box OAuth2
+            # check if the required file is from a pancan data source or not (except pdc)
+            if source in ["bcm", "broad", "harmonized", "mssm", "umich", "washu"]: # We are using Box OAuth2
                 download_url = f"https://api.box.com/2.0/files/{url}/content/" # url is actually file ID
                 headers = dict(HEADERS)
-                headers["Authorization"] = f"Bearer {_box_token}"
+                global __BOX_TOKEN__
+                headers["Authorization"] = f"Bearer {__BOX_TOKEN__}"
                 response = requests.get(download_url, headers=headers)
-
-            elif password is None: # No password or OAuth2
+            
+            elif password is None: # No password or OAuth2 (awg files)
                 response = requests.get(url, headers=HEADERS, allow_redirects=True)
 
-            else: # The file is password protected
+            else: # The file is password protected (awgconf files)
                 with requests.Session() as session: # Use a session object to save cookies
                     # Construct the urls for our GET and POST requests
                     get_url = url
@@ -330,8 +348,8 @@ def download_file(url, path, server_hash, password=None, _box_token=None, file_m
                     response = session.post(post_url, headers=HEADERS, data=payload)
 
             response.raise_for_status() # Raises a requests.HTTPError if the response code was unsuccessful
-        except requests.RequestException: # Parent class for all exceptions in the requests module
-            raise NoInternetError("Insufficient internet. Check your internet connection.") #from None
+        except requests.RequestException as e: # Parent class for all exceptions in the requests module
+            raise Exception(e) #from None
             
         local_hash = hash_bytes(response.content)
         if local_hash == server_hash: # Only replace the old file if the new one downloaded successfully.
