@@ -10,11 +10,12 @@
 #   limitations under the License.
 
 import hashlib
+from importlib.resources import path
 import os
 import glob
 import warnings
 import packaging.version
-from .exceptions import *
+from cptac.exceptions import *
 
 def get_dataset_path(dataset):
     """Get the path to the main directory for a dataset.
@@ -26,19 +27,13 @@ def get_dataset_path(dataset):
     str: The path to the main directory of the specified dataset.
     """
     path_here = os.path.abspath(os.path.dirname(__file__))
-    dataset_dir = f"data_{dataset}"
+    dataset_dir = f"../data/data_{dataset}"
     dataset_path = os.path.join(path_here, dataset_dir)
 
     if os.path.isdir(dataset_path):
         return dataset_path
-        
     else:
-        pancan_dir = "pancan"
-        dataset_path = os.path.join(path_here, pancan_dir, dataset_dir)
-        if os.path.isdir(dataset_path):
-            return dataset_path
-        else:
-            raise InvalidParameterError(f"{dataset} is not a valid dataset.")
+        raise InvalidParameterError(f"{path_here} is not a valid dataset.")
 
 def validate_version(version, dataset, use_context, valid_versions=None):
     """Parse and validate a given version number. If version is "latest", check that index and installed latest match.
@@ -203,9 +198,13 @@ def get_filtered_version_index(version_index, datatypes, source):
             found_datatypes.append(version_index[file_name]['datatype'])
     
     # check for invalid and unavailable datatypes
-    if len(found_datatypes == 0):
+    found_datatypes = set(found_datatypes)
+    found_datatypes.discard("mapping")
+    if len(found_datatypes) == 0:
         raise InvalidParameterError(f"None of the specified data types were found for the {source} source: {datatypes}")
-    if set(found_datatypes) != set(datatypes):
+    if found_datatypes != set(datatypes):
+        print(found_datatypes)
+        print(datatypes)
         warnings.warn(f"These datatypes were not found for the {source} source: {set(datatypes) - set(found_datatypes)}")
 
     return filtered_version_index
