@@ -21,7 +21,7 @@ from .exceptions import *
 
 import cptac.utils as ut
 
-class Dataset:
+class Cancer:
     """
     Note that all cancer datasets are class objects that inherit from cptac.dataset. Therefore
     the same function calls exist for cptac.Endometrial, cptac.Colon, etc.

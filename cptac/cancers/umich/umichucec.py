@@ -15,13 +15,13 @@ import os
 import warnings
 import datetime
 
-from cptac.dataset import Dataset
-from cptac.dataframe_tools import *
+from cptac.cancer import Cancer
+from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 from cptac.utils import get_boxnote_text
 
 
-class UmichUcec(Dataset):
+class UmichUcec(Cancer):
 
     def __init__(self, no_internet, version):
         """Load all of the umichucec dataframes as values in the self._data dict variable, with names as keys, and format them properly.

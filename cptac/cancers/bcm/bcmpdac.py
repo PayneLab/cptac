@@ -14,13 +14,14 @@ import numpy as np
 import os
 import warnings
 import datetime
+from cptac.cancer import Cancer
 
-from cptac.dataset import Dataset
-from cptac.dataframe_tools import *
+from cptac.cancer import Cancer
+from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class BcmPdac(Dataset):
+class BcmPdac(Cancer):
 
     def __init__(self, no_internet, version):
         """Load all of the bcmbrca dataframes as values in the self._data dict variable, with names as keys, and format them properly.

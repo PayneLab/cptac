@@ -9,16 +9,16 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from .pancandataset import PancanDataset
+from cptac.pancandataset import PancanDataset
+from cptac.tools.joiningdataset import JoiningDataset
 
-from .mssmclinical import MssmClinical
-from .pdcov import PdcOv
-from .umichov import UmichOv
-from .washuov import WashuOv
-from .bcmov import BcmOv
-from .broadov import BroadOv
-from .harmonized import Harmonized
-from .joiningdataset import JoiningDataset
+from cptac.cancers.bcm.bcmov import BcmOv
+from cptac.cancers.broad.broadov import BroadOv
+from cptac.cancers.pdc.pdcov import PdcOv
+from cptac.cancers.umich.umichov import UmichOv
+from cptac.cancers.washu.washuov import WashuOv
+from cptac.cancers.mssm.mssmclinical import MssmClinical
+from cptac.cancers.harmonized.harmonized import Harmonized
 
 SOURCES = [
     "bcmov",

@@ -9,17 +9,18 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from asyncio import CancelledError
 import pandas as pd
 import numpy as np
 import os
 import warnings
 import datetime
 
-from .dataset import Dataset
-from .dataframe_tools import *
-from .exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError, InvalidParameterError
+from cptac.cancer import Cancer
+from cptac.tools.dataframe_tools import *
+from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError, InvalidParameterError
 
-class AwgConfUcec(Dataset):
+class AwgConfUcec(Cancer):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the dataframes as values in the self._data dict variable, with names as keys, and format them properly.

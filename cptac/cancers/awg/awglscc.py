@@ -14,11 +14,12 @@ import numpy as np
 import os
 import warnings
 import datetime
-from .dataset import Dataset
-from .dataframe_tools import *
-from .exceptions import FailedReindexWarning, ReindexMapError, PublicationEmbargoWarning
 
-class AwgLscc(Dataset):
+from cptac.cancer import Cancer
+from cptac.tools.dataframe_tools import *
+from cptac.exceptions import FailedReindexWarning, ReindexMapError, PublicationEmbargoWarning
+
+class AwgLscc(Cancer):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the lscc dataframes as values in the self._data dict variable, with names as keys, and format them properly.

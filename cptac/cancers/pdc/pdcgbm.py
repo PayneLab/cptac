@@ -16,11 +16,11 @@ import warnings
 import datetime
 import mygene
 
-from cptac.dataset import Dataset
-from cptac.dataframe_tools import *
+from cptac.cancer import Cancer
+from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
-class PdcGbm(Dataset):
+class PdcGbm(Cancer):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the dataframes as values in the self._data dict variable, with names as keys, and format them properly.

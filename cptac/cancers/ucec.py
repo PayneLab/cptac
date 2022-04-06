@@ -9,17 +9,16 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from .pancandataset import PancanDataset
-from ..dataframe_tools import sort_all_rows_pancan
+from cptac.pancandataset import PancanDataset
+from cptac.tools.joiningdataset import JoiningDataset
 
-from .mssmclinical import MssmClinical
-from .pdcucec import PdcUcec
-from .umichucec import UmichUcec
-from .washuucec import WashuUcec
-from .bcmucec import BcmUcec
-from .broaducec import BroadUcec
-from .harmonized import Harmonized
-from .joiningdataset import JoiningDataset
+from cptac.cancers.bcm.bcmucec import BcmUcec
+from cptac.cancers.broad.broaducec import BroadUcec
+from cptac.cancers.pdc.pdcucec import PdcUcec
+from cptac.cancers.umich.umichucec import UmichUcec
+from cptac.cancers.washu.washuucec import WashuUcec
+from cptac.cancers.mssm.mssmclinical import MssmClinical
+from cptac.cancers.harmonized.harmonized import Harmonized
 
 #List Sources to be downloaded
 SOURCES = [

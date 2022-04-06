@@ -9,12 +9,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import cptac
 import cptac.exceptions as ex
 import pandas as pd
 import logging
 import cptac.utils as ut
-from ..dataframe_tools import unionize_indices, generate_sample_status_col, sort_all_rows_pancan
+from cptac.tools.dataframe_tools import unionize_indices, generate_sample_status_col, sort_all_rows_pancan
 
 
 class PancanDataset:

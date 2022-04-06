@@ -13,11 +13,12 @@ import pandas as pd
 import numpy as np
 import os
 import warnings
-from .dataset import Dataset
-from .dataframe_tools import *
-from .exceptions import FailedReindexWarning, ReindexMapError
 
-class AwgUcec(Dataset):
+from cptac.cancer import Cancer
+from cptac.tools.dataframe_tools import *
+from cptac.exceptions import FailedReindexWarning, ReindexMapError
+
+class AwgUcec(Cancer):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the endometrial dataframes as values in the self._data dict variable, with names as keys, and format them properly.

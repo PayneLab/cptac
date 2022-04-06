@@ -15,13 +15,13 @@ import os
 import warnings
 import datetime
 
-from cptac.dataset import Dataset
-from cptac.file_tools import *
-from cptac.dataframe_tools import *
+from cptac.cancer import Cancer
+from cptac.tools.file_tools import *
+from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class JoiningDataset(Dataset):
+class JoiningDataset(Cancer):
 
     def __init__(self, input_data):
         """Load all of the dataframes as values in the self._data dict variable, with names as keys, and format them properly.

@@ -9,31 +9,17 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from cptac.file_download import get_box_token
+from cptac.cancers.brca import Brca
+from cptac.cancers.ccrcc import Ccrcc
+from cptac.cancers.coad import Coad
+from cptac.cancers.gbm import Gbm
+from cptac.cancers.hnscc import Hnscc
+from cptac.cancers.lscc import Lscc
+from cptac.cancers.luad import Luad
+from cptac.cancers.ov import Ov
+from cptac.cancers.pdac import Pdac
+from cptac.cancers.ucec import Ucec
 
-from .file_download import download, download_pdc_id, list_pdc_datasets
-
-from .pdcbrca import PdcBrca
-from .pdcccrcc import PdcCcrcc
-from .pdccoad import PdcCoad
-from .pdcgbm import PdcGbm
-from .pdchnscc import PdcHnscc
-from .pdclscc import PdcLscc
-from .pdcluad import PdcLuad
-from .pdcov import PdcOv
-from .pdcpdac import PdcPdac
-from .pdcucec import PdcUcec
-
-from .brca import Brca
-from .ccrcc import Ccrcc
-from .coad import Coad
-from .gbm import Gbm
-from .hnscc import Hnscc
-from .lscc import Lscc
-from .luad import Luad
-from .ov import Ov
-from .ucec import Ucec
-from .pdac import Pdac
 
 def list_datasets(print_list=True):
     """Print available datasets in the cptac.pancan module.
@@ -42,7 +28,7 @@ def list_datasets(print_list=True):
     """
 
     datasets = [
-        "PancanBrca",
+        "Brca",
         "Ccrcc",
         "Coad",
         "Gbm",

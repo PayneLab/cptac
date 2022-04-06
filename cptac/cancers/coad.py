@@ -9,16 +9,16 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from .pancandataset import PancanDataset
+from cptac.pancandataset import PancanDataset
+from cptac.tools.joiningdataset import JoiningDataset
 
-from .mssmclinical import MssmClinical
-from .pdccoad import PdcCoad
-from .umichcoad import UmichCoad
-from .washucoad import WashuCoad
-from .bcmcoad import BcmCoad
-from .broadcoad import BroadCoad
-from .harmonized import Harmonized
-from .joiningdataset import JoiningDataset
+from cptac.cancers.bcm.bcmcoad import BcmCoad
+from cptac.cancers.broad.broadcoad import BroadCoad
+from cptac.cancers.pdc.pdccoad import PdcCoad
+from cptac.cancers.umich.umichcoad import UmichCoad
+from cptac.cancers.washu.washucoad import WashuCoad
+from cptac.cancers.mssm.mssmclinical import MssmClinical
+from cptac.cancers.harmonized.harmonized import Harmonized
 
 
 #List sources to be downloaded
