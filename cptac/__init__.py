@@ -9,7 +9,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import io
 import os.path as path
 import pandas as pd
 import sys
@@ -18,34 +17,60 @@ import warnings
 import webbrowser
 
 # Function imports
-from .file_download import download
-from .file_download import download_text as _download_text
-from .exceptions import CptacError, CptacWarning, InvalidParameterError, NoInternetError, OldPackageVersionWarning
+from cptac.tools.file_download import download
+from cptac.tools.file_download import download_text as _download_text
+from cptac.exceptions import CptacError, CptacWarning, InvalidParameterError, NoInternetError, OldPackageVersionWarning
 
 # Dataset imports
-from .brca import Brca
-from .ccrcc import Ccrcc
-from .colon import Colon
-from .endometrial import Endometrial
-from .gbm import Gbm
-from .hnscc import Hnscc
-from .lscc import Lscc
-from .luad import Luad
-from .ovarian import Ovarian
-from .pdac import Pdac
-from .ucecconf import UcecConf
+
+from cptac.cancers.brca import Brca
+from cptac.cancers.ccrcc import Ccrcc
+from cptac.cancers.coad import Coad
+from cptac.cancers.gbm import Gbm
+from cptac.cancers.hnscc import Hnscc
+from cptac.cancers.lscc import Lscc
+from cptac.cancers.luad import Luad
+from cptac.cancers.ov import Ov
+from cptac.cancers.pdac import Pdac
+from cptac.cancers.ucec import Ucec
+
+#### This code generates the __OPTIONS__ dataframe which shows all possible cancer, source, datatype combinations
+def _load_options():
+    """Load the tsv file with all the possible cancer, source, datatype combinations"""
+    options_file = path.join(path.abspath(path.dirname(__file__)), "options.tsv")
+    print(options_file)
+    df = pd.read_csv(options_file, sep="\t")
+    return df
+
+__OPTIONS__ = _load_options()
+
+def get_options():
+    return __OPTIONS__.copy()
+
+def get_cancer_options():
+    df = __OPTIONS__.copy()
+    return df["Cancers"].unique()
+
+def get_source_options():
+    df = __OPTIONS__.copy()
+    return df["Sources"].unique()
 
 def list_datasets():
     """List all available datasets."""
+    df = __OPTIONS__.copy()
+    df = df.set_index(["Cancers", "Sources"])
+    df = df.drop("Loadable datatypes", axis=1)
+    df_formatted = df.style.set_table_styles(
+                    [{'selector' : 'th',
+                    'props' : [('vertical-align', 'text-bottom'),
+                                ('text-align', 'left')]},
+                    {'selector': 'td',
+                    'props': [('text-align', 'left')]} 
+                    ])
 
-    dataset_list_url = "https://byu.box.com/shared/static/5vwsvgu8fyzao0pb7rx8lt26huofcdax.tsv"
+    return df_formatted
 
-    try:
-        dataset_list_text = _download_text(dataset_list_url)
-    except NoInternetError:
-        raise NoInternetError("Insufficient internet to download available dataset info. Check your internet connection.") from None
-
-    return pd.read_csv(io.StringIO(dataset_list_text), sep="\t", index_col=0)
+#### End __OPTIONS__ code
 
 def embargo():
     """Open CPTAC embargo details in web browser."""
