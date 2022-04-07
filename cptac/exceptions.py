@@ -74,20 +74,16 @@ class DataFrameNotIncludedError(DataError):
     """They requested a dataframe that's not included in the dataset."""
     pass
 
-# Pancan exceptions
-class PancanError(CptacError):
-    """Base class for cptac.pancan specific exceptions."""
-    pass
 
-class DataSourceNotFoundError(PancanError):
+class DataSourceNotFoundError(CptacError):
     """They requested a data source that we don't have."""
     pass
 
-class DataTypeNotInSourceError(PancanError):
+class DataTypeNotInSourceError(CptacError):
     """The source they requested does not have the data type they requested."""
     pass
 
-class PdcDownloadError(PancanError):
+class PdcDownloadError(CptacError):
     """There was a problem downloading data from the Proteomic Data Commons."""
     pass
 
@@ -102,6 +98,12 @@ class FailedReindexWarning(CptacWarning):
 
 class InsertedNanWarning(CptacWarning):
     """NaNs were inserted during a dataframe join."""
+    pass
+
+class DataTypeNotInSourceWarning(CptacWarning):
+    """The source they requested does not have the data type they requested. But other sources were found.
+    Sometimes a datatype exists for some cancers in a source but not all.
+    """
     pass
 
 class DuplicateColumnHeaderWarning(CptacWarning):
