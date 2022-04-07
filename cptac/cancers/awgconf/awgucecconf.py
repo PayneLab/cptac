@@ -57,7 +57,7 @@ class AwgConfUcec(Cancer):
             "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.0.cbt.gz",
             "UCEC_confirmatory_WES_somatic_mutation_v1.0.maf.gz",
             #"UCEC_confirmatory_WGS_SV_tumor_v1.0.txt.gz" #structural_variation - not to be included in 1.0
-            ],
+            ], 
         "1.1": [
             "UCEC_confirmatory_acetyl_gene_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz",
             "UCEC_confirmatory_acetyl_site_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz",
@@ -77,6 +77,9 @@ class AwgConfUcec(Cancer):
             "UCEC_confirmatory_WES_cnv_log2_ratio_tumor_v1.1.cct.gz",
             "UCEC_confirmatory_WES_somatic_mutation_gene_level_V1.1.cbt.gz",
             "UCEC_confirmatory_WES_somatic_mutation_v1.1.maf.gz",
+            #"UCEC_confirmatory_nglycoform-site_ratio_median_polishing_log2_tumor_normal_v1.1.cct.gz",
+            #"UCEC_confirmatory_RNAseq_isoform_FPKM_removed_circRNA_log2(x+1)_tumor_normal_v1.1.cct.gz",
+            #"UCEC_confirmatory_WGS_SV_tumor_v1.1.txt.gz",
             ],
         "1.2": [
             "UCEC_confirmatory_meta_table_v1.2.xlsx",
