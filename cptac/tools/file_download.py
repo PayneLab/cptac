@@ -97,19 +97,15 @@ def download(sources, cancers='all', version="latest", redownload=False):
     """
 
     # check if sources parameter is valid
-    _validate_sources(sources)
+    sources = _validate_sources(sources)
     
     # check if cancers parameter is valid
-    if cancers != 'all':
-        _validate_cancers(cancers)
+    cancers = _validate_cancers(cancers)
 
     # iterate through cancers and sources and download corresonding data files
-    if cancers == 'all': cancers = cptac.get_cancer_options()
     success = True
     for cancer in cancers:
         for source, datatypes in sources.items():
-            if type(datatypes) is not list:
-                datatypes = list([datatypes])
             if not _stream(cancer, source, datatypes, version=version, redownload=redownload):
                 success = False
 
@@ -139,7 +135,7 @@ def _stream(cancer, source, datatypes, version, redownload):
     # If datatypes are specified, filter out the undesired datatypes
     version_index = index.get(version_number)
     if datatypes != "all":
-        version_index = get_filtered_version_index(version_index=version_index, datatypes=datatypes, source=dataset)
+        version_index = get_filtered_version_index(version_index=version_index, datatypes=datatypes, source=dataset, version=version_number)
 
     # Get list of files to download.
     files_to_download = _gather_files(version_path=version_path, version_index=version_index, redownload=redownload)
@@ -210,18 +206,34 @@ def _authenticate():
         __BOX_TOKEN__ = get_box_token()
 
 def _validate_sources(sources):
+    all_sources = cptac.get_source_options()
     if type(sources) is not dict:
-        raise InvalidParameterError("Sources must be a dict of form {'source':['datatypes']}. 'all' is a valid source and datatype.")
-    
-    valid_sources = cptac.get_source_options()
-    for s in sources:
-        if s not in valid_sources:
-            raise InvalidParameterError(f"{s} is not a valid source! Call cptac.list_datasets() for valid options.")
-    
+        raise InvalidParameterError("Sources must be a dict of form {'source':['datatypes']}. 'all' is a valid datatype.")
+    else:
+        for s, datatypes in sources.items():
+            if s not in all_sources:
+                raise DataSourceNotFoundError(f"{s} is not a valid source! Call cptac.list_datasets() for valid options.")
+            if type(datatypes) is str:
+                sources[s] = list([datatypes])
+        return sources
 
 def _validate_cancers(cancers):
+    all_cancers = cptac.get_cancer_options()
     if type(cancers) is str and cancers == 'all':
-        pass
+        return all_cancers
+    elif type(cancers) is list and len(cancers) == 1 and cancers[0] == 'all':
+        return all_cancers
+    elif type(cancers) is str and cancers in all_cancers:
+        return list([cancers])
+    elif type(cancers) is list:
+        invalid_cancers = list()
+        for c in cancers:
+            if c not in all_cancers:
+                invalid_cancers.append(c)
+        if len(invalid_cancers) > 0:
+            raise InvalidParameterError(f"{invalid_cancers} are not a valid cancers. Run cptac.list_datasets() to see valid cancer types.")
+    else: # handle case where cancers is an invalid string
+        raise InvalidParameterError(f"{cancers} is not a valid cancer. Run cptac.Run cptac.list_datasets() to see valid cancer types.")
 
 def update_index(dataset):
     """Check if the index of the given dataset is up to date with server version, and update it if needed.
