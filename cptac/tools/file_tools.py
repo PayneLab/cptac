@@ -175,7 +175,7 @@ def get_index(dataset):
                 index[version][file_name]["datatype"] = file_datatype
     return index
 
-def get_filtered_version_index(version_index, datatypes, source):
+def get_filtered_version_index(version_index, datatypes, source, version):
     """Filter the version index to only include the desired dtypes.
     
     Also checks for invalid or unavailable datatypes.
@@ -193,7 +193,7 @@ def get_filtered_version_index(version_index, datatypes, source):
 
     # add the files of the desired datatypes to a new dict (filtered_version_index)
     for file_name in version_index.keys():
-        if version_index[file_name]['datatype'] in datatypes or version_index[file_name]['datatype'] == 'mapping':
+        if version_index[file_name]['datatype'].lower() in [d.lower() for d in datatypes] or version_index[file_name]['datatype'].lower() == 'mapping':
             filtered_version_index[file_name] = version_index[file_name]
             found_datatypes.append(version_index[file_name]['datatype'])
     
@@ -201,11 +201,9 @@ def get_filtered_version_index(version_index, datatypes, source):
     found_datatypes = set(found_datatypes)
     found_datatypes.discard("mapping")
     if len(found_datatypes) == 0:
-        raise InvalidParameterError(f"None of the specified data types were found for the {source} source: {datatypes}")
-    if found_datatypes != set(datatypes):
-        print(found_datatypes)
-        print(datatypes)
-        warnings.warn(f"These datatypes were not found for the {source} source: {set(datatypes) - set(found_datatypes)}")
+        raise DataTypeNotInSourceError(f"None of the specified data types were found for the {source} source: {datatypes}")
+    if set([x.lower() for x in found_datatypes]) != set([d.lower() for d in datatypes]):
+        warnings.warn(f"These datatypes were not found for {source} (source_cancer) in version {version}: {set(datatypes) - set(found_datatypes)}\nSee cptac.list_datasets() for more info.", DataTypeNotInSourceWarning, stacklevel=2)
 
     return filtered_version_index
 
