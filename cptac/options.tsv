@@ -72,7 +72,7 @@ pdac	pdc	"clinical, phosphoproteomics, proteomics"
 pdac	umich	"proteomics, phosphoproteomics"	
 pdac	washu	"somatic_mutation, transcriptomics, miRNA, xcell, cibersort, CNV, tumor_purity"	
 ucec	awg	"acetylproteomics, clinical, miRNA, proteomics, somatic_mutation, followup, derived_molecular, experimental_design, CNV, transcriptomics, circular_RNA, phosphoproteomics, somatic_mutation_binary"	
-ucec	awgconf	"acetylproteomics_gene, acetylproteomics, clinical, methylation, miRNA, phosphoproteomics_gene, phosphoproteomics, proteomics, circular_RNA, gene_fusion, transcriptomics, targeted_proteomics, targeted_phosphoproteomics, somatic_mutation_binary, somatic_mutation, CNV_gistic, CNV_log2ratio"	
+ucec	awgconf	"acetylproteomics_gene, acetylproteomics, clinical, methylation, miRNA, phosphoproteomics_gene, phosphoproteomics, proteomics, circular_RNA, gene_fusion, transcriptomics, targeted_proteomics, targeted_phosphoproteomics, somatic_mutation_binary, somatic_mutation, CNV"	
 ucec	bcm	"transcriptomics, circular_RNA"	
 ucec	broad	transcriptomics	
 ucec	harmonized	somatic_mutation	
