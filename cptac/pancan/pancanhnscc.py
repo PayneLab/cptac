@@ -41,7 +41,7 @@ class PancanHnscc(PancanDataset):
         self._datasets["bcm"] = BcmHnscc(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["broad"] = BroadHnscc(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanhnscc')
-        self._datasets["pdc"] = PdcHnscc(no_internet=no_internet, version=self._get_version("pdc"))
+#         self._datasets["pdc"] = PdcHnscc(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichHnscc(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuHnscc(no_internet=no_internet, version=self._get_version("washu"))
         self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanhnscc')

@@ -43,7 +43,7 @@ class PancanUcec(PancanDataset):
         self._datasets["bcm"] = BcmUcec(no_internet=no_internet, version=self._get_version("bcm"))
         self._datasets["broad"] = BroadUcec(no_internet=no_internet, version=self._get_version("broad"))
         self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanucec')
-        self._datasets["pdc"] = PdcUcec(no_internet=no_internet, version=self._get_version("pdc"))
+#         self._datasets["pdc"] = PdcUcec(no_internet=no_internet, version=self._get_version("pdc"))
         self._datasets["umich"] = UmichUcec(no_internet=no_internet, version=self._get_version("umich"))
         self._datasets["washu"] = WashuUcec(no_internet=no_internet, version=self._get_version("washu"))
         self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanucec')
