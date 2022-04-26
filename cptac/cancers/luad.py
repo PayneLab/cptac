@@ -9,9 +9,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from cptac.pancandataset import PancanDataset
+from cptac.cancers.cancer import Cancer
 from cptac.tools.joiningdataset import JoiningDataset
 
+from cptac.cancers.awg.awgluad import AwgLuad
 from cptac.cancers.bcm.bcmluad import BcmLuad
 from cptac.cancers.broad.broadluad import BroadLuad
 from cptac.cancers.pdc.pdcluad import PdcLuad
@@ -31,7 +32,7 @@ SOURCES = [
     "harmonized"
 ]
 
-class Luad(PancanDataset):
+class Luad(Cancer):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with LUAD data and provide an interface to them."""

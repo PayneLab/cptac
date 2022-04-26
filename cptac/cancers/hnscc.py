@@ -9,9 +9,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from cptac.pancandataset import PancanDataset
+from cptac.cancers.cancer import Cancer
 from cptac.tools.joiningdataset import JoiningDataset
 
+from cptac.cancers.awg.awghnscc import AwgHnscc
 from cptac.cancers.bcm.bcmhnscc import BcmHnscc
 from cptac.cancers.broad.broadhnscc import BroadHnscc
 from cptac.cancers.pdc.pdchnscc import PdcHnscc
@@ -31,7 +32,7 @@ SOURCES = [
     "harmonized"
 ]
 
-class Hnscc(PancanDataset):
+class Hnscc(Cancer):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with HNSCC data and provide an interface to them."""

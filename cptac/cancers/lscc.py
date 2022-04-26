@@ -9,9 +9,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from cptac.pancandataset import PancanDataset
+from cptac.cancers.cancer import Cancer
 from cptac.tools.joiningdataset import JoiningDataset
 
+from cptac.cancers.awg.awglscc import AwgLscc
 from cptac.cancers.bcm.bcmlscc import BcmLscc
 from cptac.cancers.broad.broadlscc import BroadLscc
 from cptac.cancers.pdc.pdclscc import PdcLscc
@@ -31,7 +32,7 @@ SOURCES = [
     "harmonized"
 ]
 
-class Lscc(PancanDataset):
+class Lscc(Cancer):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with LSCC data and provide an interface to them."""

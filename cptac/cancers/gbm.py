@@ -9,9 +9,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from cptac.pancandataset import PancanDataset
+from cptac.cancers.cancer import Cancer
 from cptac.tools.joiningdataset import JoiningDataset
 
+from cptac.cancers.awg.awggbm import AwgGbm
 from cptac.cancers.bcm.bcmgbm import BcmGbm
 from cptac.cancers.broad.broadgbm import BroadGbm
 from cptac.cancers.pdc.pdcgbm import PdcGbm
@@ -32,7 +33,7 @@ SOURCES = [
     "harmonized"
 ]
 
-class Gbm(PancanDataset):
+class Gbm(Cancer):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with GBM data and provide an interface to them."""

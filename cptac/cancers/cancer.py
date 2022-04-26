@@ -16,7 +16,7 @@ import cptac.utils as ut
 from cptac.tools.dataframe_tools import unionize_indices, generate_sample_status_col, sort_all_rows_pancan
 
 
-class PancanDataset:
+class Cancer:
 
     def __init__(self, cancer_type, version, no_internet):
         """Initialize variables for a PancanDataset object."""

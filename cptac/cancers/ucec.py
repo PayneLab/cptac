@@ -9,9 +9,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from cptac.pancandataset import PancanDataset
+from cptac.cancers.cancer import Cancer
 from cptac.tools.joiningdataset import JoiningDataset
 
+from cptac.cancers.awg.awgucec import AwgUcec
 from cptac.cancers.bcm.bcmucec import BcmUcec
 from cptac.cancers.broad.broaducec import BroadUcec
 from cptac.cancers.pdc.pdcucec import PdcUcec
@@ -32,7 +33,7 @@ SOURCES = [
     
 ]
 
-class Ucec(PancanDataset):
+class Ucec(Cancer):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with UCEC data and provide an interface to them."""

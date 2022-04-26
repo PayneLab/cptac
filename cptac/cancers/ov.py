@@ -9,9 +9,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from cptac.pancandataset import PancanDataset
+from cptac.cancers.cancer import Cancer
 from cptac.tools.joiningdataset import JoiningDataset
 
+from cptac.cancers.awg.awgov import AwgOv
 from cptac.cancers.bcm.bcmov import BcmOv
 from cptac.cancers.broad.broadov import BroadOv
 from cptac.cancers.pdc.pdcov import PdcOv
@@ -30,7 +31,7 @@ SOURCES = [
     "harmonized"
 ]
 
-class Ov(PancanDataset):
+class Ov(Cancer):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with OV data and provide an interface to them."""

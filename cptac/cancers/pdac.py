@@ -9,9 +9,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from cptac.pancandataset import PancanDataset
+from cptac.cancers.cancer import Cancer
 from cptac.tools.joiningdataset import JoiningDataset
 
+from cptac.cancers.awg.awgpdac import AwgPdac
 from cptac.cancers.bcm.bcmpdac import BcmPdac
 from cptac.cancers.broad.broadpdac import BroadPdac
 from cptac.cancers.pdc.pdcpdac import PdcPdac
@@ -32,7 +33,7 @@ SOURCES = [
     
 ]
 
-class Pdac(PancanDataset):
+class Pdac(Cancer):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with PDAC data and provide an interface to them."""

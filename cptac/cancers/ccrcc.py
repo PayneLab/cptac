@@ -9,9 +9,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from cptac.pancandataset import PancanDataset
+from cptac.cancers.cancer import Cancer
 from cptac.tools.joiningdataset import JoiningDataset
 
+from cptac.cancers.awg.awgccrcc import AwgCcrcc
 from cptac.cancers.bcm.bcmccrcc import BcmCcrcc
 from cptac.cancers.broad.broadccrcc import BroadCcrcc
 from cptac.cancers.pdc.pdcccrcc import PdcCcrcc
@@ -31,7 +32,7 @@ SOURCES = [
     "harmonized"
 ]
 
-class Ccrcc(PancanDataset):
+class Ccrcc(Cancer):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with ccRCC data and provide an interface to them."""

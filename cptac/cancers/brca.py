@@ -9,9 +9,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from cptac.pancandataset import PancanDataset
+from cptac.cancers.cancer import Cancer
 from cptac.tools.joiningdataset import JoiningDataset
 
+from cptac.cancers.awg.awgbrca import AwgBrca
 from cptac.cancers.bcm.bcmbrca import BcmBrca
 from cptac.cancers.broad.broadbrca import BroadBrca
 from cptac.cancers.pdc.pdcbrca import PdcBrca
@@ -33,7 +34,7 @@ SOURCES = [
     "harmonized"
 ]
 
-class Brca(PancanDataset):
+class Brca(Cancer):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with BRCA data and provide an interface to them."""

@@ -9,9 +9,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from cptac.pancandataset import PancanDataset
+from cptac.cancers.cancer import Cancer
 from cptac.tools.joiningdataset import JoiningDataset
 
+from cptac.cancers.awg.awgcoad import AwgCoad
 from cptac.cancers.bcm.bcmcoad import BcmCoad
 from cptac.cancers.broad.broadcoad import BroadCoad
 from cptac.cancers.pdc.pdccoad import PdcCoad
@@ -31,7 +32,7 @@ SOURCES = [
     "broadcoad"
 ]
 
-class Coad(PancanDataset):
+class Coad(Cancer):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with COAD data and provide an interface to them."""
