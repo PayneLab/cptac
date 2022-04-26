@@ -14,10 +14,9 @@ import os
 import cptac
 from cptac.tools.download_tools.pdc_download import pdc_download
 from cptac.tools.download_tools.box_download import box_download
+from cptac.tools.download_tools.download_utils import *
 
-from cptac.exceptions import CptacDevError, DataSourceNotFoundError, InvalidParameterError, NoInternetError
-
-
+from cptac.exceptions import DataSourceNotFoundError, InvalidParameterError, NoInternetError
 
 
 def download(sources, cancers='all', version="latest", redownload=False):
@@ -79,51 +78,3 @@ def _validate_cancers(cancers):
             raise InvalidParameterError(f"{invalid_cancers} are not a valid cancers. Run cptac.list_datasets() to see valid cancer types.")
     else: # handle case where cancers is an invalid string
         raise InvalidParameterError(f"{cancers} is not a valid cancer. Run cptac.Run cptac.list_datasets() to see valid cancer types.")
-
-def update_index(dataset):
-    """Check if the index of the given dataset is up to date with server version, and update it if needed.
-
-    Parameters:
-    dataset (str): The name of the dataset to check the index of.
-
-    Returns:
-    bool: Indicates if we were able to check the index and update if needed (i.e. we had internet)
-    """
-    # Get the path to our dataset
-    dataset_path = get_dataset_path(dataset)
-
-    # Define our file names we'll need
-    index_urls_file = "index_urls.tsv"
-    index_hash_file = "index_hash.txt"
-    index_file = "index.txt"
-
-    # Get, from the server, what the md5 hash of our index file should be
-    index_urls_path = os.path.join(dataset_path, index_urls_file)
-    urls_dict = parse_tsv_dict(index_urls_path)
-    index_hash_url = urls_dict.get(index_hash_file)
-
-    checking_msg = f"Checking that {dataset} index is up-to-date..."
-    print(checking_msg, end='\r')
-    try:
-        server_index_hash = download_text(index_hash_url)
-    finally:
-        print(" " * len(checking_msg), end='\r') # Erase the checking message, even if there was an internet error
-
-    index_path = os.path.join(dataset_path, index_file)
-
-    if os.path.isfile(index_path):
-        local_index_hash = hash_file(index_path)
-        if local_index_hash == server_index_hash:
-            return True
-
-    index_url = urls_dict.get(index_file)
-    download_file(url=index_url, path=index_path, server_hash=server_index_hash, file_message=f"{dataset} index")
-
-    if os.path.isfile(index_path):
-        local_index_hash = hash_file(index_path)
-        if local_index_hash == server_index_hash:
-            return True
-
-    # If we get here, something apparently went wrong with the download.
-    raise NoInternetError("Insufficient internet. Check your internet connection.")
-

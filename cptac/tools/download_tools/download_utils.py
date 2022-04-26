@@ -9,13 +9,95 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import glob
 import hashlib
 from importlib.resources import path
 import os
-import glob
+import bs4
+import requests
 import warnings
 import packaging.version
 from cptac.exceptions import *
+
+# Some websites don't like requests from sources without a user agent. Let's preempt that issue.
+USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
+HEADERS = {'User-Agent': USER_AGENT}
+
+def download_file(url, path, server_hash, source=None, password=None, file_message=None, file_number=None, total_files=None): 
+    """Download a file from a given url to the specified location.
+
+    Parameters:
+    url (str): The direct download url for the file.
+    path (str): The path to the file (not just the directory) to save the file to on the local machine.
+    source(str): The source the file is coming from to help determine authentication needs
+    server_hash (str): The hash for the file, to check it against. If check fails, try download one more time, then throw an exception.
+    password (str, optional): If the file is password protected, the password for it. Unneeded otherwise.
+    file_message (str, optional): Identifing message about the file, to be printed while it's downloading. Default None will cause the full file name to be printed.
+    file_number (int, optional): Which file this is in a batch of files, if you want to print a "File 1/15", "File 2/15", etc. sort of message. Must also pass total_files parameter.
+    total_files (int, optional): The total number of files in the download batch, if you're printing that. Must also pass file_number parameter.
+
+    Returns:
+    str: The path the file was downloaded to.
+    """
+    # We provide the option of displaying a message indicating which file this is in a batch of files we're currently downloading
+    batch_status = ''
+    if (file_number is not None) and (total_files is not None):
+        batch_status = f" ({file_number}/{total_files})"
+
+    if file_message is None:
+        file_message = path.split(os.sep)[-1]
+
+    download_msg = f"Downloading {file_message}{batch_status}..."
+    print(download_msg, end='\r')
+
+    for i in range(2):
+        try:
+            # check if the required file is from a source whose files are stored on Box.com
+            if source in ["bcm", "broad", "harmonized", "mssm", "umich", "washu"]: # We are using Box OAuth2
+                download_url = f"https://api.box.com/2.0/files/{url}/content/" # url is actually file ID
+                headers = dict(HEADERS)
+                global __BOX_TOKEN__
+                headers["Authorization"] = f"Bearer {__BOX_TOKEN__}"
+                response = requests.get(download_url, headers=headers)
+            
+            elif password is None: # No password or OAuth2 (awg files)
+                response = requests.get(url, headers=HEADERS, allow_redirects=True)
+
+            else: # The file is password protected (awgconf files)
+                with requests.Session() as session: # Use a session object to save cookies
+                    # Construct the urls for our GET and POST requests
+                    get_url = url
+                    post_url = get_url.replace("https://byu.box.com/shared", "https://byu.app.box.com/public")
+
+                    # Send initial GET request and parse the request token out of the response
+                    get_response = session.get(get_url, headers=HEADERS) 
+                    soup = bs4.BeautifulSoup(get_response.text, "html.parser")
+                    token_tag = soup.find(id="request_token")
+                    token = token_tag.get("value")
+
+                    # Send a POST request, with the password and token, to get the data
+                    payload = {
+                        'password': password,
+                        'request_token': token}
+                    response = session.post(post_url, headers=HEADERS, data=payload)
+
+            response.raise_for_status() # Raises a requests.HTTPError if the response code was unsuccessful
+        except requests.RequestException as e: # Parent class for all exceptions in the requests module
+            raise Exception(e) #from None
+            
+        local_hash = hash_bytes(response.content)
+        if local_hash == server_hash: # Only replace the old file if the new one downloaded successfully.
+            with open(path, 'wb') as dest:
+                dest.write(response.content)
+            print(" " * len(download_msg), end='\r') # Erase the downloading message
+            return path
+        elif response.text.strip().startswith("<!DOCTYPE html>"): # The password was wrong, so we just got a webpage
+            print(" " * len(download_msg), end='\r') # Erase the downloading message
+            return "wrong_password"
+
+    # If we get to this point, the download failed.
+    file_name = path.split(os.sep)[-1]
+    raise DownloadFailedError(f"Download failed for {file_name}.")
 
 def get_dataset_path(dataset):
     """Get the path to the main directory for a dataset.
@@ -206,6 +288,53 @@ def get_filtered_version_index(version_index, datatypes, source, version):
         warnings.warn(f"These datatypes were not found for {source} (source_cancer) in version {version}: {set(datatypes) - set(found_datatypes)}\nSee cptac.list_datasets() for more info.", DataTypeNotInSourceWarning, stacklevel=2)
 
     return filtered_version_index
+
+def update_index(dataset):
+    """Check if the index of the given dataset is up to date with server version, and update it if needed.
+
+    Parameters:
+    dataset (str): The name of the dataset to check the index of.
+
+    Returns:
+    bool: Indicates if we were able to check the index and update if needed (i.e. we had internet)
+    """
+    # Get the path to our dataset
+    dataset_path = get_dataset_path(dataset)
+
+    # Define our file names we'll need
+    index_urls_file = "index_urls.tsv"
+    index_hash_file = "index_hash.txt"
+    index_file = "index.txt"
+
+    # Get, from the server, what the md5 hash of our index file should be
+    index_urls_path = os.path.join(dataset_path, index_urls_file)
+    urls_dict = parse_tsv_dict(index_urls_path)
+    index_hash_url = urls_dict.get(index_hash_file)
+
+    checking_msg = f"Checking that {dataset} index is up-to-date..."
+    print(checking_msg, end='\r')
+    try:
+        server_index_hash = download_text(index_hash_url)
+    finally:
+        print(" " * len(checking_msg), end='\r') # Erase the checking message, even if there was an internet error
+
+    index_path = os.path.join(dataset_path, index_file)
+
+    if os.path.isfile(index_path):
+        local_index_hash = hash_file(index_path)
+        if local_index_hash == server_index_hash:
+            return True
+
+    index_url = urls_dict.get(index_file)
+    download_file(url=index_url, path=index_path, server_hash=server_index_hash, file_message=f"{dataset} index")
+
+    if os.path.isfile(index_path):
+        local_index_hash = hash_file(index_path)
+        if local_index_hash == server_index_hash:
+            return True
+
+    # If we get here, something apparently went wrong with the download.
+    raise NoInternetError("Insufficient internet. Check your internet connection.")
 
 def parse_tsv_dict(path):
     """Read in a dictionary from the given two column tsv file.

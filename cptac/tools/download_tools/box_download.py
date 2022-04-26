@@ -13,16 +13,13 @@ from queue import Queue
 from werkzeug import Request, Response
 from werkzeug.serving import make_server
 
-from cptac.tools.download_tools.download_tools import *
+from cptac.tools.download_tools.download_utils import *
 from cptac.exceptions import DownloadFailedError
 
 # making box token global here allows for it to be used repeatedly as the box_download function gets called over and over.
 # eventually authentication will be deprecated, otherwise we would clean up the authentication process
 __BOX_TOKEN__ = None
 
-# Some websites don't like requests from sources without a user agent. Let's preempt that issue.
-USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
-HEADERS = {'User-Agent': USER_AGENT}
  
 def box_download(cancer, source, datatypes, version, redownload):
    
@@ -50,7 +47,7 @@ def box_download(cancer, source, datatypes, version, redownload):
         version_index = get_filtered_version_index(version_index=version_index, datatypes=datatypes, source=dataset, version=version_number)
 
     # Get list of files to download.
-    files_to_download = _gather_files(version_path=version_path, version_index=version_index, redownload=redownload)
+    files_to_download = gather_files(version_path=version_path, version_index=version_index, redownload=redownload)
    
     # Retrurn true if no new files to download
     if files_to_download is None: 
@@ -86,82 +83,6 @@ def box_download(cancer, source, datatypes, version, redownload):
             downloaded_path = download_file(file_url, file_path, source, server_hash, password=password, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
 
     return True
-
-def download_file(url, path, server_hash, source=None, password=None, file_message=None, file_number=None, total_files=None): 
-    """Download a file from a given url to the specified location.
-
-    Parameters:
-    url (str): The direct download url for the file.
-    path (str): The path to the file (not just the directory) to save the file to on the local machine.
-    source(str): The source the file is coming from to help determine authentication needs
-    server_hash (str): The hash for the file, to check it against. If check fails, try download one more time, then throw an exception.
-    password (str, optional): If the file is password protected, the password for it. Unneeded otherwise.
-    file_message (str, optional): Identifing message about the file, to be printed while it's downloading. Default None will cause the full file name to be printed.
-    file_number (int, optional): Which file this is in a batch of files, if you want to print a "File 1/15", "File 2/15", etc. sort of message. Must also pass total_files parameter.
-    total_files (int, optional): The total number of files in the download batch, if you're printing that. Must also pass file_number parameter.
-
-    Returns:
-    str: The path the file was downloaded to.
-    """
-    # We provide the option of displaying a message indicating which file this is in a batch of files we're currently downloading
-    batch_status = ''
-    if (file_number is not None) and (total_files is not None):
-        batch_status = f" ({file_number}/{total_files})"
-
-    if file_message is None:
-        file_message = path.split(os.sep)[-1]
-
-    download_msg = f"Downloading {file_message}{batch_status}..."
-    print(download_msg, end='\r')
-
-    for i in range(2):
-        try:
-            # check if the required file is from a source whose files are stored on Box.com
-            if source in ["bcm", "broad", "harmonized", "mssm", "umich", "washu"]: # We are using Box OAuth2
-                download_url = f"https://api.box.com/2.0/files/{url}/content/" # url is actually file ID
-                headers = dict(HEADERS)
-                global __BOX_TOKEN__
-                headers["Authorization"] = f"Bearer {__BOX_TOKEN__}"
-                response = requests.get(download_url, headers=headers)
-            
-            elif password is None: # No password or OAuth2 (awg files)
-                response = requests.get(url, headers=HEADERS, allow_redirects=True)
-
-            else: # The file is password protected (awgconf files)
-                with requests.Session() as session: # Use a session object to save cookies
-                    # Construct the urls for our GET and POST requests
-                    get_url = url
-                    post_url = get_url.replace("https://byu.box.com/shared", "https://byu.app.box.com/public")
-
-                    # Send initial GET request and parse the request token out of the response
-                    get_response = session.get(get_url, headers=HEADERS) 
-                    soup = bs4.BeautifulSoup(get_response.text, "html.parser")
-                    token_tag = soup.find(id="request_token")
-                    token = token_tag.get("value")
-
-                    # Send a POST request, with the password and token, to get the data
-                    payload = {
-                        'password': password,
-                        'request_token': token}
-                    response = session.post(post_url, headers=HEADERS, data=payload)
-
-            response.raise_for_status() # Raises a requests.HTTPError if the response code was unsuccessful
-        except requests.RequestException as e: # Parent class for all exceptions in the requests module
-            raise Exception(e) #from None
-            
-        local_hash = hash_bytes(response.content)
-        if local_hash == server_hash: # Only replace the old file if the new one downloaded successfully.
-            with open(path, 'wb') as dest:
-                dest.write(response.content)
-            print(" " * len(download_msg), end='\r') # Erase the downloading message
-            return path
-        elif response.text.strip().startswith("<!DOCTYPE html>"): # The password was wrong, so we just got a webpage
-            print(" " * len(download_msg), end='\r') # Erase the downloading message
-            return "wrong_password"
-
-    # If we get to this point, the download failed.
-    file_name = path.split(os.sep)[-1]
-    raise DownloadFailedError(f"Download failed for {file_name}.")
 
 def gather_files(version_path, version_index, redownload):
     if os.path.isdir(version_path): # See if they've downloaded this version before. 
