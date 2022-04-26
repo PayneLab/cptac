@@ -259,3 +259,22 @@ def hash_bytes(bytes):
     hasher.update(bytes)
     hash = hasher.hexdigest()
     return hash
+
+def download_text(url):
+    """Download text from a direct download url for a text file.
+
+    Parameters:
+    url (str): The direct download url for the text.
+
+    Returns:
+    str: The downloaded text.
+    """
+    
+    try:
+        response = requests.get(url, headers=HEADERS, allow_redirects=True)
+        response.raise_for_status() # Raises a requests HTTPError if the response code was unsuccessful
+    except requests.RequestException: # Parent class for all exceptions in the requests module
+        raise NoInternetError("Insufficient internet. Check your internet connection.") from None 
+
+    text = response.text.strip()
+    return text
