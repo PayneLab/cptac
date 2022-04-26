@@ -11,8 +11,11 @@
 
 # This file contains the scripts necessary for downloading data from the pdc source
 import os
+import pandas as pd
+import requests
+import threading
 
-from cptac.exceptions import CptacDevError
+from cptac.exceptions import CptacDevError, PdcDownloadError, NoInternetError, PdcDownloadError
 
 STUDY_IDS_MAP = {
     "pdcbrca": {
@@ -71,7 +74,7 @@ def pdc_download(cancer, version, redownload):
     dataset_ids = STUDY_IDS_MAP[studyID]
 
     # Download the file for mapping aliquots to patient IDs
-    if not _stream(cancer=cancer, source="pdc", datatypes=["mapping"], version=version, redownload=redownload):
+    if not _download_mapping_files(cancer=cancer, source="pdc", datatypes=["mapping"], version=version, redownload=redownload):
         return False
 
     path_here = os.path.abspath(os.path.dirname(__file__))
@@ -140,68 +143,8 @@ def pdc_download(cancer, version, redownload):
 
     return True
 
-def _stream(cancer, source, datatypes, version, redownload):
-   
-    dataset = source + "_" + cancer
-
-    # Get our dataset path
-    dataset_path = get_dataset_path(dataset)
-
-    # Update the index
-    update_index(dataset=dataset)
-
-    # Load the index
-    index = get_index(dataset)
-
-    # Validate the version number, including parsing if it's "latest"
-    version_number = validate_version(version, dataset, use_context="download")
-
-    # Construct the path to the directory for this version
-    version_path = os.path.join(dataset_path, f"{dataset}_v{version_number}")
-
-    # Get the index for the desired version
-    # If datatypes are specified, filter out the undesired datatypes
-    version_index = index.get(version_number)
-    if datatypes != "all" and source != "pdc":
-        version_index = get_filtered_version_index(version_index=version_index, datatypes=datatypes, source=dataset, version=version_number)
-
-    # Get list of files to download.
-    files_to_download = _gather_files(version_path=version_path, version_index=version_index, redownload=redownload)
-   
-    # Retrurn true if no new files to download
-    if files_to_download is None: 
-        return True
-
-    # Else Download the files
-    password = None
-    total_files = len(files_to_download)
-
-    # verify box token or login to box and get a new token
-    if source != 'awg':
-        _authenticate()
-
-    for data_file in files_to_download:
-
-        file_index = version_index.get(data_file)
-        server_hash = file_index.get("hash")
-        file_url = file_index.get("url")
-
-        file_path = os.path.join(version_path, data_file)
-        file_number = files_to_download.index(data_file) + 1
-
-        downloaded_path = download_file(file_url, file_path, server_hash,source=source, password=password, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
-
-        while downloaded_path == "wrong_password":
-            if password is None:
-                password = getpass.getpass(prompt=f'Password for {dataset} dataset: ') # We manually specify the prompt parameter so it shows up in Jupyter Notebooks
-            else:
-                password = getpass.getpass(prompt="Wrong password. Try again: ")
-            print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
-            print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
-
-            downloaded_path = download_file(file_url, file_path, source, server_hash, password=password, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
-
-    return True
+def _download_mapping_files():
+    pass
 
 def _download_study_clin(pdc_study_id):
     """Download PDC clinical data for a particular study."""
