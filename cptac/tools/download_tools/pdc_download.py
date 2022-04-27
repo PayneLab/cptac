@@ -19,56 +19,56 @@ from cptac.exceptions import CptacDevError, PdcDownloadError, NoInternetError, P
 
 STUDY_IDS_MAP = {
     "pdcbrca": {
-        "acetylome": "PDC000239", # Prospective Breast BI Acetylome
-        "phosphoproteome": "PDC000121", # Prospective BRCA Phosphoproteome S039-2
-        "proteome": "PDC000120", # Prospective BRCA Proteome S039-1
+        "acetylomics": "PDC000239", # Prospective Breast BI Acetylomics
+        "phosphoproteomics": "PDC000121", # Prospective BRCA Phosphoproteomics S039-2
+        "proteomics": "PDC000120", # Prospective BRCA Proteomics S039-1
     },
     "pdcccrcc": {
-        "phosphoproteome": "PDC000128", # CPTAC CCRCC Discovery Study - Phosphoproteme S044-2
-        "proteome": "PDC000127", # CPTAC CCRCC Discovery Study - Proteome S044-1
+        "phosphoproteomics": "PDC000128", # CPTAC CCRCC Discovery Study - Phosphoproteme S044-2
+        "proteomics": "PDC000127", # CPTAC CCRCC Discovery Study - Proteomics S044-1
     },
     "pdccoad": {
-        "phosphoproteome": "PDC000117", # Prospective COAD Phosphoproteome S037-3
-        "proteome": "PDC000116", # Prospective COAD Proteome S037-2
+        "phosphoproteomics": "PDC000117", # Prospective COAD Phosphoproteomics S037-3
+        "proteomics": "PDC000116", # Prospective COAD Proteomics S037-2
     },
     "pdcgbm": {
-        "acetylome": "PDC000245", # CPTAC GBM Discovery Study - Acetylome
-        "phosphoproteome": "PDC000205", # CPTAC GBM Discovery Study - Phosphoproteome
-        "proteome": "PDC000204", # CPTAC GBM Discovery Study - Proteome
+        "acetylomics": "PDC000245", # CPTAC GBM Discovery Study - Acetylomics
+        "phosphoproteomics": "PDC000205", # CPTAC GBM Discovery Study - Phosphoproteomics
+        "proteomics": "PDC000204", # CPTAC GBM Discovery Study - Proteomics
     },
     "pdchnscc": {
-        "phosphoproteome": "PDC000222", # CPTAC HNSCC Discovery Study - Phosphoproteome
-        "proteome": "PDC000221", # CPTAC HNSCC Discovery Study - Proteome
+        "phosphoproteomics": "PDC000222", # CPTAC HNSCC Discovery Study - Phosphoproteomics
+        "proteomics": "PDC000221", # CPTAC HNSCC Discovery Study - Proteomics
     },
     "pdclscc": {
-        "acetylome": "PDC000233", # CPTAC LSCC Discovery Study - Acetylome
-        "phosphoproteome": "PDC000232", # CPTAC LSCC Discovery Study - Phosphoproteome
-        "proteome": "PDC000234", # CPTAC LSCC Discovery Study - Proteome
+        "acetylomics": "PDC000233", # CPTAC LSCC Discovery Study - Acetylomics
+        "phosphoproteomics": "PDC000232", # CPTAC LSCC Discovery Study - Phosphoproteomics
+        "proteomics": "PDC000234", # CPTAC LSCC Discovery Study - Proteomics
         "ubiquitylome": "PDC000237", # CPTAC LSCC Discovery Study - Ubiquitylome
     },
     "pdcluad": {
-        "acetylome": "PDC000224", # CPTAC LUAD Discovery Study - Acetylome
-        "phosphoproteome": "PDC000149", # CPTAC LUAD Discovery Study - Phosphoproteome
-        "proteome": "PDC000153", # CPTAC LUAD Discovery Study - Proteome
+        "acetylomics": "PDC000224", # CPTAC LUAD Discovery Study - Acetylomics
+        "phosphoproteomics": "PDC000149", # CPTAC LUAD Discovery Study - Phosphoproteomics
+        "proteomics": "PDC000153", # CPTAC LUAD Discovery Study - Proteomics
     },
     "pdcov": {
-        "phosphoproteome": "PDC000119", # Prospective OV Phosphoproteome S038-3
-        "proteome": "PDC000118", # Prospective OV Proteome S038-2
+        "phosphoproteomics": "PDC000119", # Prospective OV Phosphoproteomics S038-3
+        "proteomics": "PDC000118", # Prospective OV Proteomics S038-2
     },
     "pdcpdac": {
-        "proteome": "PDC000270", # CPTAC PDAC Discovery Study - Proteome
-        "phosphoproteome": "PDC000271", # CPTAC PDAC Discovery Study - Phosphoproteome
+        "proteomics": "PDC000270", # CPTAC PDAC Discovery Study - Proteomics
+        "phosphoproteomics": "PDC000271", # CPTAC PDAC Discovery Study - Phosphoproteomics
     },
     "pdcucec": {
-        "acetylome": "PDC000226", # CPTAC UCEC Discovery Study - Acetylome
-        "phosphoproteome": "PDC000126", # UCEC Discovery - Phosphoproteome S043-2
-        "proteome": "PDC000125", # UCEC Discovery - Proteome S043-1
+        "acetylomics": "PDC000226", # CPTAC UCEC Discovery Study - Acetylomics
+        "phosphoproteomics": "PDC000126", # UCEC Discovery - Phosphoproteomics S043-2
+        "proteomics": "PDC000125", # UCEC Discovery - Proteomics S043-1
     },
 }
 
 
-def pdc_download(cancer, version, redownload):
-    """Download data for the specified cancer type from the PDC."""
+def pdc_download(cancer, datatypes, version, redownload):
+    """Download data for the specified cancer type and datatype from the PDC."""
 
     studyID = "pdc" + cancer
     dataset_ids = STUDY_IDS_MAP[studyID]
@@ -76,6 +76,7 @@ def pdc_download(cancer, version, redownload):
     # Download the file for mapping aliquots to patient IDs
     if not _download_mapping_files(cancer=cancer, source="pdc", datatypes=["mapping"], version=version, redownload=redownload):
         return False
+        # TODO: should I change a False return to throwing an error?
 
     path_here = os.path.abspath(os.path.dirname(__file__))
     data_dir = os.path.join(path_here, f"../data/data_pdc_{cancer}")
@@ -100,8 +101,6 @@ def pdc_download(cancer, version, redownload):
                 os.remove(data_file_path)
     else:
         return True # If all the files are there and the user didn't ask to redownload, we're done.
-
-    # Now download all the data files
 
     # We'll combine all the clinical tables in case there are differences
     master_clin = pd.DataFrame()
@@ -196,13 +195,13 @@ def _download_study_biospecimen(pdc_study_id):
 def _download_study_quant(pdc_study_id):
     """Download PDC quantitative data for a particular study."""
 
-    proteome_query = '''
+    proteomics_query = '''
     query {
         quantDataMatrix(pdc_study_id: "''' + pdc_study_id + '''", data_type: "log2_ratio", acceptDUA: true)
     }
     '''
 
-    result_json = _query_pdc(proteome_query)
+    result_json = _query_pdc(proteomics_query)
     result_df = pd.DataFrame(result_json["data"]["quantDataMatrix"])
 
     if result_df.shape[1] != 0:
