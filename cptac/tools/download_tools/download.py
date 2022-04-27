@@ -42,8 +42,13 @@ def download(sources, cancers='all', version="latest", redownload=False):
     success = True
     for cancer in cancers:
         for source, datatypes in sources.items():
-            if source == "pdc" and not pdc_download(cancer=cancer, version=version, redownload=redownload):
-                success = False
+            if source == "pdc":
+                # download the mapping files
+                if not box_download(cancer=cancer, source=source, datatypes=["mapping"], version=version, redownload=redownload):
+                    success = False
+                if not pdc_download(cancer=cancer, version=version, redownload=redownload):
+                    success = False
+            
             elif not box_download(cancer, source, datatypes, version=version, redownload=redownload):
                 success = False
 
