@@ -73,11 +73,6 @@ def pdc_download(cancer, datatypes, version, redownload):
     studyID = "pdc" + cancer
     dataset_ids = STUDY_IDS_MAP[studyID]
 
-    # Download the file for mapping aliquots to patient IDs
-    if not _download_mapping_files(cancer=cancer, source="pdc", datatypes=["mapping"], version=version, redownload=redownload):
-        return False
-        # TODO: should I change a False return to throwing an error?
-
     path_here = os.path.abspath(os.path.dirname(__file__))
     data_dir = os.path.join(path_here, f"../data/data_pdc_{cancer}")
 
