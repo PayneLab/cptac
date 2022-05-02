@@ -92,7 +92,7 @@ class GbmConf(Dataset):
                 df.loc[df['sample_type'].str.contains("CPTAC") & df['preferred_sample_name'].str.contains("TP"), 'tumor_occurrence_sequence'] = "1_primary"
                 df.loc[df['sample_type'].str.contains("CPTAC") & df['preferred_sample_name'].str.contains("NAT"), 'tumor_occurrence_sequence'] = "0_normal"
 
-                df = df.set_index("case_id")
+                df = df.set_index("preferred_sample_name")
                 df = df.sort_index()
                 df.index.name = "Patient_ID"
                 
