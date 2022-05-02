@@ -81,6 +81,8 @@ class GbmConf(Dataset):
                 self._data["acetylproteomics"] = df
                 
             elif df_name == "clinical_data_core":
+                df = pd.read_csv(file_path, sep='\t')
+                
                 df = df.loc[df['cohort'] != 'Discovery']
                 # Add sample tumor normal column
                 df.insert(len(df.columns),'Sample_Tumor_Normal',"Tumor",)
