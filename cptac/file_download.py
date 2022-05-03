@@ -60,6 +60,7 @@ def download(dataset, version="latest", redownload=False, _box_auth=False, _box_
         "ovarian",
         "pdac",
         "ucecconf",
+        "gbmconf",
     ]
 
     if dataset in datasets and _box_auth:

@@ -34,6 +34,7 @@ from .luad import Luad
 from .ovarian import Ovarian
 from .pdac import Pdac
 from .ucecconf import UcecConf
+from .gbmconf import GbmConf
 
 def list_datasets():
     """List all available datasets."""
