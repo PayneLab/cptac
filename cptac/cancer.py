@@ -14,10 +14,9 @@ import numpy as np
 import warnings
 from functools import reduce
 import re
-from .file_download import update_index
-from .file_tools import validate_version, get_version_files_paths
-from .dataframe_tools import add_index_levels, join_col_to_dataframe, sort_df_by_sample_status
-from .exceptions import *
+from cptac.tools.download_tools.box_download import update_index, validate_version, get_version_files_paths
+from cptac.tools.dataframe_tools import add_index_levels, join_col_to_dataframe, sort_df_by_sample_status
+from cptac.exceptions import *
 
 import cptac.utils as ut
 
