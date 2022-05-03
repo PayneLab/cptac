@@ -16,7 +16,6 @@ import warnings
 import datetime
 
 from cptac.cancer import Cancer
-from cptac.tools.file_tools import *
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
