@@ -14,7 +14,6 @@ import os
 import cptac
 from cptac.tools.download_tools.pdc_download import pdc_download
 from cptac.tools.download_tools.box_download import box_download
-from cptac.tools.download_tools.download_utils import *
 
 from cptac.exceptions import DataSourceNotFoundError, InvalidParameterError, NoInternetError
 
@@ -68,9 +67,8 @@ def _validate_sources(sources):
 
 def _validate_cancers(cancers):
     all_cancers = cptac.get_cancer_options()
-    if type(cancers) is str and cancers == 'all':
-        return all_cancers
-    elif type(cancers) is list and len(cancers) == 1 and cancers[0] == 'all':
+    if cancers in ['all', ['all']]:
+        print("first if")
         return all_cancers
     elif type(cancers) is str and cancers in all_cancers:
         return list([cancers])
@@ -81,5 +79,7 @@ def _validate_cancers(cancers):
                 invalid_cancers.append(c)
         if len(invalid_cancers) > 0:
             raise InvalidParameterError(f"{invalid_cancers} are not a valid cancers. Run cptac.list_datasets() to see valid cancer types.")
+        else:
+            return cancers
     else: # handle case where cancers is an invalid string
         raise InvalidParameterError(f"{cancers} is not a valid cancer. Run cptac.Run cptac.list_datasets() to see valid cancer types.")

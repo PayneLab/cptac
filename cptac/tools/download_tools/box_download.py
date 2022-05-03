@@ -442,21 +442,21 @@ def get_filtered_version_index(version_index, source, version, datatypes=None):
             for ft in desired_annotations:
                 found_datatypes.append(ft)
 
-        # add files if of a desired types (including mapping and definition files)
+        # add mapping and definition files quietly
+        elif file_type in helper_types:
+            filtered_version_index[file_name] = version_index[file_name]
+
+        # add file if of a desired types 
         elif file_type in datatypes:
             filtered_version_index[file_name] = version_index[file_name]
             found_datatypes.append(version_index[file_name]['datatype'])
     
     # check for invalid and unavailable datatypes
     found_datatypes = set(found_datatypes)
-    if len(found_datatypes) == 0:
-        raise DataTypeNotInSourceError(f"None of the specified data types were found for the {source} source. You requested: {datatypes}")
-
-    else:
-        if datatypes is not None:
-            found_datatypes - set(helper_types)
-            set([x.lower() for x in found_datatypes]) != set([d.lower() for d in datatypes]):
-            warnings.warn(f"These datatypes were not found for {source} (source_cancer) in version v_{version}: {set(datatypes) - set(found_datatypes)}\nSee cptac.list_datasets() for more info.", DataTypeNotInSourceWarning, stacklevel=2)
+    datatypes = set(datatypes) - set(helper_types)
+    if set([x.lower() for x in found_datatypes]) != set([d.lower() for d in datatypes]):
+            source_cancer = source.split("_")
+            warnings.warn(f"These {source_cancer[-1]} datatypes were not found for the {source_cancer[0]} source in version v_{version}: {set(datatypes) - set(found_datatypes)}\nSee cptac.list_datasets() for more info.", DataTypeNotInSourceWarning, stacklevel=2)
 
     # return version index with only files of desired types
     return filtered_version_index
