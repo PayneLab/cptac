@@ -17,8 +17,8 @@ import warnings
 import webbrowser
 
 # Function imports
-from cptac.tools.file_download import download
-from cptac.tools.file_download import download_text as _download_text
+from cptac.tools.download_tools.download import download
+from cptac.tools.download_tools.box_download import download_text as _download_text
 from cptac.exceptions import CptacError, CptacWarning, InvalidParameterError, NoInternetError, OldPackageVersionWarning
 
 # Dataset imports
@@ -38,7 +38,6 @@ from cptac.cancers.ucec import Ucec
 def _load_options():
     """Load the tsv file with all the possible cancer, source, datatype combinations"""
     options_file = path.join(path.abspath(path.dirname(__file__)), "options.tsv")
-    print(options_file)
     df = pd.read_csv(options_file, sep="\t")
     return df
 
