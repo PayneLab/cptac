@@ -32,7 +32,7 @@ class GbmConf(Dataset):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        valid_versions = ["0.1"]
+        valid_versions = ["0.1", "2.0"]
 
         data_files = {
             "0.1": [
@@ -43,6 +43,15 @@ class GbmConf(Dataset):
                 "rnaseq_washu_fpkm_uq.v0.1.20220202.tsv.gz",
                 "somatic_wes_mutation.v0.1.20220202.maf.gz",
                 "wgs_somatic_cnv_per_gene.v0.1.20220202.tsv.gz",
+                ],
+            "2.0": [
+                "acetylome_pnnl_d6.v2.0.20220408.tsv.gz",
+                "clinical_data_core.v2.0.20220408.tsv.gz",
+                "phosphoproteome_pnnl_d6.v2.0.20220408.tsv.gz",
+                "proteome_pnnl_per_gene_d4.v2.0.20220408.tsv.gz",
+                "rnaseq_washu_fpkm_uq.v2.0.20220408.tsv.gz",
+                "somatic_wes_mutation.v2.0.20220408.maf.gz",
+                "wgs_somatic_cnv_gatk4_per_gene.v2.0.20220408.tsv.gz",
                 ],
         }
 
@@ -142,19 +151,27 @@ class GbmConf(Dataset):
             
             elif df_name == "somatic_wes_mutation":
                 df = pd.read_csv(file_path, sep='\t')
-                # We don't need any of the other columns
-                df = df[["preferred_sample_name", "Hugo_Symbol", "Variant_Classification", "HGVSp_Short"]]
-                df = df.rename(columns={
-                    "preferred_sample_name": "Patient_ID",
-                    'Hugo_Symbol': "Gene",
-                    "Variant_Classification": "Mutation",
-                    "HGVSp_Short": "Location"
-                })
+
+                if self._version == "0.1":
+                    # We don't need any of the other columns
+                    df = df[["preferred_sample_name", "Hugo_Symbol", "Variant_Classification", "HGVSp_Short"]]
+                    df = df.rename(columns={
+                        "preferred_sample_name": "Patient_ID",
+                        'Hugo_Symbol': "Gene",
+                        "Variant_Classification": "Mutation",
+                        "HGVSp_Short": "Location"
+                    })
+                elif self._version == "2.0":
+                    df = df[["Tumor_Sample_Barcode", "Hugo_Symbol", "Variant_Classification", "HGVSp_Short"]]
+                    df = df.rename(columns={"Tumor_Sample_Barcode": "Patient_ID", 'Hugo_Symbol': "Gene", "Variant_Classification": "Mutation", "HGVSp_Short": "Location"})
+                    df["Patient_ID"] = df["Patient_ID"].str.rstrip("_T")
+
                 df = df.set_index("Patient_ID")
                 df = df.sort_values(by=["Patient_ID","Gene"])
-                
+
                 self._data["somatic_mutation"] = df
-            
+
+            # This is the CNV file used for 0.1
             elif df_name == "wgs_somatic_cnv_per_gene":
                 df = pd.read_csv(file_path, sep='\t')
                 df = df.drop(columns=["Start","End", "Chr"])
@@ -163,7 +180,19 @@ class GbmConf(Dataset):
                 df = df.transpose()
                 df.index.name = "Patient_ID"
                 df.columns.name = "Name"
-                
+
+                self._data["CNV"] = df
+
+            # This is the CNV file used for 2.0
+            elif df_name == "wgs_somatic_cnv_gatk4_per_gene":
+                df = pd.read_csv(file_path, sep='\t')
+
+                df = df.set_index("Gene")
+                df = df.sort_index()
+                df = df.transpose()
+                df.index.name = "Patient_ID"
+                df.columns.name = "Name"
+
                 self._data["CNV"] = df
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
