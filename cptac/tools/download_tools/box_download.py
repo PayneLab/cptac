@@ -31,7 +31,10 @@ HEADERS = {'User-Agent': USER_AGENT}
  
 def box_download(cancer, source, datatypes, version, redownload):
    
-    dataset = source + "_" + cancer
+    if source in ["harmonized", "mssm"]:
+        dataset = source
+    else: 
+        dataset = source + "_" + cancer
 
     # Get our dataset path
     dataset_path = get_data_path(dataset)
@@ -145,7 +148,7 @@ def download_file(url, path, server_hash, source=None, password=None, file_messa
     for i in range(2):
         try:
             # check if the required file is from a source whose files are stored on Box.com
-            if source in ["bcm", "broad", "harmonized", "mssm", "umich", "washu"]: # We are using Box OAuth2
+            if source in ["bcm", "broad", "harmonized", "mssm", "pdc", "umich", "washu"]: # We are using Box OAuth2
                 refresh_box_token()
                 download_url = f"https://api.box.com/2.0/files/{url}/content" # url is actually file ID
                 headers = dict(HEADERS)
@@ -260,8 +263,8 @@ def get_data_path(dataset):
     if os.path.isdir(dataset_path):
         return dataset_path
     else:
-        download_params = dataset.split('_')
-        raise InvalidParameterError(f"{download_params[0]} is not a valid source for {download_params[-1]}.")
+        source, cancer = dataset.split("_")
+        raise InvalidParameterError(f"{source} is not a valid source for {cancer}. Path: {dataset_path}")
 
 def validate_version(version, dataset, use_context, valid_versions=None):
     """Parse and validate a given version number. If version is "latest", check that index and installed latest match.
@@ -403,14 +406,14 @@ def get_index(dataset):
                 index[version][file_name]["datatype"] = file_datatype
     return index
 
-def get_filtered_version_index(version_index, source, version, datatypes=None):
+def get_filtered_version_index(version_index, source, datatypes, version):
     """Filter the version index to only include files of the desired types.
     
     Also checks for invalid or unavailable datatypes.
 
     Parameters:
     version_index (dict): The version index dictionary
-    datatypes (list of str): The datatypes desired. The default case ("None") is for automatically downloading the necessary mapping files when pdc data is requested
+    datatypes (list of str): The datatypes desired.
     source: The source from where the datatypes will be loaded 
 
     Returns:
@@ -418,21 +421,18 @@ def get_filtered_version_index(version_index, source, version, datatypes=None):
     """
     found_datatypes = list()
     filtered_version_index = dict()
-    annotation_types = ['clinical', 'derived_molecular', 'experimental_designn']
+    annotation_types = ['clinical', 'derived_molecular', 'experimental_design', 'medical_history']
 
     # always add mapping and definition files
     helper_types = ['mapping', 'definitions']
-    if datatypes is None:
-        datatypes = helper_types
-    else:
-        datatypes.extend(helper_types)
-        datatypes = [d.lower() for d in datatypes]
+    datatypes.extend(helper_types)
+    datatypes = [d.lower() for d in datatypes]
     
 
     # add the files of the desired datatypes to a new dict (filtered_version_index)
     for file_name in version_index.keys():
         
-        file_type = version_index[file_name]['datatype']
+        file_type = version_index[file_name]['datatype'].lower()
         
         # add desired annotation file types
         # Developers, note that this functionality depends very much on accurately specifying datatypes in the index files
@@ -455,8 +455,16 @@ def get_filtered_version_index(version_index, source, version, datatypes=None):
     found_datatypes = set(found_datatypes)
     datatypes = set(datatypes) - set(helper_types)
     if set([x.lower() for x in found_datatypes]) != set([d.lower() for d in datatypes]):
-            source_cancer = source.split("_")
-            warnings.warn(f"These {source_cancer[-1]} datatypes were not found for the {source_cancer[0]} source in version v_{version}: {set(datatypes) - set(found_datatypes)}\nSee cptac.list_datasets() for more info.", DataTypeNotInSourceWarning, stacklevel=2)
+        w = None
+        
+        if source in ['harmonized', 'mssm']:
+            w = f"These {source} datatypes were not found in version v_{version}: {set(datatypes) - set(found_datatypes)}\nSee cptac.list_datasets() for more info."
+        
+        else:
+            source, cancer = source.split("_")
+            w = f"These {cancer} datatypes were not found for the {source} source in version v_{version}: {set(datatypes) - set(found_datatypes)}\nSee cptac.list_datasets() for more info."
+        
+        warnings.warn(w, DataTypeNotInSourceWarning, stacklevel=2)
 
     # return version index with only files of desired types
     return filtered_version_index
