@@ -16,6 +16,9 @@ import threading
 import warnings
 import webbrowser
 
+# cptac base path
+CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
+
 # Function imports
 from cptac.tools.download_tools.download import download
 from cptac.tools.download_tools.box_download import download_text as _download_text
@@ -40,7 +43,7 @@ box_auth = BoxAuth()
 #### This code generates the __OPTIONS__ dataframe which shows all possible cancer, source, datatype combinations
 def _load_options():
     """Load the tsv file with all the possible cancer, source, datatype combinations"""
-    options_file = path.join(path.abspath(path.dirname(__file__)), "options.tsv")
+    options_file = path.join(CPTAC_BASE_DIR, "options.tsv")
     df = pd.read_csv(options_file, sep="\t")
     return df
 
@@ -84,8 +87,7 @@ def embargo():
 def version():
     """Return version number of cptac package."""
     version = {}
-    path_here = path.abspath(path.dirname(__file__))
-    version_path = path.join(path_here, "version.py")
+    version_path = path.join(CPTAC_BASE_DIR, "version.py")
     with open(version_path) as fp:
         exec(fp.read(), version)
     return(version['__version__'])
