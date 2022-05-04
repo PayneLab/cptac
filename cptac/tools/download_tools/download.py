@@ -37,15 +37,26 @@ def download(sources, cancers='all', version="latest", redownload=False):
     # check if cancers parameter is valid
     cancers = _validate_cancers(cancers)
 
-    # iterate through cancers and sources and download corresonding data files
+    # variable for tracking download success
     success = True
+
+    # handle special harmonized and mssm cases
+    special_cases = set(['harmonized', 'mssm']).intersection(set(sources.keys()))
+    for case in special_cases:
+        source = case
+        datatypes = sources[case]
+        if not box_download(cancer='brca', source=source, datatypes=datatypes, version=version, redownload=redownload):
+            success = False
+        del sources[case]
+
+    # iterate through cancers and sources and download corresonding data files
     for cancer in cancers:
         for source, datatypes in sources.items():
             if source == "pdc":
                 # download the mapping files
-                if not box_download(cancer=cancer, source=source, datatypes=["mapping"], version=version, redownload=redownload):
+                if not box_download(cancer=cancer, source=source, datatypes=None, version=version, redownload=redownload):
                     success = False
-                if not pdc_download(cancer=cancer, version=version, redownload=redownload):
+                if not pdc_download(cancer=cancer, datatypes=datatypes, version=version, redownload=redownload):
                     success = False
             
             elif not box_download(cancer, source, datatypes, version=version, redownload=redownload):
