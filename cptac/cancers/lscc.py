@@ -21,16 +21,6 @@ from cptac.cancers.washu.washulscc import WashuLscc
 from cptac.cancers.mssm.mssmclinical import MssmClinical
 from cptac.cancers.harmonized.harmonized import Harmonized
 
-#List sources to be downloaded
-SOURCES = [
-    "bcmlscc",
-    "mssmclinical",
-    "pdclscc",
-    "umichlscc",
-    "washulscc",
-    "broadlscc",
-    "harmonized"
-]
 
 class Lscc(Cancer):
 

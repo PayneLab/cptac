@@ -21,17 +21,6 @@ from cptac.cancers.washu.washuucec import WashuUcec
 from cptac.cancers.mssm.mssmclinical import MssmClinical
 from cptac.cancers.harmonized.harmonized import Harmonized
 
-#List Sources to be downloaded
-SOURCES = [
-    "bcmucec",
-    "mssmclinical",
-    "pdcucec",
-    "umichucec",
-    "washuucec",
-    "broaducec",
-    "harmonized"
-    
-]
 
 class Ucec(Cancer):
 

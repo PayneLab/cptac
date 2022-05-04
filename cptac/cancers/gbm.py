@@ -22,17 +22,6 @@ from cptac.cancers.mssm.mssmclinical import MssmClinical
 from cptac.cancers.harmonized.harmonized import Harmonized
 
 
-#List sources to be downloaded
-SOURCES = [
-    "bcmgbm",
-    "mssmclinical",
-    "pdcgbm",
-    "umichgbm",
-    "washugbm",
-    "broadgbm",
-    "harmonized"
-]
-
 class Gbm(Cancer):
 
     def __init__(self, version="latest", no_internet=False):

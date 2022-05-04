@@ -21,16 +21,6 @@ from cptac.cancers.washu.washuccrcc import WashuCcrcc
 from cptac.cancers.mssm.mssmclinical import MssmClinical
 from cptac.cancers.harmonized.harmonized import Harmonized
 
-#List sources to be downloaded
-SOURCES = [
-    "bcmccrcc",
-    "mssmclinical",
-    "pdcccrcc",
-    "umichccrcc",
-    "washuccrcc",
-    "broadccrcc",
-    "harmonized"
-]
 
 class Ccrcc(Cancer):
 

@@ -22,16 +22,6 @@ from cptac.cancers.mssm.mssmclinical import MssmClinical
 from cptac.cancers.harmonized.harmonized import Harmonized
 
 
-#List sources to be downloaded
-SOURCES = [
-    "bcmcoad",
-    "mssmclinical",
-    "pdccoad",
-    "umichcoad",
-    "washucoad",
-    "broadcoad"
-]
-
 class Coad(Cancer):
 
     def __init__(self, version="latest", no_internet=False):

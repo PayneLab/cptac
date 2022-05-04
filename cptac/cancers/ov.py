@@ -21,15 +21,6 @@ from cptac.cancers.washu.washuov import WashuOv
 from cptac.cancers.mssm.mssmclinical import MssmClinical
 from cptac.cancers.harmonized.harmonized import Harmonized
 
-SOURCES = [
-    "bcmov",
-    "mssmclinical",
-    "pdcov",
-    "umichov",
-    "washuov",
-    "broadov",
-    "harmonized"
-]
 
 class Ov(Cancer):
 

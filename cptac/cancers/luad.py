@@ -21,16 +21,6 @@ from cptac.cancers.washu.washuluad import WashuLuad
 from cptac.cancers.mssm.mssmclinical import MssmClinical
 from cptac.cancers.harmonized.harmonized import Harmonized
 
-#List Sources to be Downloaded
-SOURCES = [
-    "bcmluad",
-    "mssmclinical",
-    "pdcluad",
-    "umichluad",
-    "washuluad",
-    "broadluad",
-    "harmonized"
-]
 
 class Luad(Cancer):
 

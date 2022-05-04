@@ -21,17 +21,6 @@ from cptac.cancers.washu.washupdac import WashuPdac
 from cptac.cancers.mssm.mssmclinical import MssmClinical
 from cptac.cancers.harmonized.harmonized import Harmonized
 
-#List Sources to be downloaded
-SOURCES = [
-    "bcmpdac",
-    "mssmclinical",
-    "pdcpdac",
-    "umichpdac",
-    "washupdac",
-    "broadpdac",
-    "harmonized"
-    
-]
 
 class Pdac(Cancer):
 
