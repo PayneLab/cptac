@@ -77,7 +77,7 @@ def box_download(cancer, source, datatypes, version, redownload):
         file_path = os.path.join(version_path, data_file)
         file_number = files_to_download.index(data_file) + 1
 
-        downloaded_path = download_file(file_url, file_path, server_hash,source=source, password=password, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
+        downloaded_path = download_file(url=file_url, path=file_path, server_hash=server_hash,source=source, password=password, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
 
         while downloaded_path == "wrong_password":
             if password is None:
@@ -87,7 +87,7 @@ def box_download(cancer, source, datatypes, version, redownload):
             print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
             print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
 
-            downloaded_path = download_file(file_url, file_path, source, server_hash, password=password, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
+            downloaded_path = download_file(url=file_url, path=file_path, source=source, server_hash=server_hash, password=password, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
 
     return True
 
@@ -155,7 +155,7 @@ def download_file(url, path, server_hash, source=None, password=None, file_messa
                 headers["Authorization"] = f"Bearer {BOX_TOKEN}"
                 response = requests.get(download_url, headers=headers)
             
-            elif password is None: # No password or OAuth2 (awg files)
+            elif password is None: # No password or OAuth2 (awg files and index files)
                 response = requests.get(url, headers=HEADERS, allow_redirects=True)
 
             else: # The file is password protected (awgconf files)
@@ -192,7 +192,7 @@ def download_file(url, path, server_hash, source=None, password=None, file_messa
 
     # If we get to this point, the download failed.
     file_name = path.split(os.sep)[-1]
-    raise DownloadFailedError(f"Download failed for {file_name}.")
+    raise DownloadFailedError(f"Download failed for {file_name}. \nL_Hash: {local_hash}\nS_Hash: {server_hash}")
 
 def get_box_token():
 
