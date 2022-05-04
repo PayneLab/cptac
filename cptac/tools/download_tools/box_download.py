@@ -17,13 +17,8 @@ from queue import Queue
 from werkzeug import Request, Response
 from werkzeug.serving import make_server
 
+import cptac
 from cptac.exceptions import *
-
-# global box token
-global BOX_TOKEN
-global BOX_TOKEN_AGE
-BOX_TOKEN = None
-BOX_TOKEN_AGE = None
 
 # Some websites don't like requests from sources without a user agent. Let's preempt that issue.
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
@@ -65,7 +60,7 @@ def box_download(cancer, source, datatypes, version, redownload):
         return True
 
     # Else Download the files
-    password = None
+    password = cptac.box_auth.get_password(dataset)
     total_files = len(files_to_download)
 
     for data_file in files_to_download:
@@ -144,15 +139,14 @@ def download_file(url, path, server_hash, source=None, password=None, file_messa
     print(download_msg, end='\r')
 
     # download the files
-    global BOX_TOKEN
     for i in range(2):
         try:
             # check if the required file is from a source whose files are stored on Box.com
             if source in ["bcm", "broad", "harmonized", "mssm", "pdc", "umich", "washu"]: # We are using Box OAuth2
-                refresh_box_token()
+                cptac.box_auth.refresh_token() # global box_auth object
                 download_url = f"https://api.box.com/2.0/files/{url}/content" # url is actually file ID
                 headers = dict(HEADERS)
-                headers["Authorization"] = f"Bearer {BOX_TOKEN}"
+                headers["Authorization"] = f"Bearer {cptac.box_auth.get_box_token()}"
                 response = requests.get(download_url, headers=headers)
             
             elif password is None: # No password or OAuth2 (awg files and index files)
@@ -193,59 +187,6 @@ def download_file(url, path, server_hash, source=None, password=None, file_messa
     # If we get to this point, the download failed.
     file_name = path.split(os.sep)[-1]
     raise DownloadFailedError(f"Download failed for {file_name}. \nL_Hash: {local_hash}\nS_Hash: {server_hash}")
-
-def get_box_token():
-
-    @Request.application
-    def receive(request):
-        q.put(request.args.get('code'))
-        return Response("Authentication successful. You can close this window.", 200)
-
-    # Don't show logs from server
-    log = logging.getLogger('werkzeug')
-    log.disabled = True
-
-    # Set up authentication parameters
-    base_url = "https://account.box.com/api/oauth2/authorize"
-    client_id = "kztczhjoq3oes38yywuyfp4t9tu11it8"
-    client_secret = "a5xNE1qj4Z4H3BSJEDVfzbxtmxID6iKY"
-    login_url = f"{base_url}?client_id={client_id}&response_type=code"
-
-    q = Queue()
-    s = make_server("localhost", 8003, receive)
-    t = threading.Thread(target=s.serve_forever)
-    t.start()
-
-    # Send the user to the "Grant access" page
-    webbrowser.open(login_url)
-    login_msg = "Please login to Box on the webpage that was just opened and grant access for cptac to download files through your account. If you accidentally closed the browser window, press Ctrl+C and call the download function again."
-    print(login_msg)
-
-    temp_code = q.get(block=True)
-    s.shutdown()
-    t.join()
-
-    # Use the temporary access code to get the long term access token
-    token_url = "https://api.box.com/oauth2/token";
-
-    params = {
-       'grant_type': 'authorization_code',
-       'code': temp_code,
-       'client_id': client_id,
-       'client_secret': client_secret,
-    }
-
-    auth_resp = requests.post(token_url, data=params)
-    global BOX_TOKEN
-    global BOX_TOKEN_AGE
-    BOX_TOKEN = auth_resp.json()["access_token"]
-    BOX_TOKEN_AGE = datetime.now()
-
-def refresh_box_token():
-    global BOX_TOKEN
-    global BOX_TOKEN_AGE
-    if BOX_TOKEN == None or datetime.now() - BOX_TOKEN_AGE > timedelta(minutes=59):
-        get_box_token()
 
 def get_data_path(dataset):
     """Get the path to the main directory for a dataset.

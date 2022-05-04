@@ -22,7 +22,6 @@ from cptac.tools.download_tools.box_download import download_text as _download_t
 from cptac.exceptions import CptacError, CptacWarning, InvalidParameterError, NoInternetError, OldPackageVersionWarning
 
 # Dataset imports
-
 from cptac.cancers.brca import Brca
 from cptac.cancers.ccrcc import Ccrcc
 from cptac.cancers.coad import Coad
@@ -33,6 +32,10 @@ from cptac.cancers.luad import Luad
 from cptac.cancers.ov import Ov
 from cptac.cancers.pdac import Pdac
 from cptac.cancers.ucec import Ucec
+
+# auth import
+from cptac.tools.auth_tools.box_auth import BoxAuth
+box_auth = BoxAuth()
 
 #### This code generates the __OPTIONS__ dataframe which shows all possible cancer, source, datatype combinations
 def _load_options():
