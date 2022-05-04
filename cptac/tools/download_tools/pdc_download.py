@@ -19,7 +19,7 @@ from cptac.exceptions import CptacDevError, PdcDownloadError, NoInternetError, P
 
 STUDY_IDS_MAP = {
     "pdcbrca": {
-        "acetylomics": "PDC000239", # Prospective Breast BI Acetylomics
+        "acetylproteomics": "PDC000239", # Prospective Breast BI Acetylproteomics
         "phosphoproteomics": "PDC000121", # Prospective BRCA Phosphoproteomics S039-2
         "proteomics": "PDC000120", # Prospective BRCA Proteomics S039-1
     },
@@ -32,7 +32,7 @@ STUDY_IDS_MAP = {
         "proteomics": "PDC000116", # Prospective COAD Proteomics S037-2
     },
     "pdcgbm": {
-        "acetylomics": "PDC000245", # CPTAC GBM Discovery Study - Acetylomics
+        "acetylproteomics": "PDC000245", # CPTAC GBM Discovery Study - Acetylproteomics
         "phosphoproteomics": "PDC000205", # CPTAC GBM Discovery Study - Phosphoproteomics
         "proteomics": "PDC000204", # CPTAC GBM Discovery Study - Proteomics
     },
@@ -41,13 +41,13 @@ STUDY_IDS_MAP = {
         "proteomics": "PDC000221", # CPTAC HNSCC Discovery Study - Proteomics
     },
     "pdclscc": {
-        "acetylomics": "PDC000233", # CPTAC LSCC Discovery Study - Acetylomics
+        "acetylproteomics": "PDC000233", # CPTAC LSCC Discovery Study - Acetylproteomics
         "phosphoproteomics": "PDC000232", # CPTAC LSCC Discovery Study - Phosphoproteomics
         "proteomics": "PDC000234", # CPTAC LSCC Discovery Study - Proteomics
         "ubiquitylome": "PDC000237", # CPTAC LSCC Discovery Study - Ubiquitylome
     },
     "pdcluad": {
-        "acetylomics": "PDC000224", # CPTAC LUAD Discovery Study - Acetylomics
+        "acetylproteomics": "PDC000224", # CPTAC LUAD Discovery Study - Acetylproteomics
         "phosphoproteomics": "PDC000149", # CPTAC LUAD Discovery Study - Phosphoproteomics
         "proteomics": "PDC000153", # CPTAC LUAD Discovery Study - Proteomics
     },
@@ -60,7 +60,7 @@ STUDY_IDS_MAP = {
         "phosphoproteomics": "PDC000271", # CPTAC PDAC Discovery Study - Phosphoproteomics
     },
     "pdcucec": {
-        "acetylomics": "PDC000226", # CPTAC UCEC Discovery Study - Acetylomics
+        "acetylproteomics": "PDC000226", # CPTAC UCEC Discovery Study - Acetylproteomics
         "phosphoproteomics": "PDC000126", # UCEC Discovery - Phosphoproteomics S043-2
         "proteomics": "PDC000125", # UCEC Discovery - Proteomics S043-1
     },
@@ -72,9 +72,13 @@ def pdc_download(cancer, datatypes, version, redownload):
 
     studyID = "pdc" + cancer
     dataset_ids = STUDY_IDS_MAP[studyID]
-
+    
+    # filter out the datasets not requested
+    ids_to_remove = set(dataset_ids.keys()) - set(datatypes)
+    [ dataset_ids.pop(key) for key in ids_to_remove ]
+            
     path_here = os.path.abspath(os.path.dirname(__file__))
-    data_dir = os.path.join(path_here, f"../data/data_pdc_{cancer}")
+    data_dir = os.path.join(path_here, f"../../data/data_pdc_{cancer}")
 
     # Check that the index file exists. If not, there was an uncaught error in the mapping file download.
     index_path = os.path.join(data_dir, "index.txt")
@@ -115,7 +119,7 @@ def pdc_download(cancer, datatypes, version, redownload):
         print(save_msg, end="\r")
 
         # Append the clinical dataframe
-        master_clin = master_clin.append(clin)
+        master_clin = pd.concat([master_clin, clin])
 
         # Save the quantitative table
         quant.to_csv(os.path.join(data_dir, f"{data_type}.tsv.gz"), sep="\t")
