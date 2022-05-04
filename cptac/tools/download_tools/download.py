@@ -79,7 +79,6 @@ def _validate_sources(sources):
 def _validate_cancers(cancers):
     all_cancers = cptac.get_cancer_options()
     if cancers in ['all', ['all']]:
-        print("first if")
         return all_cancers
     elif type(cancers) is str and cancers in all_cancers:
         return list([cancers])

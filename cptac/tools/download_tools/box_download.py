@@ -197,9 +197,8 @@ def get_data_path(dataset):
     Returns:
     str: The path to the main directory of the specified dataset.
     """
-    path_here = os.path.abspath(os.path.dirname(__file__))
-    dataset_dir = f"../../data/data_{dataset}"
-    dataset_path = os.path.join(path_here, dataset_dir)
+    dataset_dir = f"data/data_{dataset}"
+    dataset_path = os.path.join(cptac.CPTAC_BASE_DIR, dataset_dir)
 
     if os.path.isdir(dataset_path):
         return dataset_path

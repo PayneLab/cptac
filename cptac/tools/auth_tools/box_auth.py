@@ -18,8 +18,6 @@ from queue import Queue
 from werkzeug import Request, Response
 from werkzeug.serving import make_server
 
-from cptac.exceptions import MissingPasswordError
-
 class BoxAuth:
 
     def __init__(self):

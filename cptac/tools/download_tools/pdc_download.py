@@ -14,6 +14,7 @@ import os
 import pandas as pd
 import requests
 import threading
+from cptac import CPTAC_BASE_DIR
 
 from cptac.exceptions import CptacDevError, PdcDownloadError, NoInternetError, PdcDownloadError
 
@@ -77,8 +78,7 @@ def pdc_download(cancer, datatypes, version, redownload):
     ids_to_remove = set(dataset_ids.keys()) - set(datatypes)
     [ dataset_ids.pop(key) for key in ids_to_remove ]
             
-    path_here = os.path.abspath(os.path.dirname(__file__))
-    data_dir = os.path.join(path_here, f"../../data/data_pdc_{cancer}")
+    data_dir = os.path.join(CPTAC_BASE_DIR, f"data/data_pdc_{cancer}")
 
     # Check that the index file exists. If not, there was an uncaught error in the mapping file download.
     index_path = os.path.join(data_dir, "index.txt")
