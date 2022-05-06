@@ -47,8 +47,16 @@ class GbmConf(Dataset):
             "2.0": [
                 "acetylome_pnnl_d6.v2.0.20220408.tsv.gz",
                 "clinical_data_core.v2.0.20220408.tsv.gz",
+                "Direct_SRM_corrected.v2.0.20220408.tsv.gz",
+                "IMAC_SRM_corrected.v2.0.20220408.tsv.gz",
+                "metabolome_pnnl.v2.0.20220408.tsv.gz",
+                "mirnaseq_mirna_mature_tpm.v2.0.20220408.tsv.gz",
+                "negative_lipidome_pnnl.v2.0.20220408.tsv.gz",
                 "phosphoproteome_pnnl_d6.v2.0.20220408.tsv.gz",
+                "positive_lipidome_pnnl.v2.0.20220408.tsv.gz",
+                "PRISM_SRM_raw.v2.0.20220408.tsv.gz",
                 "proteome_pnnl_per_gene_d4.v2.0.20220408.tsv.gz",
+                "rnaseq_gene_fusion.v2.0.20220408.tsv.gz",
                 "rnaseq_washu_fpkm_uq.v2.0.20220408.tsv.gz",
                 "somatic_wes_mutation.v2.0.20220408.maf.gz",
                 "wgs_somatic_cnv_gatk4_per_gene.v2.0.20220408.tsv.gz",
@@ -107,6 +115,77 @@ class GbmConf(Dataset):
                 
                 self._data["clinical"] = df
                 
+            elif df_name == "Direct_SRM_corrected":
+                df = pd.read_csv(file_path, sep='\t')
+                df = df.rename(columns={
+                    "protein_name": "Name",
+                    "peptide_seq": "Peptide",
+                })
+                df = df.set_index(["Name", "Peptide"])
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name = "Patient_ID"
+                
+                self._data["direct_SRM"] = df
+                
+            # This is out of alphabetical order because it belongs with the other SRM things
+            elif df_name == "PRISM_SRM_raw":
+                df = pd.read_csv(file_path, sep='\t')
+                df = df.rename(columns={
+                    "protein_name": "Name",
+                    "peptide_seq": "Peptide",
+                })
+                df = df.set_index(["Name", "Peptide"])
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name = "Patient_ID"
+
+                self._data["prism_SRM"] = df
+                
+            elif df_name == "IMAC_SRM_corrected":
+                df = pd.read_csv(file_path, sep='\t')
+                df = df.drop(columns=["site"])
+                df = df.rename(columns={
+                    "protein_name": "Name",
+                    "peptide_modified_seq": "Peptide",
+                    "refseq_id": "Database_ID"
+                })
+                df = df.set_index(["Name", "Peptide", "Database_ID"])
+                df = df.transpose()
+                df = df.sort_index()
+                df.index.name = "Patient_ID"
+                df
+                
+                self._data["targeted_phosphoproteomics"] = df
+                
+            elif df_name == "metabolome_pnnl":
+                df = pd.read_csv(file_path, sep='\t')
+                df = df.transpose()
+                # Name columns for consistency
+                df.columns.name = "Name"
+                df.index.name="Patient_ID"
+                
+                self._data["metabolomics"] = df
+                
+            elif df_name == "mirnaseq_mirna_mature_tpm":
+                df = pd.read_csv(file_path, sep='\t')
+                df = df.drop(columns=["Alias", "Derives_from"])
+                df = df.rename(columns={'ID': "Database_ID"})
+                df = df.set_index(["Name", "Database_ID"])
+                df = df.transpose()
+                df.index.name="Patient_ID"
+                
+                self._data["miRNA"] = df
+                
+            elif df_name == "negative_lipidome_pnnl":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.transpose()
+                df.columns.name = "Name"
+                df.index.name="Patient_ID"
+                df = df.add_suffix("_negative")
+                
+                self._data["lipidomics_negative"] = df
+                
             elif df_name == "phosphoproteome_pnnl_d6":
                 df = pd.read_csv(file_path, sep='\t')
                 # Rename columns for consistency across cptac
@@ -124,6 +203,15 @@ class GbmConf(Dataset):
                 
                 self._data["phosphoproteomics"] = df
                 
+            elif df_name == "positive_lipidome_pnnl":
+                df = pd.read_csv(file_path, sep='\t', index_col=0)
+                df = df.transpose()
+                df.columns.name = "Name"
+                df.index.name="Patient_ID"
+                df = df.add_suffix("_positive")
+                
+                self._data["lipidomics_positive"] = df
+                
             elif df_name == "proteome_pnnl_per_gene_d4":
                 df = pd.read_csv(file_path, sep='\t')
                 # Rename columns and multiindex
@@ -133,6 +221,14 @@ class GbmConf(Dataset):
                 df.index.name="Patient_ID"
                 
                 self._data["proteomics"] = df
+                
+            elif df_name = "rnaseq_gene_fusion":
+                df = pd.read_csv(file_path, sep='\t')
+                df = df.set_index("preferred_sample_name")
+                df.columns.name = "Name"
+                df.index.name = "Patient_ID"
+                
+                self._data["gene_fusion"] = df
                 
             elif df_name == "rnaseq_washu_fpkm_uq":
                 df = pd.read_csv(file_path, sep='\t')
@@ -198,6 +294,34 @@ class GbmConf(Dataset):
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
         formatting_msg = "Formatting dataframes..."
         print(formatting_msg, end='\r')
+        
+        if self._version in ("2.0"):
+            # Combine positive and negative lipidomics tables
+            lipidomics_positive = self._data["lipidomics_positive"]
+            lipidomics_negative = self._data["lipidomics_negative"]
+
+            lipidomics = lipidomics_positive.join(lipidomics_negative, how="outer")
+            self._data["lipidomics"] = lipidomics
+
+            del self._data["lipidomics_positive"]
+            del self._data["lipidomics_negative"]
+            
+            # Combine Direct and PRISM SRM tables
+            # These do not contain refseq ids
+            df_direct = self._data["direct_SRM"]
+            df_prism = self._data["prism_SRM"]
+            
+            targeted_proteomics = df_prism.join(df_direct, how="outer")
+            self._data["targeted_proteomics"] = targeted_proteomics
+            
+            del self._data["direct_SRM"]
+            del self._data["prism_SRM"]
+            
+            
+        # DON'T FORGET TO DELETE DISCOVERY COHORT FROM ALL DATA TYPES
+        # Try making somthing like: self._data["discovery_samples"]
+        # from clinical table, then iterate through everything and delete those vals
+
 
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data) 
