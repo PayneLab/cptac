@@ -222,7 +222,7 @@ class GbmConf(Dataset):
                 
                 self._data["proteomics"] = df
                 
-            elif df_name = "rnaseq_gene_fusion":
+            elif df_name == "rnaseq_gene_fusion":
                 df = pd.read_csv(file_path, sep='\t')
                 df = df.set_index("preferred_sample_name")
                 df.columns.name = "Name"
