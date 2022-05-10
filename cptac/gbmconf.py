@@ -100,6 +100,11 @@ class GbmConf(Dataset):
             elif df_name == "clinical_data_core":
                 df = pd.read_csv(file_path, sep='\t')
                 
+                # Save all sample ids that belong to the discovery cohort so they can be removed from the other dataframes
+                dfd = df.loc[df['cohort'] == 'Discovery']
+                dfd = dfd["preferred_sample_name"].to_frame()
+                self._data["discovery_cohort"] = dfd
+                
                 df = df.loc[df['cohort'] != 'Discovery']
                 # Add sample tumor normal column
                 df.insert(len(df.columns),'Sample_Tumor_Normal',"Tumor",)
@@ -160,6 +165,7 @@ class GbmConf(Dataset):
                 
             elif df_name == "metabolome_pnnl":
                 df = pd.read_csv(file_path, sep='\t')
+                df = df.set_index("Metabolite")
                 df = df.transpose()
                 # Name columns for consistency
                 df.columns.name = "Name"
@@ -317,11 +323,58 @@ class GbmConf(Dataset):
             del self._data["direct_SRM"]
             del self._data["prism_SRM"]
             
-            
-        # DON'T FORGET TO DELETE DISCOVERY COHORT FROM ALL DATA TYPES
-        # Try making somthing like: self._data["discovery_samples"]
-        # from clinical table, then iterate through everything and delete those vals
+            # Delete discovery cohort samples from all data types
+            # This will probably change significantly to implement lazy loading
+            self._data["discovery_cohort"] = dfd
 
+            # acetylomics apparently has no discovery cohort ids
+            # The rest have not been checked, gene_fusion for sure does, but it won't hurt a datatype to go through this process
+            # gene fusion
+            temp = self._data["gene_fusion"]
+            temp = temp[~temp.index.isin(dfd["preferred_sample_name"])]
+            self._data["gene_fusion"] = temp
+            # targeted_proteomics
+            temp = self._data["targeted_proteomics"]
+            temp = temp[~temp.index.isin(dfd["preferred_sample_name"])]
+            self._data["targeted_proteomics"] = temp
+            # targeted_phosphoproteomics
+            temp = self._data["targeted_phosphoproteomics"]
+            temp = temp[~temp.index.isin(dfd["preferred_sample_name"])]
+            self._data["targeted_phosphoproteomics"] = temp
+            # metabolomics
+            temp = self._data["metabolomics"]
+            temp = temp[~temp.index.isin(dfd["preferred_sample_name"])]
+            self._data["metabolomics"] = temp
+            # miRNA
+            temp = self._data["miRNA"]
+            temp = temp[~temp.index.isin(dfd["preferred_sample_name"])]
+            self._data["miRNA"] = temp
+            # lipidomics
+            temp = self._data["lipidomics"]
+            temp = temp[~temp.index.isin(dfd["preferred_sample_name"])]
+            self._data["lipidomics"] = temp
+            # phosphoproteomics
+            temp = self._data["phosphoproteomics"]
+            temp = temp[~temp.index.isin(dfd["preferred_sample_name"])]
+            self._data["phosphoproteomics"] = temp
+            # proteomics
+            temp = self._data["proteomics"]
+            temp = temp[~temp.index.isin(dfd["preferred_sample_name"])]
+            self._data["proteomics"] = temp
+            # transcriptomics
+            temp = self._data["transcriptomics"]
+            temp = temp[~temp.index.isin(dfd["preferred_sample_name"])]
+            self._data["transcriptomics"] = temp
+            # somatic_mutation
+            temp = self._data["somatic_mutation"]
+            temp = temp[~temp.index.isin(dfd["preferred_sample_name"])]
+            self._data["somatic_mutation"] = temp
+            # CNV
+            temp = self._data["CNV"]
+            temp = temp[~temp.index.isin(dfd["preferred_sample_name"])]
+            self._data["CNV"] = temp
+            
+            del self._data["discovery_cohort"]
 
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data) 
