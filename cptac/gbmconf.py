@@ -220,6 +220,15 @@ class GbmConf(Dataset):
                 
             elif df_name == "proteome_pnnl_per_gene_d4":
                 df = pd.read_csv(file_path, sep='\t')
+                # Save refseq information for use in targeted_proteomics
+                df_ref = df[["gene", "refseq_id"]]
+                df_ref = df_ref.rename(columns={
+                    "gene": "Name",
+                    "refseq_id": "Database_ID",
+                })
+                df_ref = df_ref.set_index("Name")
+                self._data["prot_refseq"] = df_ref
+                
                 # Rename columns and multiindex
                 df = df.rename(columns={"gene": "Name", 'refseq_id': "Database_ID"})
                 df = df.set_index(["Name", "Database_ID"])
@@ -318,10 +327,19 @@ class GbmConf(Dataset):
             df_prism = self._data["prism_SRM"]
             
             targeted_proteomics = df_prism.join(df_direct, how="outer")
+            # Add refseq_ids (saved previously in prot_refseq)
+            targeted_proteomics = targeted_proteomics.transpose()
+            targeted_proteomics = targeted_proteomics.join(self._data["prot_refseq"], how="left")
+            targeted_proteomics = targeted_proteomics.reset_index()
+            levels = ["Name", "Peptide", "Database_ID"]
+            targeted_proteomics = targeted_proteomics.set_index(levels)
+            # This next line is basically transpose but it doesn't mess up the multiindex
+            targeted_proteomics = targeted_proteomics.stack().unstack(levels)
             self._data["targeted_proteomics"] = targeted_proteomics
             
             del self._data["direct_SRM"]
             del self._data["prism_SRM"]
+            del self._data["prot_refseq"]
             
             # Delete discovery cohort samples from all data types
             # This will probably change significantly to implement lazy loading
