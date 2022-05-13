@@ -339,7 +339,6 @@ class GbmConf(Dataset):
             
             del self._data["direct_SRM"]
             del self._data["prism_SRM"]
-            del self._data["prot_refseq"]
             
             # Delete discovery cohort samples from all data types
             # This will probably change significantly to implement lazy loading
@@ -392,7 +391,8 @@ class GbmConf(Dataset):
             temp = temp[~temp.index.isin(dfd["preferred_sample_name"])]
             self._data["CNV"] = temp
             
-            del self._data["discovery_cohort"]
+        del self._data["discovery_cohort"]    
+        del self._data["prot_refseq"]
 
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data) 
