@@ -103,8 +103,8 @@ def sort_all_rows_pancan(data_dict):
             tumor = df.loc[~ df.index.str.contains('\.[NC]$', regex = True, na = False)]
             tumor = tumor.sort_index()
             # append normal to tumor
-            all_df = tumor.append(normal)
-            data_dict[name] = all_df 
+            all_df = pd.concat([tumor,normal], axis=0, join='outer')
+            data_dict[name] = all_df
 
     return data_dict
 

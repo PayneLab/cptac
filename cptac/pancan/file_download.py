@@ -273,7 +273,8 @@ def _pdc_download(dataset, version, redownload, box_token):
         print(save_msg, end="\r")
 
         # Append the clinical dataframe
-        master_clin = master_clin.append(clin)
+        #master_clin = master_clin.append(clin)
+        master_clin = pd.concat([master_clin,clin], axis=0, join='outer')
 
         # Save the quantitative table
         quant.to_csv(os.path.join(data_dir, f"{data_type}.tsv.gz"), sep="\t")
