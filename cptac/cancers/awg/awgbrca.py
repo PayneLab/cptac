@@ -14,11 +14,12 @@ import numpy as np
 import os
 import warnings
 
-from cptac.cancer import Cancer
+import cptac
+from cptac.cancer import Source
 from cptac.tools.dataframe_tools import *
-from cptac.exceptions import FailedReindexWarning, ReindexMapError
+from cptac.exceptions import InvalidDataVersionError
 
-class AwgBrca(Cancer):
+class AwgBrca(Source):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the awgbrca dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -30,38 +31,46 @@ class AwgBrca(Cancer):
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
-        valid_versions = ["3.1", "3.1.1", "5.4"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        self.valid_versions = sorted(["3.1", "3.1.1", "5.4"]) # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
-        data_files = {
-            "3.1": [
-                "prosp-brca-v3.1-acetylome-ratio-norm-NArm.gct.gz",
-                "prosp-brca-v3.1-gene-level-cnv-gistic2-all_data_by_genes.gct.gz",
-                "prosp-brca-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz",
-                "prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz",
-                "prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz",
-                "prosp-brca-v3.1-sample-annotation.csv.gz"],
-            "3.1.1": [
-                "Breast_One_Year_Clinical_Data_20160927.xls",
-                "prosp-brca-v3.0-v1.4.somatic.variants.070918.maf.gz",
-                "prosp-brca-v3.1-acetylome-ratio-norm-NArm.gct.gz",
-                "prosp-brca-v3.1-gene-level-cnv-gistic2-all_data_by_genes.gct.gz",
-                "prosp-brca-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz",
-                "prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz",
-                "prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz",
-                "prosp-brca-v3.1-sample-annotation.csv.gz"],
-            "5.4" : [
-                "prosp-brca-v3.0-v1.4.somatic.variants.070918.maf.gz",
-                "prosp-brca-v5.4-public-acetylome-ratio-norm-NArm.gct.gz", 
-                "prosp-brca-v5.4-public-gene-level-cnv-gistic2-all_data_by_genes.gct.gz", 
-                #"prosp-brca-v5.4-public-immune-profiling-scores-combined.gct.gz", 
-                "prosp-brca-v5.4-public-phosphoproteome-ratio-norm-NArm.gct.gz", 
-                "prosp-brca-v5.4-public-proteome-ratio-norm-NArm.gct.gz", 
-                #"prosp-brca-v5.4-public-rnaseq-fpkm-log2-row-norm-median-mad.gct.gz", 
-                "prosp-brca-v5.4-public-rnaseq-fpkm-log2.gct.gz", 
-                "prosp-brca-v5.4-public-sample-annotation.csv.gz"]
+
+        self.data_files = {
+            "3.1": {
+                "acetylproteomics"  : "prosp-brca-v3.1-acetylome-ratio-norm-NArm.gct.gz",
+                "CNV"               : "prosp-brca-v3.1-gene-level-cnv-gistic2-all_data_by_genes.gct.gz",
+                "phosphoproteomics" : "prosp-brca-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "proteomics"        : "prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz",
+                "transcriptomics"   : "prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz",
+                "annotation"        : "prosp-brca-v3.1-sample-annotation.csv.gz" },
+            "3.1.1": {
+                "followup"          : "Breast_One_Year_Clinical_Data_20160927.xls",
+                "somatic_mutation"  : "prosp-brca-v3.0-v1.4.somatic.variants.070918.maf.gz",
+                "acetylproteomics"  : "prosp-brca-v3.1-acetylome-ratio-norm-NArm.gct.gz",
+                "CNV"               : "prosp-brca-v3.1-gene-level-cnv-gistic2-all_data_by_genes.gct.gz",
+                "phosphoproteomics" : "prosp-brca-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "proteomics"        : "prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz",
+                "transcriptomics"   : "prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz",
+                "annotation"        : "prosp-brca-v3.1-sample-annotation.csv.gz" },
+            "5.4" : {
+                "somatic_mutation"  : "prosp-brca-v3.0-v1.4.somatic.variants.070918.maf.gz",
+                "acetylproteomics"  : "prosp-brca-v5.4-public-acetylome-ratio-norm-NArm.gct.gz", 
+                "CNV"               : "prosp-brca-v5.4-public-gene-level-cnv-gistic2-all_data_by_genes.gct.gz", 
+                #"not_used"         : "prosp-brca-v5.4-public-immune-profiling-scores-combined.gct.gz", 
+                "phosphoproteomics" : "prosp-brca-v5.4-public-phosphoproteome-ratio-norm-NArm.gct.gz", 
+                "proteomics"        : "prosp-brca-v5.4-public-proteome-ratio-norm-NArm.gct.gz", 
+                #"not_used"         : "prosp-brca-v5.4-public-rnaseq-fpkm-log2-row-norm-median-mad.gct.gz", 
+                "transcriptomics"   : "prosp-brca-v5.4-public-rnaseq-fpkm-log2.gct.gz",
+                "annotation"        : "prosp-brca-v5.4-public-sample-annotation.csv.gz" }
         }
 
-        super().__init__(cancer_type="brca", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        self.load_functions = {
+
+        }
+
+        if version == "latest":
+            version = self.valid_versions[-1]
+
+        super().__init__(cancer_type="brca", source='awg', version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -73,40 +82,9 @@ class AwgBrca(Cancer):
 
             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
             file_name = path_elements[-1] # The last element will be the name of the file
+                
 
-            if file_name in ["prosp-brca-v3.1-acetylome-ratio-norm-NArm.gct.gz", 
-                            "prosp-brca-v5.4-public-acetylome-ratio-norm-NArm.gct.gz"]:
-                df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
-                df = df[df["GeneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for GeneSymbol, so we'll use that to filter them out.
-
-                # Prepare some columns we'll need later for the multiindex
-                df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "", regex=True) # Get rid of all lowercase delimeters and whitespace in the sites
-                df = df.rename(columns={
-                    "GeneSymbol": "Name",
-                    "variableSites": "Site",
-                    "sequence": "Peptide", # We take this instead of sequenceVML, to match the other datasets' format
-                    "accession_numbers": "Database_ID" # We take all accession numbers they have, instead of the singular accession_number column
-                    })
-
-                # Some rows have at least one localized acetylation site, but also have other acetylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
-                split_ids = df["id"].str.split('_', expand=True)
-                unlocalized_to_drop = df.index[~split_ids[3].eq(split_ids[4]) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split "id" column is number of phosphorylations detected, and column 4 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
-                df = df.drop(index=unlocalized_to_drop)
-
-                # Give it a multiindex
-                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])                
-
-                df = df.drop(columns=["id", "id.description", "geneSymbol", "numColumnsVMsiteObserved", "bestScore", "bestDeltaForwardReverseScore", 
-                "Best_scoreVML", "sequenceVML", "accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA",
-                "protein_mw", "species", "speciesMulti", "orfCategory", "accession_number", "protein_group_num", "entry_name"]) # We don't need these. The dropped columns include a "geneSymbol" column that is a duplicate of the original GeneSymbol.
-                df = df.apply(pd.to_numeric) # Now that we've dropped all the extra metadata columns, convert everything to floats.
-                df = df.sort_index()
-                df = df.transpose()
-                df = df.sort_index()
-                df.index.name = "Patient_ID"
-                self._data["acetylproteomics"] = df
-
-            elif file_name in ["prosp-brca-v3.1-gene-level-cnv-gistic2-all_data_by_genes.gct.gz", 
+            if file_name in ["prosp-brca-v3.1-gene-level-cnv-gistic2-all_data_by_genes.gct.gz", 
                                 "prosp-brca-v5.4-public-gene-level-cnv-gistic2-all_data_by_genes.gct.gz"]:
                 df = pd.read_csv(file_path, sep='\t', skiprows=2, index_col=0, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
                 df = df[df["geneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for geneSymbol, so we'll use that to filter them out.
@@ -238,7 +216,7 @@ class AwgBrca(Cancer):
                    'KMT2C.Mutation.Status', 'SF3B1.Mutation.Status', 'ARID1A.Mutation.Status', 'MLLT4.Mutation.Status']]
                 self._data["derived_molecular"] = derived_molecular
 
-            elif file_name == "Breast_One_Year_Clinical_Data_20160927.xls" and self._version == "3.1.1":
+            elif file_name == "Breast_One_Year_Clinical_Data_20160927.xls" and self.version == "3.1.1":
                 df = pd.read_excel(file_path)
 
                 # Replace redundant values for "not reported" with NaN
@@ -271,7 +249,7 @@ class AwgBrca(Cancer):
 
                 self._data["somatic_mutation"] = df
 
-            #elif file_name == "prosp-brca-v5.4-public-immune-profiling-scores-combined.gct.gz" and self._version == "5.4":
+            #elif file_name == "prosp-brca-v5.4-public-immune-profiling-scores-combined.gct.gz" and self.version == "5.4":
             #    df = pd.read_csv(file_path, sep='\t', skiprows=2)
 
         print(' ' * len(loading_msg), end='\r') # Erase the loading message
@@ -301,3 +279,63 @@ class AwgBrca(Cancer):
 
     def how_to_cite(self):
         return super().how_to_cite(cancer_type='breast cancer', pmid=33212010)
+
+    def load_acetylproteomics(self):
+        df_type = 'acetylproteomics'
+        if df_type in self._data:
+            return self._data[df_type]
+
+        else:
+            # check if df_type is valid for the set version
+            if self.version not in self.data_files:
+                raise InvalidDataVersionError(f"{df_type} is not available in the data freeze for version v_{self.version} of {self.source} {self.cancer_type} data.")
+            
+            # get the file path
+            f = self.data_files[self.version][df_type]
+            file_path = self.get_file_path(f)
+            
+            # if the file hasn't been downloaded and they have internet, download it
+            if file_path == "not downloaded":
+                cptac.download(sources={self.source : [df_type]}, cancers=self.cancer_type, version=self.version)
+                file_path = self.get_file_path(f)
+            
+            # process the file and add it to self._data
+            df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
+            df = df[df["GeneSymbol"] != "na"] # There are several metadata rows at the beginning of the dataframe, which duplicate the clinical and derived_molecular dataframes. They all don't have a value for GeneSymbol, so we'll use that to filter them out.
+
+            # Prepare some columns we'll need later for the multiindex
+            df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "", regex=True) # Get rid of all lowercase delimeters and whitespace in the sites
+            df = df.rename(columns={
+                "GeneSymbol": "Name",
+                "variableSites": "Site",
+                "sequence": "Peptide", # We take this instead of sequenceVML, to match the other datasets' format
+                "accession_numbers": "Database_ID" # We take all accession numbers they have, instead of the singular accession_number column
+                })
+
+            # Some rows have at least one localized acetylation site, but also have other acetylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
+            split_ids = df["id"].str.split('_', expand=True)
+            unlocalized_to_drop = df.index[~split_ids[3].eq(split_ids[4]) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split "id" column is number of phosphorylations detected, and column 4 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
+            df = df.drop(index=unlocalized_to_drop)
+
+            # Give it a multiindex
+            df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])                
+
+            df = df.drop(columns=["id", "id.description", "geneSymbol", "numColumnsVMsiteObserved", "bestScore", "bestDeltaForwardReverseScore", 
+            "Best_scoreVML", "sequenceVML", "accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA",
+            "protein_mw", "species", "speciesMulti", "orfCategory", "accession_number", "protein_group_num", "entry_name"]) # We don't need these. The dropped columns include a "geneSymbol" column that is a duplicate of the original GeneSymbol.
+            df = df.apply(pd.to_numeric) # Now that we've dropped all the extra metadata columns, convert everything to floats.
+            df = df.sort_index()
+            df = df.transpose()
+            df = df.sort_index()
+            df.index.name = "Patient_ID"
+            self._data["acetylproteomics"] = df
+
+    def load_CNV(self):
+        df_type = 'CNV'
+        if df_type in self._data:
+            return self._data[df_type]
+        else:
+            # check if df_type is valid for the set version
+            if self.version not in self.data_files:
+                raise InvalidDataVersionError(f"{df_type} is not available in the data freeze for version v_{self.version} of {self.source} {self.cancer_type} data.")
+
