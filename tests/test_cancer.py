@@ -16,7 +16,7 @@
 
 import pytest
 
-class Cancer:
+class TestCancer:
 
     metadata_types = [
             'clinical',
