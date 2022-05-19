@@ -67,7 +67,7 @@ def download(sources, cancers='all', version="latest", redownload=False):
 def _validate_sources(sources):
     all_sources = cptac.get_source_options()
     if type(sources) is not dict:
-        raise InvalidParameterError("Sources must be a dict of form {'source':['datatypes']}. 'all' is a valid datatype.")
+        raise InvalidParameterError("Sources must be a dict of form {'source':['datatypes']}. ")
     else:
         for s, datatypes in sources.items():
             if s not in all_sources:
