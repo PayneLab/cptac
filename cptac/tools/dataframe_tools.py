@@ -400,7 +400,7 @@ def join_col_to_dataframe(df, col):
 
     return df
 
-def standardize_axes_names(data_dict):
+def standardize_axes_names(df):
     """For all dataframes in the given dictionary, sets the name of the index axes to "Patient_ID", because that's what they all are by that point, and sets the name of the column axes to "Name".
 
     Parameters:
@@ -409,13 +409,8 @@ def standardize_axes_names(data_dict):
     Returns:
     dict: The dataframe dictionary, with the dataframe axes' names standardized. Keys are str of dataframe names, values are pandas.DataFrame
     """
-    for name in data_dict.keys(): # Loop over the keys so we can alter the values without any issues
-        df = data_dict[name]
-        df.index.name = "Patient_ID"
-        df.columns.name = "Name"
-        data_dict[name] = df
-
-    return data_dict
+    df.index.name = "Patient_ID"
+    df.columns.name = "Name"
 
 def sort_all_rows(data_dict):
     """For all dataframes in the given dictionary, sort them first by sample status, with tumor samples first, and then by the index.
