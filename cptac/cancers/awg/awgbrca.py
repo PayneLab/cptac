@@ -31,7 +31,7 @@ class AwgBrca(Source):
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
-        self.valid_versions = sorted(["3.1", "3.1.1", "5.4"]) # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        self.valid_versions = ["3.1", "3.1.1", "5.4"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
 
         self.data_files = {
@@ -65,7 +65,9 @@ class AwgBrca(Source):
 
         self.load_functions = {
             'acetylproteomics' : self.load_acetylproteomics,
+            'clinical' : self.load_annotation,
             'CNV' : self.load_CNV,
+            'derived_molecular' : self.load_annotation,
             'followup' : self.load_followup,
             'phosphoproteomics' : self.load_phosphoproteomics,
             'proteomics' : self.load_proteomics,
@@ -74,19 +76,39 @@ class AwgBrca(Source):
         }
 
         if version == "latest":
-            version = self.valid_versions[-1]
+            version = sorted(self.valid_versions)[-1]
 
         super().__init__(cancer_type="brca", source='awg', version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
 
-        # Load the data into dataframes in the self._data dict
-        for file_path in self._data_files_paths: # Loops through files variable
+        # TODO: figure out how to do refactor this part
 
-            # Print a loading message. We add a dot every time, so the user knows it's not frozen.
-            
+        # Get a union of all dataframes' indices, with duplicates removed
+        master_index = unionize_indices(self._data, exclude="followup")
 
-            path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-            file_name = path_elements[-1] # The last element will be the name of the file
-                  
+        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
+        clinical = self._data["clinical"]
+        clinical = clinical.reindex(master_index)
+
+        # Fill in NaNs in the clinical table's Sample_Tumor_Normal column
+        clinical["Sample_Tumor_Normal"] = clinical["Sample_Tumor_Normal"].where(cond=~(pd.isnull(clinical["Sample_Tumor_Normal"]) & ~clinical.index.str.endswith(".N")), other="Tumor")
+
+        # Replace the clinical dataframe in the data dictionary with our new and improved version!
+        self._data['clinical'] = clinical
+
+        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
+        self._data = sort_all_rows(self._data)
+
+    def how_to_cite(self):
+        return super().how_to_cite(cancer_type='breast cancer', pmid=33212010)
+
+    def load_annotations(self):
+        df_type = 'annotation'
+        # check to see if any of the specific annotation df's for awgbrca are not loaded
+        if 'clinical' not in self._data or 'derived_molecular' not in self._data:
+            # perform initial checks and get file path (defined in source.py, the parent class)
+            file_path = self.perform_initial_checks(df_type)
+
+            file_name = file_path.split(os.sep)[-1]
 
             if file_name == "prosp-brca-v3.1-sample-annotation.csv.gz":
                 df = pd.read_csv(file_path, index_col=0)
@@ -142,35 +164,9 @@ class AwgBrca(Source):
                    'KMT2C.Mutation.Status', 'SF3B1.Mutation.Status', 'ARID1A.Mutation.Status', 'MLLT4.Mutation.Status']]
                 self._data["derived_molecular"] = derived_molecular
 
-
-        
-        
-
-        # Get a union of all dataframes' indices, with duplicates removed
-        master_index = unionize_indices(self._data, exclude="followup")
-
-        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        clinical = self._data["clinical"]
-        clinical = clinical.reindex(master_index)
-
-        # Fill in NaNs in the clinical table's Sample_Tumor_Normal column
-        clinical["Sample_Tumor_Normal"] = clinical["Sample_Tumor_Normal"].where(cond=~(pd.isnull(clinical["Sample_Tumor_Normal"]) & ~clinical.index.str.endswith(".N")), other="Tumor")
-
-        # Replace the clinical dataframe in the data dictionary with our new and improved version!
-        self._data['clinical'] = clinical
-
-        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-        self._data = sort_all_rows(self._data)
-
-    def how_to_cite(self):
-        return super().how_to_cite(cancer_type='breast cancer', pmid=33212010)
-
     def load_acetylproteomics(self):
         df_type = 'acetylproteomics'
-        if df_type in self._data:
-            return self._data[df_type]
-
-        else:
+        if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.perform_initial_checks(df_type)
             
@@ -205,12 +201,9 @@ class AwgBrca(Source):
             df.index.name = "Patient_ID"
             self._data["acetylproteomics"] = df
 
-
     def load_CNV(self):
         df_type = 'CNV'
-        if df_type in self._data:
-            return self._data[df_type]
-        else:
+        if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.perform_initial_checks(df_type)
 
@@ -230,9 +223,7 @@ class AwgBrca(Source):
     
     def load_phosphoproteomics(self):
         df_type = 'phosphoproteomics'
-        if df_type in self._data:
-            return self._data[df_type]
-        else:
+        if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.perform_initial_checks(df_type)
 
@@ -270,9 +261,7 @@ class AwgBrca(Source):
 
     def load_proteomics(self):
         df_type = 'proteomics'
-        if df_type in self._data:
-            return self._data[df_type]
-        else:
+        if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.perform_initial_checks(df_type)
 
@@ -295,9 +284,7 @@ class AwgBrca(Source):
 
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
-        if df_type in self._data:
-            return self._data[df_type]
-        else:
+        if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.perform_initial_checks(df_type)
 
@@ -317,9 +304,7 @@ class AwgBrca(Source):
 
     def load_followup(self):
         df_type = 'followup'
-        if df_type in self._data:
-            return self._data[df_type]
-        else:
+        if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.perform_initial_checks(df_type)
 
@@ -343,9 +328,7 @@ class AwgBrca(Source):
 
     def load_somatic_mutation(self):
         df_type = 'somatic_mutation'
-        if df_type in self._data:
-            return self._data[df_type]
-        else:
+        if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.perform_initial_checks(df_type)
 
@@ -363,5 +346,3 @@ class AwgBrca(Source):
             df = df.set_index("Patient_ID")
 
             self._data["somatic_mutation"] = df
-
-    def load_
