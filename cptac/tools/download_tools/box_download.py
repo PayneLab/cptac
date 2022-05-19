@@ -250,34 +250,6 @@ def validate_version(version, dataset, use_context, valid_versions=None):
 
     return return_version
 
-def get_version_files_paths(dataset, version, data_files):
-    """For dataset loading. Check that a version is installed, then return the paths to the data files for that version.
-
-    Parameters:
-    dataset (str): The name of the dataset to get the paths for.
-    version (str): The version number of the dataset to get the paths for. This function will not parse "latest"; version should have been already validated.
-    data_files: (list of str): The file names to get paths for.
-
-    Returns:
-    list of str: The paths to the given data files for specified version of the dataset.
-    """
-    # Get our dataset path and index
-    dataset_path = get_data_path(dataset)
-
-    # Check that they've installed the version they requested
-    version_path = os.path.join(dataset_path, f"{dataset}_v{version}")
-    if not os.path.isdir(version_path):
-        raise DataVersionNotInstalledError(f"{dataset} data version {version} is not installed. To install, call the download function (either 'cptac.download' or 'cptac.pancan.download', depending on which module you're using), passing '{dataset}' to the 'dataset' parameter and '{version}' to the 'version' parameter.")
-
-    data_files_paths = []
-    for data_file in data_files:
-        file_path = os.path.join(version_path, data_file)
-        if not os.path.isfile(file_path): # Check that the file exists
-            raise MissingFileError(f"Missing data file '{data_file}'. Call the download function (either 'cptac.download' or 'cptac.pancan.download', depending on which module you're using) to download it, passing '{dataset}' to the 'dataset' parameter and '{version}' to the 'version' parameter.")
-        data_files_paths.append(file_path)
-
-    return data_files_paths
-
 def get_latest_installed(dataset_path):
     """Return the latest version number installed in a dataset directory.
 
