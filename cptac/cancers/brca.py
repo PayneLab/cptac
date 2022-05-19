@@ -24,21 +24,21 @@ from cptac.cancers.harmonized.harmonized import Harmonized
 
 class Brca(Cancer):
 
-    def __init__(self, version="latest", no_internet=False):
+    def __init__(self, no_internet=False):
         """Load all the data sources with BRCA data and provide an interface to them."""
 
-        super().__init__(cancer_type="pancanbrca", version=version, no_internet=no_internet)
+        super().__init__(cancer_type="brca", no_internet=no_internet)
 
-        self._datasets["awg"] = AwgBrca(no_internet=no_internet, version=self._get_version("awg"))
-        self._datasets["bcm"] = BcmBrca(no_internet=no_internet, version=self._get_version("bcm"))
-        self._datasets["broad"] = BroadBrca(no_internet=no_internet, version=self._get_version("broad"))
-        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanbrca')
-        self._datasets["pdc"] = PdcBrca(no_internet=no_internet, version=self._get_version("pdc"))
-        self._datasets["umich"] = UmichBrca(no_internet=no_internet, version=self._get_version("umich"))
-        self._datasets["washu"] = WashuBrca(no_internet=no_internet, version=self._get_version("washu"))
-        self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type= 'pancanbrca')
+        self._sources["awg"] = AwgBrca(no_internet=no_internet, version="latest")
+        self._sources["bcm"] = BcmBrca(no_internet=no_internet, version="latest")
+        self._sources["broad"] = BroadBrca(no_internet=no_internet, version="latest")
+        self._sources["mssm"] = MssmClinical(no_internet=no_internet, version="latest", filter_type='pancanbrca')
+        self._sources["pdc"] = PdcBrca(no_internet=no_internet, version="latest")
+        self._sources["umich"] = UmichBrca(no_internet=no_internet, version="latest")
+        self._sources["washu"] = WashuBrca(no_internet=no_internet, version="latest")
+        self._sources["harmonized"] = Harmonized(no_internet=no_internet, version="latest", filter_type= 'pancanbrca')
         
-        join_dict = {k: v._data for k, v in self._datasets.items()}
+        join_dict = {k: v._data for k, v in self._sources.items()}
         self._joining_dataset = JoiningDataset(join_dict)
         
         self._pancan_unionize_indices()
