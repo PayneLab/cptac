@@ -12,6 +12,7 @@
 import logging
 import pandas as pd
 import re
+import warnings
 
 from functools import reduce
 
@@ -20,27 +21,22 @@ import cptac.utils as ut
 from cptac.exceptions import *
 from cptac.tools.dataframe_tools import add_index_levels, join_col_to_dataframe, sort_df_by_sample_status
 from cptac.tools.dataframe_tools import unionize_indices, generate_sample_status_col, sort_all_rows_pancan
-from cptac.tools.download_tools.box_download import update_index, validate_version, get_version_files_paths
 
 class Cancer:
     """Note that all cancer datasets are class objects that inherit from cptac.dataset. Therefore
     the same function calls exist for cptac.Brca, cptac.Gbm, etc.
     """
 
-    def __init__(self, cancer_type, version, valid_versions, no_internet, attempt_update_index=True, skip_init=False):
+    def __init__(self, cancer_type, attempt_update_index=True, skip_init=False):
         """Initialize variables for a Cancer object.
         
         Parameters:
         cancer_type (str): The cancer type requested for this dataset
-        version (str): The version number requested for this dataset
-        valid_versions (list of str): A list of all possible valid versions for this dataset
-        data_files (dict, keys of str, values of list of str): A dictionary where the keys are the existing version of the dataset, and the values are lists of the data file names for that version.
-
+        
         """
 
         self._cancer_type = cancer_type
-        self._version = version
-        self._datasets = {} # Child class __init__ needs to fill this
+        self._sources = {} # Child class __init__ needs to fill this
         self._joining_dataset = None
         self._data = {}
         self._helper_tables = {}
@@ -76,6 +72,43 @@ class Cancer:
         logger = logging.getLogger()
         logger.setLevel(logging.CRITICAL)
 
+    def set_version(self, source, version):
+        """Set the data version you wish to use for a single source
+        
+        Parameters:
+        source (string): the desired source (e.g. 'broad' or 'washu')
+        version (string): the desired version (e.g. '3.1')
+        """
+        self._sources[source]._set_version(version)
+
+    def delete_df(self, df_type, source='all'):
+        '''This function enables users to delete dataframes they no longer need to free up RAM
+        
+        Parameters:
+        df_type (string): The type of dataframe to delete. For example, if the proteomics dataframe was loaded 
+            with get_proteomics() then they would pass 'proteomics' to this function to delete it.
+        source (string): The source from which to delete the dataframe of type df_type
+            Default: 'all' loops through all sources, checks for that df_type and deletes it if present
+        '''
+        # list of sources from which the df_type was deleted
+        deleted_from = None
+
+        if source == 'all':
+            deleted_from = list()
+            for key in self._sources.keys():
+                if df_type in self._sources[key]:
+                    del self._sources[key][df_type]
+                    deleted_from.append(key)
+        else:
+            if df_type in self._sources[source]:
+                del self._sources[source][df_type]
+                deleted_from = source
+
+        if deleted_from:
+            print(f"{df_type} deleted from {deleted_from}.")
+        else:
+            warnings.warn(f"{df_type} not found for deletion. Perhaps you misspelled the df_type ({df_type}) or meant to delete a different dataframe?")
+        
 
     # Clinical table getters
     def get_clinical(self, source='mssm', tissue_type="both", imputed=False):
@@ -527,11 +560,6 @@ class Cancer:
 
     def how_to_cite(self, cancer_type='', pmid='', unpublished=False):
         """Print instructions for citing the data."""
-        ### 
-        # OLD message: 
-        # print("For use of the cptac Python data API, please cite 
-        # our publication: https://www.biorxiv.org/content/10.1101/2020.11.16.385427v1")
-        ###
 
         # current main message
         main_message = ('Please include the following statement(s) in publications using data '
@@ -581,9 +609,9 @@ class Cancer:
 
         return data_sources
         
-    def version(self):
+    def version(self, source):
         """Return the dataset version of this instance, as a string."""
-        return self._version
+        return self._sources[source]
 
     # "Private" methods
     def _check_df_valid(self, df_name, df_type):
@@ -620,10 +648,10 @@ class Cancer:
         if imputed:
             name = name + "_imputed"
 
-        if source in self._datasets.keys():
-            return self._datasets[source]._get_dataframe(name, tissue_type)
+        if source in self._sources.keys():
+            return self._sources[source].get_df(name, tissue_type)
         else:
-            raise ex.DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
+            raise DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
 
     def _get_omics_cols(self, omics_df_name, genes, tissue_type="both"):
         """Based on a single gene, or a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
@@ -1061,14 +1089,6 @@ class Cancer:
 
             joined = df1[0].join(df2, how= how)
         return [joined,how]
-
-    def _get_version(self, source):
-        if self._version == "latest":
-            return self._version
-        elif type(self._version) is dict:
-            return self._version[source]
-        else:
-            return self._version
         
     def _pancan_unionize_indices(self):
         '''Gets a master index of all IDs, adds IDs to clinical (clinical will have all IDs in other data), 
