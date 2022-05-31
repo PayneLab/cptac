@@ -294,14 +294,6 @@ class Pdac(Dataset):
         self._data = standardize_axes_names(self._data)
 
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
-
-        # Print password access only warning
-        warnings.warn("The pdac data is currently strictly reserved for CPTAC investigators. "
-            "Otherwise, you are not authorized to access these data. "
-            "Additionally, even after these data become publicly available, "
-            "they will be subject to a publication embargo "
-            "(see https://proteomics.cancer.gov/data-portal/about/data-use-agreement "
-            "or enter cptac.embargo() to open the webpage for more details).", 
-            PublicationEmbargoWarning, stacklevel=2)
+        
     def how_to_cite(self):
         return super().how_to_cite(cancer_type='pancreatic ductal adenocarcinoma', pmid='', unpublished=True)
