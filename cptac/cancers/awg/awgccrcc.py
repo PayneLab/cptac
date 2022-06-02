@@ -14,11 +14,11 @@ import numpy as np
 import os
 import warnings
 
-from cptac.cancer import Cancer
+from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, ReindexMapError
 
-class AwgCcrcc(Cancer):
+class AwgCcrcc(Source):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the ccrcc dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -32,46 +32,45 @@ class AwgCcrcc(Cancer):
 
         valid_versions = ["0.0", "0.1", "0.1.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
-        data_files = {
-            "0.0": [
-                "6_CPTAC3_CCRCC_Phospho_abundance_gene_protNorm=2_CB_imputed.tsv.gz",
-                "6_CPTAC3_CCRCC_Phospho_abundance_phosphosite_protNorm=2_CB.tsv.gz",
-                "6_CPTAC3_CCRCC_Whole_abundance_protein_pep=unique_protNorm=2_CB.tsv.gz",
-                "Clinical Table S1.xlsx",
-                "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz",
-                "ccrccMethylGeneLevelByMean.txt.gz",
-                "cptac-metadata.xls.gz",
-                "kirc_wgs_cnv_gene.csv.gz",
-                "RNA_Normal_Tumor_185_samples.tsv.gz",
-                "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx"],
-            "0.1": [
-                "6_CPTAC3_CCRCC_Phospho_abundance_gene_protNorm=2_CB_imputed.tsv.gz",
-                "6_CPTAC3_CCRCC_Phospho_abundance_phosphosite_protNorm=2_CB.tsv.gz",
-                "6_CPTAC3_CCRCC_Whole_abundance_protein_pep=unique_protNorm=2_CB.tsv.gz",
-                "ccrccMethylGeneLevelByMean.txt.gz",
-                "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz",
-                "Clinical Table S1.xlsx",
-                "cptac-metadata.xls.gz",
-                "kirc_wgs_cnv_gene.csv.gz",
-                "RNA_Normal_Tumor_185_samples.tsv.gz",
-                "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx",
-                "Table S7.xlsx"],
-            "0.1.1": [
-                "6_CPTAC3_CCRCC_Phospho_abundance_gene_protNorm=2_CB_imputed.tsv.gz",
-                "6_CPTAC3_CCRCC_Phospho_abundance_phosphosite_protNorm=2_CB.tsv.gz",
-                "6_CPTAC3_CCRCC_Whole_abundance_protein_pep=unique_protNorm=2_CB.tsv.gz",
-                "CCRCC_followup_9_12.xlsx",
-                "ccrccMethylGeneLevelByMean.txt.gz",
-                "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz",
-                "Clinical Table S1.xlsx",
-                "cptac-metadata.xls.gz",
-                "kirc_wgs_cnv_gene.csv.gz",
-                "RNA_Normal_Tumor_185_samples.tsv.gz",
-                "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx",
-                "Table S7.xlsx"],
+        self.data_files = {
+            "0.0": {
+                "phosphoproteomics_gene" : "6_CPTAC3_CCRCC_Phospho_abundance_gene_protNorm=2_CB_imputed.tsv.gz",
+                "phosphoproteomics"      : "6_CPTAC3_CCRCC_Phospho_abundance_phosphosite_protNorm=2_CB.tsv.gz",
+                "proteomics"             : "6_CPTAC3_CCRCC_Whole_abundance_protein_pep=unique_protNorm=2_CB.tsv.gz",
+                "annotation"             : ["Clinical Table S1.xlsx", "cptac-metadata.xls.gz", "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx"],
+                "somatic_mutation"       : "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz",
+                "methylation"            : "ccrccMethylGeneLevelByMean.txt.gz",
+                "CNV"                    : "kirc_wgs_cnv_gene.csv.gz",
+                "transcriptomics"        : "RNA_Normal_Tumor_185_samples.tsv.gz"},
+            "0.1": {
+                "phosphoproteomics_gene" : "6_CPTAC3_CCRCC_Phospho_abundance_gene_protNorm=2_CB_imputed.tsv.gz",
+                "phosphoproteomics"      : "6_CPTAC3_CCRCC_Phospho_abundance_phosphosite_protNorm=2_CB.tsv.gz",
+                "proteomics"             : "6_CPTAC3_CCRCC_Whole_abundance_protein_pep=unique_protNorm=2_CB.tsv.gz",
+                "methylation"            : "ccrccMethylGeneLevelByMean.txt.gz",
+                "somatic_mutation"       : "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz",
+                "annotation"             : ["Clinical Table S1.xlsx", "cptac-metadata.xls.gz", "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx", "Table S7.xlsx"],
+                "CNV"                    : "kirc_wgs_cnv_gene.csv.gz",
+                "transcriptomics"        : "RNA_Normal_Tumor_185_samples.tsv.gz"},
+            "0.1.1": {
+                "phosphoproteomics_gene" : "6_CPTAC3_CCRCC_Phospho_abundance_gene_protNorm=2_CB_imputed.tsv.gz",
+                "phosphoproteomics"      : "6_CPTAC3_CCRCC_Phospho_abundance_phosphosite_protNorm=2_CB.tsv.gz",
+                "proteomics"             : "6_CPTAC3_CCRCC_Whole_abundance_protein_pep=unique_protNorm=2_CB.tsv.gz",
+                "followup"               : "CCRCC_followup_9_12.xlsx",
+                "methylation"            : "ccrccMethylGeneLevelByMean.txt.gz",
+                "somatic_mutation"       : "ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz",
+                "annotation"             : ["Clinical Table S1.xlsx", "cptac-metadata.xls.gz", "S044_CPTAC_CCRCC_Discovery_Cohort_Clinical_Data_r3_Mar2019.xlsx", "Table S7.xlsx"],
+                "CNV"                    : "kirc_wgs_cnv_gene.csv.gz",
+                "transcriptomics"        : "RNA_Normal_Tumor_185_samples.tsv.gz"},
         }
 
-        super().__init__(cancer_type="ccrcc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        self.load_functions = {
+
+        }
+
+        if version == "latest":
+            version = sorted(self.valid_versions)[-1]
+
+        super().__init__(cancer_type="ccrcc", source='awg', version=version, valid_versions=valid_versions, data_files=self.data_files, no_internet=no_internet)
 
         # We're going to need to drop the samples below from a couple dataframes
         nci_labels = ["NCI7-1", "NCI7-2", "NCI7-3", "NCI7-4", "NCI7-5"]

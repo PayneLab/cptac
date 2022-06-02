@@ -65,9 +65,9 @@ class AwgBrca(Source):
 
         self.load_functions = {
             'acetylproteomics' : self.load_acetylproteomics,
-            'clinical' : self.load_annotation,
+            'clinical' : self.load_annotations,
             'CNV' : self.load_CNV,
-            'derived_molecular' : self.load_annotation,
+            'derived_molecular' : self.load_annotations,
             'followup' : self.load_followup,
             'phosphoproteomics' : self.load_phosphoproteomics,
             'proteomics' : self.load_proteomics,
