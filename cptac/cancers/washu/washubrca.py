@@ -34,8 +34,8 @@ class WashuBrca(Source):
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
         #ignore logging messages
-        logger = logging.getLogger()
-        logger.setLevel(logging.CRITICAL)
+        #logger = logging.getLogger()
+        #logger.setLevel(logging.CRITICAL)
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
@@ -203,7 +203,7 @@ class WashuBrca(Source):
         
         print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 
-### NEW STUFF
+    ### END INIT (Need to delete most of the above lines)
 
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
@@ -223,7 +223,7 @@ class WashuBrca(Source):
             self._data["transcriptomics"] = df
 
     def load_somatic_mutation(self):
-        df_type = 'load_somatic_mutation'
+        df_type = 'somatic_mutation'
         if df_type not in self._data:
             file_path = self.perform_initial_checks(df_type)
 
@@ -267,7 +267,8 @@ class WashuBrca(Source):
 
     def load_mapping(self):
         df_type = 'mapping'
-        if df_type not in self._data:
+        # TODO will this (below) throw an error if self._helper_tables is not initialized in init
+        if "CNV_gene_ids" not in self._helper_tables:
             file_path = self.perform_initial_checks(df_type)
 
             df = read_gtf(file_path)
@@ -296,6 +297,7 @@ class WashuBrca(Source):
             df.index.name = 'Patient_ID'
             self._data["CNV"] = df
 
+    # TODO FIX
     def load_tumor_purity(self):
         df_type = 'tumor_purity'
         if df_type not in self._data:
@@ -310,38 +312,41 @@ class WashuBrca(Source):
             df = df.loc[df.index.isin(patient_ids)]                
             self._data["tumor_purity"] = df
     
+    # TODO FIX
     def load_readme(self):
         df_type = 'readme'
-        if df_type not in self._data:
-            # TODO perform initial checks will 
-            file_path = self.perform_initial_checks(df_type)
-            # need file path to be list in order to
-            elif file_name == "README_miRNA":
-            with open(file_path, 'r') as reader:
-                self._readme_files["readme_miRNA"] = reader.read()
-                    
-            elif file_name == "README_CIBERSORT":
-                with open(file_path, 'r') as reader:
-                    self._readme_files["readme_cibersort"] = reader.read()
-                    
-            elif file_name == "README_xCell":
-                with open(file_path, 'r') as reader:
-                    self._readme_files["readme_xcell"] = reader.read()
-            
-            elif file_name == "README_somatic_mutation_WXS":
-                with open(file_path, 'r') as reader:
-                    self._readme_files["readme_somatic_mutation"] = reader.read()
-                    
-            elif file_name == "README_gene_expression":
-                with open(file_path, 'r') as reader:
-                    self._readme_files["readme_transcriptomics"] = reader.read()
-               
-            elif file_name == "README.boxnote":
-                self._readme_files["readme_cnv"] = get_boxnote_text(file_path)
+        # TODO I think this throw an error if self._readme_files is not initialized in init
+        if not self._readme_files: # if self._readme_files is empty
+            # TODO fix perform initial checks to return a list?
+            file_path_list = self.perform_initial_checks(df_type)
+            # need file path to be list (and loop) in order for this to work
+            for file_path in file_path_list:
+                if "README_miRNA" in file_path:
+                    with open(file_path, 'r') as reader:
+                        self._readme_files["readme_miRNA"] = reader.read()
+                        
+                elif "README_CIBERSORT" in file_path:
+                    with open(file_path, 'r') as reader:
+                        self._readme_files["readme_cibersort"] = reader.read()
+                        
+                elif "README_xCell" in file_path:
+                    with open(file_path, 'r') as reader:
+                        self._readme_files["readme_xcell"] = reader.read()
                 
-            elif file_name == "README_ESTIMATE_WashU":
-                with open(file_path, 'r') as reader:
-                    self._readme_files["readme_tumor_purity"] = reader.read()
+                elif "README_somatic_mutation_WXS" in file_path:
+                    with open(file_path, 'r') as reader:
+                        self._readme_files["readme_somatic_mutation"] = reader.read()
+                        
+                elif "README_gene_expression" in file_path:
+                    with open(file_path, 'r') as reader:
+                        self._readme_files["readme_transcriptomics"] = reader.read()
+                
+                elif "README.boxnote" in file_path:
+                    self._readme_files["readme_cnv"] = get_boxnote_text(file_path)
+                    
+                elif "README_ESTIMATE_WashU" in file_path:
+                    with open(file_path, 'r') as reader:
+                        self._readme_files["readme_tumor_purity"] = reader.read()
 
 
     
