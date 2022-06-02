@@ -22,35 +22,41 @@ from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class BroadHnscc(Cancer):
+class BroadHnscc(Source):
 
-    def __init__(self, no_internet, version):
-        """Load all of the bcmbrca dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+    def __init__(self, version="latest", no_internet=False):
+        """Define which broadhnscc dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
         Parameters:
-        version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
+        version (str, optional): The version number to load, or the string "latest" to just load the latest datafreeze. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
         
         #ignore logging messages
-        logger = logging.getLogger()
-        logger.setLevel(logging.CRITICAL)
+        #logger = logging.getLogger()
+        #logger.setLevel(logging.CRITICAL)
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        valid_versions = ["1.0"]
+        self.valid_versions = ["1.0"]
 
-        data_files = {
-            "1.0": [
-                "HNSCC.rsem_transcripts_tpm.txt.gz",
-                "sample_descriptions.tsv",
-                "gencode.v34.GRCh38.genes.collapsed_only.gtf"
-            ]
+        self.data_files = {
+            "1.0": {
+                "transcriptomics" : "HNSCC.rsem_transcripts_tpm.txt.gz",
+                "mapping" : ["sample_descriptions.tsv", "gencode.v34.GRCh38.genes.collapsed_only.gtf"]
+            }
         }
+        
+        self.load_functions = {
+            'transcriptomics' : self.load_transcriptomics,
+        }
+        
+        if version == "latest":
+            version = sorted(self.valid_versions)[-1]
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="broadhnscc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="hnscc", source='broad', version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
