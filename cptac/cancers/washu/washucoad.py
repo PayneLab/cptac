@@ -14,7 +14,7 @@ import numpy as np
 import os
 from gtfparse import read_gtf
 
-from cptac.cancer import Source
+from cptac.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.utils import get_boxnote_text
 from cptac.cancers.mssm.mssmclinical import MssmClinical
@@ -61,7 +61,6 @@ class WashuCoad(Source):
         self.load_functions = {
             'transcriptomics'   : self.load_transcriptomics,
             'somatic_mutation'  : self.load_somatic_mutation,
-            'miRNA'             : self.load_miRNA,
             'xcell'             : self.load_xcell,
             'cibersort'         : self.load_cibersort,
             'mapping'           : self.load_mapping,

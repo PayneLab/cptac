@@ -14,7 +14,7 @@ import numpy as np
 import os
 from gtfparse import read_gtf
 
-from cptac.cancer import Source
+from cptac.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.utils import get_boxnote_text
 from cptac.cancers.mssm.mssmclinical import MssmClinical
@@ -115,7 +115,7 @@ class WashuCcrcc(Source):
 
 
     def load_somatic_mutation(self):
-        df_type = 'load_somatic_mutation'
+        df_type = 'somatic_mutation'
         if df_type not in self._data:
             file_path = self.perform_initial_checks(df_type)
 

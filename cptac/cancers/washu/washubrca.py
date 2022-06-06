@@ -14,7 +14,7 @@ import numpy as np
 import os
 from gtfparse import read_gtf
 
-from cptac.cancer import Source
+from cptac.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.utils import get_boxnote_text
 from cptac.cancers.mssm.mssmclinical import MssmClinical
@@ -222,10 +222,3 @@ class WashuBrca(Source):
                 elif file_name == "README_ESTIMATE_WashU":
                     with open(file_path, 'r') as reader:
                         self._readme_files["readme_tumor_purity"] = reader.read()
-
-
-    
-
-
-
-    
