@@ -37,15 +37,15 @@ class WashuGbm(Source):
 
         self.data_files = {
             "1.0": {
-                "somatic_mutation" : "GBM_discovery.dnp.annotated.exonic.maf.gz",
-                "transcriptomics" : "GBM_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
-                "miRNA" : ["GBM_mature_miRNA_combined.tsv", "GBM_precursor_miRNA_combined.tsv", "GBM_total_miRNA_combined.tsv"],
-                "xcell" : "GBM_xCell.txt",
-                "cibersort" : "CIBERSORT.Output_Abs_GBM.txt",
-                "mapping" : "gencode.v22.annotation.gtf.gz",
-                "CNV" : "GBM.gene_level.from_seg.filtered.tsv", 
-                "tumor_purity" : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
-                "readme" : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"], 
+                "cibersort"         : "CIBERSORT.Output_Abs_GBM.txt",
+                "CNV"               : "GBM.gene_level.from_seg.filtered.tsv",
+                "mapping"           : "gencode.v22.annotation.gtf.gz",
+                "miRNA"             : ["GBM_mature_miRNA_combined.tsv", "GBM_precursor_miRNA_combined.tsv", "GBM_total_miRNA_combined.tsv"],
+                "readme"            : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"], 
+                "somatic_mutation"  : "GBM_discovery.dnp.annotated.exonic.maf.gz",
+                "transcriptomics"   : "GBM_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
+                "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
+                "xcell"             : "GBM_xCell.txt",
             }
         }
 
