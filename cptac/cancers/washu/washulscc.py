@@ -71,7 +71,7 @@ class WashuLscc(Source):
         
         # get clinical df (used to slice out cancer specific patient_IDs in tumor_purity file)
         mssmclin = MssmClinical(no_internet=no_internet, version=version, filter_type='pancanlscc') #_get_version - pancandataset
-        clinical_df = mssmclin.get_clinical()
+        self._clinical_df = mssmclin.get_clinical()
         
         self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
     
@@ -255,7 +255,7 @@ class WashuLscc(Source):
             df = df.set_index('Sample_ID') 
             df.index.name = 'Patient_ID' 
             # Use list of patient_ids to slice out cancers                
-            patient_ids = clinical_df.index.to_list()
+            patient_ids = self._clinical_df.index.to_list()
             df = df.loc[df.index.isin(patient_ids)]                
             self._data["tumor_purity"] = df
 

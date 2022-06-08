@@ -235,7 +235,7 @@ class WashuGbm(Source):
             df = df.set_index('Sample_ID') 
             df.index.name = 'Patient_ID' 
             # Use list of patient_ids to slice out cancers                
-            patient_ids = clinical_df.index.to_list()
+            patient_ids = self._clinical_df.index.to_list()
             df = df.loc[df.index.isin(patient_ids)]                
             self._data["tumor_purity"] = df
 

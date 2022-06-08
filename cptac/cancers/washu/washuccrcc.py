@@ -29,9 +29,6 @@ class WashuCcrcc(Source):
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
-        #ignore logging messages
-        #logger = logging.getLogger()
-        #logger.setLevel(logging.CRITICAL)
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
@@ -69,7 +66,7 @@ class WashuCcrcc(Source):
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="washuccrcc", source="washu", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="washuccrcc", source="washu", version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
         
         # get clinical df (used to slice out cancer specific patient_IDs in tumor_purity file)
         mssmclin = MssmClinical(no_internet=no_internet, version=version, filter_type='pancanccrcc') #_get_version - pancandataset
@@ -91,7 +88,7 @@ class WashuCcrcc(Source):
                     df = pd.read_csv(file_path, sep="\t")
                     df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
                     df = df.set_index(["Name", "Database_ID"])
-                    df = df.sort_zindex()
+                    df = df.sort_index()
                     df = df.T
                     df.index.name = "Patient_ID"
                     df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
@@ -112,7 +109,6 @@ class WashuCcrcc(Source):
             rna_normal = self._helper_tables.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
             rna_combined = rna_tumor.append(rna_normal)
             self._data["transcriptomics"] = rna_combined
-
 
     def load_somatic_mutation(self):
         df_type = 'somatic_mutation'
