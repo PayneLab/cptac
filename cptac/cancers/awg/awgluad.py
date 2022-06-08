@@ -15,11 +15,11 @@ import os
 import warnings
 import datetime
 
-from cptac.cancer import Cancer
+from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
-class AwgLuad(Cancer):
+class AwgLuad(Source):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the luad dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -33,43 +33,43 @@ class AwgLuad(Cancer):
 
         valid_versions = ["2.0", "3.1", "3.1.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
-        data_files = {
-            "2.0": [
-                "luad-v2.0-cnv-gene-LR.gct.gz",
-                "luad-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz",
-                "luad-v2.0-proteome-ratio-norm-NArm.gct.gz",
-                "luad-v2.0-rnaseq-circ-rna.csv.gz",
-                "luad-v2.0-rnaseq-prot-uq-rpkm-log2-NArm-row-norm.gct.gz",
-                "luad-v2.0-sample-annotation.csv.gz"],
-            "3.1": [
-                "LUAD_followup_9_12.xlsx",
-                "luad-v3.0-rnaseq-circ-rna.csv.gz",
-                "luad-v3.0-rnaseq-gene-fusions.csv.gz",
-                "luad-v3.0-wxs-somatic.luad.v1.4.20190517.maf.gz",
-                "luad-v3.1-acetylome-ratio-norm-NArm.gct.gz",
-                "luad-v3.1-cnv-gene-LR.gct.gz",
-                "luad-v3.1-mirna-mature-tpm-log2.gct.gz",
-                "luad-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz",
-                "luad-v3.1-proteome-ratio-norm-NArm.gct.gz",
-                "luad-v3.1-rnaseq-linc-uq-rpkm-log2-NArm.gct.gz",
-                "luad-v3.1-rnaseq-prot-uq-rpkm-log2-NArm.gct.gz",
-                "luad-v3.1-sample-annotation.csv.gz"],
-            "3.1.1": [
-                "LUAD_followup_9_12.xlsx",
-                "luad-v3.0-rnaseq-circ-rna_parsed.tsv.gz",
-                "luad-v3.0-rnaseq-gene-fusions.csv.gz",
-                "luad-v3.0-wxs-somatic.luad.v1.4.20190517.maf.gz",
-                "luad-v3.1-acetylome-ratio-norm-NArm.gct.gz",
-                "luad-v3.1-cnv-gene-LR.gct.gz",
-                "luad-v3.1-mirna-mature-tpm-log2.gct.gz",
-                "luad-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz",
-                "luad-v3.1-proteome-ratio-norm-NArm.gct.gz",
-                "luad-v3.1-rnaseq-linc-uq-rpkm-log2-NArm.gct.gz",
-                "luad-v3.1-rnaseq-prot-uq-rpkm-log2-NArm.gct.gz",
-                "luad-v3.1-sample-annotation.csv.gz"],
+        self.data_files = {
+            "2.0": {
+                "CNV"               : "luad-v2.0-cnv-gene-LR.gct.gz",
+                "phosphoproteomics" : "luad-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "proteomics"        : "luad-v2.0-proteome-ratio-norm-NArm.gct.gz",
+                "circular_RNA"      : "luad-v2.0-rnaseq-circ-rna.csv.gz",
+                "transcriptomics"   : "luad-v2.0-rnaseq-prot-uq-rpkm-log2-NArm-row-norm.gct.gz",
+                "annotation"        : "luad-v2.0-sample-annotation.csv.gz"},
+            "3.1": {
+                "followup"          : "LUAD_followup_9_12.xlsx",
+                "circular_RNA"      : "luad-v3.0-rnaseq-circ-rna.csv.gz",
+                "gene_fusion"       : "luad-v3.0-rnaseq-gene-fusions.csv.gz",
+                "somatic_mutation"  : "luad-v3.0-wxs-somatic.luad.v1.4.20190517.maf.gz",
+                "acetylproteomics"  : "luad-v3.1-acetylome-ratio-norm-NArm.gct.gz",
+                "CNV"               : "luad-v3.1-cnv-gene-LR.gct.gz",
+                "miRNA"             : "luad-v3.1-mirna-mature-tpm-log2.gct.gz",
+                "phosphoproteomics" : "luad-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "proteomics"        : "luad-v3.1-proteome-ratio-norm-NArm.gct.gz",
+                "lincRNA"           : "luad-v3.1-rnaseq-linc-uq-rpkm-log2-NArm.gct.gz",
+                "transcriptomics"   : "luad-v3.1-rnaseq-prot-uq-rpkm-log2-NArm.gct.gz",
+                "annotation"        : "luad-v3.1-sample-annotation.csv.gz"},
+            "3.1.1": {
+                "followup"          : "LUAD_followup_9_12.xlsx",
+                "circular_RNA"      : "luad-v3.0-rnaseq-circ-rna_parsed.tsv.gz",
+                "gene_fusion"       : "luad-v3.0-rnaseq-gene-fusions.csv.gz",
+                "somatic_mutation"  : "luad-v3.0-wxs-somatic.luad.v1.4.20190517.maf.gz",
+                "acetylproteomics"  : "luad-v3.1-acetylome-ratio-norm-NArm.gct.gz",
+                "CNV"               : "luad-v3.1-cnv-gene-LR.gct.gz",
+                "miRNA"             : "luad-v3.1-mirna-mature-tpm-log2.gct.gz",
+                "phosphoproteomics" : "luad-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "proteomics"        : "luad-v3.1-proteome-ratio-norm-NArm.gct.gz",
+                "lincRNA"           : "luad-v3.1-rnaseq-linc-uq-rpkm-log2-NArm.gct.gz",
+                "transcriptomics"   : "luad-v3.1-rnaseq-prot-uq-rpkm-log2-NArm.gct.gz",
+                "annotation"        : "luad-v3.1-sample-annotation.csv.gz"},
         }
 
-        super().__init__(cancer_type="luad", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="luad", version=version, valid_versions=valid_versions, data_files=self.data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"

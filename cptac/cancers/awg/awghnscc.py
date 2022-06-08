@@ -15,11 +15,11 @@ import os
 import warnings
 import datetime
 
-from cptac.cancer import Cancer
+from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, ReindexMapError, PublicationEmbargoWarning
 
-class AwgHnscc(Cancer):
+class AwgHnscc(Source):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the hnscc dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -33,28 +33,27 @@ class AwgHnscc(Cancer):
 
         valid_versions = ["0.1", "2.0"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
-        data_files = {
-            "0.1": [
-                "HNSCC.strelka.sorted.filtered.annovar.hg19_multianno_filtered.maf.txt.gz",
-                "Proteomics_DIA_Gene_level_Normal.cct.gz",
-                "Proteomics_DIA_Gene_level_Tumor.cct.gz",
-                "RNAseq_RSEM_UQ_log2.cct.gz",
-                "RNAseq_circ_RSEM_UQ_log2.cct.gz",
-                "SCNA_gene_level.cct.gz",
-                "clinic.tsi.gz"],
-            "2.0": [
-                "circRNAseq_RSEM_UQ_log2_Combined.cct.gz",
-                "HN_followUp_9_24.xlsx",
-                "Meta_table.tsv.gz",
-                "microRNA_log2_Combined.cct.gz",
-                "Phosphoproteomics_TMT_site_level_combined_all.cct.gz",
-                "Proteomics_TMT_gene_level_combined_all.cct.gz",
-                "RNAseq_RSEM_UQ_Combined.cct.gz",
-                "SCNA_log2_gene_level.cct.gz",
-                "SomaticMutations_maf.tsv.gz"],
+        self.data_files = {
+            "0.1": {
+                "somatic_mutation"  : "HNSCC.strelka.sorted.filtered.annovar.hg19_multianno_filtered.maf.txt.gz",
+                "proteomics"        : ["Proteomics_DIA_Gene_level_Normal.cct.gz", "Proteomics_DIA_Gene_level_Tumor.cct.gz"],
+                "transcriptomics"   : "RNAseq_RSEM_UQ_log2.cct.gz",
+                "circular_RNA"      : "RNAseq_circ_RSEM_UQ_log2.cct.gz",
+                "CNV"               : "SCNA_gene_level.cct.gz",
+                "annotation"        : "clinic.tsi.gz"},
+            "2.0": {
+                "circular_RNA"      : "circRNAseq_RSEM_UQ_log2_Combined.cct.gz",
+                "followup"          : "HN_followUp_9_24.xlsx",
+                "annotation"        : "Meta_table.tsv.gz",
+                "miRNA"             : "microRNA_log2_Combined.cct.gz",
+                "phosphoproteomics" : "Phosphoproteomics_TMT_site_level_combined_all.cct.gz",
+                "proteomics"        : "Proteomics_TMT_gene_level_combined_all.cct.gz",
+                "transcriptomics"   : "RNAseq_RSEM_UQ_Combined.cct.gz",
+                "CNV"               : "SCNA_log2_gene_level.cct.gz",
+                "somatic_mutation"  : "SomaticMutations_maf.tsv.gz"},
         }
 
-        super().__init__(cancer_type="hnscc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="hnscc", version=version, valid_versions=valid_versions, data_files=self.data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"

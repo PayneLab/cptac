@@ -15,11 +15,11 @@ import os
 import warnings
 import datetime
 
-from cptac.cancer import Cancer
+from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
-class AwgPdac(Cancer):
+class AwgPdac(Source):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -34,26 +34,21 @@ class AwgPdac(Cancer):
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
         valid_versions = ["1.0"]
 
-        data_files = {
-            "1.0": [
-            "clinical_table_140.tsv.gz",
-            "microRNA_TPM_log2_Normal.cct.gz",
-            "microRNA_TPM_log2_Tumor.cct.gz",
-            "meta_table_140.tsv.gz",
-            "mRNA_RSEM_UQ_log2_Normal.cct.gz",
-            "mRNA_RSEM_UQ_log2_Tumor.cct.gz",
-            "PDAC_mutation.maf.gz",
-            "phosphoproteomics_site_level_MD_abundance_normal.cct.gz",
-            "phosphoproteomics_site_level_MD_abundance_tumor.cct.gz",
-            "proteomics_gene_level_MD_abundance_normal.cct.gz",
-            "proteomics_gene_level_MD_abundance_tumor.cct.gz",
-            "RNA_fusion_unfiltered_normal.tsv.gz",
-            "RNA_fusion_unfiltered_tumor.tsv.gz",
-            "SCNA_log2_gene_level.cct.gz"],
+        self.data_files = {
+            "1.0": {
+            "clinical"          : "clinical_table_140.tsv.gz",
+            "miRNA"             : ["microRNA_TPM_log2_Normal.cct.gz", "microRNA_TPM_log2_Tumor.cct.gz"],
+            "derived_molecular" : "meta_table_140.tsv.gz",
+            "transcriptomics"   : ["mRNA_RSEM_UQ_log2_Normal.cct.gz", "mRNA_RSEM_UQ_log2_Tumor.cct.gz"],
+            "somatic_mutation"  : "PDAC_mutation.maf.gz",
+            "phosphoproteomics" : ["phosphoproteomics_site_level_MD_abundance_normal.cct.gz", "phosphoproteomics_site_level_MD_abundance_tumor.cct.gz"],
+            "proteomics"        : ["proteomics_gene_level_MD_abundance_normal.cct.gz", "proteomics_gene_level_MD_abundance_tumor.cct.gz"],
+            "gene_fusion"       : ["RNA_fusion_unfiltered_normal.tsv.gz","RNA_fusion_unfiltered_tumor.tsv.gz"],
+            "CNV"               : "SCNA_log2_gene_level.cct.gz"},
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="pdac", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="pdac", version=version, valid_versions=valid_versions, data_files=self.data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"

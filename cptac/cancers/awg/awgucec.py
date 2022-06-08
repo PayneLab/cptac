@@ -14,11 +14,11 @@ import numpy as np
 import os
 import warnings
 
-from cptac.cancer import Cancer
+from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, ReindexMapError
 
-class AwgUcec(Cancer):
+class AwgUcec(Source):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the endometrial dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -32,36 +32,36 @@ class AwgUcec(Cancer):
 
         valid_versions = ["2.1", "2.1.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
-        data_files = {
-            "2.1": [
-                "acetylproteomics.cct.gz", 
-                "clinical.txt", 
-                "CNA.cct.gz", 
-                "definitions.txt",
-                "miRNA.cct.gz", 
-                "phosphoproteomics_gene.cct.gz", 
-                "phosphoproteomics_site.cct.gz", 
-                "proteomics.cct.gz", 
-                "somatic_binary.cbt.gz", 
-                "somatic.maf.gz", 
-                "transcriptomics_circular.cct.gz", 
-                "transcriptomics_linear.cct.gz"],
-            "2.1.1": [
-                "acetylproteomics.cct.gz",
-                "clinical.txt",
-                "CNA.cct.gz",
-                "definitions.txt",
-                "miRNA.cct.gz",
-                "phosphoproteomics_site.cct.gz",
-                "proteomics.cct.gz",
-                "somatic_binary.cbt.gz",
-                "somatic.maf.gz",
-                "transcriptomics_circular.cct.gz",
-                "transcriptomics_linear.cct.gz",
-                "UCEC_followup_9_12.xlsx"],
+        self.data_files = {
+            "2.1": {
+                "acetylproteomics"          : "acetylproteomics.cct.gz", 
+                "clinical"                  : "clinical.txt", 
+                "CNV"                       : "CNA.cct.gz", 
+                "definitions"               : "definitions.txt",
+                "miRNA"                     : "miRNA.cct.gz", 
+                "phosphoproteomics_gene"    : "phosphoproteomics_gene.cct.gz", 
+                "phosphoproteomics"         : "phosphoproteomics_site.cct.gz", 
+                "proteomics"                : "proteomics.cct.gz", 
+                "somatic_mutation_binary"   : "somatic_binary.cbt.gz", 
+                "somatic_mutation"          : "somatic.maf.gz", 
+                "circular_RNA"              : "transcriptomics_circular.cct.gz", 
+                "transcriptomics"           : "transcriptomics_linear.cct.gz"},
+            "2.1.1": {
+                "acetylproteomics"          : "acetylproteomics.cct.gz",
+                "clinical"                  : "clinical.txt",
+                "CNV"                       : "CNA.cct.gz",
+                "definitions"               : "definitions.txt",
+                "miRNA"                     : "miRNA.cct.gz",
+                "phosphoproteomics"         : "phosphoproteomics_site.cct.gz",
+                "proteomics"                : "proteomics.cct.gz",
+                "somatic_mutation_binary"   : "somatic_binary.cbt.gz",
+                "somatic_mutation"          : "somatic.maf.gz",
+                "circular_RNA"              : "transcriptomics_circular.cct.gz",
+                "transcriptomics"           : "transcriptomics_linear.cct.gz",
+                "followup"                  : "UCEC_followup_9_12.xlsx"},
         }
 
-        super().__init__(cancer_type="endometrial", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="endometrial", version=version, valid_versions=valid_versions, data_files=self.data_files, no_internet=no_internet)
 
         # Load the data files into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"

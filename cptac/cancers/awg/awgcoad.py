@@ -14,11 +14,11 @@ import numpy as np
 import os
 import warnings
 
-from cptac.cancer import Cancer
+from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, ReindexMapError
 
-class AwgCoad(Cancer):
+class AwgCoad(Source):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the colon dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -32,29 +32,29 @@ class AwgCoad(Cancer):
 
         valid_versions = ["0.0", "0.0.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
-        data_files = {
-            "0.0": [
-                "clinical.tsi.gz",
-                "miRNA.cct.gz",
-                "mutation_binary.cbt.gz",
-                "mutation.txt.gz",
-                "phosphoproteomics_normal.gz",
-                "phosphoproteomics_tumor.gz",
-                "proteomics_normal.cct.gz",
-                "proteomics_tumor.cct.gz",
-                "transcriptomics.gz"],
-            "0.0.1": [
-                "clinical.tsi.gz",
-                "Colon_One_Year_Clinical_Data_20160927.xls",
-                "Human__CPTAC_COAD__VU__SCNA__ExomeSeq__01_28_2016__BCM__Gene__BCM_CopyWriteR_GISTIC2.cct.gz",
-                "miRNA.cct.gz",
-                "mutation_binary.cbt.gz",
-                "mutation.txt.gz",
-                "phosphoproteomics_normal.gz",
-                "phosphoproteomics_tumor.gz",
-                "proteomics_normal.cct.gz",
-                "proteomics_tumor.cct.gz",
-                "transcriptomics.gz"],
+        self.data_files = {
+            "0.0": {
+                "clinical"                : "clinical.tsi.gz",
+                "miRNA"                   : "miRNA.cct.gz",
+                "somatic_mutation_binary" : "mutation_binary.cbt.gz",
+                "somatic_mutation"        : "mutation.txt.gz",
+                "phosphoproteomics"       : "phosphoproteomics_normal.gz",
+                "phosphoproteomics"       : "phosphoproteomics_tumor.gz",
+                "proteomics"              : "proteomics_normal.cct.gz",
+                "proteomics"              : "proteomics_tumor.cct.gz",
+                "transcriptomics"         : "transcriptomics.gz"},
+            "0.0.1": {
+                "clinical"                : "clinical.tsi.gz",
+                "followup"                : "Colon_One_Year_Clinical_Data_20160927.xls",
+                "CNV"                     : "Human__CPTAC_COAD__VU__SCNA__ExomeSeq__01_28_2016__BCM__Gene__BCM_CopyWriteR_GISTIC2.cct.gz",
+                "miRNA"                   : "miRNA.cct.gz",
+                "somatic_mutation_binary" : "mutation_binary.cbt.gz",
+                "somatic_mutation"        : "mutation.txt.gz",
+                "phosphoproteomics"       : "phosphoproteomics_normal.gz",
+                "phosphoproteomics"       : "phosphoproteomics_tumor.gz",
+                "proteomics"              : "proteomics_normal.cct.gz",
+                "proteomics"              : "proteomics_tumor.cct.gz",
+                "transcriptomics"         : "transcriptomics.gz"},
         }
 
         super().__init__(cancer_type="colon", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)

@@ -15,11 +15,11 @@ import os
 import warnings
 import datetime
 
-from cptac.cancer import Cancer
+from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, ReindexMapError, PublicationEmbargoWarning
 
-class AwgLscc(Cancer):
+class AwgLscc(Source):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the lscc dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -33,66 +33,66 @@ class AwgLscc(Cancer):
 
         valid_versions = ["1.0", "3.2", "3.2.1", "3.3"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
-        data_files = {
-            "1.0": [
-                "lscc-v1.0-cnv-gene-level-log2.gct.gz",
-                "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
-                "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz",
-                "lscc-v1.0-mirna-mature-tpm-log2.gct.gz",
-                "lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz",
-                "lscc-v1.0-proteome-ratio-norm-NArm.gct.gz",
-                "lscc-v1.0-rnaseq-uq-fpkm-log2-NArm.gct.gz",
-                "lscc-v1.0-sample-annotation.csv.gz"],
-            "2.0": [
-                "lscc-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz",
-                "lscc-v2.0-proteome-ratio-norm-NArm.gct.gz",
-                "lscc-v2.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
-                "lscc-v2.0-mirna-mature-tpm-log2.gct.gz",
-                "lscc-v2.0-rnaseq-uq-fpkm-log2-NArm.gct.gz",
-                "lscc-v2.0-acetylome-ratio-norm-NArm.gct.gz",
-                "lscc-v2.0-sample-annotation.csv.gz",
-                "lscc-v2.0-gene-level-cnv-gistic2-all_data_by_genes.gct.gz",
-                "lscc-v2.0-cptac3-lscc-wxs-somatic-v2.1-lscc.20191228-20200107-maf-like.txt.gz"],
-            "3.2": [
-                "lscc-v3.2-phosphoproteome-ratio-norm-NArm.gct.gz",
-                "lscc-v3.2-proteome-ratio-norm-NArm.gct.gz",
-                "lscc-v3.2-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
-                "lscc-v3.2-mirna-mature-tpm-log2.gct.gz",
-                "lscc-v3.2-rnaseq-uq-fpkm-log2-NArm.gct.gz",
-                "lscc-v3.2-acetylome-ratio-norm-NArm.gct.gz",
-                "lscc-v3.2-sample-annotation.csv.gz",
-                "lscc-v3.2-gene-level-cnv-gistic2-all_data_by_genes.gct.gz",
-                "lscc-v3.2-mutsig-2cv-umich-v2-lscc-poncptac3-lscc-v3beta.final-analysis-set.maf.gz",
-                "lscc-v3.2-ubiquitylome-ratio-norm-NArm.gct.gz",
-                "lscc-v3.2-circular-rna-rsem-uq-log2.gct.gz"],
-            "3.2.1": [
-                "lscc-v3.2-acetylome-ratio-norm-NArm.gct.gz",
-                "lscc-v3.2-circular-rna-rsem-uq-log2.gct.gz",
-                "lscc-v3.2-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
-                "lscc-v3.2-gene-level-cnv-gistic2-log-ratio-all_data_by_genes.gct.gz",
-                "lscc-v3.2-mirna-mature-tpm-log2.gct.gz",
-                "lscc-v3.2-mutsig-2cv-umich-v2-lscc-poncptac3-lscc-v3beta.final-analysis-set.maf.gz",
-                "lscc-v3.2-phosphoproteome-ratio-norm-NArm.gct.gz",
-                "lscc-v3.2-proteome-ratio-norm-NArm.gct.gz",
-                "lscc-v3.2-rnaseq-uq-fpkm-log2-NArm.gct.gz",
-                "lscc-v3.2-sample-annotation.csv.gz",
-                "lscc-v3.2-ubiquitylome-ratio-norm-NArm.gct.gz"],
-            "3.3": [
-                "lscc-v3.2-mutsig-2cv-umich-v2-lscc-poncptac3-lscc-v3beta.final-analysis-set.maf.gz",
-                "lscc-v3.2-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
-                "lscc-v3.3-public-acetylome-ratio-norm-NArm.gct.gz",
-                "lscc-v3.3-public-circular-rna-rsem-uq-log2.gct.gz",
-                "lscc-v3.3-public-gene-level-cnv-gistic2-log-ratio-all_data_by_genes.gct.gz",
-                "lscc-v3.3-public-methylation-promoter-5utr-gene-level.gct.gz",
-                "lscc-v3.3-public-mirna-mature-tpm-log2.gct.gz",
-                "lscc-v3.3-public-phosphoproteome-ratio-norm-NArm.gct.gz",
-                "lscc-v3.3-public-proteome-ratio-norm-NArm.gct.gz",
-                "lscc-v3.3-public-rnaseq-uq-fpkm-log2-NArm.gct.gz",
-                "lscc-v3.3-public-sample-annotation.csv.gz",
-                "lscc-v3.3-public-ubiquitylome-batch-corrected-ratio-norm-NArm.gct.gz"],
+        self.data_files = {
+            "1.0": {
+                "CNV"               : "lscc-v1.0-cnv-gene-level-log2.gct.gz",
+                "gene_fusion"       : "lscc-v1.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
+                "somatic_mutation"  : "lscc-v1.0-cptac3-lscc-wxs-somatic-variant-sw-v1.5-lscc.y2-20191211.maf.gz",
+                "miRNA"             : "lscc-v1.0-mirna-mature-tpm-log2.gct.gz",
+                "phosphoproteomics" : "lscc-v1.0-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "proteomics"        : "lscc-v1.0-proteome-ratio-norm-NArm.gct.gz",
+                "transcriptomics"   : "lscc-v1.0-rnaseq-uq-fpkm-log2-NArm.gct.gz",
+                "annotation"        : "lscc-v1.0-sample-annotation.csv.gz"},
+            "2.0": {
+                "phosphoproteomics" : "lscc-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "proteomics"        : "lscc-v2.0-proteome-ratio-norm-NArm.gct.gz",
+                "gene_fusion"       : "lscc-v2.0-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
+                "miRNA"             : "lscc-v2.0-mirna-mature-tpm-log2.gct.gz",
+                "transcriptomics"   : "lscc-v2.0-rnaseq-uq-fpkm-log2-NArm.gct.gz",
+                "acetylproteomics"  : "lscc-v2.0-acetylome-ratio-norm-NArm.gct.gz",
+                "annotation"        : "lscc-v2.0-sample-annotation.csv.gz",
+                "CNV"               : "lscc-v2.0-gene-level-cnv-gistic2-all_data_by_genes.gct.gz",
+                "somatic_mutation"  : "lscc-v2.0-cptac3-lscc-wxs-somatic-v2.1-lscc.20191228-20200107-maf-like.txt.gz"},
+            "3.2": {
+                "phosphoproteomics" : "lscc-v3.2-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "proteomics"        : "lscc-v3.2-proteome-ratio-norm-NArm.gct.gz",
+                "gene_fusion"       : "lscc-v3.2-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
+                "miRNA"             : "lscc-v3.2-mirna-mature-tpm-log2.gct.gz",
+                "transcriptomics"   : "lscc-v3.2-rnaseq-uq-fpkm-log2-NArm.gct.gz",
+                "acetylproteomics"  : "lscc-v3.2-acetylome-ratio-norm-NArm.gct.gz",
+                "annotation"        : "lscc-v3.2-sample-annotation.csv.gz",
+                "CNV"               : "lscc-v3.2-gene-level-cnv-gistic2-all_data_by_genes.gct.gz",
+                "somatic_mutation"  : "lscc-v3.2-mutsig-2cv-umich-v2-lscc-poncptac3-lscc-v3beta.final-analysis-set.maf.gz",
+                "ubiquitinomics"    : "lscc-v3.2-ubiquitylome-ratio-norm-NArm.gct.gz",
+                "circular_RNA"      : "lscc-v3.2-circular-rna-rsem-uq-log2.gct.gz"},
+            "3.2.1": {
+                "acetylproteomics"  : "lscc-v3.2-acetylome-ratio-norm-NArm.gct.gz",
+                "circular_RNA"      : "lscc-v3.2-circular-rna-rsem-uq-log2.gct.gz",
+                "gene_fusion"       : "lscc-v3.2-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
+                "CNV"               : "lscc-v3.2-gene-level-cnv-gistic2-log-ratio-all_data_by_genes.gct.gz",
+                "miRNA"             : "lscc-v3.2-mirna-mature-tpm-log2.gct.gz",
+                "somatic_mutation"  : "lscc-v3.2-mutsig-2cv-umich-v2-lscc-poncptac3-lscc-v3beta.final-analysis-set.maf.gz",
+                "phosphoproteomics" : "lscc-v3.2-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "proteomics"        : "lscc-v3.2-proteome-ratio-norm-NArm.gct.gz",
+                "transcriptomics"   : "lscc-v3.2-rnaseq-uq-fpkm-log2-NArm.gct.gz",
+                "annotation"        : "lscc-v3.2-sample-annotation.csv.gz",
+                "ubiquitinomics"    : "lscc-v3.2-ubiquitylome-ratio-norm-NArm.gct.gz"},
+            "3.3": {
+                "somatic_mutation"  : "lscc-v3.2-mutsig-2cv-umich-v2-lscc-poncptac3-lscc-v3beta.final-analysis-set.maf.gz",
+                "gene_fusion"       : "lscc-v3.2-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
+                "acetylproteomics"  : "lscc-v3.3-public-acetylome-ratio-norm-NArm.gct.gz",
+                "circular_RNA"      : "lscc-v3.3-public-circular-rna-rsem-uq-log2.gct.gz",
+                "CNV"               : "lscc-v3.3-public-gene-level-cnv-gistic2-log-ratio-all_data_by_genes.gct.gz",
+                #"not_used" : "lscc-v3.3-public-methylation-promoter-5utr-gene-level.gct.gz",
+                "miRNA"             : "lscc-v3.3-public-mirna-mature-tpm-log2.gct.gz",
+                "phosphoproteomics" : "lscc-v3.3-public-phosphoproteome-ratio-norm-NArm.gct.gz",
+                "proteomics"        : "lscc-v3.3-public-proteome-ratio-norm-NArm.gct.gz",
+                "transcriptomics"   : "lscc-v3.3-public-rnaseq-uq-fpkm-log2-NArm.gct.gz",
+                "annotation"        : "lscc-v3.3-public-sample-annotation.csv.gz",
+                "ubiquitinomics"    : "lscc-v3.3-public-ubiquitylome-batch-corrected-ratio-norm-NArm.gct.gz"},
         }
 
-        super().__init__(cancer_type="lscc", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="lscc", version=version, valid_versions=valid_versions, data_files=self.data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"

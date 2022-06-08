@@ -15,11 +15,11 @@ import os
 import warnings
 import datetime
 
-from cptac.cancer import Cancer
+from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
-class AwgGbm(Cancer):
+class AwgGbm(Source):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the gbm dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -34,65 +34,59 @@ class AwgGbm(Cancer):
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
         valid_versions = ["1.0", "2.0", "2.1", "3.0"]
 
-        data_files = {
-            "1.0": [
-                "clinical_data_core.v1.0.20190802.tsv.gz",
-                "mirnaseq_mirna_mature_tpm.v1.0.20190802.tsv.gz",
-                "phosphoproteome_pnnl_d6.v1.0.20190802.tsv.gz",
-                "proteome_pnnl_per_gene_d4.v1.0.20190802.tsv.gz",
-                "proteome_tmt_design.v1.0.20190802.tsv.gz",
-                "rnaseq_gdc_fpkm_uq.v1.0.20190802.tsv.gz",
-                "tindaisy_all_cases_filtered.v1.0.20190802.maf.gz",
-                "wgs_somatic_cnv_per_gene.v1.0.20190802.tsv.gz"],
-            "2.0": [
-                "acetylome_pnnl_d6.v2.0.20190905.tsv.gz",
-                "clinical_data_core.v2.0.20190905.tsv.gz",
-                "metabolome_pnnl.v2.0.20190905.tsv.gz",
-                "metabolome_sample_info.v2.0.20190905.tsv.gz",
-                "mirnaseq_mirna_mature_tpm.v2.0.20190905.tsv.gz",
-                "negative_lipidome_pnnl.v2.0.20190905.tsv.gz",
-                "phosphoproteome_pnnl_d6.v2.0.20190905.tsv.gz",
-                "positive_lipidome_pnnl.v2.0.20190905.tsv.gz",
-                "proteome_pnnl_per_gene_d4.v2.0.20190905.tsv.gz",
-                "proteome_tmt_design.v2.0.20190905.tsv.gz",
-                "rnaseq_bcm_circular_rna_expression_rsem_uq.v2.0.20190905.tsv.gz",
-                "rnaseq_gene_fusion.v2.0.20190905.tsv.gz",
-                "rnaseq_washu_fpkm_uq.v2.0.20190905.tsv.gz",
-                "tindaisy_all_cases_filtered.v2.0.20190905.maf.gz",
-                "wgs_somatic_cnv_per_gene.v2.0.20190905.tsv.gz"],
-            "2.1": [
-                "acetylome_mssm_per_gene_clean.v2.1.20190927.tsv.gz",
-                "clinical_data_core.v2.1.20190927.tsv.gz",
-                "metabolome_pnnl.v2.1.20190927.tsv.gz",
-                "metabolome_sample_info.v2.1.20190927.tsv.gz",
-                "mirnaseq_mirna_mature_tpm.v2.1.20190927.tsv.gz",
-                "negative_lipidome_pnnl.v2.1.20190927.tsv.gz",
-                "phosphoproteome_mssm_per_gene_clean.v2.1.20190927.tsv.gz",
-                "positive_lipidome_pnnl.v2.1.20190927.tsv.gz",
-                "proteome_mssm_per_gene_clean.v2.1.20190927.tsv.gz",
-                "proteome_tmt_design.v2.1.20190927.tsv.gz",
-                "rnaseq_bcm_circular_rna_expression_rsem_uq.v2.1.20190927.tsv.gz",
-                "rnaseq_gene_fusion.v2.1.20190927.tsv.gz",
-                "rnaseq_washu_fpkm_uq.v2.1.20190927.tsv.gz",
-                "tindaisy_all_cases_filtered.v2.1.20190927.maf.gz",
-                "wgs_somatic_cnv_per_gene.v2.1.20190927.tsv.gz"],
-            "3.0": [
-                "acetylome_mssm_per_gene_clean.v3.0.20191121.tsv.gz",
-                "clinical_data_core.v3.0.20191121.tsv.gz",
-                "gbm_all_subtype_collections.2020-01-13.tsv.gz",
-                "metabolome_pnnl.v3.0.20191121.tsv.gz",
-                "metabolome_sample_info.v3.0.20191121.tsv.gz",
-                "mirnaseq_mirna_mature_tpm.v3.0.20191121.tsv.gz",
-                "negative_lipidome_pnnl.v3.0.20191121.tsv.gz",
-                "phosphoproteome_mssm_per_gene_clean.v3.0.20191121.tsv.gz",
-                "positive_lipidome_pnnl.v3.0.20191121.tsv.gz",
-                "proteome_mssm_per_gene_clean.v3.0.20191121.tsv.gz",
-                "proteome_tmt_design.v3.0.20191121.tsv.gz",
-                "rnaseq_bcm_circular_rna_expression_rsem_uq.v3.0.20191121.tsv.gz",
-                "rnaseq_gene_fusion.v3.0.20191121.tsv.gz",
-                "rnaseq_washu_fpkm_uq.v3.0.20191121.tsv.gz",
-                "tindaisy_all_cases_filtered.v3.0.20191121.maf.gz",
-                "wgs_somatic_cnv_per_gene.v3.0.20191121.tsv.gz"],
+        self.data_files = {
+            "1.0": {
+                "clinical"              : "clinical_data_core.v1.0.20190802.tsv.gz",
+                "miRNA"                 : "mirnaseq_mirna_mature_tpm.v1.0.20190802.tsv.gz",
+                "phosphoproteomics"     : "phosphoproteome_pnnl_d6.v1.0.20190802.tsv.gz",
+                "proteomics"            : "proteome_pnnl_per_gene_d4.v1.0.20190802.tsv.gz",
+                "experimental_design"   : "proteome_tmt_design.v1.0.20190802.tsv.gz",
+                "transcriptomics"       : "rnaseq_gdc_fpkm_uq.v1.0.20190802.tsv.gz",
+                "somatic_mutation"      : "tindaisy_all_cases_filtered.v1.0.20190802.maf.gz",
+                "CNV"                   : "wgs_somatic_cnv_per_gene.v1.0.20190802.tsv.gz"},
+            "2.0": {
+                "acetylproteomics"      : "acetylome_pnnl_d6.v2.0.20190905.tsv.gz",
+                "clinical"              : "clinical_data_core.v2.0.20190905.tsv.gz",
+                "metabolomics"          : "metabolome_pnnl.v2.0.20190905.tsv.gz",
+                "experimental_design"   : ["metabolome_sample_info.v2.0.20190905.tsv.gz", "proteome_tmt_design.v2.0.20190905.tsv.gz"],
+                "miRNA"                 : "mirnaseq_mirna_mature_tpm.v2.0.20190905.tsv.gz",
+                "lipidomics"            : [ "negative_lipidome_pnnl.v2.0.20190905.tsv.gz", "positive_lipidome_pnnl.v2.0.20190905.tsv.gz"],
+                "phosphoproteomics"     : "phosphoproteome_pnnl_d6.v2.0.20190905.tsv.gz",
+                "proteomics"            : "proteome_pnnl_per_gene_d4.v2.0.20190905.tsv.gz",
+                "circular_RNA"          : "rnaseq_bcm_circular_rna_expression_rsem_uq.v2.0.20190905.tsv.gz",
+                "gene_fusion"           : "rnaseq_gene_fusion.v2.0.20190905.tsv.gz",
+                "transcriptomics"       : "rnaseq_washu_fpkm_uq.v2.0.20190905.tsv.gz",
+                "somatic_mutation"      : "tindaisy_all_cases_filtered.v2.0.20190905.maf.gz",
+                "CNV"                   : "wgs_somatic_cnv_per_gene.v2.0.20190905.tsv.gz"},
+            "2.1": {
+                "acetylproteomics"      : "acetylome_mssm_per_gene_clean.v2.1.20190927.tsv.gz",
+                "clinical"              : "clinical_data_core.v2.1.20190927.tsv.gz",
+                "metabolimics"          : "metabolome_pnnl.v2.1.20190927.tsv.gz",
+                "experimental_design"   : ["metabolome_sample_info.v2.1.20190927.tsv.gz", "proteome_tmt_design.v2.1.20190927.tsv.gz"],
+                "miRNA"                 : "mirnaseq_mirna_mature_tpm.v2.1.20190927.tsv.gz",
+                "lipidomics"            : ["negative_lipidome_pnnl.v2.1.20190927.tsv.gz", "positive_lipidome_pnnl.v2.1.20190927.tsv.gz"],
+                "phosphoproteomics"     : "phosphoproteome_mssm_per_gene_clean.v2.1.20190927.tsv.gz",
+                "proteomics"            : "proteome_mssm_per_gene_clean.v2.1.20190927.tsv.gz",
+                "circular_RNA"          : "rnaseq_bcm_circular_rna_expression_rsem_uq.v2.1.20190927.tsv.gz",
+                "gene_fusion"           : "rnaseq_gene_fusion.v2.1.20190927.tsv.gz",
+                "transcriptomics"       : "rnaseq_washu_fpkm_uq.v2.1.20190927.tsv.gz",
+                "somatic_mutation"      : "tindaisy_all_cases_filtered.v2.1.20190927.maf.gz",
+                "CNV"                   : "wgs_somatic_cnv_per_gene.v2.1.20190927.tsv.gz"},
+            "3.0": {
+                "acetylproteomics"      : "acetylome_mssm_per_gene_clean.v3.0.20191121.tsv.gz",
+                "clinical"              : "clinical_data_core.v3.0.20191121.tsv.gz",
+                "derived_molecular"     : "gbm_all_subtype_collections.2020-01-13.tsv.gz",
+                "metabolomics"          : "metabolome_pnnl.v3.0.20191121.tsv.gz",
+                "experimental_design"   : ["metabolome_sample_info.v3.0.20191121.tsv.gz", "proteome_tmt_design.v3.0.20191121.tsv.gz"],
+                "miRNA"                 : "mirnaseq_mirna_mature_tpm.v3.0.20191121.tsv.gz",
+                "lipidomics"            : ["negative_lipidome_pnnl.v3.0.20191121.tsv.gz", "positive_lipidome_pnnl.v3.0.20191121.tsv.gz"],
+                "phosphoproteomics"     : "phosphoproteome_mssm_per_gene_clean.v3.0.20191121.tsv.gz",
+                "proteomics"            : "proteome_mssm_per_gene_clean.v3.0.20191121.tsv.gz",
+                "circular_RNA"          : "rnaseq_bcm_circular_rna_expression_rsem_uq.v3.0.20191121.tsv.gz",
+                "gene_fusion"           : "rnaseq_gene_fusion.v3.0.20191121.tsv.gz",
+                "transcriptomics"       : "rnaseq_washu_fpkm_uq.v3.0.20191121.tsv.gz",
+                "somatic_mutation"      : "tindaisy_all_cases_filtered.v3.0.20191121.maf.gz",
+                "CNV"                   : "wgs_somatic_cnv_per_gene.v3.0.20191121.tsv.gz"},
         }
 
         super().__init__(cancer_type="gbm", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)

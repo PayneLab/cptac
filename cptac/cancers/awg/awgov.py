@@ -14,11 +14,11 @@ import numpy as np
 import os
 import warnings
 
-from cptac.cancer import Cancer
+from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, ReindexMapError
 
-class AwgOv(Cancer):
+class AwgOv(Source):
 
     def __init__(self, version="latest", no_internet=False):
         """Load all of the ovarian dataframes as values in the self._data dict variable, with names as keys, and format them properly.
@@ -32,29 +32,29 @@ class AwgOv(Cancer):
 
         valid_versions = ["0.0", "0.0.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
-        data_files = {
-            "0.0": [
-                "clinical.csv.gz",
-                "cnv.tsv.gz",
-                "definitions.txt",
-                "phosphoproteomics.txt.gz",
-                "proteomics.txt.gz",
-                "somatic_38.maf.gz",
-                "transcriptomics.tsv.gz",
-                "treatment.csv.gz"],
-            "0.0.1": [
-                "clinical.csv.gz",
-                "cnv.tsv.gz",
-                "definitions.txt",
-                "Ovary_One_Year_Clinical_Data_20160927.xls",
-                "phosphoproteomics.txt.gz",
-                "proteomics.txt.gz",
-                "somatic_38.maf.gz",
-                "transcriptomics.tsv.gz",
-                "treatment.csv.gz"],
+        self.data_files = {
+            "0.0": {
+                "clinical"          : "clinical.csv.gz",
+                "cnv"               : "cnv.tsv.gz",
+                "definitions"       : "definitions.txt",
+                "phosphoproteomics" : "phosphoproteomics.txt.gz",
+                "proteomics"        : "proteomics.txt.gz",
+                "somatic_mutation"  : "somatic_38.maf.gz",
+                "transcriptomics"   : "transcriptomics.tsv.gz",
+                "treatment"         : "treatment.csv.gz"},
+            "0.0.1": {
+                "clinical"          : "clinical.csv.gz",
+                "cnv"               : "cnv.tsv.gz",
+                "definitions"       : "definitions.txt",
+                "followup"          : "Ovary_One_Year_Clinical_Data_20160927.xls",
+                "phophoproteomics"  : "phosphoproteomics.txt.gz",
+                "proteomics"        : "proteomics.txt.gz",
+                "somatic_mutation"  : "somatic_38.maf.gz",
+                "transcriptomics"   : "transcriptomics.tsv.gz",
+                "treatment"         : "treatment.csv.gz"},
         }
 
-        super().__init__(cancer_type="ovarian", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="ovarian", version=version, valid_versions=valid_versions, data_files=self.data_files, no_internet=no_internet)
 
         # Load the data files into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
