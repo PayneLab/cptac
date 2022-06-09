@@ -66,12 +66,20 @@ class UmichCcrcc(Source):
         if not self._helper_tables:
             file_path = self.perform_initial_checks(df_type)
             
-            # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
+            # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates),
             # so there is no need to slice out cancer specific aliquots
             # This file can be found on Box under CPTAC/cptac/pancan/helper_files
             df = pd.read_csv(file_path, sep = "\t", index_col = 'aliquot_ID', usecols = ['aliquot_ID', 'patient_ID'])
             map_dict = df.to_dict()['patient_ID'] # create dictionary with aliquot_ID as keys and patient_ID as values
             self._helper_tables["map_ids"] = map_dict
+
+            # drop quality control and ref intensity cols
+            drop_cols = ['NCI7-1','NCI7-2','NCI7-3','NCI7-4','NCI7-5', 'QC1', 'QC2', 'QC3', 'QC4', 'QC5', 'QC6', 'QC7', 
+                    'QC8', 'RefInt_pool01', 'RefInt_pool02', 'RefInt_pool03', 'RefInt_pool04', 'RefInt_pool05', 
+                    'RefInt_pool06', 'RefInt_pool07', 'RefInt_pool08', 'RefInt_pool09', 'RefInt_pool10', 'RefInt_pool11', 
+                    'RefInt_pool12', 'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15', 'RefInt_pool16', 'RefInt_pool17', 
+                    'RefInt_pool18', 'RefInt_pool19', 'RefInt_pool20', 'RefInt_pool21', 'RefInt_pool22', 'RefInt_pool23']
+            self._helper_tables["drop_cols"] = drop_cols
             
 
     def load_phosphoproteomics(self):
@@ -107,16 +115,25 @@ class UmichCcrcc(Source):
             ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities (prep to calculate ratios) 
             df = df.subtract(ref_intensities, axis="columns") # Subtract refintensities from all the values, to get ratios
             df = df.iloc[1:,:] # drop ReferenceIntensity row 
+            
+            self.load_mapping()
+            # see mapping for what exactly this is
+            drop_cols = self._helper_tables["drop_cols"]
+            map_ids = self._helper_tables["map_ids"]
+            df = df.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
+            df = df.rename(index = map_ids) # replace aliquot_IDs with Patient_IDs (normal samples have .N appended)
+            
+            df = sort_rows_and_columns(df)
             self._data["phosphoproteomics"] = df
 
 
     def load_proteomics(self):
         df_type = 'proteomics'
-        
+
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.perform_initial_checks(df_type)
-            
+
             df = pd.read_csv(file_path, sep = "\t") 
             df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
             df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # get protein name 
@@ -127,9 +144,17 @@ class UmichCcrcc(Source):
             df = df.subtract(ref_intensities, axis="columns") # subtract reference intensities from all the values
             df = df.iloc[1:,:] # drop ReferenceIntensity row 
             df.index.name = 'Patient_ID'
+
+            self.load_mapping()
+            # see mapping for what exactly this is
+            drop_cols = self._helper_tables["drop_cols"]
+            map_ids = self._helper_tables["map_ids"]
+            df = df.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
+            df = df.rename(index = map_ids) # replace aliquot_IDs with Patient_IDs (normal samples have .N appended)
+
+            df = sort_rows_and_columns(df)
             self._data["proteomics"] = df
 
-        
         
 #############################################
 
@@ -159,34 +184,3 @@ class UmichCcrcc(Source):
                 df = df.sort_values(by=["Patient_ID"])
                 self._data["proteomics_imputed"] = df
             '''
-            
-
-        print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
-        print(formatting_msg, end='\r')
-        
-        drop_cols = ['NCI7-1','NCI7-2','NCI7-3','NCI7-4','NCI7-5', 'QC1', 'QC2', 'QC3', 'QC4', 'QC5', 'QC6', 'QC7', 
-                    'QC8', 'RefInt_pool01', 'RefInt_pool02', 'RefInt_pool03', 'RefInt_pool04', 'RefInt_pool05', 
-                    'RefInt_pool06', 'RefInt_pool07', 'RefInt_pool08', 'RefInt_pool09', 'RefInt_pool10', 'RefInt_pool11', 
-                    'RefInt_pool12', 'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15', 'RefInt_pool16', 'RefInt_pool17', 
-                    'RefInt_pool18', 'RefInt_pool19', 'RefInt_pool20', 'RefInt_pool21', 'RefInt_pool22', 'RefInt_pool23']
-        
-        
-        # Get dictionary with aliquot_ID as keys and patient_ID as values
-        mapping_dict = self._helper_tables["map_ids"]
-        
-        # Proteomics
-        prot = self._data["proteomics"]
-        prot = prot.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
-        prot = prot.rename(index = mapping_dict) # replace aliquot_IDs with Patient_IDs (normal samples have .N appended)
-        self._data["proteomics"] = prot
-        
-        # Phosphoproteomics 
-        phos = self._data["phosphoproteomics"] 
-        phos = phos.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
-        phos = phos.rename(index = mapping_dict) # replace aliquot_IDs with Patient_IDs (normal samples have .N appended)  
-        self._data["phosphoproteomics"] = phos
-        
-        
-        # Sort rows (tumor first then normal) and columns by first level (protein/gene name)
-        # self._data = sort_all_rows_pancan(self._data)

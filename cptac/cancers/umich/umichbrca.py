@@ -65,10 +65,43 @@ class UmichBrca(Source):
         
         if not self._helper_tables:
             file_path = self.perform_initial_checks(df_type)
-            
-            df = pd.read_csv(file_path, sep = "\t")
-            df = df[['Participant', 'id', 'Type']]
-            self._helper_tables["map_ids"] = df
+
+            map_df = pd.read_csv(file_path, sep = "\t")
+            map_df = map_df[['Participant', 'id', 'Type']]
+            self._helper_tables["map_ids"] = map_df
+
+            # Drop samples that don't correlate well with the original cptac tumor values
+            # The proteomics and phosphoproteomics file contained duplicate patient IDs with unique values. 18 of these were IDs
+            # with both tumor and normal samples (according to the mapping file). To find which ID contained values nearest to the
+            # original cptac tumor measurements, we calculated pearson correlations and created scatterplots to compare
+            # flagship values to each of the duplicate patient ID values. The first occurrance of every patient ID in the
+            # file with a normal sample showed a high correlation with the flagship values (average around 0.9).
+            # The second occurrence showed a low correlation with the flagship tumor values (average around  0.2).
+            # In Brca, normal samples were dropped in downstream analysis because of quality control issues. Therefore, we dropped
+            # the second occurrence of the 18 patient IDs with a normal sample because they did not correlate well with the
+            # flagship tumor values and are likely normal samples. There were 7 IDs with replicates shown in the mapping file
+            # (prosp-brca-all-samples.txt). The same method was used to check that these correlated well with their respective
+            # flagship cptac tumor values. Replicates were averaged (consistent with the handling of other replicates in the pancan module).
+            # note:  21BR010.1 had a correlation of 0.275 (so dropped), and 21BR010.2 had correlation of 0.848 (so averaged)
+            # A file containing the correlations can be downloaded at:
+            # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
+
+            # Get patient IDs with normal samples or replicates (from mapping file)
+            # 7 IDs with replicates: '11BR031', '11BR053', '11BR036', '11BR060', '14BR005', '11BR011', '21BR010'
+            # 18 IDs with normals: '11BR074', '11BR073', '20BR007', '21BR010', '11BR017', '05BR029', '18BR003', '11BR030',
+            #   '01BR027','11BR025', '11BR047', '11BR028', '11BR020', '20BR008', '11BR024', '11BR023', '11BR015', '11BR006'
+
+            # Get IDs with replicates
+            replicate_list = list(set(map_df.loc[map_df.id.str.contains('REP')].Participant))
+            replicate_list.remove('RetroIR')
+            replicate_list = [x[1:] for x in replicate_list]
+            self._helper_tables["replicate_list"] = replicate_list
+
+            # Get IDs with normals
+            norm_df = map_df.loc[map_df.Type == 'Adjacent_Normal'] # get all patient_IDs with normal samples
+            norm_df.index = norm_df.Participant.apply(lambda x: x[1:]+'.1') #remove initial 'X' and add '.1' (did not correlate well)
+            not_tumor = norm_df.index.to_list()
+            self._helper_tables["not_tumor"] = not_tumor
 
 
     def load_phosphoproteomics(self):
@@ -116,8 +149,13 @@ class UmichBrca(Source):
             df = df.drop(drop_cols, axis = 'index')
             
             if self._version == "1.0":
-                df = self._drop_poorly_correlated_samples_v1(df)
-            
+                self.load_mapping()
+                not_tumor = self._helper_tables["not_tumor"]
+                replicate_list = self._helper_tables["replicate_list"]
+                df = df.loc[ ~ df.index.isin(not_tumor)] # drop rows that don't correlate well with respective cptac tumor
+                df = average_replicates(df, replicate_list) # average 7 IDs with replicates
+
+            df = sort_rows_and_columns(df)
             self._data["phosphoproteomics"] = df
             
     
@@ -152,64 +190,18 @@ class UmichBrca(Source):
             df = df.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
             
             if self._version == "1.0":
-                df = self._drop_poorly_correlated_samples_v1(df)
-                
+                self.load_mapping()
+                not_tumor = self._helper_tables["not_tumor"]
+                replicate_list = self._helper_tables["replicate_list"]
+                df = df.loc[ ~ df.index.isin(not_tumor)] # drop rows that don't correlate well with respective cptac tumor
+                df = average_replicates(df, replicate_list) # average 7 IDs with replicates
+
+            df = sort_rows_and_columns(df)
             self._data["proteomics"] = df
 
 
-    # Perhaps do this step in load_mapping() and save needed dfs in helper_tables
-    # That will more memory, but we already have to save map_ids so why not finish the step there?
-    # The more I think about it, the better that sounds
-    # Plus all the other datatypes do something similar, so that will be way bette
-    def _drop_poorly_correlated_samples_v1(self, df):
-        """
-        Drop samples that don't correlate well with the original cptac tumor values
         
-        Explaination
-        The proteomics and phosphoproteomics file contained duplicate patient IDs with unique values. 18 of these were IDs 
-        with both tumor and normal samples (according to the mapping file). To find which ID contained values nearest to the 
-        original cptac tumor measurements, we calculated pearson correlations and created scatterplots to compare 
-        flagship values to each of the duplicate patient ID values. The first occurrance of every patient ID in the 
-        file with a normal sample showed a high correlation with the flagship values (average around 0.9). 
-        The second occurrence showed a low correlation with the flagship tumor values (average around  0.2). 
-        In Brca, normal samples were dropped in downstream analysis because of quality control issues. Therefore, we dropped 
-        the second occurrence of the 18 patient IDs with a normal sample because they did not correlate well with the 
-        flagship tumor values and are likely normal samples. There were 7 IDs with replicates shown in the mapping file 
-        (prosp-brca-all-samples.txt). The same method was used to check that these correlated well with their respective 
-        flagship cptac tumor values. Replicates were averaged (consistent with the handling of other replicates in the pancan 
-        module).
-        note:  21BR010.1 had a correlation of 0.275 (so dropped), and 21BR010.2 had correlation of 0.848 (so averaged)        
-        A file containing the correlations can be downloaded at: 
-        https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
 
-        Parameters:
-        df (Pandas dataframe): Proteomics or Phosphoproteomics dataframe from datafreeze 1.0
-        
-        Returns:
-        df (Pandas dataframe): The same dataframe but with the samples that don't correlate well dropped
-        """
-        
-        # Get patient IDs with normal samples or replicates (from mapping file)         
-        # 7 IDs with replicates: '11BR031', '11BR053', '11BR036', '11BR060', '14BR005', '11BR011', '21BR010'
-        # 18 IDs with normals: '11BR074', '11BR073', '20BR007', '21BR010', '11BR017', '05BR029', '18BR003', '11BR030',
-        #   '01BR027','11BR025', '11BR047', '11BR028', '11BR020', '20BR008', '11BR024', '11BR023', '11BR015', '11BR006'
-        self.load_mapping()
-        map_df = self._helper_tables["map_ids"]
-        # Get IDs with replicates 
-        replicate_list = list(set(map_df.loc[map_df.id.str.contains('REP')].Participant))
-        replicate_list.remove('RetroIR') 
-        replicate_list = [x[1:] for x in replicate_list]
-        # Get IDs with normals 
-        norm_df = map_df.loc[map_df.Type == 'Adjacent_Normal'] # get all patient_IDs with normal samples
-        norm_df.index = norm_df.Participant.apply(lambda x: x[1:]+'.1') #remove initial 'X' and add '.1' (did not correlate well)
-        not_tumor = norm_df.index.to_list()
-        
-        df = df.loc[ ~ df.index.isin(not_tumor)] # drop rows that don't correlate well with respective cptac tumor
-        df = average_replicates(df, replicate_list) # average 7 IDs with replicates
-        
-        return df
-
-        
 #############################################
 
     # TODO: Readmes
@@ -219,6 +211,4 @@ class UmichBrca(Source):
 #             elif file_name == "README.boxnote":
 #                 self._readme_files["readme_phosphoproteomics"] = get_boxnote_text(file_path)
 
-        
-        # Sort rows (tumor first then normal) and columns by first level (protein/gene name)
-        # self._data = sort_all_rows_pancan(self._data)  
+ 
