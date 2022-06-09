@@ -78,6 +78,8 @@ class BcmUcec(Source):
             df.index = df.index.str.replace(r"_T", "", regex=True) # remove Tumor label
             df.index = df.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
             df.index.name = "Patient_ID"
+
+            df = sort_rows_and_columns(df)
             self._data["circular_RNA"] = df
 
         
@@ -119,7 +121,6 @@ class BcmUcec(Source):
             transcript.index = transcript.index.str.replace(r"_T", "", regex=True)
             transcript.index = transcript.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
             transcript.index.name = "Patient_ID"
-            self._data["transcriptomics"] = transcript
-            
 
-#         self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
+            transcript = sort_rows_and_columns(transcript)
+            self._data["transcriptomics"] = transcript

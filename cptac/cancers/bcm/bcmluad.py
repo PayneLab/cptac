@@ -59,7 +59,7 @@ class BcmLuad(Source):
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.perform_initial_checks(df_type)
             
-            df = pd.read_csv(file_path, sep="\t")
+            df = pd.read_csv(file_path, sep='\t')
             df = df.rename_axis('INDEX').reset_index()
             df[["circ","chrom","start","end","gene"]] = df.INDEX.str.split('_', expand=True)
             df["circ_chromosome"] = df["circ"] +"_" + df["chrom"]
@@ -78,6 +78,8 @@ class BcmLuad(Source):
             df.index = df.index.str.replace(r"_T", "", regex=True) # remove Tumor label
             df.index = df.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
             df.index.name = "Patient_ID"
+
+            df = sort_rows_and_columns(df)
             self._data["circular_RNA"] = df
             
         
@@ -90,7 +92,7 @@ class BcmLuad(Source):
             
             file_path = self.perform_initial_checks(df_type)
             
-            df = pd.read_csv(file_path, sep="\t")
+            df = pd.read_csv(file_path, sep='\t')
             df = df[["gene","gene_name"]] #only need gene (database gene id) and gene_name (common gene name)
             df = df.set_index("gene")
             df = df.drop_duplicates()
@@ -104,7 +106,7 @@ class BcmLuad(Source):
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.perform_initial_checks(df_type)
             
-            df = pd.read_csv(file_path, sep="\t")
+            df = pd.read_csv(file_path, sep='\t')
             df.index.name = 'gene'
             
             # Add gene names to transcriptomic data
@@ -119,7 +121,6 @@ class BcmLuad(Source):
             transcript.index = transcript.index.str.replace(r"_T", "", regex=True)
             transcript.index = transcript.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
             transcript.index.name = "Patient_ID"
+
+            transcript = sort_rows_and_columns(transcript)
             self._data["transcriptomics"] = transcript
-            
-            
-#     self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)

@@ -120,10 +120,6 @@ class BcmCcrcc(Source):
             transcript.index = transcript.index.str.replace(r"_T", "", regex=True)
             transcript.index = transcript.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
             transcript.index.name = "Patient_ID"
+
+            transcript = sort_rows_and_columns(transcript)
             self._data["transcriptomics"] = transcript
-
-
-
-
-    # Ignore this for now lol
-    # self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)

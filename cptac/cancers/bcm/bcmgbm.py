@@ -78,6 +78,8 @@ class BcmGbm(Source):
             df = df.T
             df.index = df.index.str.replace(r"_T", "", regex=True) # remove Tumor label. All samples are tumor samples
             df.index.name = "Patient_ID"
+            
+            df = sort_rows_and_columns(df)
             self._data["circular_RNA"] = df
 
 
@@ -118,8 +120,6 @@ class BcmGbm(Source):
             transcript = transcript.T
             transcript.index = transcript.index.str.replace(r"_T", "", regex=True)
             transcript.index.name = "Patient_ID" 
-            self._data["transcriptomics"] = transcript
-            
 
-#     self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
-       
+            transcript = sort_rows_and_columns(transcript)
+            self._data["transcriptomics"] = transcript

@@ -54,12 +54,12 @@ class BcmLscc(Source):
 
     def load_circular_RNA(self):
         df_type = 'circular_RNA'
-        
+
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.perform_initial_checks(df_type)
             
-            df = pd.read_csv(file_path, sep="\t")
+            df = pd.read_csv(file_path, sep='\t')
             df = df.rename_axis('INDEX').reset_index()
             df[["circ","chrom","start","end","gene"]] = df.INDEX.str.split('_', expand=True)
             df["circ_chromosome"] = df["circ"] +"_" + df["chrom"]
@@ -72,12 +72,14 @@ class BcmLscc(Source):
             df = df.reset_index()
             df = df.rename(columns= {"gene_name": "Name", "gene": "Database_ID"}) # change names to match cptac package
             df = df.set_index(["Name","circ_chromosome", "start", "end", "Database_ID"]) #create multi-index
-            df.drop(['INDEX', 'circ', 'chrom'], axis=1, inplace=True) 
+            df.drop(['INDEX', 'circ', 'chrom'], axis=1, inplace=True)
             df = df.sort_index()
             df = df.T
             df.index = df.index.str.replace(r"_T", "", regex=True) # remove Tumor label
             df.index = df.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
-            df.index.name = "Patient_ID"       
+            df.index.name = "Patient_ID"
+
+            df = sort_rows_and_columns(df)
             self._data["circular_RNA"] = df
 
         
@@ -90,7 +92,7 @@ class BcmLscc(Source):
             
             file_path = self.perform_initial_checks(df_type)
             
-            df = pd.read_csv(file_path, sep="\t")
+            df = pd.read_csv(file_path, sep='\t')
             df = df[["gene","gene_name"]] #only need gene (database gene id) and gene_name (common gene name)
             df = df.set_index("gene")
             df = df.drop_duplicates()
@@ -104,7 +106,7 @@ class BcmLscc(Source):
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.perform_initial_checks(df_type)
             
-            df = pd.read_csv(file_path, sep="\t")
+            df = pd.read_csv(file_path, sep='\t')
             df.index.name = 'gene'
             
             # Add gene names to transcriptomic data
@@ -119,7 +121,6 @@ class BcmLscc(Source):
             transcript.index = transcript.index.str.replace(r"_T", "", regex=True)
             transcript.index = transcript.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
             transcript.index.name = "Patient_ID"
-            self._data["transcriptomics"] = transcript
 
-        
-#   self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
+            transcript = sort_rows_and_columns(transcript)
+            self._data["transcriptomics"] = transcript

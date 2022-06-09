@@ -78,6 +78,8 @@ class BcmHnscc(Source):
             df.index = df.index.str.replace(r"_T", "", regex=True) # remove Tumor label
             df.index = df.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
             df.index.name = "Patient_ID"
+
+            df = sort_rows_and_columns(df)
             self._data["circular_RNA"] = df
             
         
@@ -103,10 +105,10 @@ class BcmHnscc(Source):
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.perform_initial_checks(df_type)
-            
+
             df = pd.read_csv(file_path, sep="\t")
             df.index.name = 'gene'
-            
+
             # Add gene names to transcriptomic data
             self.load_mapping()
             gene_key = self._helper_tables["gene_key"]
@@ -119,8 +121,6 @@ class BcmHnscc(Source):
             transcript.index = transcript.index.str.replace(r"_T", "", regex=True)
             transcript.index = transcript.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
             transcript.index.name = "Patient_ID"
+
+            transcript = sort_rows_and_columns(transcript)
             self._data["transcriptomics"] = transcript
-            
-
-#         self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
-

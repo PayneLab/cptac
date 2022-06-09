@@ -86,7 +86,6 @@ class BcmOv(Source):
             transcript = transcript.sort_index() #alphabetize
             transcript = transcript.T
             transcript.index.name = "Patient_ID"
+
+            transcript = sort_rows_and_columns(transcript)
             self._data["transcriptomics"] = transcript
-            
-        
-#   self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal
