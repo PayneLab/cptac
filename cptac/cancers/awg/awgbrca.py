@@ -64,15 +64,15 @@ class AwgBrca(Source):
         }
 
         self.load_functions = {
-            'acetylproteomics' : self.load_acetylproteomics,
-            'clinical' : self.load_annotations,
-            'CNV' : self.load_CNV,
+            'acetylproteomics'  : self.load_acetylproteomics,
+            'clinical'          : self.load_annotations,
+            'CNV'               : self.load_CNV,
             'derived_molecular' : self.load_annotations,
-            'followup' : self.load_followup,
+            'followup'          : self.load_followup,
             'phosphoproteomics' : self.load_phosphoproteomics,
-            'proteomics' : self.load_proteomics,
-            'transcriptomics' : self.load_transcriptomics,
-            'somatic_mutation' : self.load_somatic_mutation
+            'proteomics'        : self.load_proteomics,
+            'transcriptomics'   : self.load_transcriptomics,
+            'somatic_mutation'  : self.load_somatic_mutation
         }
 
         if version == "latest":
@@ -105,8 +105,8 @@ class AwgBrca(Source):
         df_type = 'annotation'
         # check to see if any of the specific annotation df's for awgbrca are not loaded
         if 'clinical' not in self._data or 'derived_molecular' not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
 
             file_name = file_path.split(os.sep)[-1]
 
@@ -167,8 +167,8 @@ class AwgBrca(Source):
     def load_acetylproteomics(self):
         df_type = 'acetylproteomics'
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
             
             # process the file and add it to self._data
             df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
@@ -204,8 +204,8 @@ class AwgBrca(Source):
     def load_CNV(self):
         df_type = 'CNV'
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
 
             # parse the CNV data file
             df = pd.read_csv(file_path, sep='\t', skiprows=2, index_col=0, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
@@ -225,7 +225,7 @@ class AwgBrca(Source):
         df_type = 'phosphoproteomics'
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
 
             # load data file
             df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
@@ -263,7 +263,7 @@ class AwgBrca(Source):
         df_type = 'proteomics'
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
 
             # load data file into df
             df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
@@ -285,8 +285,8 @@ class AwgBrca(Source):
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
 
             # load file into df
             df = pd.read_csv(file_path, sep='\t', skiprows=2, index_col=0, dtype=object) # First two rows of file aren't part of the dataframe. Also, due to extra metadata rows we're going to remove, all cols have mixed types, so we pass dtype=object for now.
@@ -305,8 +305,8 @@ class AwgBrca(Source):
     def load_followup(self):
         df_type = 'followup'
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
 
             # load file into df
             df = pd.read_excel(file_path)
@@ -329,8 +329,8 @@ class AwgBrca(Source):
     def load_somatic_mutation(self):
         df_type = 'somatic_mutation'
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
 
             # load file into df
             df = pd.read_csv(file_path, sep='\t')
