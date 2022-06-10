@@ -215,7 +215,7 @@ class AwgCcrcc(Source):
 
             # save dfs in self._data
             self.save_df('clinical', clinical)
-            self.save_df("medical_history"], medical_history_parsed)
+            self.save_df("medical_history", medical_history_parsed)
  
 
     def load_phosphoproteomics_gene(self):
@@ -457,7 +457,7 @@ class AwgCcrcc(Source):
             self.save_df(df_type, df)
 
     def how_to_cite(self):
-        return super().how_to_cite(cancer_type='clear cell renal cell carcinoma (kidney)', pmid=31675502)
+        return self.super().how_to_cite(cancer_type='clear cell renal cell carcinoma (kidney)', pmid=31675502)
 
     def _specimen_reindex(self, df_type, df):
         """Use the Specimen.Label columns from clinical dataframe to reindex the 
@@ -474,5 +474,5 @@ class AwgCcrcc(Source):
             df = reindex_dataframe(df, specimen_label_map, new_index_name="Patient_ID", keep_old=False)
         except ReindexMapError as error:
             warnings.warn(f"Error mapping sample ids in {df_type} dataframe. RNA.ID {str(error)} did not have a corresponding Patient_ID mapped in the clinical dataframe. {df_type} dataframe not loaded.", FailedReindexWarning, stacklevel=2)
-        else:
-            return df
+        
+        return df
