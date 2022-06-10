@@ -10,11 +10,11 @@
 #   limitations under the License.
 
 import os.path as path
-import pandas as pd
 import sys
 import threading
 import warnings
 import webbrowser
+import pandas as pd
 
 # cptac base path
 CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
@@ -70,7 +70,7 @@ def list_datasets():
                     'props' : [('vertical-align', 'text-bottom'),
                                 ('text-align', 'left')]},
                     {'selector': 'td',
-                    'props': [('text-align', 'left')]} 
+                    'props': [('text-align', 'left')]}
                     ])
 
     return df_formatted
@@ -90,7 +90,7 @@ def version():
     version_path = path.join(CPTAC_BASE_DIR, "version.py")
     with open(version_path) as fp:
         exec(fp.read(), version)
-    return(version['__version__'])
+    return version['__version__']
 
 def how_to_cite():
     """Give instructions for citing CPTAC datasets."""
@@ -98,8 +98,11 @@ def how_to_cite():
     print('\n')
     print("For instructions on how to cite a specific dataset, please call its how_to_cite method, e.g. cptac.Endometrial().how_to_cite()")
 
-# Helper functions for handling exceptions and warnings
-def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): # Because Python binds default arguments when the function is defined, default_hook's default will always refer to the original sys.excepthook
+#### Helper functions for handling exceptions and warnings
+
+# Because Python binds default arguments when the function is defined,
+# default_hook's default will always refer to the original sys.excepthook
+def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): 
     """Catch cptac-generated exceptions, and make them prettier."""
     if issubclass(type(exception), CptacError):
         print(f"cptac error: {str(exception)} ({traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno})", file=sys.stderr) # We still send to stderr
@@ -117,8 +120,8 @@ def _warning_displayer(message, category, filename, lineno, file=None, line=None
 warnings.showwarning = _warning_displayer # And our custom warning displayer
 warnings.simplefilter("always", category=CptacWarning) # Edit the warnings filter to show multiple occurences of cptac-generated warnings
 
-# Check in background whether the package is up-to-date
 def check_version():
+    """Check in background whether the package is up-to-date"""
     version_url = "https://byu.box.com/shared/static/kbwivmqnrdnn5im2gu6khoybk5a3rfl0.txt"
     try:
         remote_version = _download_text(version_url)
