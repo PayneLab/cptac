@@ -77,7 +77,7 @@ def map_database_to_gene_pdc(df, database_name = 'refseq', sep = ':'):
 
 
 def sort_rows_and_columns(df):
-    """Each dataframe is sorted so that all datatypes are consistent across cptac
+    """This should be called on each dataframe before loading so that the order of data in all dataframes is consistent across cptac
     The user can expect data to look the same as long as this is called on each datatype when it is parsed
     
     Sorts dataframe prioritized by:
