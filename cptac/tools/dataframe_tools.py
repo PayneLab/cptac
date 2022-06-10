@@ -75,38 +75,40 @@ def map_database_to_gene_pdc(df, database_name = 'refseq', sep = ':'):
         
     return df
 
-def sort_all_rows_pancan(data_dict):
-    """For all dataframes in the given dictionary, sort them first by sample status, 
-    with tumor samples first, and then by the index. Also sorts columns by the first level. 
+
+def sort_rows_and_columns(df):
+    """Each dataframe is sorted so that all datatypes are consistent across cptac
+    The user can expect data to look the same as long as this is called on each datatype when it is parsed
+    
+    Sorts dataframe prioritized by:
+        1) Sample status (tumor samples first, followed by normal samples)
+        2) Index (patient C0001 before C0002)
+        3) Columns alhabetically based on the first level of the multiindex
 
     Parameters:
-    data_dict (dict): The dataframe dictionary of the dataset.
+    df (pandas.DataFrame): The dataframe to be sorted.
 
     Returns:
-    dict: The dataframe dictionary, with the dataframes sorted by their indices. 
+    pandas.DataFrame: The dataframe, but sorted.
     The index is also given the standard name ('Patient_ID').
-    Keys are str of dataframe names, values are pandas.DataFrame"""
+    """
     
-    for name in data_dict.keys(): # Loop over the keys so we can alter the values without any issues
-        df = data_dict[name]
-        df = df.sort_index(axis = 'columns', level = 0) # sort columns based on first level
-        if isinstance(df.index, pd.core.indexes.multi.MultiIndex):
-            df.index.rename(['Patient_ID', 'Aliquot'], level = [0,1], inplace = True)
-            new_df = df.sort_values('Patient_ID')
-            data_dict[name] = new_df
-        else:
-            df.index.name = "Patient_ID" # set the name of the index
-            # Sort normal samples
-            normal = df.loc[df.index.str.contains('\.[NC]$', regex = True, na = False)]#'.N' for normal, '.C' for cored normals (in HNSCC)
-            normal = normal.sort_index() # index should be Patient_ID
-            # Sort tumor samples
-            tumor = df.loc[~ df.index.str.contains('\.[NC]$', regex = True, na = False)]
-            tumor = tumor.sort_index()
-            # append normal to tumor
-            all_df = tumor.append(normal)
-            data_dict[name] = all_df 
-
-    return data_dict
+    df = df.sort_index(axis = 'columns', level = 0) # sort columns based on first level
+    if isinstance(df.index, pd.core.indexes.multi.MultiIndex):
+        df.index.rename(['Patient_ID', 'Aliquot'], level = [0,1], inplace = True)
+        new_df = df.sort_values('Patient_ID')
+        return new_df
+    else:
+        df.index.name = "Patient_ID" # set the name of the index
+        # Sort normal samples
+        normal = df.loc[df.index.str.contains('\.[NC]$', regex = True, na = False)]#'.N' for normal, '.C' for cored normals (in HNSCC)
+        normal = normal.sort_index() # index should be Patient_ID
+        # Sort tumor samples
+        tumor = df.loc[~ df.index.str.contains('\.[NC]$', regex = True, na = False)]
+        tumor = tumor.sort_index()
+        # append normal to tumor
+        all_df = tumor.append(normal)
+        return all_df
 
 
 def rename_duplicate_labels(df, label_type='columns'):

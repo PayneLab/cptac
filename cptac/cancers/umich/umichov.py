@@ -13,61 +13,59 @@ import pandas as pd
 import numpy as np
 import os
 import warnings
-import datetime
 
-from cptac.cancer import Cancer
+from cptac.cancer import Source
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 from cptac.utils import get_boxnote_text
 
 
-class UmichOv(Cancer):
+class UmichOv(Source):
 
-    def __init__(self, no_internet, version):
-        """Load all of the umichov dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+    def __init__(self, version="latest", no_internet=False):
+        """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
         Parameters:
-        version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
+        version (str, optional): The version number to load, or the string "latest" to just load the latest datafreeze. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        valid_versions = ["1.0", "1.1"]
+        self.valid_versions = ["1.0", "1.1"]
 
-        data_files = {
-            "1.0": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
-                    "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv",
-                    "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
-                    "README_v3.boxnote", # proteomics 
-                    "README.boxnote" # phosphoproteomics
-                    #"S039_BCprospective_observed_0920.tsv.gz",
-                    #"S039_BCprospective_imputed_0920.tsv.gz"
-             ],
-                    
-             "1.1": ["Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",                    
-                     "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv", 
-                     "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv",
-                    "README_v3.boxnote", # proteomics 
-                    "README.boxnote" # phosphoproteomics
-            ]
+        self.data_files = {
+            "1.0": {
+                "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
+                "mapping" : "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv",
+                "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
+                # "README_v3.boxnote" is proteomics
+                # "README.boxnote" is phosphoproteomics 
+                "readme" : ["README_v3.boxnote", "README.boxnote"],
+                #"not_used": "S039_BCprospective_observed_0920.tsv.gz",
+                #"not_used": "S039_BCprospective_imputed_0920.tsv.gz"
+            },
+            "1.1": {
+                "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",                    
+                "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv", 
+                "mapping" : "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv",
+                # "README_v3.boxnote" is proteomics
+                # "README.boxnote" is phosphoproteomics 
+                "readme" : ["README_v3.boxnote", "README.boxnote"],
+            }
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="umichov", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        super().__init__(cancer_type="ov", source="umich", version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
 
-        # Load the data into dataframes in the self._data dict
-        loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
-        for file_path in self._data_files_paths: # Loops through files variable
+        
+        
+        
+#############################################
 
-            # Print a loading message. We add a dot every time, so the user knows it's not frozen.
-            loading_msg = loading_msg + "."
-            print(loading_msg, end='\r')
 
-            path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-            file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
-            
+
             
             if file_name == "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv":
                 df = pd.read_csv(file_path, sep = "\t") 
@@ -172,7 +170,4 @@ class UmichOv(Cancer):
 
             
         # Sort rows (tumor first then normal) and columns by first level (protein/gene name)
-        self._data = sort_all_rows_pancan(self._data) 
-        
-
-        print(" " * len(formatting_msg), end='\r') # Erase the formatting message
+        # self._data = sort_all_rows_pancan(self._data)
