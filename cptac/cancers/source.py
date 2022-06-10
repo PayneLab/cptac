@@ -89,18 +89,42 @@ def get_file_path(self, df_type, data_file):
     if not path.isdir(file_path) and self.no_internet:
         raise MissingFileError(f"The {self.source} {df_type} file for the {self.cancer_type} is not downloaded and you are running cptac in no_internet mode.")
 
-def perform_initial_checks(self, df_type):
+def locate_files(self, df_type):
+    """Checks if the df_type is valid for the source's set version. 
+    If the df_type is valid, it finds the file path, downloading the files if necessary
+
+    Returns:
+        A single file path or a list of file paths
+    """
     # check if df_type is valid for the set version
     if self.version not in self.data_files:
         raise InvalidDataVersionError(f"{df_type} is not available in the data freeze for version v_{self.version} of {self.source} {self.cancer_type} data.")
     
-    # get the file path
+    # pull the file name or list of file names from the self.data_files dict
     f = self.data_files[self.version][df_type]
-    file_path = self.get_file_path(f)
     
-    # if the file hasn't been downloaded and they have internet, download it
-    if file_path == "not downloaded":
-        cptac.download(sources={self.source : [df_type]}, cancers=self.cancer_type, version=self.version)
+    # get the file path(s)
+    if type(f) == list:
+        file_paths = list()
+        for file_name in f:
+            path = self.get_file_path(file_name)
+             # if the file hasn't been downloaded and they have internet, download it
+            if path == "not downloaded":
+                cptac.download(sources={self.source : [df_type]}, cancers=self.cancer_type, version=self.version)
+                path = self.get_file_path(file_name)
+            # append path to file paths
+            file_paths.append(path)
+        
+        return file_paths
+    
+    else:
         file_path = self.get_file_path(f)
+        if file_path == "not downloaded":
+            cptac.download(sources={self.source : [df_type]}, cancers=self.cancer_type, version=self.version)
 
-    return file_path
+        return file_path
+
+    def save_df(self, df_type, df):
+        # unionize indices
+        # sort rows and columns
+        self._data[df_type] = df
