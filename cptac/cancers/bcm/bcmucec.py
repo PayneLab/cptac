@@ -57,7 +57,7 @@ class BcmUcec(Source):
         
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep="\t")
             df = df.rename_axis('INDEX').reset_index()
@@ -79,8 +79,8 @@ class BcmUcec(Source):
             df.index = df.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
             df.index.name = "Patient_ID"
 
-            df = sort_rows_and_columns(df)
-            self._data["circular_RNA"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
 
         
     def load_mapping(self):
@@ -90,7 +90,7 @@ class BcmUcec(Source):
         # this way mapping only needs to be loaded once and all other types can use it when they are loaded
         if df_type not in self._helper_tables:
             
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep="\t")
             df = df[["gene","gene_name"]] #only need gene (database gene id) and gene_name (common gene name)
@@ -104,7 +104,7 @@ class BcmUcec(Source):
 
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep="\t")
             df.index.name = 'gene'
@@ -122,5 +122,6 @@ class BcmUcec(Source):
             transcript.index = transcript.index.str.replace(r"_A", ".N", regex=True)# Normal samples labeled with .N
             transcript.index.name = "Patient_ID"
 
-            transcript = sort_rows_and_columns(transcript)
-            self._data["transcriptomics"] = transcript
+            df = transcript
+            # save df in self._data
+            self.save_df(df_type, df)

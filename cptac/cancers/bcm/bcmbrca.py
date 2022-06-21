@@ -57,7 +57,7 @@ class BcmBrca(Source):
         # this way mapping only needs to be loaded once and all other types can use it when they are loaded
         if df_type not in self._helper_tables:
             
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep="\t")
             df = df[["gene","gene_name"]] #only need gene (database gene id) and gene_name (common gene name)
@@ -73,7 +73,7 @@ class BcmBrca(Source):
         df_type = 'transcriptomics'
         if df_type not in self._data:
             # get file path to the correct data (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
 
             # process the file and add it to self._data
             df = pd.read_csv(file_path, sep='\t')
@@ -91,5 +91,6 @@ class BcmBrca(Source):
             transcript = transcript.T
             transcript.index.name = "Patient_ID"
 
-            transcript = sort_rows_and_columns(transcript)
-            self._data["transcriptomics"] = transcript
+            df = transcript
+            # save df in self._data
+            self.save_df(df_type, df)
