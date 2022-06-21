@@ -64,7 +64,7 @@ class UmichBrca(Source):
         df_type = 'mapping'
         
         if not self._helper_tables:
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
 
             map_df = pd.read_csv(file_path, sep = "\t")
             map_df = map_df[['Participant', 'id', 'Type']]
@@ -109,7 +109,7 @@ class UmichBrca(Source):
         
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             df = pd.read_csv(file_path, sep = "\t")
             
              # Parse a few columns out of the "Index" column that we'll need for our multiindex
@@ -155,8 +155,8 @@ class UmichBrca(Source):
                 df = df.loc[ ~ df.index.isin(not_tumor)] # drop rows that don't correlate well with respective cptac tumor
                 df = average_replicates(df, replicate_list) # average 7 IDs with replicates
 
-            df = sort_rows_and_columns(df)
-            self._data["phosphoproteomics"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
             
     
     def load_proteomics(self):
@@ -164,7 +164,7 @@ class UmichBrca(Source):
         
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
 
             df = pd.read_csv(file_path, sep = "\t") 
             df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
@@ -196,8 +196,8 @@ class UmichBrca(Source):
                 df = df.loc[ ~ df.index.isin(not_tumor)] # drop rows that don't correlate well with respective cptac tumor
                 df = average_replicates(df, replicate_list) # average 7 IDs with replicates
 
-            df = sort_rows_and_columns(df)
-            self._data["proteomics"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
 
 
         

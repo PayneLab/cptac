@@ -72,7 +72,7 @@ class UmichOv(Source):
         df_type = 'mapping'
 
         if not self._helper_tables:
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             
             # This file maps Ov aliquots to patient IDs (case ID with tissue type)
             # It can be found on Box under CPTAC/cptac/pancan/helper_files
@@ -88,7 +88,7 @@ class UmichOv(Source):
 
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep = "\t") 
             # Parse a few columns out of the "Index" column that we'll need for our multiindex
@@ -123,7 +123,8 @@ class UmichOv(Source):
                 df.index = df.index.str.replace('-T$','', regex = True)
                 df.index = df.index.str.replace('-N$','.N', regex = True)
             
-            self._data["phosphoproteomics"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
             
     
     def load_proteomics(self):
@@ -131,7 +132,7 @@ class UmichOv(Source):
 
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep = "\t") 
             df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
@@ -154,7 +155,8 @@ class UmichOv(Source):
                 df.index = df.index.str.replace('-T$','', regex = True)
                 df.index = df.index.str.replace('-N$','.N', regex = True)
                         
-            self._data["proteomics"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
         
         
 #############################################

@@ -64,7 +64,7 @@ class UmichHnscc(Source):
 
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
 
             df = pd.read_csv(file_path, sep = "\t") 
             # Parse a few columns out of the "Index" column that we'll need for our multiindex
@@ -119,7 +119,8 @@ class UmichHnscc(Source):
             phos.index = phos.index.str.replace('-C$','.C', regex = True) # 6 cored normal samples in Hnscc
             df = phos
             
-            self._data["phosphoproteomics"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
 
 
     def load_proteomics(self):
@@ -127,7 +128,7 @@ class UmichHnscc(Source):
 
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep = "\t") 
             df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
@@ -168,7 +169,8 @@ class UmichHnscc(Source):
             prot.index = prot.index.str.replace('-C$','.C', regex = True) # 6 cored normal samples in Hnscc
             df = prot
             
-            self._data["proteomics"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
 
         
 #############################################

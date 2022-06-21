@@ -64,7 +64,7 @@ class UmichGbm(Source):
         df_type = 'mapping'
 
         if not self._helper_tables:
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
 
             # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
             # so there is no need to slice out cancer specific aliquots
@@ -79,7 +79,7 @@ class UmichGbm(Source):
 
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep='\t')                 
             # Parse a few columns out of the "Index" column that we'll need for our multiindex
@@ -123,7 +123,8 @@ class UmichGbm(Source):
             df['Patient_ID'] = df['Patient_ID'].apply(lambda x: x+'.N' if 'PT-' in x else x) # GTEX normals start with 'PT-' 
             df = df.set_index('Patient_ID')
 
-            self._data["phosphoproteomics"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
             
 
     def load_proteomics(self):
@@ -131,7 +132,7 @@ class UmichGbm(Source):
 
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
 
             df = pd.read_csv(file_path, sep = "\t")
             df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
@@ -158,7 +159,8 @@ class UmichGbm(Source):
             df['Patient_ID'] = df['Patient_ID'].apply(lambda x: x+'.N' if 'PT-' in x else x) # GTEX normals start with 'PT-'
             df = df.set_index('Patient_ID')
             
-            self._data["proteomics"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
 
 
 

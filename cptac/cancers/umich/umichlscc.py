@@ -65,7 +65,7 @@ class UmichLscc(Source):
         df_type = 'mapping'
 
         if not self._helper_tables:
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             
             # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
             # so there is no need to slice out cancer specific aliquots
@@ -80,7 +80,7 @@ class UmichLscc(Source):
 
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep = "\t") 
             # Parse a few columns out of the "Index" column that we'll need for our multiindex
@@ -129,7 +129,8 @@ class UmichLscc(Source):
             df = df.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
             df = df.rename(index = mapping_dict) # replace aliquot_IDs with Patient_IDs (normal samples have .N appended)
 
-            self._data["phosphoproteomics"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
 
 
     def load_proteomics(self):
@@ -137,7 +138,7 @@ class UmichLscc(Source):
 
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep = "\t") 
             df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
@@ -172,7 +173,8 @@ class UmichLscc(Source):
             df = df.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
             df = df.rename(index = mapping_dict) # replace aliquot_IDs with Patient_IDs (normal samples have .N appended)
             
-            self._data["proteomics"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
 
 #############################################
 
