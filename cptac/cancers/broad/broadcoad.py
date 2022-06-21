@@ -13,7 +13,6 @@ import pandas as pd
 import numpy as np
 import os
 import warnings
-import logging
 from gtfparse import read_gtf
 
 from cptac.cancer import Source
@@ -30,9 +29,6 @@ class BroadCoad(Source):
         version (str, optional): The version number to load, or the string "latest" to just load the latest datafreeze. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
-        #ignore logging messages
-        #logger = logging.getLogger()
-        #logger.setLevel(logging.CRITICAL)
         
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
@@ -63,7 +59,7 @@ class BroadCoad(Source):
         # Since this is the only location where things are added to _helper_tables, just check if they are empty
         # If they are empty, populate them
         if not self._helper_tables:
-            file_path_list = self.perform_initial_checks(df_type)
+            file_path_list = self.locate_files(df_type)
             for file_path in file_path_list:
                 path_elements = file_path.split(os.sep) # Get a list of the levels of the path
                 file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
@@ -96,7 +92,7 @@ class BroadCoad(Source):
 
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep="\t")
             df = df.set_index(["transcript_id","gene_id"])
@@ -113,8 +109,5 @@ class BroadCoad(Source):
             df = df.sort_index() 
             df = df.T
             df.index.name = "Patient_ID"
-            self._data["transcriptomics"] = df
-            
-            
-#        self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
-       
+            # save df in self._data
+            self.save_df(df_type, df)
