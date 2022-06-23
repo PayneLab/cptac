@@ -55,11 +55,10 @@ class BcmBrca(Source):
         # self._helper_tables is a dictionary of helpful dataframes that the user does not need to access
         # dataframes here are used to load the other data types, but don't show up when the user lists available data
         # this way mapping only needs to be loaded once and all other types can use it when they are loaded
-        if df_type not in self._helper_tables:
-            
+        if not self._helper_tables:
             file_path = self.locate_files(df_type)
             
-            df = pd.read_csv(file_path, sep="\t")
+            df = pd.read_csv(file_path, sep='\t')
             df = df[["gene","gene_name"]] #only need gene (database gene id) and gene_name (common gene name)
             df = df.set_index("gene")
             df = df.drop_duplicates()
