@@ -34,134 +34,41 @@ class AwgCoad(Source):
 
         self.data_files = {
             "0.0": {
-                "clinical"                : "clinical.tsi.gz",
+                "annotation"                : "clinical.tsi.gz",
                 "miRNA"                   : "miRNA.cct.gz",
                 "somatic_mutation_binary" : "mutation_binary.cbt.gz",
                 "somatic_mutation"        : "mutation.txt.gz",
-                "phosphoproteomics"       : "phosphoproteomics_normal.gz",
-                "phosphoproteomics"       : "phosphoproteomics_tumor.gz",
-                "proteomics"              : "proteomics_normal.cct.gz",
-                "proteomics"              : "proteomics_tumor.cct.gz",
+                "phosphoproteomics"       : ["phosphoproteomics_normal.gz", "phosphoproteomics_tumor.gz"],
+                "proteomics"              : ["proteomics_normal.cct.gz", "proteomics_tumor.cct.gz"],
                 "transcriptomics"         : "transcriptomics.gz"},
             "0.0.1": {
-                "clinical"                : "clinical.tsi.gz",
+                "annotation"                : "clinical.tsi.gz",
                 "followup"                : "Colon_One_Year_Clinical_Data_20160927.xls",
                 "CNV"                     : "Human__CPTAC_COAD__VU__SCNA__ExomeSeq__01_28_2016__BCM__Gene__BCM_CopyWriteR_GISTIC2.cct.gz",
                 "miRNA"                   : "miRNA.cct.gz",
                 "somatic_mutation_binary" : "mutation_binary.cbt.gz",
                 "somatic_mutation"        : "mutation.txt.gz",
-                "phosphoproteomics"       : "phosphoproteomics_normal.gz",
-                "phosphoproteomics"       : "phosphoproteomics_tumor.gz",
-                "proteomics"              : "proteomics_normal.cct.gz",
-                "proteomics"              : "proteomics_tumor.cct.gz",
+                "phosphoproteomics"       : ["phosphoproteomics_normal.gz", "phosphoproteomics_tumor.gz"],
+                "proteomics"              : ["proteomics_normal.cct.gz", "proteomics_tumor.cct.gz"],
                 "transcriptomics"         : "transcriptomics.gz"},
         }
 
-        super().__init__(cancer_type="colon", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        self.load_functions = {
+            "clinical"                  : self.load_annotation,
+            "CNV"                       : self.load_CNV,
+            "derived_molecular"         : self.load_annotation,
+            "followup"                  : self.load_followup,
+            "miRNA"                     : self.load_miRNA,
+            "phosphoproteomics"         : self.load_phosphoproteomics,
+            "proteomics"                : self.load_proteomics,
+            "somatic_mutation"          : self.load_somatic_mutation,
+            "somatic_mutation_binary"   : self.load_somatic_mutation_binary,
+            "transcriptomics"           : self.load_transcriptomics,
+        }
 
-        # Load the data into dataframes in the self._data dict
-        loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
-        for file_path in self._data_files_paths: # Loops through files variable
+        super().__init__(cancer_type="colon", version=version, valid_versions=valid_versions, data_files=self.data_files, no_internet=no_internet)
 
-            # Print a loading message. We add a dot every time, so the user knows it's not frozen.
-            loading_msg = loading_msg + "."
-            print(loading_msg, end='\r')
-
-            path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-            file_name = path_elements[-1] # The last element will be the name of the file
-            file_name_split = file_name.split(".")
-            df_name = file_name_split[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
-
-            if file_name == 'Colon_One_Year_Clinical_Data_20160927.xls' and self._version == "0.0.1":
-                df = pd.read_excel(file_path)
-
-                # Replace redundant values for "not reported" with NaN
-                nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Applicable',
-                    'na', 'unknown', 'Not Performed', 'Unknown tumor status']
-
-                df = df.replace(nan_equivalents, np.nan)
-
-                # Rename and set index
-                df = df.rename(columns={'PPID': 'Patient_ID'})
-                df = df.set_index("Patient_ID")
-                df = df.sort_index()
-
-                self._data["followup"] = df
-
-            elif file_name == "Human__CPTAC_COAD__VU__SCNA__ExomeSeq__01_28_2016__BCM__Gene__BCM_CopyWriteR_GISTIC2.cct.gz" and self._version == "0.0.1":
-                df = pd.read_csv(file_path, sep="\t",index_col=0)
-                df = df.sort_index()
-                df = df.transpose()
-                self._data["CNV"] = df
-
-            else:
-                df = pd.read_csv(file_path, sep="\t",index_col=0)
-                df = df.sort_index()
-                df = df.transpose()
-                self._data[df_name] = df # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
-
-        print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
-        print(formatting_msg, end='\r')
-
-        # Reformat and rename the somatic_mutation dataframe
-        mut = self._data["mutation"]
-        mut = mut.transpose() # Transpose it back to its original orientation
-        mut = mut.sort_values(by="SampleID")
-        mut = mut.reset_index()
-        mut = mut[["SampleID","Gene","Variant_Type","Protein_Change"]]
-        mut = mut.drop_duplicates(keep="first") # Get rid of rows that are now duplicates since we didn't keep the mRNA column. We do this before setting the index, because drop_duplicates doesn't consider the index.
-        mut = mut.rename(columns={"SampleID":"Patient_ID", "Variant_Type":"Mutation", "Protein_Change":"Location"})
-        mut = mut.sort_values(by=["Patient_ID", "Gene"])
-        mut = mut.set_index("Patient_ID") # We only do this after the drop_duplicates call above because drop_duplicates doesn't consider the index, but we of course want the Patient_ID to be considered when identifying duplicate rows to drop.
-        self._data["somatic_mutation"] = mut # Maps dataframe name to dataframe. self._data was initialized when we called the parent class __init__()
-        del self._data["mutation"] # Delete the old version with the old name
-
-        # Rename mutation_binary dataframe to somatic_mutation_binary
-        self._data["somatic_mutation_binary"] = self._data["mutation_binary"]
-        del self._data["mutation_binary"]
-
-        # Separate clinical and derived molecular dataframes
-        all_clinical_data = self._data.get("clinical")
-        clinical_df = all_clinical_data.drop(columns=['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity','immuneSubtype', 'CIN', 'Integrated.Phenotype', 'Transcriptomic_subtype', 'Proteomic_subtype', 'mutation_rate', 'Mutation_Phenotype'])
-        derived_molecular_df = all_clinical_data[['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity', 'immuneSubtype', 'CIN', 'Integrated.Phenotype', 'Transcriptomic_subtype', 'Proteomic_subtype', 'mutation_rate', 'Mutation_Phenotype']]
-
-        # Format the dataframes
-        clinical_df = clinical_df.apply(pd.to_numeric, errors="ignore")
-        derived_molecular_df = derived_molecular_df.apply(pd.to_numeric, errors="ignore")
-        derived_molecular_df = derived_molecular_df.sort_index(axis="columns")
-
-        # Put them in our data dictionary
-        self._data["clinical"] = clinical_df # Replaces original clinical dataframe
-        self._data["derived_molecular"] = derived_molecular_df
-
-        # Combine the two proteomics dataframes
-        prot_tumor = self._data.get("proteomics_tumor")
-        prot_normal = self._data.get("proteomics_normal") # Normal entries are already marked with 'N' on the end of the ID
-        prot_combined = prot_tumor.append(prot_normal)
-        self._data["proteomics"] = prot_combined
-        del self._data["proteomics_tumor"]
-        del self._data["proteomics_normal"]
-
-        # Get phosphoproteomics dataframes, so we can process and combine them
-        phos_tumor = self._data.get("phosphoproteomics_tumor")
-        phos_normal = self._data.get("phosphoproteomics_normal") # Normal entries are not marked
-
-        # Mark entries in phosphoproteomics_normal dataframe with an N at the end of the ID
-        phos_normal = phos_normal.set_index(phos_normal.index + 'N')
-
-        # Combine the two phosphoproteomics dataframes into one dataframe
-        phos_combined = phos_tumor.append(phos_normal)
-
-        # Create our phosphoproteomics columns multiindex
-        multiindex = phos_combined.columns.str.split('[_:]', expand=True) # Split the column names into their constituent parts
-        multiindex = multiindex.droplevel([2, 4]) # The third level is just empty strings, and the fifth is a duplicate of the second
-        multiindex = multiindex.set_names(["Name", "Site", "Database_ID"])
-        phos_combined.columns = multiindex
-        phos_combined = phos_combined.sort_index(axis=1) # Put all the columns in alphabetical order
-        self._data['phosphoproteomics'] = phos_combined
-        del self._data["phosphoproteomics_tumor"]
-        del self._data["phosphoproteomics_normal"]
+        
 
         # Get a union of all dataframes' indices, with duplicates removed
         master_index = unionize_indices(self._data, exclude="followup")
@@ -186,9 +93,177 @@ class AwgCoad(Source):
         # Call function from dataframe_tools.py to standardize the names of the index and column axes
         self._data = standardize_axes_names(self._data)
 
-        print(" " * len(formatting_msg), end='\r') # Erase the formatting message
-
     # Overload the default how_to_cite function, to provide the specific publication information for the Colon dataset
     def how_to_cite(self):
         """Print instructions for citing the data."""
         super().how_to_cite(cancer_type='colorectal cancer', pmid=31031003)
+
+    def load_annotation(self):
+        df_type = 'annotation'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+        df = pd.read_csv(file_path, sep="\t",index_col=0)
+        df = df.sort_index()
+        df = df.transpose()
+
+        # Separate clinical and derived molecular dataframes
+        clinical = df.drop(columns=['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity','immuneSubtype', 'CIN', 'Integrated.Phenotype', 'Transcriptomic_subtype', 'Proteomic_subtype', 'mutation_rate', 'Mutation_Phenotype'])
+        derived_molecular = df[['StromalScore', 'ImmuneScore', 'ESTIMATEScore', 'TumorPurity', 'immuneSubtype', 'CIN', 'Integrated.Phenotype', 'Transcriptomic_subtype', 'Proteomic_subtype', 'mutation_rate', 'Mutation_Phenotype']]
+
+        # Format the dataframes
+        clinical = clinical.apply(pd.to_numeric, errors="ignore")
+        derived_molecular = derived_molecular.apply(pd.to_numeric, errors="ignore")
+        derived_molecular = derived_molecular.sort_index(axis="columns")
+
+        # save dataframes into self._data
+        self.save_df('clinical', clinical)
+        self.save_df('derived_molecular', derived_molecular)
+
+    def load_CNV(self):
+        df_type = 'CNV'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+        df = pd.read_csv(file_path, sep="\t",index_col=0)
+        df = df.sort_index()
+        df = df.transpose()
+        # save df in self._data
+        self.save_df(df_type, df)
+
+    def load_followup(self):
+        df_type = 'followup'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+       
+        # parse followup file
+        df = pd.read_excel(file_path)
+        # Replace redundant values for "not reported" with NaN
+        nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Applicable',
+            'na', 'unknown', 'Not Performed', 'Unknown tumor status']
+
+        df = df.replace(nan_equivalents, np.nan)
+
+        # Rename and set index
+        df = df.rename(columns={'PPID': 'Patient_ID'})
+        df = df.set_index("Patient_ID")
+        df = df.sort_index()
+
+        # save df in self._data
+        self.save_df(df_type, df)
+
+    def load_miRNA(self):
+        df_type = 'miRNA'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+        df = pd.read_csv(file_path, sep="\t",index_col=0)
+        df = df.sort_index()
+        df = df.transpose()
+        # save df in self._data
+        self.save_df(df_type, df)
+
+    def load_phosphoproteomics(self):
+        df_type = 'phosphoproteomics'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_paths = self.locate_files(df_type)
+
+        phosphoproteomics_dfs = {}
+        for file_path in file_paths:
+            file_name = file_path.split(os.sep)[-1]
+            df = pd.read_csv(file_path, sep="\t",index_col=0)
+            df = df.sort_index()
+            df = df.transpose()
+
+            if file_name == "phosphoproteomics_normal.gz":
+                phosphoproteomics_dfs["normal"] = df
+            else:
+                phosphoproteomics_dfs["tumor"] = df
+        
+        # Get phosphoproteomics dataframes, so we can process and combine them
+        phos_tumor = phosphoproteomics_dfs["tumor"]
+        phos_normal = phosphoproteomics_dfs["normal"]
+
+        # Mark entries in phosphoproteomics_normal dataframe with an N at the end of the ID
+        phos_normal = phos_normal.set_index(phos_normal.index + 'N')
+
+        # Combine the two phosphoproteomics dataframes into one dataframe
+        phos_combined = phos_tumor.append(phos_normal)
+
+        # Create our phosphoproteomics columns multiindex
+        multiindex = phos_combined.columns.str.split('[_:]', expand=True) # Split the column names into their constituent parts
+        multiindex = multiindex.droplevel([2, 4]) # The third level is just empty strings, and the fifth is a duplicate of the second
+        multiindex = multiindex.set_names(["Name", "Site", "Database_ID"])
+        phos_combined.columns = multiindex
+        phos_combined = phos_combined.sort_index(axis=1) # Put all the columns in alphabetical order
+
+        # save dataframe in self._data
+        self.save_df(df_type, phos_combined)
+
+    def load_proteomics(self):
+        df_type = 'proteomics'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_paths = self.locate_files(df_type)
+
+        proteomics = None
+        for file_path in file_paths:
+            df = pd.read_csv(file_path, sep="\t",index_col=0)
+            df = df.sort_index()
+            df = df.transpose()
+            if proteomics == None:
+                proteomics = df
+            else:
+                proteomics.append(df)
+
+        # save dataframe in self._data
+        self.save_df(df_type, proteomics)
+
+    def load_somatic_mutation(self):
+        df_type = 'somatic_mutation'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+        df = pd.read_csv(file_path, sep="\t",index_col=0)
+        df = df.sort_index()
+        df = df.sort_values(by="SampleID")
+        df = df.reset_index()
+        df = df[["SampleID","Gene","Variant_Type","Protein_Change"]]
+        df = df.drop_duplicates(keep="first") # Get rid of rows that are now duplicates since we didn't keep the mRNA column. We do this before setting the index, because drop_duplicates doesn't consider the index.
+        df = df.rename(columns={"SampleID":"Patient_ID", "Variant_Type":"Mutation", "Protein_Change":"Location"})
+        df = df.sort_values(by=["Patient_ID", "Gene"])
+        df = df.set_index("Patient_ID") # We only do this after the drop_duplicates call above because drop_duplicates doesn't consider the index, but we of course want the Patient_ID to be considered when identifying duplicate rows to drop.
+
+        # save df in self._data
+        self.save_df(df_type, df)
+
+    def load_somatic_mutation_binary(self):
+        df_type = 'somatic_mutation_binary'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+        df = pd.read_csv(file_path, sep="\t",index_col=0)
+        df = df.sort_index()
+        df = df.transpose()
+
+        # save df in self._data
+        self.save_df(df_type, df)
+
+    def load_transcriptomics(self):
+        df_type = 'transcriptomics'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+        df = pd.read_csv(file_path, sep="\t",index_col=0)
+        df = df.sort_index()
+        df = df.transpose()
+        # save df in self._data
+        self.save_df(df_type, df)
