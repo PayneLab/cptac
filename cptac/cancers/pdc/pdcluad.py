@@ -189,7 +189,7 @@ class PdcLuad(Cancer):
         df_type = 'mapping'
         
         if not self._helper_tables:
-            file_path_list = self.locate_files(df_type)
+            file_path = self.locate_files(df_type)
             
             # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
             # so there is no need to slice out cancer specific aliquots

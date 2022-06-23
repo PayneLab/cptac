@@ -119,7 +119,7 @@ class PdcCoad(Cancer):
         df_type = 'mapping'
         
         if not self._helper_tables:
-            file_path_list = self.locate_files(df_type)
+            file_path = self.locate_files(df_type)
             
             # Mapping file to convert aliquots to patient_IDs for Colon
             # This file can be found on Box under CPTAC/cptac/pancan/helper_files

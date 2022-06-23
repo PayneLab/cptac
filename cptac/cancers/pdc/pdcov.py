@@ -124,7 +124,7 @@ class PdcOv(Cancer):
         df_type = 'mapping'
         
         if not self._helper_tables:
-            file_path_list = self.locate_files(df_type)
+            file_path = self.locate_files(df_type)
             
             # This file maps Ov aliquots to patient IDs (case ID with tissue type) and 
             # can be found on Box under CPTAC/cptac/pancan/helper_files
