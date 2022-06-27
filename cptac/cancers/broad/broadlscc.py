@@ -15,7 +15,7 @@ import os
 import warnings
 from gtfparse import read_gtf
 
-from cptac.cancer import Source
+from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
