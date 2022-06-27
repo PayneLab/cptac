@@ -15,7 +15,7 @@ import os
 import logging
 from gtfparse import read_gtf
 
-from cptac.source import Source
+from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.utils import get_boxnote_text
 from cptac.cancers.mssm.mssmclinical import MssmClinical

@@ -14,7 +14,7 @@ import numpy as np
 import os
 import warnings
 
-from cptac.cancer import Source
+from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 from cptac.utils import get_boxnote_text
