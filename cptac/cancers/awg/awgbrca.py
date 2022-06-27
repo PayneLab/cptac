@@ -14,8 +14,7 @@ import numpy as np
 import os
 import warnings
 
-import cptac
-from cptac.cancer import Source
+from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import InvalidDataVersionError
 
