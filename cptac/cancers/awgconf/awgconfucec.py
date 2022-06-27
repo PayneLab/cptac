@@ -168,7 +168,7 @@ class AwgConfUcec(Source):
             version = sorted(self.valid_versions)[-1]
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="ucec", source='awgconf' version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
+        super().__init__(cancer_type="ucec", source='awgconf' version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
         # Print password access only warning
         warnings.warn("The UcecConf data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)

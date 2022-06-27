@@ -65,7 +65,7 @@ class UmichCoad(Source):
             version = sorted(self.valid_versions)[-1]
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="coad", source="umich", version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
+        super().__init__(cancer_type="coad", source="umich", version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
         
     def load_mapping(self):

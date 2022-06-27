@@ -43,6 +43,7 @@ class BroadBrca(Source):
         }
         
         # If we end up needing to declare all this stuff, this is how and where we would do it
+        # I think it's taken care of in the parent class though when we call super, so it shouldn't be needed here
         # self._data = {}
         # self._helper_files = {}
         
@@ -54,7 +55,7 @@ class BroadBrca(Source):
             version = sorted(self.valid_versions)[-1]
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="brca", source='broad', version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
+        super().__init__(cancer_type="brca", source='broad', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
         
     def load_mapping(self):
