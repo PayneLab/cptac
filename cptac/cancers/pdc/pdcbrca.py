@@ -15,6 +15,7 @@ import os
 import warnings
 import datetime
 
+from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
@@ -53,8 +54,8 @@ class PdcBrca(Source):
             version = sorted(self.valid_versions)[-1]
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type='brca', source='pdc' version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet, attempt_update_index=False)
-        
+        super().__init__(cancer_type='brca', source='pdc', version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet, attempt_update_index=False)
+
         
     def load_acetylproteomics(self):
         df_type = 'acetylproteomics'
