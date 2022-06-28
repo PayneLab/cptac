@@ -15,71 +15,74 @@ import os
 import warnings
 import datetime
 
-from cptac.cancer import Cancer
+from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
 
 
-class Harmonized(Cancer):
+class Harmonized(Source):
 
-    def __init__(self, no_internet, version, filter_type): 
-        """Load all of the mssmclinical dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+    def __init__(self, filter_type, version="latest", no_internet=False):
+        """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
         Parameters:
-        version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
+        version (str, optional): The version number to load, or the string "latest" to just load the latest datafreeze. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        filter_type (str): The cancer type for which you want information. Harmonized keeps all data in a single table, so to get data on a single cancer type all other types are filtered out.
         """
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        valid_versions = ["1.0"]
+        self.valid_versions = ["1.0"]
 
-        data_files = {
-            "1.0": [
-                "PanCan_Union_Maf_Broad_WashU.maf"                
-            ]
+        self.data_files = {
+            "1.0": {
+                "somatic_mutation" : "PanCan_Union_Maf_Broad_WashU.maf"
+            }
         }
 
-        # Call the parent class __init__ function
-        super().__init__(cancer_type='harmonized', version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet) # changed 'mssmclinical' to cancer_type
+        self.load_functions = {
+            'somatic_mutation' : self.load_somatic_mutation,
+        }
 
-        # Load the data into dataframes in the self._data dict
-        loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
-        for file_path in self._data_files_paths: # Loops through files variable
+        if version == "latest":
+            version = sorted(self.valid_versions)[-1]
 
-            # Print a loading message. We add a dot every time, so the user knows it's not frozen.
-            loading_msg = loading_msg + "."
-            print(loading_msg, end='\r')
+        # Call the parent class __init__ function, cancer_type is dynamic and based on whatever cancer is being filtered for
+        super().__init__(cancer_type=filter_type, source='harmonized', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
-            path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-            file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
-            
-            # Get tumor_code
-            tumor_codes = {'pancanbrca': 'BRCA', 'pancanccrcc':'CCRCC', 
-                           'pancanucec':'UCEC','pancangbm':'GBM','pancanhnscc':'HNSCC',
-                           'pancanlscc': 'LSCC','pancanluad':'LUAD', 'pancanpdac':'PDAC',
-                           'pancanhcc':'HCC','pancancoad':'COAD','pancanov':'OV'}
 
-            if file_name == "PanCan_Union_Maf_Broad_WashU.maf":
-                df = pd.read_csv(file_path, sep="\t", low_memory = False)
-                df = df.loc[df['COHORT'] == tumor_codes[filter_type]] 
-                df['Patient_ID'] = df.loc[:, 'Tumor_Sample_Barcode']
-                df = df.rename(columns={
-                         "Hugo_Symbol":"Gene",
-                         "Variant_Classification":"Mutation",
-                         "Protein_Change":"Location"})
+    def load_somatic_mutation(self):
+        df_type = 'somatic_mutation'
 
-                df = df.set_index("Patient_ID")
-                df = df[ ['Gene'] + ["Mutation"] + ["Location"] + [ col for col in df.columns if col not in ["Gene","Mutation","Location"] ] ]
-                df.index = df.index.str.replace(r"_T", "", regex=True) # data based on Tumor and Normal. Remove _T            
-                self._data["somatic_mutation"] = df                      
-        
-                
-        print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = f"Formatting {self.get_cancer_type()} dataframes..."
-        print(formatting_msg, end='\r')
-        self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
+        if df_type not in self._data:
+            # perform initial checks and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            # which cancer_type goes with which cancer in the harmonized table
+            tumor_codes = {'brca':'BR', 'ccrcc':'CCRCC',
+                           'ucec':'UCEC', 'gbm':'GBM', 'hnscc':'HNSCC',
+                           'lscc':'LSCC', 'luad':'LUAD', 'pdac':'PDA',
+                           'hcc':'HCC', 'coad':'CO', 'ov':'OV'}
+
+            df = pd.read_csv(file_path, sep='\t', low_memory = False)
+            df = df.loc[df['COHORT'] == tumor_codes[filter_type]]
+            df['Patient_ID'] = df.loc[:, 'Tumor_Sample_Barcode']
+            df = df.rename(columns={
+                     "Hugo_Symbol":"Gene",
+                     "Variant_Classification":"Mutation",
+                     "Protein_Change":"Location"})
+
+            df = df.set_index("Patient_ID")
+            df = df[ ['Gene'] + ["Mutation"] + ["Location"] + [ col for col in df.columns if col not in ["Gene","Mutation","Location"] ] ]
+            df.index = df.index.str.replace(r"_T", "", regex=True) # data based on Tumor and Normal. Remove _T
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+        # I'm not sure what this comment is, but perhaps the harmonized parsing is not finished and it will come in handy
         '''
         if filter_type == 'pancanucec':  
             print("True")
@@ -87,5 +90,3 @@ class Harmonized(Cancer):
             mut_df = mut_df.loc[mut_df.index[~ mut_df.index.str.contains('NX', regex = True)]] # Drop quality control 
             self._data["somatic_mutation"] = mut_df
         '''
-
-        print(" " * len(formatting_msg), end='\r') # Erase the formatting message
