@@ -89,7 +89,19 @@ class AwgGbm(Source):
                 "CNV"                   : "wgs_somatic_cnv_per_gene.v3.0.20191121.tsv.gz"},
         }
 
-        super().__init__(cancer_type="gbm", version=version, valid_versions=valid_versions, data_files=data_files, no_internet=no_internet)
+        self.load_functions = {
+            "clinical"               : self.load_clinical,
+            "CNV"                    : self.load_CNV,
+            "followup"               : self.load_followup,
+            "methylation"            : self.load_methylation,
+            "phosphoproteomics"      : self.load_phosphoproteomics,
+            "phosphoproteomics_gene" : self.load_phosphoproteomics_gene,
+            "proteomics"             : self.load_proteomics,
+            "somatic_mutation"       : self.load_somatic_mutation,
+            "transcriptomics"        : self.load_transcriptomics,
+        }
+
+        super().__init__(cancer_type="gbm", version=version, valid_versions=valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
@@ -306,3 +318,23 @@ class AwgGbm(Source):
 
     def how_to_cite(self):
         return super().how_to_cite(cancer_type='glioblastoma', pmid=33577785)
+
+
+    def load_clinical(self):
+
+    def load_CNV(self):
+
+    def load_followup(self);
+
+    def load_methylation(self):
+
+    def load_phosphoproteomics(self):
+
+    def load_phosphoproteomics_gene(self):
+
+    def load_proteomics(self):
+
+    def load_somatic_mutation(self):
+
+    def load_transcriptomics(self):
+        pass
