@@ -335,6 +335,7 @@ class AwgGbm(Source):
     def load_proteomics(self):
 
     def load_somatic_mutation(self):
+        pass
 
     def load_transcriptomics(self):
         pass
