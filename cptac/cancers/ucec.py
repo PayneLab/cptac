@@ -27,7 +27,7 @@ class Ucec(Cancer):
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with UCEC data and provide an interface to them."""
 
-        super().__init__(cancer_type="pancanucec", version=version, no_internet=no_internet)
+        super().__init__(cancer_type="ucec")
 
         self._datasets["awg"] = AwgUcec(no_internet=no_internet, version=self._get_version("awg"))
         self._datasets["bcm"] = BcmUcec(no_internet=no_internet, version=self._get_version("bcm"))

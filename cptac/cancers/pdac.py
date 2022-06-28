@@ -27,7 +27,7 @@ class Pdac(Cancer):
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with PDAC data and provide an interface to them."""
 
-        super().__init__(cancer_type="pancanpdac", version=version, no_internet=no_internet)
+        super().__init__(cancer_type="pdac")
 
         self._datasets["awg"] = AwgPdac(no_internet=no_internet, version=self._get_version("awg"))
         self._datasets["bcm"] = BcmPdac(no_internet=no_internet, version=self._get_version("bcm"))

@@ -27,7 +27,7 @@ class Hnscc(Cancer):
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with HNSCC data and provide an interface to them."""
 
-        super().__init__(cancer_type="pancanhnscc", version=version, no_internet=no_internet)
+        super().__init__(cancer_type="hnscc")
         
         self._datasets["awg"] = AwgHnscc(no_internet=no_internet, version=self._get_version("awg"))
         self._datasets["bcm"] = BcmHnscc(no_internet=no_internet, version=self._get_version("bcm"))

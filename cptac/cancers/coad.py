@@ -27,7 +27,7 @@ class Coad(Cancer):
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with COAD data and provide an interface to them."""
 
-        super().__init__(cancer_type="pancancoad", version=version, no_internet=no_internet)
+        super().__init__(cancer_type="coad")
 
         self._datasets["awg"] = AwgCoad(no_internet=no_internet, version=self._get_version("awg"))
         self._datasets["bcm"] = BcmCoad(no_internet=no_internet, version=self._get_version("bcm"))

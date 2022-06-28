@@ -27,7 +27,7 @@ class Luad(Cancer):
     def __init__(self, version="latest", no_internet=False):
         """Load all the data sources with LUAD data and provide an interface to them."""
 
-        super().__init__(cancer_type="pancanluad", version=version, no_internet=no_internet)
+        super().__init__(cancer_type="luad")
         
         self._datasets["awg"] = AwgLuad(no_internet=no_internet, version=self._get_version("awg"))
         self._datasets["bcm"] = BcmLuad(no_internet=no_internet, version=self._get_version("bcm"))

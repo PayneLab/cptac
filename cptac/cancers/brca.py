@@ -27,7 +27,7 @@ class Brca(Cancer):
     def __init__(self, no_internet=False):
         """Load all the data sources with BRCA data and provide an interface to them."""
 
-        super().__init__(cancer_type="brca", no_internet=no_internet)
+        super().__init__(cancer_type="brca")
 
         self._sources["awg"] = AwgBrca(no_internet=no_internet, version="latest")
         self._sources["bcm"] = BcmBrca(no_internet=no_internet, version="latest")
