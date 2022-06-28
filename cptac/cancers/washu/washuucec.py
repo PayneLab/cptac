@@ -17,7 +17,7 @@ from gtfparse import read_gtf
 from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.utils import get_boxnote_text
-from cptac.cancers.mssm.mssmclinical import MssmClinical
+from cptac.cancers.mssm.mssm import Mssm
 
 
 class WashuUcec(Source):
@@ -69,7 +69,7 @@ class WashuUcec(Source):
         super().__init__(cancer_type="washuucec", version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
         
         # get clinical df (used to slice out cancer specific patient_IDs in tumor_purity file)
-        mssmclin = MssmClinical(no_internet=no_internet, version=version, filter_type='pancanucec') #_get_version - pancandataset
+        mssmclin = Mssm(filter_type='ucec', version=version, no_internet=no_internet) #_get_version - pancandataset
         self._clinical_df = mssmclin.get_clinical()
         
         # Add this function call to load functions on df that is returned.

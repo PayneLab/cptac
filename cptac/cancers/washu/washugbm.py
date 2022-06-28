@@ -18,13 +18,13 @@ from gtfparse import read_gtf
 from cptac.cancers.source import Source
 from cptac.tools.dataframe_tools import *
 from cptac.utils import get_boxnote_text
-from cptac.cancers.mssm.mssmclinical import MssmClinical
+from cptac.cancers.mssm.mssm import Mssm
 
 
 class WashuGbm(Source):
 
     def __init__(self, no_internet, version):
-        """Load all of the bcmbrca dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+        """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
         Parameters:
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
@@ -69,7 +69,7 @@ class WashuGbm(Source):
         super().__init__(cancer_type="washugbm", version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
         
         # get clinical df (used to slice out cancer specific patient_IDs in tumor_purity file)
-        mssmclin = MssmClinical(no_internet=no_internet, version=version, filter_type='pancangbm') #_get_version - pancandataset
+        mssmclin = Mssm(filter_type='gbm', version=version, no_internet=no_internet) #_get_version - pancandataset
         self._clinical_df = mssmclin.get_clinical()
 
         # Add this function call to load functions on df that is returned.
