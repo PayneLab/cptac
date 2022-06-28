@@ -78,7 +78,7 @@ class AwgCcrcc(Source):
         if version == "latest":
             version = sorted(self.valid_versions)[-1]
 
-        super().__init__(cancer_type="ccrcc", source='awg', version=version, valid_versions=valid_versions, data_files=self.data_files, no_internet=no_internet)
+        super().__init__(cancer_type="ccrcc", source='awg', version=version, valid_versions=valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
         # We're going to need to drop the samples below from a couple dataframes
         # TODO: WHY?

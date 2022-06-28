@@ -66,7 +66,7 @@ class AwgCoad(Source):
             "transcriptomics"           : self.load_transcriptomics,
         }
 
-        super().__init__(cancer_type="colon", version=version, valid_versions=valid_versions, data_files=self.data_files, no_internet=no_internet)
+        super().__init__(cancer_type="colon", version=version, valid_versions=valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
         
 

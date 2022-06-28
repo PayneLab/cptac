@@ -77,7 +77,7 @@ class AwgBrca(Source):
         if version == "latest":
             version = sorted(self.valid_versions)[-1]
 
-        super().__init__(cancer_type="brca", source='awg', version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
+        super().__init__(cancer_type="brca", source='awg', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
         # TODO: figure out how to do refactor this part
 
