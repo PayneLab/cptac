@@ -18,7 +18,7 @@ from cptac.cancers.broad.broadpdac import BroadPdac
 from cptac.cancers.pdc.pdcpdac import PdcPdac
 from cptac.cancers.umich.umichpdac import UmichPdac
 from cptac.cancers.washu.washupdac import WashuPdac
-from cptac.cancers.mssm.mssmclinical import MssmClinical
+from cptac.cancers.mssm.mssm import Mssm
 from cptac.cancers.harmonized.harmonized import Harmonized
 
 
@@ -29,16 +29,16 @@ class Pdac(Cancer):
 
         super().__init__(cancer_type="pdac")
 
-        self._datasets["awg"] = AwgPdac(no_internet=no_internet, version=self._get_version("awg"))
-        self._datasets["bcm"] = BcmPdac(no_internet=no_internet, version=self._get_version("bcm"))
-        self._datasets["broad"] = BroadPdac(no_internet=no_internet, version=self._get_version("broad"))
-        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanpdac')
-        self._datasets["pdc"] = PdcPdac(no_internet=no_internet, version=self._get_version("pdc"))
-        self._datasets["umich"] = UmichPdac(no_internet=no_internet, version=self._get_version("umich"))
-        self._datasets["washu"] = WashuPdac(no_internet=no_internet, version=self._get_version("washu"))
-        self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanpdac')
+        self._sources["awg"] = AwgPdac(version="latest", no_internet=no_internet)
+        self._sources["bcm"] = BcmPdac(version="latest", no_internet=no_internet)
+        self._sources["broad"] = BroadPdac(version="latest", no_internet=no_internet)
+        self._sources["mssm"] = Mssm(filter_type='pdac', version="latest", no_internet=no_internet)
+        self._sources["pdc"] = PdcPdac(version="latest", no_internet=no_internet)
+        self._sources["umich"] = UmichPdac(version="latest", no_internet=no_internet)
+        self._sources["washu"] = WashuPdac(version="latest", no_internet=no_internet)
+        self._sources["harmonized"] = Harmonized(filter_type='pdac', version="latest", no_internet=no_internet)
         
-        join_dict = {k: v._data for k, v in self._datasets.items()}
+        join_dict = {k: v._data for k, v in self._sources.items()}
         self._joining_dataset = JoiningDataset(join_dict)
-        
+
         self._pancan_unionize_indices()

@@ -18,7 +18,7 @@ from cptac.cancers.broad.broadcoad import BroadCoad
 from cptac.cancers.pdc.pdccoad import PdcCoad
 from cptac.cancers.umich.umichcoad import UmichCoad
 from cptac.cancers.washu.washucoad import WashuCoad
-from cptac.cancers.mssm.mssmclinical import MssmClinical
+from cptac.cancers.mssm.mssm import Mssm
 from cptac.cancers.harmonized.harmonized import Harmonized
 
 
@@ -29,16 +29,16 @@ class Coad(Cancer):
 
         super().__init__(cancer_type="coad")
 
-        self._datasets["awg"] = AwgCoad(no_internet=no_internet, version=self._get_version("awg"))
-        self._datasets["bcm"] = BcmCoad(no_internet=no_internet, version=self._get_version("bcm"))
-        self._datasets["broad"] = BroadCoad(no_internet=no_internet, version=self._get_version("broad"))
-        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancancoad')
-        self._datasets["pdc"] = PdcCoad(no_internet=no_internet, version=self._get_version("pdc"))
-        self._datasets["umich"] = UmichCoad(no_internet=no_internet, version=self._get_version("umich"))
-        self._datasets["washu"] = WashuCoad(no_internet=no_internet, version=self._get_version("washu"))
-        self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancancoad')
-    
-        join_dict = {k: v._data for k, v in self._datasets.items()}
+        self._sources["awg"] = AwgCoad(version="latest", no_internet=no_internet)
+        self._sources["bcm"] = BcmCoad(version="latest", no_internet=no_internet)
+        self._sources["broad"] = BroadCoad(version="latest", no_internet=no_internet)
+        self._sources["mssm"] = Mssm(filter_type='coad', version="latest", no_internet=no_internet)
+        self._sources["pdc"] = PdcCoad(version="latest", no_internet=no_internet)
+        self._sources["umich"] = UmichCoad(version="latest", no_internet=no_internet)
+        self._sources["washu"] = WashuCoad(version="latest", no_internet=no_internet)
+        self._sources["harmonized"] = Harmonized(filter_type='coad', version="latest", no_internet=no_internet)
+
+        join_dict = {k: v._data for k, v in self._sources.items()}
         self._joining_dataset = JoiningDataset(join_dict)
 
-        self._pancan_unionize_indices() # Adds sorted master index to clincal 
+        self._pancan_unionize_indices()

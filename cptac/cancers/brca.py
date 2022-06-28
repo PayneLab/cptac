@@ -18,7 +18,7 @@ from cptac.cancers.broad.broadbrca import BroadBrca
 from cptac.cancers.pdc.pdcbrca import PdcBrca
 from cptac.cancers.umich.umichbrca import UmichBrca
 from cptac.cancers.washu.washubrca import WashuBrca
-from cptac.cancers.mssm.mssmclinical import MssmClinical
+from cptac.cancers.mssm.mssm import Mssm
 from cptac.cancers.harmonized.harmonized import Harmonized
 
 
@@ -29,14 +29,14 @@ class Brca(Cancer):
 
         super().__init__(cancer_type="brca")
 
-        self._sources["awg"] = AwgBrca(no_internet=no_internet, version="latest")
-        self._sources["bcm"] = BcmBrca(no_internet=no_internet, version="latest")
-        self._sources["broad"] = BroadBrca(no_internet=no_internet, version="latest")
-        self._sources["mssm"] = MssmClinical(no_internet=no_internet, version="latest", filter_type='pancanbrca')
-        self._sources["pdc"] = PdcBrca(no_internet=no_internet, version="latest")
-        self._sources["umich"] = UmichBrca(no_internet=no_internet, version="latest")
-        self._sources["washu"] = WashuBrca(no_internet=no_internet, version="latest")
-        self._sources["harmonized"] = Harmonized(no_internet=no_internet, version="latest", filter_type= 'pancanbrca')
+        self._sources["awg"] = AwgBrca(version="latest", no_internet=no_internet)
+        self._sources["bcm"] = BcmBrca(version="latest", no_internet=no_internet)
+        self._sources["broad"] = BroadBrca(version="latest", no_internet=no_internet)
+        self._sources["mssm"] = Mssm(filter_type='brca', version="latest", no_internet=no_internet)
+        self._sources["pdc"] = PdcBrca(version="latest", no_internet=no_internet)
+        self._sources["umich"] = UmichBrca(version="latest", no_internet=no_internet)
+        self._sources["washu"] = WashuBrca(version="latest", no_internet=no_internet)
+        self._sources["harmonized"] = Harmonized(filter_type='brca', version="latest", no_internet=no_internet)
         
         join_dict = {k: v._data for k, v in self._sources.items()}
         self._joining_dataset = JoiningDataset(join_dict)

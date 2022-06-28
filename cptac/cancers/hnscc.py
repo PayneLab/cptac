@@ -18,7 +18,7 @@ from cptac.cancers.broad.broadhnscc import BroadHnscc
 from cptac.cancers.pdc.pdchnscc import PdcHnscc
 from cptac.cancers.umich.umichhnscc import UmichHnscc
 from cptac.cancers.washu.washuhnscc import WashuHnscc
-from cptac.cancers.mssm.mssmclinical import MssmClinical
+from cptac.cancers.mssm.mssm import Mssm
 from cptac.cancers.harmonized.harmonized import Harmonized
 
 
@@ -29,17 +29,17 @@ class Hnscc(Cancer):
 
         super().__init__(cancer_type="hnscc")
         
-        self._datasets["awg"] = AwgHnscc(no_internet=no_internet, version=self._get_version("awg"))
-        self._datasets["bcm"] = BcmHnscc(no_internet=no_internet, version=self._get_version("bcm"))
-        self._datasets["broad"] = BroadHnscc(no_internet=no_internet, version=self._get_version("broad"))
-        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanhnscc')
-        self._datasets["pdc"] = PdcHnscc(no_internet=no_internet, version=self._get_version("pdc"))
-        self._datasets["umich"] = UmichHnscc(no_internet=no_internet, version=self._get_version("umich"))
-        self._datasets["washu"] = WashuHnscc(no_internet=no_internet, version=self._get_version("washu"))
-        self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanhnscc')
+        self._sources["awg"] = AwgHnscc(version="latest", no_internet=no_internet)
+        self._sources["bcm"] = BcmHnscc(version="latest", no_internet=no_internet)
+        self._sources["broad"] = BroadHnscc(version="latest", no_internet=no_internet)
+        self._sources["mssm"] = Mssm(filter_type='hnscc', version="latest", no_internet=no_internet)
+        self._sources["pdc"] = PdcHnscc(version="latest", no_internet=no_internet)
+        self._sources["umich"] = UmichHnscc(version="latest", no_internet=no_internet)
+        self._sources["washu"] = WashuHnscc(version="latest", no_internet=no_internet)
+        self._sources["harmonized"] = Harmonized(filter_type='hnscc', version="latest", no_internet=no_internet)
         
-        join_dict = {k: v._data for k, v in self._datasets.items()}
+        join_dict = {k: v._data for k, v in self._sources.items()}
         self._joining_dataset = JoiningDataset(join_dict)
-            
+
         self._pancan_unionize_indices()
         

@@ -18,27 +18,27 @@ from cptac.cancers.broad.broadccrcc import BroadCcrcc
 from cptac.cancers.pdc.pdcccrcc import PdcCcrcc
 from cptac.cancers.umich.umichccrcc import UmichCcrcc
 from cptac.cancers.washu.washuccrcc import WashuCcrcc
-from cptac.cancers.mssm.mssmclinical import MssmClinical
+from cptac.cancers.mssm.mssm import Mssm
 from cptac.cancers.harmonized.harmonized import Harmonized
 
 
 class Ccrcc(Cancer):
 
-    def __init__(self, version="latest", no_internet=False):
+    def __init__(self, no_internet=False):
         """Load all the data sources with ccRCC data and provide an interface to them."""
 
         super().__init__(cancer_type="ccrcc")
         
-        self._datasets["awg"] = AwgCcrcc(no_internet=no_internet, version=self._get_version("awg"))
-        self._datasets["bcm"] = BcmCcrcc(no_internet=no_internet, version=self._get_version("bcm"))
-        self._datasets["broad"] = BroadCcrcc(no_internet=no_internet, version=self._get_version("broad"))
-        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanccrcc')
-        self._datasets["pdc"] = PdcCcrcc(no_internet=no_internet, version=self._get_version("pdc"))
-        self._datasets["umich"] = UmichCcrcc(no_internet=no_internet, version=self._get_version("umich"))
-        self._datasets["washu"] = WashuCcrcc(no_internet=no_internet, version=self._get_version("washu"))
-        self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanccrcc')
+        self._sources["awg"] = AwgCcrcc(version="latest", no_internet=no_internet)
+        self._sources["bcm"] = BcmCcrcc(version="latest", no_internet=no_internet)
+        self._sources["broad"] = BroadCcrcc(version="latest", no_internet=no_internet)
+        self._sources["mssm"] = Mssm(filter_type='ccrcc', version="latest", no_internet=no_internet)
+        self._sources["pdc"] = PdcCcrcc(version="latest", no_internet=no_internet)
+        self._sources["umich"] = UmichCcrcc(version="latest", no_internet=no_internet)
+        self._sources["washu"] = WashuCcrcc(version="latest", no_internet=no_internet)
+        self._sources["harmonized"] = Harmonized(filter_type='ccrcc', version="latest", no_internet=no_internet)
         
-        join_dict = {k: v._data for k, v in self._datasets.items()}
+        join_dict = {k: v._data for k, v in self._sources.items()}
         self._joining_dataset = JoiningDataset(join_dict)
-            
-        self._pancan_unionize_indices() # Adds sorted master index to clincal 
+        
+        self._pancan_unionize_indices()

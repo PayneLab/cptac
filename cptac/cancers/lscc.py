@@ -18,7 +18,7 @@ from cptac.cancers.broad.broadlscc import BroadLscc
 from cptac.cancers.pdc.pdclscc import PdcLscc
 from cptac.cancers.umich.umichlscc import UmichLscc
 from cptac.cancers.washu.washulscc import WashuLscc
-from cptac.cancers.mssm.mssmclinical import MssmClinical
+from cptac.cancers.mssm.mssm import Mssm
 from cptac.cancers.harmonized.harmonized import Harmonized
 
 
@@ -29,16 +29,16 @@ class Lscc(Cancer):
 
         super().__init__(cancer_type="lscc")
         
-        self._datasets["awg"] = AwgLscc(no_internet=no_internet, version=self._get_version("awg"))
-        self._datasets["bcm"] = BcmLscc(no_internet=no_internet, version=self._get_version("bcm"))
-        self._datasets["broad"] = BroadLscc(no_internet=no_internet, version=self._get_version("broad"))
-        self._datasets["mssm"] = MssmClinical(no_internet=no_internet, version=self._get_version("mssm"), filter_type='pancanlscc')
-        self._datasets["pdc"] = PdcLscc(no_internet=no_internet, version=self._get_version("pdc"))
-        self._datasets["umich"] = UmichLscc(no_internet=no_internet, version=self._get_version("umich"))
-        self._datasets["washu"] = WashuLscc(no_internet=no_internet, version=self._get_version("washu"))
-        self._datasets["harmonized"] = Harmonized(no_internet=no_internet, version=self._get_version("harmonized"), filter_type='pancanlscc')
+        self._sources["awg"] = AwgLscc(version="latest", no_internet=no_internet)
+        self._sources["bcm"] = BcmLscc(version="latest", no_internet=no_internet)
+        self._sources["broad"] = BroadLscc(version="latest", no_internet=no_internet)
+        self._sources["mssm"] = Mssm(filter_type='lscc', version="latest", no_internet=no_internet)
+        self._sources["pdc"] = PdcLscc(version="latest", no_internet=no_internet)
+        self._sources["umich"] = UmichLscc(version="latest", no_internet=no_internet)
+        self._sources["washu"] = WashuLscc(version="latest", no_internet=no_internet)
+        self._sources["harmonized"] = Harmonized(filter_type='lscc', version="latest", no_internet=no_internet)
         
-        join_dict = {k: v._data for k, v in self._datasets.items()}
+        join_dict = {k: v._data for k, v in self._sources.items()}
         self._joining_dataset = JoiningDataset(join_dict)
-        
+
         self._pancan_unionize_indices()
