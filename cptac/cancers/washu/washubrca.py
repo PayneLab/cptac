@@ -70,7 +70,7 @@ class WashuBrca(Source):
         # Add version check?
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="washubrca", source="washu", version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
+        super().__init__(cancer_type="brca", source="washu", version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
         # TODO: figure out how to do refactor this part
         # Used to slice out cancer specific patient_IDs in tumor_purity file

@@ -70,7 +70,7 @@ class WashuCoad(Source):
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="washucoad", version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
+        super().__init__(cancer_type="coad", source='washu', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
         
         # get clinical df (used to slice out cancer specific patient_IDs in tumor_purity file)
         mssmclin = Mssm(filter_type='coad', version=version, no_internet=no_internet) #_get_version - pancandataset
