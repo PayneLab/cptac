@@ -23,7 +23,7 @@ class Source:
         self.no_internet = no_internet
         self.source = source
         self.cancer_type = cancer_type
-        self._data = list()
+        self._data = {}
         self.data_files = data_files
         self.load_functions = load_functions
         self.set_version(version)
@@ -83,19 +83,19 @@ class Source:
         return self.version
 
 
-    def get_file_path(self, df_type, data_file):
-        """For dataset loading. Check that a version is installed, then return the paths to the data files for that version.
+    def get_file_path(self, data_file):
+        """Return the path to a specific data file
 
         Parameters:
-        data_files (list of strings): The file names to get paths for.
+        data_file (str): The file name to get a filepath for
 
         Returns:
         string: The path to the given data file for the currently set version of the source.
         """
         # Get our dataset path and index
-        file_path = path.join(CPTAC_BASE_DIR, f"data/data_{self.source}_{self.cancer_type}/v_{self.version}/{data_file}")
+        file_path = path.join(CPTAC_BASE_DIR, f"data/data_{self.source}_{self.cancer_type}/{self.source}_{self.cancer_type}_v{self.version}/{data_file}")
 
-        if path.isdir(file_path):
+        if path.isfile(file_path):
             return file_path
 
         elif not path.isdir(file_path) and not self.no_internet:
@@ -103,7 +103,7 @@ class Source:
 
         # Raise error if file is not installed and they don't have an internet connection
         if not path.isdir(file_path) and self.no_internet:
-            raise MissingFileError(f"The {self.source} {df_type} file for the {self.cancer_type} is not downloaded and you are running cptac in no_internet mode.")
+            raise MissingFileError(f"The {self.source} {data_file} file for the {self.cancer_type} is not downloaded and you are running cptac in no_internet mode.")
 
 
     def locate_files(self, datatype):
@@ -114,7 +114,7 @@ class Source:
             datatype (str): The datatype to get all filepaths for.
 
         Returns:
-            A single file path or a list of file paths
+            A single file path or a list of file paths to all files of the given datatype
         """
         # check if datatype is valid for the set version
         if self.version not in self.data_files:
@@ -127,19 +127,20 @@ class Source:
         if type(f) == list:
             file_paths = list()
             for file_name in f:
-                path = self.get_file_path(datatype, file_name)
+                path = self.get_file_path(file_name)
                  # if the file hasn't been downloaded and they have internet, download it
                 if path == "not downloaded":
                     cptac.download(sources={self.source : [datatype]}, cancers=self.cancer_type, version=self.version)
-                    path = self.get_file_path(datatype, file_name)
+                    path = self.get_file_path(file_name)
                 # append path to file paths
                 file_paths.append(path)
 
             return file_paths
 
         else:
-            file_path = self.get_file_path(datatype, f)
+            file_path = self.get_file_path(f)
             if file_path == "not downloaded":
                 cptac.download(sources={self.source : [datatype]}, cancers=self.cancer_type, version=self.version)
+                file_path = self.get_file_path(f)
 
             return file_path
