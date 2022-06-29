@@ -26,10 +26,21 @@ class Source:
         self._data = list()
         self.data_files = data_files
         self.load_functions = load_functions
-        self.version = self.set_version(version)
+        self.set_version(version)
         self.valid_versions = valid_versions
         
-    def get_df(self, df_type):
+    def get_df(self, df_type, tissue_type="both"):
+        """Get the dataframe of the specified data type
+        I'm thinking about having tissue_type do its thing here. If all dfs are parsed to have normal samples clearly identified,
+        then this function can return the whole data frame for "both", or a subset of it for "tumor" or "normal"
+
+        Parameters:
+        df_type (str): Name of datatype to return e.g. "proteomics".
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
+
+        Returns:
+        pandas.DataFrame: The dataframe of the desired datatype.
+        """
 
         # if that df hasn't been loaded yet, load it
         if df_type not in self._data:
@@ -39,8 +50,7 @@ class Source:
                 raise DataTypeNotInSourceError(f"The {self.source} source does not have {df_type} data for {self.cancer_type} cancer.")
             else:
                 # print loading message
-                loading_msg = f"Loading {df_type} dataframe for {self.source} {self.cancer_type} (v{self.version()})"
-                loading_msg = loading_msg + "."
+                loading_msg = f"Loading {df_type} dataframe for {self.source} {self.cancer_type} (v{self.get_version()})"
                 print(loading_msg, end='\r')
                 
                 # call the load function for that df type
@@ -51,80 +61,85 @@ class Source:
                     standardize_axes_names(self._data[df_type])
 
                 # Erase the loading message
-                print(' ' * len(loading_msg), end='\r') 
+                print(' ' * len(loading_msg), end='\r')
 
         return self._data[df_type]
 
-    def set_version(self, version):
 
+    def save_df(self, df_type, df):
+        # sort rows and columns and perform any other formatting needed
+        self._data[df_type] = df
+
+
+    def set_version(self, version):
         # check if version is valid
         if version not in self.valid_versions:
             raise InvalidDataVersionError(f"{version} is not a valid version. These are the valid versions: {self.valid_versions}")
         else:
             self.version = version
 
-    def version(self):
+
+    def get_version(self):
         return self.version
 
-    
-def get_file_path(self, df_type, data_file):
-    """For dataset loading. Check that a version is installed, then return the paths to the data files for that version.
 
-    Parameters:
-    data_files (list of strings): The file names to get paths for.
+    def get_file_path(self, df_type, data_file):
+        """For dataset loading. Check that a version is installed, then return the paths to the data files for that version.
 
-    Returns:
-    string: The path to the given data file for the currently set version of the source.
-    """
-    # Get our dataset path and index
-    file_path = path.join(CPTAC_BASE_DIR, f"data/data_{self.source}_{self.cancer_type}/v_{self.version}/{data_file}")
+        Parameters:
+        data_files (list of strings): The file names to get paths for.
 
-    if path.isdir(file_path):
-        return file_path
+        Returns:
+        string: The path to the given data file for the currently set version of the source.
+        """
+        # Get our dataset path and index
+        file_path = path.join(CPTAC_BASE_DIR, f"data/data_{self.source}_{self.cancer_type}/v_{self.version}/{data_file}")
 
-    elif not path.isdir(file_path) and not self.no_internet:
-        return "not downloaded"
+        if path.isdir(file_path):
+            return file_path
 
-    # Raise error if file is not installed and they don't have an internet connection
-    if not path.isdir(file_path) and self.no_internet:
-        raise MissingFileError(f"The {self.source} {df_type} file for the {self.cancer_type} is not downloaded and you are running cptac in no_internet mode.")
+        elif not path.isdir(file_path) and not self.no_internet:
+            return "not downloaded"
 
-def locate_files(self, df_type):
-    """Checks if the df_type is valid for the source's set version. 
-    If the df_type is valid, it finds the file path, downloading the files if necessary
+        # Raise error if file is not installed and they don't have an internet connection
+        if not path.isdir(file_path) and self.no_internet:
+            raise MissingFileError(f"The {self.source} {df_type} file for the {self.cancer_type} is not downloaded and you are running cptac in no_internet mode.")
 
-    Returns:
-        A single file path or a list of file paths
-    """
-    # check if df_type is valid for the set version
-    if self.version not in self.data_files:
-        raise InvalidDataVersionError(f"{df_type} is not available in the data freeze for version v_{self.version} of {self.source} {self.cancer_type} data.")
-    
-    # pull the file name or list of file names from the self.data_files dict
-    f = self.data_files[self.version][df_type]
-    
-    # get the file path(s)
-    if type(f) == list:
-        file_paths = list()
-        for file_name in f:
-            path = self.get_file_path(file_name)
-             # if the file hasn't been downloaded and they have internet, download it
-            if path == "not downloaded":
-                cptac.download(sources={self.source : [df_type]}, cancers=self.cancer_type, version=self.version)
-                path = self.get_file_path(file_name)
-            # append path to file paths
-            file_paths.append(path)
+
+    def locate_files(self, datatype):
+        """Checks if the datatype is valid for the source's set version. 
+        If the datatype is valid, it finds the file path, downloading the files if necessary
         
-        return file_paths
-    
-    else:
-        file_path = self.get_file_path(f)
-        if file_path == "not downloaded":
-            cptac.download(sources={self.source : [df_type]}, cancers=self.cancer_type, version=self.version)
+        Parameters:
+            datatype (str): The datatype to get all filepaths for.
 
-        return file_path
+        Returns:
+            A single file path or a list of file paths
+        """
+        # check if datatype is valid for the set version
+        if self.version not in self.data_files:
+            raise InvalidDataVersionError(f"{datatype} is not available in the data freeze for version v_{self.version} of {self.source} {self.cancer_type} data.")
 
-    def save_df(self, df_type, df):
-        # unionize indices
-        # sort rows and columns
-        self._data[df_type] = df
+        # pull the file name or list of file names from the self.data_files dict
+        f = self.data_files[self.version][datatype]
+
+        # get the file path(s)
+        if type(f) == list:
+            file_paths = list()
+            for file_name in f:
+                path = self.get_file_path(datatype, file_name)
+                 # if the file hasn't been downloaded and they have internet, download it
+                if path == "not downloaded":
+                    cptac.download(sources={self.source : [datatype]}, cancers=self.cancer_type, version=self.version)
+                    path = self.get_file_path(datatype, file_name)
+                # append path to file paths
+                file_paths.append(path)
+
+            return file_paths
+
+        else:
+            file_path = self.get_file_path(datatype, f)
+            if file_path == "not downloaded":
+                cptac.download(sources={self.source : [datatype]}, cancers=self.cancer_type, version=self.version)
+
+            return file_path
