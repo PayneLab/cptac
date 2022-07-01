@@ -585,9 +585,8 @@ class Cancer:
         # This dict will be keyed by data type, and the values will be each source that provides that data type
         data_sources = {}
 
-        for source in sorted(self._datasets.keys()):
-            for df_name in sorted(self._datasets[source]._data.keys()):
-
+        for source in sorted(self._sources.keys()):
+            for df_name in sorted(self._sources[source].load_functions.keys()):
                 if df_name in ["cibersort", "xcell"]:
                     df_name = f"deconvolution_{df_name}" # For clarity
 
