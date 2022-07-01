@@ -62,18 +62,55 @@ def get_source_options():
 
 def list_datasets():
     """List all available datasets."""
-    df = __OPTIONS__.copy()
-    df = df.set_index(["Cancers", "Sources"])
-    df = df.drop("Loadable datatypes", axis=1)
-    df_formatted = df.style.set_table_styles(
-                    [{'selector' : 'th',
-                    'props' : [('vertical-align', 'text-bottom'),
-                                ('text-align', 'left')]},
-                    {'selector': 'td',
-                    'props': [('text-align', 'left')]}
-                    ])
+    df = __OPTIONS__.\
+    copy().\
+    drop("Loadable datatypes", axis=1)
 
-    return df_formatted
+    df = df.\
+    assign(Datatypes=df["Datatypes"].str.split("\ *,\ *", expand=False, regex=True)).\
+    explode("Datatypes").\
+    reset_index(drop=True)
+
+    # Print our dataframe as a pretty tree structure
+    info = {}
+    for row in df.set_index(["Cancers", "Sources", "Datatypes"]).index.values:
+        if row[0] not in info.keys():
+            info[row[0]] = {}
+        if row[1] not in info[row[0]].keys():
+            info[row[0]][row[1]] = []
+        info[row[0]][row[1]].append(row[2])
+
+    df_tree = _tree(info)
+    print(df_tree)
+
+    #if the dataframe is needed it can be returned. If not,
+    #the python interpreter will print anything that is returned, so no return for now
+    #return df
+
+def _tree(nest, prepend=""):
+    """Recursively build a formatted string to represent a dictionary"""
+    tree_str = ""
+    if isinstance(nest, dict):
+        for i, (k, v) in enumerate(nest.items()):
+            if i == len(nest.keys()) - 1:
+                branch = "└"
+                newprepend = prepend + "    "
+            else:
+                branch = "├"
+                newprepend = prepend + "│   "
+            tree_str += f"{prepend}{branch}── {k}\n"
+            tree_str += _tree(nest=v, prepend=newprepend)
+    elif isinstance(nest, list):
+        for i, v in enumerate(nest):
+            if i == len(nest) - 1:
+                branch = "└"
+            else:
+                branch = "├"
+            tree_str += f"{prepend}{branch}── {v}\n"
+    else:
+        raise ValueError(f"Unexpected type '{type(nest)}'")
+
+    return tree_str
 
 #### End __OPTIONS__ code
 
