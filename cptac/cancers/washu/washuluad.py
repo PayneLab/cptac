@@ -23,7 +23,7 @@ from cptac.cancers.mssm.mssm import Mssm
 
 class WashuLuad(Source):
 
-    def __init__(self, no_internet, version):
+    def __init__(self, version="latest", no_internet=False):
         """Load all of the washuluad dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:

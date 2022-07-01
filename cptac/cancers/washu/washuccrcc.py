@@ -22,7 +22,7 @@ from cptac.cancers.mssm.mssm import Mssm
 
 class WashuCcrcc(Source):
 
-    def __init__(self, no_internet, version):
+    def __init__(self, version="latest", no_internet=False):
         """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
         Parameters:
