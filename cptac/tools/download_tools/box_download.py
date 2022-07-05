@@ -54,8 +54,8 @@ def box_download(cancer, source, datatypes, version, redownload):
 
     # Get list of files to download.
     files_to_download = gather_files(version_path=version_path, version_index=version_index, redownload=redownload)
-   
-    # Retrurn true if no new files to download
+
+    # Return true if no new files to download
     if files_to_download is None: 
         return True
 
