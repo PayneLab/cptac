@@ -30,7 +30,7 @@ class AwgCoad(Source):
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
-        valid_versions = ["0.0", "0.0.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        self.valid_versions = ["0.0", "0.0.1"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         self.data_files = {
             "0.0": {
@@ -66,7 +66,7 @@ class AwgCoad(Source):
             "transcriptomics"           : self.load_transcriptomics,
         }
 
-        super().__init__(cancer_type="colon", version=version, valid_versions=valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
+        super().__init__(cancer_type="colon", version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
         
 

@@ -31,7 +31,7 @@ class AwgLscc(Source):
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
-        valid_versions = ["1.0", "3.2", "3.2.1", "3.3"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        self.valid_versions = ["1.0", "3.2", "3.2.1", "3.3"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
         self.data_files = {
             "1.0": {
@@ -92,7 +92,7 @@ class AwgLscc(Source):
                 "ubiquitinomics"    : "lscc-v3.3-public-ubiquitylome-batch-corrected-ratio-norm-NArm.gct.gz"},
         }
 
-        super().__init__(cancer_type="lscc", version=version, valid_versions=valid_versions, data_files=self.data_files, no_internet=no_internet)
+        super().__init__(cancer_type="lscc", version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"

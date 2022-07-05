@@ -32,7 +32,7 @@ class AwgPdac(Source):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        valid_versions = ["1.0"]
+        self.valid_versions = ["1.0"]
 
         self.data_files = {
             "1.0": {
@@ -48,7 +48,7 @@ class AwgPdac(Source):
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="pdac", version=version, valid_versions=valid_versions, data_files=self.data_files, no_internet=no_internet)
+        super().__init__(cancer_type="pdac", version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
 
         # Load the data into dataframes in the self._data dict
         loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
