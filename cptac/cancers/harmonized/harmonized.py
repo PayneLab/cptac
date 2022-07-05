@@ -61,13 +61,13 @@ class Harmonized(Source):
             file_path = self.locate_files(df_type)
 
             # which cancer_type goes with which cancer in the harmonized table
-            tumor_codes = {'brca':'BR', 'ccrcc':'CCRCC',
+            tumor_codes = {'brca':'BRCA', 'ccrcc':'CCRCC',
                            'ucec':'UCEC', 'gbm':'GBM', 'hnscc':'HNSCC',
                            'lscc':'LSCC', 'luad':'LUAD', 'pdac':'PDA',
                            'hcc':'HCC', 'coad':'CO', 'ov':'OV'}
 
             df = pd.read_csv(file_path, sep='\t', low_memory = False)
-            df = df.loc[df['COHORT'] == tumor_codes[filter_type]]
+            df = df.loc[df['COHORT'] == tumor_codes[self.cancer_type]]
             df['Patient_ID'] = df.loc[:, 'Tumor_Sample_Barcode']
             df = df.rename(columns={
                      "Hugo_Symbol":"Gene",
@@ -83,6 +83,7 @@ class Harmonized(Source):
 
 
         # I'm not sure what this comment is, but perhaps the harmonized parsing is not finished and it will come in handy
+        # Since the cancer type is the same as filter type this would now be self.cancer_type and would not include pancan
         '''
         if filter_type == 'pancanucec':  
             print("True")
