@@ -16,6 +16,7 @@ import requests
 import threading
 from cptac import CPTAC_BASE_DIR
 
+from cptac.tools.download_tools.box_download import validate_version, get_index
 from cptac.exceptions import CptacDevError, PdcDownloadError, NoInternetError, PdcDownloadError
 
 STUDY_IDS_MAP = {
@@ -67,18 +68,24 @@ STUDY_IDS_MAP = {
     },
 }
 
-
 def pdc_download(cancer, datatypes, version, redownload):
     """Download data for the specified cancer type and datatype from the PDC."""
 
     studyID = "pdc" + cancer
     dataset_ids = STUDY_IDS_MAP[studyID]
-    
+
     # filter out the datasets not requested
     ids_to_remove = set(dataset_ids.keys()) - set(datatypes)
     [ dataset_ids.pop(key) for key in ids_to_remove ]
-            
+
     data_dir = os.path.join(CPTAC_BASE_DIR, f"data/data_pdc_{cancer}")
+
+    # Validate the version number, including parsing if it's "latest"
+    dataset = "pdc_" + cancer
+    version_number = validate_version(version, dataset, use_context="download")
+
+    # Construct the path to the directory for this version
+    version_path = os.path.join(data_dir, f"{dataset}_v{version_number}")
 
     # Check that the index file exists. If not, there was an uncaught error in the mapping file download.
     index_path = os.path.join(data_dir, "index.txt")
@@ -88,14 +95,14 @@ def pdc_download(cancer, datatypes, version, redownload):
     # If any of the files are missing, we're going to delete any remaining and redownload all, in case the missing files are a sign of a previous data problem
     data_files = [f"{data_type}.tsv.gz" for data_type in dataset_ids.keys()] + ["clinical.tsv.gz"]
     for data_file in data_files:
-        data_file_path = os.path.join(data_dir, data_file)
+        data_file_path = os.path.join(version_path, data_file)
         if not os.path.isfile(data_file_path):
             redownload = True
             break
 
     if redownload:
         for data_file in data_files:
-            data_file_path = os.path.join(data_dir, data_file)
+            data_file_path = os.path.join(version_path, data_file)
             if os.path.isfile(data_file_path):
                 os.remove(data_file_path)
     else:
@@ -122,7 +129,7 @@ def pdc_download(cancer, datatypes, version, redownload):
         master_clin = pd.concat([master_clin, clin])
 
         # Save the quantitative table
-        quant.to_csv(os.path.join(data_dir, f"{data_type}.tsv.gz"), sep="\t")
+        quant.to_csv(os.path.join(version_path, f"{data_type}.tsv.gz"), sep="\t")
 
         # Erase update
         print(" " * len(save_msg), end="\r")
@@ -134,7 +141,7 @@ def pdc_download(cancer, datatypes, version, redownload):
     # Drop any duplicated rows in combined clinical table, then save it too
     master_clin = master_clin.drop_duplicates(keep="first")
 
-    master_clin.to_csv(os.path.join(data_dir, "clinical.tsv.gz"), sep="\t")
+    master_clin.to_csv(os.path.join(version_path, "clinical.tsv.gz"), sep="\t")
 
     # Erase update
     print(" " * len(save_msg), end="\r")
