@@ -37,8 +37,8 @@ class PdcOv(Source):
         self.data_files = {
             "1.0": {
                 "clinical"             : "clinical.tsv.gz",
-                "phosphoproteomics"    : "phosphoproteome.tsv.gz",
-                "proteomics"           : "proteome.tsv.gz",
+                "phosphoproteomics"    : "phosphoproteomics.tsv.gz",
+                "proteomics"           : "proteomics.tsv.gz",
                 "mapping"              : "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv"
             }
         }

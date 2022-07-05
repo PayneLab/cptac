@@ -37,8 +37,8 @@ class PdcCoad(Source):
         self.data_files = {
             "1.0": {
                 "clinical"             : "clinical.tsv.gz",
-                "phosphoproteomics"    : "phosphoproteome.tsv.gz",
-                "proteomics"           : "proteome.tsv.gz",
+                "phosphoproteomics"    : "phosphoproteomics.tsv.gz",
+                "proteomics"           : "proteomics.tsv.gz",
                 "mapping"              : "CRC_Prospective sample info.xlsx"
             }
         }

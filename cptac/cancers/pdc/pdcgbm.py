@@ -37,10 +37,10 @@ class PdcGbm(Source):
 
         self.data_files = {
             "1.0": {
-                "acetylproteomics"     : "acetylome.tsv.gz",
+                "acetylproteomics"     : "acetylproteomics.tsv.gz",
                 "clinical"             : "clinical.tsv.gz",
-                "phosphoproteomics"    : "phosphoproteome.tsv.gz",
-                "proteomics"           : "proteome.tsv.gz",
+                "phosphoproteomics"    : "phosphoproteomics.tsv.gz",
+                "proteomics"           : "proteomics.tsv.gz",
                 "mapping"              : "GBM_normal_sample_mapping.xlsx"
             }
         }

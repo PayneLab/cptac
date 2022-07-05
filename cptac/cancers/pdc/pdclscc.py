@@ -36,11 +36,11 @@ class PdcLscc(Source):
 
         self.data_files = {
             "1.0": {
-                "acetylproteomics"     : "acetylome.tsv.gz",
+                "acetylproteomics"     : "acetylproteomics.tsv.gz",
                 "clinical"             : "clinical.tsv.gz",
-                "phosphoproteomics"    : "phosphoproteome.tsv.gz",
-                "proteomics"           : "proteome.tsv.gz",
-                "ubiquitylomics"       : "ubiquitylome.tsv.gz",
+                "phosphoproteomics"    : "phosphoproteomics.tsv.gz",
+                "proteomics"           : "proteomics.tsv.gz",
+                "ubiquitylomics"       : "ubiquitylomics.tsv.gz",
                 "mapping"              : "aliquot_to_patient_ID.tsv"
             }
         }

@@ -36,10 +36,10 @@ class PdcBrca(Source):
 
         self.data_files = {
             "1.0": {
-                "acetylproteomics"     : "acetylome.tsv.gz",
+                "acetylproteomics"     : "acetylproteomics.tsv.gz",
                 "clinical"             : "clinical.tsv.gz",
-                "phosphoproteomics"    : "phosphoproteome.tsv.gz",
-                "proteomics"           : "proteome.tsv.gz",
+                "phosphoproteomics"    : "phosphoproteomics.tsv.gz",
+                "proteomics"           : "proteomics.tsv.gz",
             }
         }
         
@@ -49,7 +49,7 @@ class PdcBrca(Source):
             'phosphoproteomics' : self.load_phosphoproteomics,
             'proteomics' : self.load_proteomics,
         }
-        
+
         if version == "latest":
             version = sorted(self.valid_versions)[-1]
 
@@ -68,7 +68,7 @@ class PdcBrca(Source):
             df = df.set_index(["case_submitter_id", "aliquot_submitter_id"]) 
             df = df.drop('RetroIR', level = 1)
             
-            if version == "1.0":
+            if self.version == "1.0":
                 # Drop normal aliquots
                 self.load_helper_tables()
                 drop_normals = self._helper_tables['drop_normals']
@@ -109,7 +109,7 @@ class PdcBrca(Source):
             df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
             df = df.drop('RetroIR', level = 1)
             
-            if version == "1.0":
+            if self.version == "1.0":
                 # Note -> At the time this code was added, phospho had all NaN values. In an email recieved 06/29/21, 
                 # Paul Rudnick said the phospho study was broken. Whenever the phospho data is fixed, this 
                 # code should work to drop normal aliquots and average replicates. It would be a good idea to check when 
@@ -138,7 +138,7 @@ class PdcBrca(Source):
             df = pd.read_csv(file_path, sep='\t')
             df = df.set_index(["case_submitter_id", "aliquot_submitter_id"])
             
-            if version == "1.0":
+            if self.version == "1.0":
                 # Drop normal aliquots
                 self.load_helper_tables()
                 drop_normals = self._helper_tables['drop_normals']
