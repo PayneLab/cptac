@@ -24,6 +24,7 @@ class Source:
         self.source = source
         self.cancer_type = cancer_type
         self._data = {}
+        self._helper_tables = {}
         self.data_files = data_files
         self.load_functions = load_functions
         self.set_version(version)
