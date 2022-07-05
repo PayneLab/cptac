@@ -94,7 +94,12 @@ class Source:
         string: The path to the given data file for the currently set version of the source.
         """
         # Get our dataset path and index
-        file_path = path.join(CPTAC_BASE_DIR, f"data/data_{self.source}_{self.cancer_type}/{self.source}_{self.cancer_type}_v{self.version}/{data_file}")
+        if self.source in ["harmonized", "mssm"]:
+            dataset = self.source
+        else:
+            dataset = self.source + "_" + self.cancer_type
+
+        file_path = path.join(CPTAC_BASE_DIR, f"data/data_{dataset}/{dataset}_v{self.version}/{data_file}")
 
         if path.isfile(file_path):
             return file_path
