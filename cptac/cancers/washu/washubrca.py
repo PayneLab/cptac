@@ -78,9 +78,6 @@ class WashuBrca(Source):
         mssmclin = Mssm(filter_type='brca', version=version, no_internet=no_internet) #_get_version - pancandataset
         self._clinical_df = mssmclin.get_df('clinical')
 
-        # Add this function call to load functions on df that is returned.
-        self._data = sort_all_rows_pancan(self._data)  # Sort IDs (tumor first then normal)
-        
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
         if df_type not in self._data:
@@ -96,7 +93,8 @@ class WashuBrca(Source):
             df.index.name = "Patient_ID"
             #remove label for tumor samples. All samples are tumors 
             df.index = df.index.str.replace(r"-T", "", regex=True) 
-            self._data["transcriptomics"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
 
     def load_somatic_mutation(self):
         df_type = 'somatic_mutation'
@@ -114,7 +112,8 @@ class WashuBrca(Source):
             df = df.set_index("Patient_ID")
             df = df[ ['Gene'] + ["Mutation"] + ["Location"] + [ col for col in df.columns if col not in ["Gene","Mutation","Location"] ] ]
             df.index = df.index.str.replace(r"_T", "", regex=True)     
-            self._data["somatic_mutation"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
 
     def load_xcell(self):
         df_type = 'xcell'
@@ -127,7 +126,8 @@ class WashuBrca(Source):
             df.index.name = 'Patient_ID'
             df.index = df.index.str.replace(r'-T$', '', regex=True) # remove label for tumor samples
             df.index = df.index.str.replace(r'-A$', '.N', regex=True) # change label for normal samples
-            self._data["xcell"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
 
     def load_cibersort(self):
         df_type = 'cibersort'
@@ -139,7 +139,8 @@ class WashuBrca(Source):
             df.columns.name = 'Name'
             df.index = df.index.str.replace(r'-T$', '', regex=True) 
             df.index = df.index.str.replace(r'-A$', '.N', regex=True)
-            self._data["cibersort"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
 
     def load_mapping(self):
         df_type = 'mapping'
@@ -170,7 +171,8 @@ class WashuBrca(Source):
             df = df.set_index(["Name", "Database_ID"]) #create multi-index
             df = df.T
             df.index.name = 'Patient_ID'
-            self._data["CNV"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
 
     # TODO FIX so we're not dependent on self._clinical_df
     def load_tumor_purity(self):
@@ -185,7 +187,8 @@ class WashuBrca(Source):
             # Use list of patient_ids to slice out cancers                
             patient_ids = self._clinical_df.index.to_list()
             df = df.loc[df.index.isin(patient_ids)]                
-            self._data["tumor_purity"] = df
+            # save df in self._data
+            self.save_df(df_type, df)
     
     # TODO FIX
     def load_readme(self):
