@@ -72,7 +72,7 @@ class Mssm(Source):
                            'hcc':'HCC', 'coad':'CO', 'ov':'OV'}
 
             df = pd.read_csv(file_path, sep='\t')
-            df = df.loc[df['tumor_code'] == tumor_codes[filter_type]] 
+            df = df.loc[df['tumor_code'] == tumor_codes[self.cancer_type]]
             df = df.loc[df['discovery_study'] != 'No'] # Only keep discovery study = 'Yes' or 'na'
             df = df.set_index("case_id")
             df.index.name = 'Patient_ID'
