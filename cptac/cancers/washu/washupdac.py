@@ -73,7 +73,7 @@ class WashuPdac(Source):
         
         # get clinical df (used to slice out cancer specific patient_IDs in tumor_purity file)
         mssmclin = Mssm(filter_type='pdac', version=version, no_internet=no_internet) #_get_version - pancandataset
-        self._clinical_df = mssmclin.get_clinical()
+        self._clinical_df = mssmclin.get_df('clinical')
         
         # Add this function call to load functions on df that is returned.
         self._data = sort_all_rows_pancan(self._data) # Sort IDs (tumor first then normal)
