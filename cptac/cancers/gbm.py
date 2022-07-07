@@ -24,7 +24,7 @@ from cptac.cancers.harmonized.harmonized import Harmonized
 
 class Gbm(Cancer):
 
-    def __init__(self, version="latest", no_internet=False):
+    def __init__(self, no_internet=False):
         """Load all the data sources with GBM data and provide an interface to them."""
 
         super().__init__(cancer_type="gbm")

@@ -24,7 +24,7 @@ from cptac.cancers.harmonized.harmonized import Harmonized
 
 class Luad(Cancer):
 
-    def __init__(self, version="latest", no_internet=False):
+    def __init__(self, no_internet=False):
         """Load all the data sources with LUAD data and provide an interface to them."""
 
         super().__init__(cancer_type="luad")
