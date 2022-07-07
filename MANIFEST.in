@@ -46,7 +46,7 @@ include cptac/data/data_broad_ucec/index_urls.tsv
 
 # harmonized and mssm files
 include cptac/data/data_harmonized/index_urls.tsv
-include cptac/data/data_mssmclinical/index_urls.tsv
+include cptac/data/data_mssm/index_urls.tsv
 
 # pdc files
 include cptac/data/data_pdc_brca/index_urls.tsv
