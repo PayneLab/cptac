@@ -60,81 +60,242 @@ class AwgUcec(Source):
                 "transcriptomics"           : "transcriptomics_linear.cct.gz",
                 "followup"                  : "UCEC_followup_9_12.xlsx"},
         }
+        
+        self.load_functions = {
+            'acetylproteomics'        : self.load_acetylproteomics,
+            'clinical'                : self.load_clinical,
+            'CNV'                     : self.load_CNV,
+            'miRNA'                   : self.load_miRNA,
+            'phosphoproteomics_gene'  : self.load_phosphoproteomics_gene,
+            'phosphoproteomics'       : self.load_phosphoproteomics,
+            'proteomics'              : self.load_proteomics,
+            'somatic_mutation_binary' : self.load_somatic_mutation_binary,
+            'somatic_mutation'        : self.load_somatic_mutation,
+            'circular_RNA'            : self.load_circular_RNA,
+            'transcriptomics'         : self.load_transcriptomics,
+            'followup'                : self.load_followup,
+        }
 
-        super().__init__(cancer_type="endometrial", version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
+        if version == "latest":
+            version = sorted(self.valid_versions)[-1]
 
-        # Load the data files into dataframes in the self._data dict
-        loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
-        for file_path in self._data_files_paths: 
+        super().__init__(cancer_type="endometrial", source='awg', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
-            # Print a loading message. We add a dot every time, so the user knows it's not frozen.
-            loading_msg = loading_msg + "."
-            print(loading_msg, end='\r')
 
-            path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-            file_name = path_elements[-1] # The last element will be the name of the file
-            df_name = file_name.split(".")[0] # Dataframe name will be the first section of file name; i.e. proteomics.txt.gz becomes proteomics
+    def load_acetylproteomics(self):
+        df_type = 'acetylproteomics'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
 
-            # Load the file, based on what it is
-            if file_name == "clinical.txt":
-                # Fix for reading error on clinical.txt:
-                with open(file_path, "r", errors="ignore") as clinical_file:
-                    df = pd.read_csv(clinical_file, sep="\t", index_col=0)
-                df = df.sort_index()
-                self._data[df_name] = df # Maps dataframe name to dataframe
+            df = pd.read_csv(file_path, sep='\t', index_col=0)
+            df.index = df.index.str.rsplit('-', n=1, expand=True) # Separate the index into a multiindex where the 1st level is the gene, and 2nd is the site
+            df.index = df.index.set_names(["Name", "Site"]) # Properly name the levels
+            df = df.sort_index()
+            df = df.transpose()
 
-            elif file_name == "definitions.txt":
-                with open(file_path, "r") as definitions_file:
-                    for line in definitions_file.readlines():
-                        line = line.strip()
-                        line = line.split("\t")
-                        term = line[0]
-                        definition = line[1]
-                        self._definitions[term] = definition
+            # save df in self._data
+            self.save_df(df_type, df)
 
-            elif file_name == "somatic.maf.gz":
-                df = pd.read_csv(file_path, sep = "\t")
-                split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n=1, expand=True) # The first part of the barcode is the patient id, which we need want to make the index
-                df["Tumor_Sample_Barcode"] = split_barcode[0]
-                df = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]]
-                df = df.rename({"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
-                df = df.sort_values(by=["Patient_ID", "Gene"])
-                df = df.set_index("Patient_ID")
-                self._data["somatic_mutation"] = df # Maps dataframe name to dataframe
 
-            elif file_name == "acetylproteomics.cct.gz" or file_name == "phosphoproteomics_site.cct.gz":
-                df = pd.read_csv(file_path, sep = "\t", index_col=0)
-                df.index = df.index.str.rsplit('-', n=1, expand=True) # Separate the index into a multiindex where the 1st level is the gene, and 2nd is the site
-                df.index = df.index.set_names(["Name", "Site"]) # Properly name the levels
-                df = df.sort_index()
-                df = df.transpose()
-                self._data[df_name] = df # Maps dataframe name to dataframe
+    def load_clinical(self):
+        df_type = 'clinical'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
 
-            elif file_name == 'UCEC_followup_9_12.xlsx' and self._version == "2.1.1":
-                df = pd.read_excel(file_path)
+            # Fix for reading error on clinical.txt:
+            with open(file_path, "r", errors="ignore") as clinical_file:
+                df = pd.read_csv(clinical_file, sep='\t', index_col=0)
+            df = df.sort_index()
 
-                # Replace redundant values for 'not reported' with NaN
-                nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Applicable', 'na', 'unknown',
-                    'Not Performed', 'Unknown tumor status', 'Unknown', 'Unknown Tumor Status', 'Not specified']
-                    
-                df = df.replace(nan_equivalents, np.nan)
+            # save df in self._data
+            self.save_df(df_type, df)
 
-                # Rename, set, and sort index
-                df = df.rename(columns={'Case ID': 'Patient_ID'})
-                df = df.set_index("Patient_ID")
-                df = df.sort_index()
 
-                self._data["followup"] = df
+    def load_CNV(self):
+        df_type = 'CNV'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
 
-            else:
-                df = pd.read_csv(file_path, sep="\t", index_col=0)
-                df = df.transpose()
-                df = df.sort_index()
-                self._data[df_name] = df # Maps dataframe name to dataframe
+            df = pd.read_csv(file_path, sep='\t', index_col=0)
+            df = df.transpose()
+            df = df.sort_index()
 
-        print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
-        print(formatting_msg, end='\r')
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_definitions(self):
+        # This is almost certainly not how we want to handle this
+        # Figure out what to do with definitions in the refactor, probably something like with helper tables
+        df_type = 'definitions'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            with open(file_path, "r") as definitions_file:
+                for line in definitions_file.readlines():
+                    line = line.strip()
+                    line = line.split("\t")
+                    term = line[0]
+                    definition = line[1]
+                    self._definitions[term] = definition
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_miRNA(self):
+        df_type = 'miRNA'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            df = pd.read_csv(file_path, sep='\t', index_col=0)
+            df = df.transpose()
+            df = df.sort_index()
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_phosphoproteomics_gene(self):
+        df_type = 'phosphoproteomics_gene'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            df = pd.read_csv(file_path, sep='\t', index_col=0)
+            df = df.transpose()
+            df = df.sort_index()
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_phosphoproteomics(self):
+        df_type = 'phosphoproteomics'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            df = pd.read_csv(file_path, sep='\t', index_col=0)
+            df.index = df.index.str.rsplit('-', n=1, expand=True) # Separate the index into a multiindex where the 1st level is the gene, and 2nd is the site
+            df.index = df.index.set_names(["Name", "Site"]) # Properly name the levels
+            df = df.sort_index()
+            df = df.transpose()
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_proteomics(self):
+        df_type = 'proteomics'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            df = pd.read_csv(file_path, sep='\t', index_col=0)
+            df = df.transpose()
+            df = df.sort_index()
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_somatic_mutation_binary(self):
+        df_type = 'somatic_mutation_binary'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            df = pd.read_csv(file_path, sep='\t', index_col=0)
+            df = df.transpose()
+            df = df.sort_index()
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_somatic_mutation(self):
+        df_type = 'somatic_mutation'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            df = pd.read_csv(file_path, sep='\t')
+            split_barcode = df["Tumor_Sample_Barcode"].str.split("_", n=1, expand=True) # The first part of the barcode is the patient id, which we need want to make the index
+            df["Tumor_Sample_Barcode"] = split_barcode[0]
+            df = df[["Tumor_Sample_Barcode","Hugo_Symbol","Variant_Classification","HGVSp_Short"]]
+            df = df.rename({"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol":"Gene","Variant_Classification":"Mutation","HGVSp_Short":"Location"}, axis='columns')
+            df = df.sort_values(by=["Patient_ID", "Gene"])
+            df = df.set_index("Patient_ID")
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_circular_RNA(self):
+        df_type = 'circular_RNA'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            df = pd.read_csv(file_path, sep='\t', index_col=0)
+            df = df.transpose()
+            df = df.sort_index()
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_transcriptomics(self):
+        df_type = 'transcriptomics'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            df = pd.read_csv(file_path, sep='\t', index_col=0)
+            df = df.transpose()
+            df = df.sort_index()
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_followup(self):
+        df_type = 'followup'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            df = pd.read_excel(file_path)
+
+            # Replace redundant values for 'not reported' with NaN
+            nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Applicable', 'na', 'unknown',
+                'Not Performed', 'Unknown tumor status', 'Unknown', 'Unknown Tumor Status', 'Not specified']
+
+            df = df.replace(nan_equivalents, np.nan)
+
+            # Rename, set, and sort index
+            df = df.rename(columns={'Case ID': 'Patient_ID'})
+            df = df.set_index("Patient_ID")
+            df = df.sort_index()
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+
+# TODO: Everything below needs to be moved into the appropriate load_functions
+
+#         print(' ' * len(loading_msg), end='\r') # Erase the loading message
+#         formatting_msg = "Formatting dataframes..."
+#         print(formatting_msg, end='\r')
+    
+        
 
         # Separate out clinical, derived_molecular, and experimental_design dataframes
         all_clinical = self._data["clinical"]
@@ -177,6 +338,9 @@ class AwgUcec(Source):
         # Drop Case_excluded column from clinical, now that we've dropped all excluded cases in the dataset.
         clinical = self._data["clinical"]
         clinical = clinical.drop(columns=["Case_excluded"])
+        
+        # TODO ^^^
+        # Basically here we are going to save the case_excluded column to helper_tables, and then use it whenever we load in a different dataset
 
         # Add a Sample_Tumor_Normal column to the clinical dataframe, with just "Tumor" or "Normal" values (unlike the Proteomics_Tumor_Normal column, which gives the different types of normal samples)
         raw_map = clinical["Proteomics_Tumor_Normal"] 
