@@ -37,8 +37,3 @@ class Pdac(Cancer):
         self._sources["umich"] = UmichPdac(version="latest", no_internet=no_internet)
         self._sources["washu"] = WashuPdac(version="latest", no_internet=no_internet)
         self._sources["harmonized"] = Harmonized(filter_type='pdac', version="latest", no_internet=no_internet)
-        
-        join_dict = {k: v._data for k, v in self._sources.items()}
-        self._joining_dataset = JoiningDataset(join_dict)
-
-        self._pancan_unionize_indices()
