@@ -10,7 +10,6 @@
 #   limitations under the License.
 
 from cptac.cancers.cancer import Cancer
-from cptac.tools.joiningdataset import JoiningDataset
 
 from cptac.cancers.awg.awgpdac import AwgPdac
 from cptac.cancers.bcm.bcmpdac import BcmPdac
