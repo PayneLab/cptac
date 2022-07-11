@@ -115,7 +115,7 @@ class AwgUcec(Source):
             df = df.sort_index()
 
             # Separate out clinical, derived_molecular, and experimental_design dataframes
-            all_clinical = self._data["clinical"]
+            all_clinical = df
             clinical = all_clinical[[
                 'Proteomics_Participant_ID', 'Case_excluded',  'Proteomics_Tumor_Normal',  'Country',
                 'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity',
@@ -453,7 +453,6 @@ class AwgUcec(Source):
 #             # Call function from dataframe_tools.py to standardize the names of the index and column axes
 #             self._data = standardize_axes_names(self._data)
 
-            print(" " * len(formatting_msg), end='\r') # Erase the formatting message
 
     def how_to_cite(self):
         return super().how_to_cite(cancer_type='endometrial carcinoma (uterine)', pmid=32059776)
