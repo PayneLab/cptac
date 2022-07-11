@@ -98,6 +98,9 @@ class AwgUcec(Source):
             self.load_clinical()
             excluded_cases = self._helper_tables["excluded_cases"]
             df = df.drop(index=excluded_cases, errors="ignore")
+            # Change index from sample ids to patient ids
+            sample_id_to_patient_id_map = self._helper_tables["sample_id_to_patient_id_map"]
+            df = reindex_dataframe(df, sample_id_to_patient_id_map, "Patient_ID", False)
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -151,6 +154,27 @@ class AwgUcec(Source):
             # Drop Case_excluded column from clinical, now that we've saved excluded cases for the other datatypes
             clinical = clinical.drop(columns=["Case_excluded"])
 
+            # Add a Sample_Tumor_Normal column to the clinical dataframe, with just "Tumor" or "Normal" values (unlike the Proteomics_Tumor_Normal column, which gives the different types of normal samples)
+            raw_map = clinical["Proteomics_Tumor_Normal"] 
+            parsed_map = raw_map.where(raw_map == "Tumor", other="Normal") # Replace various types of normal (Adjacent_normal, Myometrium_normal, etc.) with just "Normal"
+            clinical.insert(1, "Sample_Tumor_Normal", parsed_map)
+
+            # Mark the Patient_IDs of the normal samples by appending a ".N" to them
+            clinical["Patient_ID"] = clinical["Patient_ID"].where(clinical["Sample_Tumor_Normal"] == "Tumor", other=clinical["Patient_ID"] + ".N")
+
+            # Reindex the dataframe with sample IDs instead of patient IDs
+            # Also do this for other datatypes in their load functions, but
+            # skip the followup and somatic_mutation dataframes because they're already indexed with Patient_IDs
+            sample_id_to_patient_id_map = clinical["Patient_ID"]
+            self._helper_tables["sample_id_to_patient_id_map"] = sample_id_to_patient_id_map
+
+            clinical.index.name = "Sample_ID" # So that it's labeled properly when we keep it as a column in the clinical dataframe.
+            # reindex_dataframe is a function from dataframe_tools.py
+            clinical = reindex_dataframe(clinical, sample_id_to_patient_id_map, "Patient_ID", True)
+
+            # We no longer need the Patient_ID column in the clinical dataframe, because it's in the index. So we'll remove it.
+            clinical = clinical.drop(columns="Patient_ID")
+
             # save df in self._data
             self.save_df(df_type, clinical)
 
@@ -165,6 +189,9 @@ class AwgUcec(Source):
             self.load_clinical()
             excluded_cases = self._helper_tables["excluded_cases"]
             df = df.drop(index=excluded_cases, errors="ignore")
+            # Change index from sample ids to patient ids
+            sample_id_to_patient_id_map = self._helper_tables["sample_id_to_patient_id_map"]
+            df = reindex_dataframe(df, sample_id_to_patient_id_map, "Patient_ID", False)
             self._data[df_type] = df
 
 
@@ -178,6 +205,9 @@ class AwgUcec(Source):
             self.load_clinical()
             excluded_cases = self._helper_tables["excluded_cases"]
             df = df.drop(index=excluded_cases, errors="ignore")
+            # Change index from sample ids to patient ids
+            sample_id_to_patient_id_map = self._helper_tables["sample_id_to_patient_id_map"]
+            df = reindex_dataframe(df, sample_id_to_patient_id_map, "Patient_ID", False)
             self._data[df_type] = df
 
     def load_CNV(self):
@@ -196,6 +226,9 @@ class AwgUcec(Source):
             self.load_clinical()
             excluded_cases = self._helper_tables["excluded_cases"]
             df = df.drop(index=excluded_cases, errors="ignore")
+            # Change index from sample ids to patient ids
+            sample_id_to_patient_id_map = self._helper_tables["sample_id_to_patient_id_map"]
+            df = reindex_dataframe(df, sample_id_to_patient_id_map, "Patient_ID", False)
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -235,6 +268,9 @@ class AwgUcec(Source):
             self.load_clinical()
             excluded_cases = self._helper_tables["excluded_cases"]
             df = df.drop(index=excluded_cases, errors="ignore")
+            # Change index from sample ids to patient ids
+            sample_id_to_patient_id_map = self._helper_tables["sample_id_to_patient_id_map"]
+            df = reindex_dataframe(df, sample_id_to_patient_id_map, "Patient_ID", False)
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -254,6 +290,9 @@ class AwgUcec(Source):
             self.load_clinical()
             excluded_cases = self._helper_tables["excluded_cases"]
             df = df.drop(index=excluded_cases, errors="ignore")
+            # Change index from sample ids to patient ids
+            sample_id_to_patient_id_map = self._helper_tables["sample_id_to_patient_id_map"]
+            df = reindex_dataframe(df, sample_id_to_patient_id_map, "Patient_ID", False)
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -275,6 +314,9 @@ class AwgUcec(Source):
             self.load_clinical()
             excluded_cases = self._helper_tables["excluded_cases"]
             df = df.drop(index=excluded_cases, errors="ignore")
+            # Change index from sample ids to patient ids
+            sample_id_to_patient_id_map = self._helper_tables["sample_id_to_patient_id_map"]
+            df = reindex_dataframe(df, sample_id_to_patient_id_map, "Patient_ID", False)
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -294,6 +336,9 @@ class AwgUcec(Source):
             self.load_clinical()
             excluded_cases = self._helper_tables["excluded_cases"]
             df = df.drop(index=excluded_cases, errors="ignore")
+            # Change index from sample ids to patient ids
+            sample_id_to_patient_id_map = self._helper_tables["sample_id_to_patient_id_map"]
+            df = reindex_dataframe(df, sample_id_to_patient_id_map, "Patient_ID", False)
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -313,6 +358,9 @@ class AwgUcec(Source):
             self.load_clinical()
             excluded_cases = self._helper_tables["excluded_cases"]
             df = df.drop(index=excluded_cases, errors="ignore")
+            # Change index from sample ids to patient ids
+            sample_id_to_patient_id_map = self._helper_tables["sample_id_to_patient_id_map"]
+            df = reindex_dataframe(df, sample_id_to_patient_id_map, "Patient_ID", False)
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -355,6 +403,9 @@ class AwgUcec(Source):
             self.load_clinical()
             excluded_cases = self._helper_tables["excluded_cases"]
             df = df.drop(index=excluded_cases, errors="ignore")
+            # Change index from sample ids to patient ids
+            sample_id_to_patient_id_map = self._helper_tables["sample_id_to_patient_id_map"]
+            df = reindex_dataframe(df, sample_id_to_patient_id_map, "Patient_ID", False)
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -374,6 +425,9 @@ class AwgUcec(Source):
             self.load_clinical()
             excluded_cases = self._helper_tables["excluded_cases"]
             df = df.drop(index=excluded_cases, errors="ignore")
+            # Change index from sample ids to patient ids
+            sample_id_to_patient_id_map = self._helper_tables["sample_id_to_patient_id_map"]
+            df = reindex_dataframe(df, sample_id_to_patient_id_map, "Patient_ID", False)
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -408,48 +462,18 @@ class AwgUcec(Source):
 
 
 
-# TODO: Everything below needs to be moved into the appropriate load_functions
+# This should technically not be necessary in the future
+#             # Get a union of all dataframes' indices, with duplicates removed
+#             # Exclude the followup dataframe because it has samples from a different cohort that aren't included anywhere else in the dataset
+#             master_index = unionize_indices(self._data, exclude="followup")
+#             # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset.
+#             clinical = self._data["clinical"]
+#             clinical = clinical.reindex(master_index)
+#             self._data['clinical'] = clinical
 
-
-
-            # However we end up identifying normal samples will need to happen here as well
-
-
-            # Add a Sample_Tumor_Normal column to the clinical dataframe, with just "Tumor" or "Normal" values (unlike the Proteomics_Tumor_Normal column, which gives the different types of normal samples)
-            raw_map = clinical["Proteomics_Tumor_Normal"] 
-            parsed_map = raw_map.where(raw_map == "Tumor", other="Normal") # Replace various types of normal (Adjacent_normal, Myometrium_normal, etc.) with just "Normal"
-            clinical.insert(1, "Sample_Tumor_Normal", parsed_map)
-
-            # Mark the Patient_IDs of the normal samples by appending a ".N" to them
-            clinical["Patient_ID"] = clinical["Patient_ID"].where(clinical["Sample_Tumor_Normal"] == "Tumor", other=clinical["Patient_ID"] + ".N")
-
-            # Save our new and improved clinical dataframe!
-            self._data["clinical"] = clinical
-
-
-            # Call a function from dataframe_tools.py to reindex all the dataframes with sample IDs instead of patient IDs
-            # Skip the followup and somatic_mutation dataframes because they're already indexed with Patient_IDs
-            sample_id_to_patient_id_map = self._data["clinical"]["Patient_ID"]
-            self._data = reindex_all_sample_id_to_patient_id(self._data, sample_id_to_patient_id_map, skip=["followup", "somatic_mutation"])
-
-            # We no longer need the Patient_ID column in the clinical dataframe, because it's in the index. So we'll remove it.
-            clinical = self._data["clinical"]
-            clinical = clinical.drop(columns="Patient_ID")
-            self._data["clinical"] = clinical
-
-            # Get a union of all dataframes' indices, with duplicates removed
-            # Exclude the followup dataframe because it has samples from a different cohort that aren't included anywhere else in the dataset
-            master_index = unionize_indices(self._data, exclude="followup")
-
-            # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset.
-            clinical = self._data["clinical"]
-            clinical = clinical.reindex(master_index)
-            self._data['clinical'] = clinical
-
-            # This all should happen in save_df
+# This all should happen in save_df
 #             # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
 #             self._data = sort_all_rows(self._data)
-
 #             # Call function from dataframe_tools.py to standardize the names of the index and column axes
 #             self._data = standardize_axes_names(self._data)
 
