@@ -182,11 +182,10 @@ class AwgUcec(Source):
     def load_derived_molecular(self):
         df_type = 'derived_molecular'
         if df_type not in self._data:
+            # This information is contained in the clinical table
             self.load_clinical()
-
             df = self._data[df_type]
             # Clinical contains information on which cases need to be excluded
-            self.load_clinical()
             excluded_cases = self._helper_tables["excluded_cases"]
             df = df.drop(index=excluded_cases, errors="ignore")
             # Change index from sample ids to patient ids
@@ -198,17 +197,17 @@ class AwgUcec(Source):
     def load_experimental_design(self):
         df_type = 'experimental_design'
         if df_type not in self._data:
+            # this data is found in the clinical file
             self.load_clinical()
-
             df = self._data[df_type]
             # Clinical contains information on which cases need to be excluded
-            self.load_clinical()
             excluded_cases = self._helper_tables["excluded_cases"]
             df = df.drop(index=excluded_cases, errors="ignore")
             # Change index from sample ids to patient ids
             sample_id_to_patient_id_map = self._helper_tables["sample_id_to_patient_id_map"]
             df = reindex_dataframe(df, sample_id_to_patient_id_map, "Patient_ID", False)
             self._data[df_type] = df
+
 
     def load_CNV(self):
         df_type = 'CNV'
