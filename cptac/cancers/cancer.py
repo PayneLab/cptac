@@ -502,6 +502,10 @@ class Cancer:
                 # TODO: remind user to input "source datatype" for dictionary keys in error
                 source, datatype = source_data_key.split()
 
+            # Make sure all requested data exists and is valid
+            if datatype not in self._sources[source].load_functions:
+                raise DataFrameNotIncludedError(f"{source} {datatype} is not a valid dataframe in the {self.get_cancer_type()} dataset.")
+
             ## If key belongs to omics
             if datatype in self._valid_omics_dfs:
                 # If key is somatic_mutation_binary it will join all columns that match a gene
@@ -738,7 +742,7 @@ class Cancer:
         self._check_df_valid(df_name, source, "metadata")
 
         # Get our dataframe, using _get_dataframe to catch invalid requests
-        df = self._get_dataframe(df_name, source, tissue_type)
+        df = self._get_dataframe(df_name, source, tissue_type).copy()
 
         # Process genes parameter
         if isinstance(cols, str): # If it's a single column, make it a list so we can treat everything the same
