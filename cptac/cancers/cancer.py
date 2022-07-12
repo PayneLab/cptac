@@ -519,7 +519,6 @@ class Cancer:
                 else:
                     if len(join_dict[source_data_key]) != 0:# If there are values to join it will get the columns
                         columns = self._get_omics_cols(datatype, source, join_dict[source_data_key], tissue_type = tissue_type)
-                        print(columns)
                     else:# Else join all the dataframe
                         columns = self._get_omics_cols(datatype, source, None, tissue_type = tissue_type)
             ## If key belongs to metadata 
@@ -675,7 +674,7 @@ class Cancer:
         self._check_df_valid(omics_df_name, source, "omics")
 
         # Get our omics df, using _get_dataframe to catch invalid requests
-        omics_df = self._get_dataframe(omics_df_name, source, tissue_type)
+        omics_df = self._get_dataframe(omics_df_name, source, tissue_type).copy()
 
         # Process genes parameter
         if isinstance(genes, str): # If it's a single gene, make it a list so we can treat everything the same
@@ -685,9 +684,9 @@ class Cancer:
         elif genes is None: # If it's the default of None, rename columns and return the entire dataframe
             # Add the gene name to end beginning of each column header, to preserve info when we join dataframes.
             if isinstance(omics_df.columns, pd.MultiIndex):
-                omics_df.columns = omics_df.columns.set_levels(omics_df.columns.levels[0] + '_' + omics_df_name, level=0)
+                omics_df.columns = omics_df.columns.set_levels(omics_df.columns.levels[0] + '_' + source + '_' + omics_df_name, level=0)
             else:
-                omics_df = omics_df.add_suffix('_' + omics_df_name)
+                omics_df = omics_df.add_suffix('_' + source + '_' + omics_df_name)
             return omics_df
         else: # If it's none of those, they done messed up. Tell 'em.
             raise InvalidParameterError("Genes parameter \n{}\nis of invalid type {}. Valid types: str, list or array-like of str, or NoneType.".format(genes, type(genes)))
@@ -716,9 +715,9 @@ class Cancer:
 
         # Append dataframe name to end of each column header, to preserve info when we merge dataframes
         if isinstance(omics_df.columns, pd.MultiIndex):
-            selected.columns = selected.columns.set_levels(selected.columns.levels[0] + '_' + omics_df_name, level=0)
+            selected.columns = selected.columns.set_levels(selected.columns.levels[0] + '_' + source + '_' + omics_df_name, level=0)
         else:
-            selected = selected.add_suffix('_' + omics_df_name)
+            selected = selected.add_suffix('_' + source + '_' + omics_df_name)
 
         selected.columns.name = "Name"
         return selected
