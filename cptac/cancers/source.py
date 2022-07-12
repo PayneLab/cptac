@@ -52,14 +52,14 @@ class Source:
             else:
                 # print loading message
                 loading_msg = f"Loading {df_type} dataframe for {self.source} {self.cancer_type} (v{self.get_version()})"
-                print(loading_msg, end='\r')
-                
+                #print(loading_msg, end='\r')
+
                 # call the load function for that df type
                 self.load_functions[df_type]()
 
                 # Call function from dataframe_tools.py to standardize the names of the index and column axes
-                if self.source in ['awg', 'awgconf']:
-                    standardize_axes_names(self._data[df_type])
+#                 if self.source in ['awg', 'awgconf']:
+#                     standardize_axes_names(self._data[df_type])
 
                 # Erase the loading message
                 print(' ' * len(loading_msg), end='\r')
@@ -69,7 +69,14 @@ class Source:
 
     def save_df(self, df_type, df):
         # sort rows and columns and perform any other formatting needed
+
         self._data[df_type] = df
+
+        # standardize axis names (this may also mean we could clear up a lot of pandas renaming operations to slim the code a little)
+        # It looks to be called in the get_df function, but I think it makes more sense to just do that here
+        # the get_df only did this in awg and awgconf, but I think all sources do this
+        #if self.source in ['awg', 'awgconf']:
+        standardize_axes_names(self._data[df_type])
 
 
     def set_version(self, version):
