@@ -65,6 +65,8 @@ class AwgUcec(Source):
             'acetylproteomics'        : self.load_acetylproteomics,
             'clinical'                : self.load_clinical,
             'CNV'                     : self.load_CNV,
+            'derived_molecular'       : self.load_derived_molecular,
+            'experimental_design'     : self.load_experimental_design,
             'miRNA'                   : self.load_miRNA,
             'phosphoproteomics_gene'  : self.load_phosphoproteomics_gene,
             'phosphoproteomics'       : self.load_phosphoproteomics,
@@ -127,25 +129,6 @@ class AwgUcec(Source):
                 'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm',   'Num_full_term_pregnancies']]
             clinical = clinical.rename(columns={"Proteomics_Participant_ID":"Patient_ID"})
 
-            # Save other datatypes
-            derived_molecular = all_clinical.drop(['Proteomics_Participant_ID', 'Case_excluded',  'Proteomics_Tumor_Normal',  'Country',
-                'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity',
-                'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Clin_Stage_Dist_Mets-cM', 'Path_Stage_Dist_Mets-pM',
-                'tumor_Stage-Pathological', 'FIGO_stage', 'LVSI', 'BMI', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site',
-                'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm',   'Num_full_term_pregnancies',
-                'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs',
-                'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'WXS_tumor_filename',
-                'WXS_tumor_UUID', 'WGS_normal_sample_type', 'WGS_normal_UUID', 'WGS_tumor_sample_type', 'WGS_tumor_UUID', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID',
-                'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'], axis=1)
-            derived_molecular = derived_molecular.rename(columns={"JAK1_Mutation":"JAK1_Mutation_status"})
-            self._data["derived_molecular"] = derived_molecular
-
-            experimental_design = all_clinical[['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs',
-                'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'WXS_tumor_filename',
-                'WXS_tumor_UUID', 'WGS_normal_sample_type', 'WGS_normal_UUID', 'WGS_tumor_sample_type', 'WGS_tumor_UUID', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID',
-                'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']]
-            self._data["experimental_design"] = experimental_design
-
             # Create list of samples that were excluded due to poor sample quality, etc.
             # Other load functions will need to drop these cases before being saved
             cases_to_drop = clinical[clinical["Case_excluded"] == "Yes"].index.union(clinical[clinical["Case_excluded"] == "Yes"]["Patient_ID"])
@@ -175,38 +158,44 @@ class AwgUcec(Source):
             # We no longer need the Patient_ID column in the clinical dataframe, because it's in the index. So we'll remove it.
             clinical = clinical.drop(columns="Patient_ID")
 
-            # save df in self._data
+            # Save other datatypes in clinical file while we are at it
+            derived_molecular = all_clinical.drop(['Proteomics_Participant_ID', 'Case_excluded',  'Proteomics_Tumor_Normal',  'Country',
+                'Histologic_Grade_FIGO', 'Myometrial_invasion_Specify', 'Histologic_type', 'Treatment_naive', 'Tumor_purity',
+                'Path_Stage_Primary_Tumor-pT', 'Path_Stage_Reg_Lymph_Nodes-pN', 'Clin_Stage_Dist_Mets-cM', 'Path_Stage_Dist_Mets-pM',
+                'tumor_Stage-Pathological', 'FIGO_stage', 'LVSI', 'BMI', 'Age', 'Diabetes', 'Race', 'Ethnicity', 'Gender', 'Tumor_Site',
+                'Tumor_Site_Other', 'Tumor_Focality', 'Tumor_Size_cm',   'Num_full_term_pregnancies',
+                'Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs',
+                'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'WXS_tumor_filename',
+                'WXS_tumor_UUID', 'WGS_normal_sample_type', 'WGS_normal_UUID', 'WGS_tumor_sample_type', 'WGS_tumor_UUID', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID',
+                'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality'], axis=1)
+            derived_molecular = derived_molecular.rename(columns={"JAK1_Mutation":"JAK1_Mutation_status"})
+            derived_molecular = derived_molecular.drop(index=cases_to_drop, errors="ignore")
+            derived_molecular = reindex_dataframe(derived_molecular, sample_id_to_patient_id_map, "Patient_ID", False)
+            self.save_df("derived_molecular", derived_molecular)
+
+            experimental_design = all_clinical[['Proteomics_TMT_batch', 'Proteomics_TMT_plex', 'Proteomics_TMT_channel', 'Proteomics_Parent_Sample_IDs',
+                'Proteomics_Aliquot_ID', 'Proteomics_OCT', 'WXS_normal_sample_type', 'WXS_normal_filename', 'WXS_normal_UUID', 'WXS_tumor_sample_type', 'WXS_tumor_filename',
+                'WXS_tumor_UUID', 'WGS_normal_sample_type', 'WGS_normal_UUID', 'WGS_tumor_sample_type', 'WGS_tumor_UUID', 'RNAseq_R1_sample_type', 'RNAseq_R1_filename', 'RNAseq_R1_UUID',
+                'RNAseq_R2_sample_type', 'RNAseq_R2_filename', 'RNAseq_R2_UUID', 'miRNAseq_sample_type', 'miRNAseq_UUID', 'Methylation_available', 'Methylation_quality']]
+
+            experimental_design = experimental_design.drop(index=cases_to_drop, errors="ignore")
+            experimental_design = reindex_dataframe(experimental_design, sample_id_to_patient_id_map, "Patient_ID", False)
+            self.save_df("experimental_design", experimental_design)
+
+            # finally, save clinical in self._data
             self.save_df(df_type, clinical)
 
 
     def load_derived_molecular(self):
-        df_type = 'derived_molecular'
-        if df_type not in self._data:
+        if "derived_molecular" not in self._data:
             # This information is contained in the clinical table
             self.load_clinical()
-            df = self._data[df_type]
-            # Clinical contains information on which cases need to be excluded
-            excluded_cases = self._helper_tables["excluded_cases"]
-            df = df.drop(index=excluded_cases, errors="ignore")
-            # Change index from sample ids to patient ids
-            sample_id_to_patient_id_map = self._helper_tables["sample_id_to_patient_id_map"]
-            df = reindex_dataframe(df, sample_id_to_patient_id_map, "Patient_ID", False)
-            self._data[df_type] = df
 
 
     def load_experimental_design(self):
-        df_type = 'experimental_design'
-        if df_type not in self._data:
-            # this data is found in the clinical file
+        if "experimental_design" not in self._data:
+            # This information is contained in the clinical table
             self.load_clinical()
-            df = self._data[df_type]
-            # Clinical contains information on which cases need to be excluded
-            excluded_cases = self._helper_tables["excluded_cases"]
-            df = df.drop(index=excluded_cases, errors="ignore")
-            # Change index from sample ids to patient ids
-            sample_id_to_patient_id_map = self._helper_tables["sample_id_to_patient_id_map"]
-            df = reindex_dataframe(df, sample_id_to_patient_id_map, "Patient_ID", False)
-            self._data[df_type] = df
 
 
     def load_CNV(self):
