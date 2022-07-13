@@ -662,7 +662,7 @@ class Cancer:
 
             if tissue_type == "normal":
                 df = self._normal_only(df)
-            else if tissue_type == "tumor":
+            elif tissue_type == "tumor":
                 df = self._tumor_only(df)
 
             return df
