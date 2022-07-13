@@ -78,7 +78,7 @@ class AwgPdac(Source):
             df.columns.name = "Name"
             df["Sample_Tumor_Normal"] = "Tumor"
 
-            # finally, save clinical in self._data
+            # save df in self._data
             self.save_df(df_type, df)
 
 
