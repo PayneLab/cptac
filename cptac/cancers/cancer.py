@@ -651,7 +651,7 @@ class Cancer:
                     error_msg = error_msg + '\n\t' + valid_name
             raise InvalidParameterError(error_msg)
 
-    def _get_dataframe(self, name, source, tissue_type, imputed=False):
+    def _get_dataframe(self, name, source, tissue_type="both", imputed=False):
         """Check that a given dataframe from a given source exists, and return a copy if it does."""
 
         if imputed:
