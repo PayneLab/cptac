@@ -30,7 +30,7 @@ class Source:
         self.set_version(version)
         self.valid_versions = valid_versions
         
-    def get_df(self, df_type, tissue_type="both"):
+    def get_df(self, df_type):
         """Get the dataframe of the specified data type
         I'm thinking about having tissue_type do its thing here. If all dfs are parsed to have normal samples clearly identified,
         then this function can return the whole data frame for "both", or a subset of it for "tumor" or "normal"
