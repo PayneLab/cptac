@@ -69,275 +69,166 @@ class AwgLuad(Source):
                 "annotation"        : "luad-v3.1-sample-annotation.csv.gz"},
         }
 
-        super().__init__(cancer_type="luad", version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
+        self.load_functions = {
+            'clinical'                : self.load_clinical,
+            'CNV'                     : self.load_CNV,
+            'derived_molecular'       : self.load_derived_molecular,
+            'followup'                : self.load_followup,
+            'circular_RNA'            : self.load_circular_RNA,
+            'lincRNA'                 : self.load_lincRNA,
+            'acetylproteomics'        : self.load_acetylproteomics,
+            'experimental_design'     : self.load_experimental_design,
+            'gene_fusion'             : self.load_gene_fusion,
+            'miRNA'                   : self.load_miRNA,
+            'phosphoproteomics'       : self.load_phosphoproteomics,
+            'proteomics'              : self.load_proteomics,
+            'somatic_mutation'        : self.load_somatic_mutation,
+            'transcriptomics'         : self.load_transcriptomics,
+        }
 
-        # Load the data into dataframes in the self._data dict
-        loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
-        for file_path in self._data_files_paths: # Loops through files variable
+        if version == "latest":
+            version = sorted(self.valid_versions)[-1]
 
-            # Print a loading message. We add a dot every time, so the user knows it's not frozen.
-            loading_msg = loading_msg + "."
-            print(loading_msg, end='\r')
-
-            path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-            file_name = path_elements[-1] # The last element will be the name of the file
-            df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
-
-            if file_name == "luad-v3.0-rnaseq-gene-fusions.csv.gz":
-                df = pd.read_csv(file_path)
-                df = df.rename(columns={"Sample.ID": "Patient_ID"})
-                df = df.set_index("Patient_ID")
-
-                self._data["gene_fusion"] = df
-
-            elif file_name == "luad-v3.0-wxs-somatic.luad.v1.4.20190517.maf.gz":
-                df = pd.read_csv(file_path, sep='\t')
-                df = df.rename(columns={"Sample.ID": "Patient_ID"})
-
-                df = df[['Patient_ID','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
-                df = df.rename(columns={
-                    "Hugo_Symbol":"Gene",
-                    "Variant_Classification":"Mutation",
-                    "HGVSp_Short":"Location"}) # Rename the columns we want to keep to the appropriate names
-
-                df = df.sort_values(by=["Patient_ID", "Gene"])
-                df = df.set_index("Patient_ID")
-
-                self._data["somatic_mutation"] = df
-
-            elif file_name == "luad-v3.1-acetylome-ratio-norm-NArm.gct.gz":
-                df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
-                gene_filter = df['geneSymbol'] != 'na' #Drop rows of metadata
-                df = df[gene_filter]
-
-                # Prepare some columns we'll need later for the multiindex
-                df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "", regex=True) # Get rid of all lowercase delimeters and whitespace in the sites
-                df = df.rename(columns={
-                    "geneSymbol": "Name",
-                    "variableSites": "Site",
-                    "sequence": "Peptide", # We take this instead of sequenceVML, to match the other datasets' format
-                    "accession_numbers": "Database_ID" # We take all accession numbers they have, instead of the singular accession_number column
-                    })
+        super().__init__(cancer_type="luad", source='awg', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
 
-                # Some rows have at least one localized acetylation site, but also have other acetylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
-                localization = df["accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA"].str.split("_", expand=True)
-                unlocalized_to_drop = localization.index[~localization[3].eq(localization[4]) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split localization data column is number of acetylation sites detected, and column 4 is number of acetylation sites localized, so if the two values aren't equal, the row has at least one unlocalized site
-                df = df.drop(index=unlocalized_to_drop)
+    def load_gene_fusion(self):
+        df_type = 'gene_fusion'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
 
-                # Give it a multiindex
-                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])                
+            df = pd.read_csv(file_path)
+            df = df.rename(columns={"Sample.ID": "Patient_ID"})
+            df = df.set_index("Patient_ID")
 
-                cols_to_drop = [
-                    "id",
-                    "id.description",
-                    "numColumnsVMsiteObserved",
-                    "bestScore",
-                    "bestDeltaForwardReverseScore",
-                    "Best_scoreVML",
-                    "sequenceVML",
-                    "accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA",
-                    "protein_mw",
-                    "species",
-                    "speciesMulti",
-                    "orfCategory",
-                    "accession_number",
-                    "protein_group_num",
-                    "entry_name",
-                    "GeneSymbol",
-                    ]
-                df = df.drop(columns=cols_to_drop)
+            # save df in self._data
+            self.save_df(df_type, df)
 
-                df = df.apply(pd.to_numeric)
-                df = df.sort_index()
-                df = df.transpose()
-                df = df.sort_index()
-                df.index.name="Patient_ID"
-                
-                self._data["acetylproteomics"] = df
 
-            elif file_name == "luad-v3.1-mirna-mature-tpm-log2.gct.gz":
-                df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
+    def load_somatic_mutation(self):
+        df_type = 'somatic_mutation'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
 
-                # Filter out metadata rows
-                gene_filter = df["Name"] != 'na' 
-                df = df[gene_filter]
+            df = pd.read_csv(file_path, sep='\t')
+            df = df.rename(columns={"Sample.ID": "Patient_ID"})
 
-                df = df.drop(columns=['id', 'Alias', 'Name', 'Derives_from', 'Quantified.in.Percent.Samples'])
-                df = df.set_index("ID")
-                df = df.apply(pd.to_numeric)
-                df = df.sort_index()
-                df = df.transpose()
-                df = df.sort_index()
+            df = df[['Patient_ID','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
+            df = df.rename(columns={
+                "Hugo_Symbol":"Gene",
+                "Variant_Classification":"Mutation",
+                "HGVSp_Short":"Location"}) # Rename the columns we want to keep to the appropriate names
 
-                self._data["miRNA"] = df
+            df = df.sort_values(by=["Patient_ID", "Gene"])
+            df = df.set_index("Patient_ID")
 
-            elif file_name == "luad-v3.1-rnaseq-linc-uq-rpkm-log2-NArm.gct.gz":
-                df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
+            # save df in self._data
+            self.save_df(df_type, df)
 
-                # Filter out metadata rows
-                gene_filter = df["geneSymbol"] != 'na' 
-                df = df[gene_filter]
 
-                # Filter out just lincRNA. Current it has a bunch of other RNA types too. We'll worry about them later.
-                lincRNA_filter = df["gene_type"] == "lincRNA"
-                df = df[lincRNA_filter]
+    def load_miRNA(self):
+        df_type = 'miRNA'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
 
-                # Drop unneeded columns, set index, sort, transpose
-                df = df.drop(columns=["id", "gene_id", "gene_type", "length"])
-                df = df.rename(columns={"geneSymbol": "Name"})
-                df = df.set_index("Name")
-                df = df.apply(pd.to_numeric)
-                df = df.sort_index()
-                df = df.transpose()
-                df.index.name = "Patient_ID"
+            df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object)
 
-                self._data["lincRNA"] = df
+            # Filter out metadata rows
+            gene_filter = df["Name"] != 'na'
+            df = df[gene_filter]
 
-            elif file_name == "luad-v2.0-cnv-gene-LR.gct.gz" or file_name == "luad-v3.1-cnv-gene-LR.gct.gz":
-                df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
+            df = df.drop(columns=['id', 'Alias', 'Name', 'Derives_from', 'Quantified.in.Percent.Samples'])
+            df = df.set_index("ID")
+            df = df.apply(pd.to_numeric)
+            df = df.sort_index()
+            df = df.transpose()
+            df = df.sort_index()
 
-                # Filter out metadata rows
-                if self._version == "2.0":
-                    gene_filter = df['Description'] != 'na' 
+            # save df in self._data
+            self.save_df(df_type, df)
 
-                elif self._version in ["3.1", "3.1.1"]:
-                    gene_filter = df['geneSymbol'] != 'na' 
 
-                df = df[gene_filter]
+    def load_transcriptomics(self):
+        df_type = 'transcriptomics'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
 
-                # Drop non-quantitative columns
-                if self._version == "2.0":
-                    cols_to_drop = ["GeneID","Description"]
-                    
-                elif self._version in ["3.1", "3.1.1"]:
-                    cols_to_drop = ["id", "gene_id"]
+            df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
 
-                df = df.drop(columns=cols_to_drop)
+            # Filter out metadata rows
+            gene_filter = df['geneSymbol'] != 'na'
+            df = df[gene_filter]
 
-                # Set index
-                if self._version == "2.0":
-                    df = df.set_index("id")
+            df = df.set_index('geneSymbol')
+            cols_to_drop = ['id', 'gene_id', 'gene_type', 'length']
+            df = df.drop(columns = cols_to_drop)
 
-                elif self._version in ["3.1", "3.1.1"]:
-                    df = df.set_index("geneSymbol")
+            df = df.apply(pd.to_numeric)
+            df = df.sort_index()
+            df = df.transpose()
+            df.index.name = "Patient_ID"
+            df = df.sort_index()
 
-                df = df.apply(pd.to_numeric)
-                df = df.sort_index()
-                df = df.transpose()
+            # save df in self._data
+            self.save_df(df_type, df)
 
-                df = df.sort_index()
-                df.index.name="Patient_ID"
 
-                self._data["CNV"] = df
+    def load_proteomics(self):
+        df_type = 'proteomics'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
 
-            elif file_name == "luad-v2.0-phosphoproteome-ratio-norm-NArm.gct.gz" or file_name == "luad-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz":
-                df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
+            df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
 
-                # Drop rows of metadata
-                gene_filter = df['geneSymbol'] != 'na' 
-                df = df[gene_filter]
+            # Filter out rows of metadata
+            gene_filter = df['geneSymbol'] != 'na' 
+            df = df[gene_filter]
 
-                # Prepare some columns we'll need later for the multiindex
-                df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "", regex=True) # Get rid of all lowercase delimeters and whitespace in the sites
-                df = df.rename(columns={
-                    "geneSymbol": "Name",
-                    "variableSites": "Site",
-                    "sequence": "Peptide", # We take this instead of sequenceVML, to match the other datasets' format
-                    "accession_numbers": "Database_ID" # We take all accession numbers they have, instead of the singular accession_number column
-                    })
+            # Set multiindex
+            df = df.rename(columns={"GeneSymbol": "Name", 'accession_numbers': "Database_ID"})
+            df = df.set_index(["Name", "Database_ID"])
 
-                # Some rows have at least one localized phosphorylation site, but also have other phosphorylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
-                unlocalized_to_drop = df.index[~df['Best_numActualVMSites_sty'].eq(df['Best_numLocalizedVMsites_sty']) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split "id" column is number of phosphorylations detected, and column 4 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
-                df = df.drop(index=unlocalized_to_drop)
+            # Drop non-quantitative columns
+            if self.version == "2.0":
+                cols_to_drop = ['id', 'id.1', 'id.description', 'geneSymbol', 'numColumnsProteinObserved', 'numSpectraProteinObserved',
+                    'protein_mw', 'percentCoverage', 'numPepsUnique', 'scoreUnique', 'species', 'orfCategory', 'accession_number',
+                    'subgroupNum', 'entry_name']
+            elif self.version in ["3.1", "3.1.1"]:
+                cols_to_drop = ["id", "id.description", "geneSymbol", "numColumnsProteinObserved", "numSpectraProteinObserved",
+                    "protein_mw", "percentCoverage", "numPepsUnique", "scoreUnique", "species", "orfCategory", "accession_number",
+                    "subgroupNum", "entry_name"]
 
-                # Give it a multiindex
-                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])                
+            df = df.drop(columns=cols_to_drop)
 
-                # Drop non-quantitative columns
-                if self._version == "2.0":
-                    cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsVMsiteObserved', 'bestScore', 'bestDeltaForwardReverseScore',
-                        'Best_scoreVML', 'Best_numActualVMSites_sty', 'Best_numLocalizedVMsites_sty', 'sequenceVML',
-                        'accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA', 'protein_mw', 'species',
-                        'speciesMulti', 'orfCategory', 'accession_number', 'protein_group_num', 'entry_name', 'GeneSymbol']
-                elif self._version in ["3.1", "3.1.1"]:
-                    cols_to_drop = ["id", "id.description", "numColumnsVMsiteObserved", "bestScore", "bestDeltaForwardReverseScore",
-                        "Best_scoreVML", "Best_numActualVMSites_sty", "Best_numLocalizedVMsites_sty", "sequenceVML",
-                        "accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA", "protein_mw", "species",
-                        "speciesMulti", "orfCategory", "accession_number", "protein_group_num", "entry_name", "GeneSymbol"]
-                
-                df = df.drop(columns=cols_to_drop)
+            # Format table
+            df = df.apply(pd.to_numeric)
+            df = df.sort_index()
+            df = df.transpose()
+            df = df.sort_index()
+            df.index.name = "Patient_ID"
 
-                # Format table
-                df = df.apply(pd.to_numeric)
-                df = df.sort_index()
-                df = df.transpose()
-                df = df.sort_index()
-                df.index.name="Patient_ID"
+            # save df in self._data
+            self.save_df(df_type, df)
 
-                self._data["phosphoproteomics"] = df
 
-            elif file_name == "luad-v2.0-proteome-ratio-norm-NArm.gct.gz" or file_name == "luad-v3.1-proteome-ratio-norm-NArm.gct.gz":
-                df = pd.read_csv(file_path, skiprows=2, sep='\t', dtype=object)
+    def load_circular_RNA(self):
+        df_type = 'circular_RNA'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
 
-                # Filter out rows of metadata
-                gene_filter = df['geneSymbol'] != 'na' 
-                df = df[gene_filter]
-
-                # Set multiindex
-                df = df.rename(columns={"GeneSymbol": "Name", 'accession_numbers': "Database_ID"})
-                df = df.set_index(["Name", "Database_ID"])
-
-                # Drop non-quantitative columns
-                if self._version == "2.0":
-                    cols_to_drop = ['id', 'id.1', 'id.description', 'geneSymbol', 'numColumnsProteinObserved', 'numSpectraProteinObserved',
-                        'protein_mw', 'percentCoverage', 'numPepsUnique', 'scoreUnique', 'species', 'orfCategory', 'accession_number',
-                        'subgroupNum', 'entry_name']
-                elif self._version in ["3.1", "3.1.1"]:
-                    cols_to_drop = ["id", "id.description", "geneSymbol", "numColumnsProteinObserved", "numSpectraProteinObserved",
-                        "protein_mw", "percentCoverage", "numPepsUnique", "scoreUnique", "species", "orfCategory", "accession_number",
-                        "subgroupNum", "entry_name"]
-
-                df = df.drop(columns=cols_to_drop)
-
-                # Format table
-                df = df.apply(pd.to_numeric)
-                df = df.sort_index()
-                df = df.transpose()
-                df = df.sort_index()
-                df.index.name = "Patient_ID"
-
-                self._data["proteomics"] = df
-
-            elif file_name == "luad-v2.0-rnaseq-prot-uq-rpkm-log2-NArm-row-norm.gct.gz" or file_name == "luad-v3.1-rnaseq-prot-uq-rpkm-log2-NArm.gct.gz":
-                df = pd.read_csv(file_path, sep="\t", skiprows=2, dtype=object)
-
-                # Filter out metadata rows
-                gene_filter = df['geneSymbol'] != 'na'
-                df = df[gene_filter]
-
-                df = df.set_index('geneSymbol')
-                cols_to_drop = ['id', 'gene_id', 'gene_type', 'length']
-                df = df.drop(columns = cols_to_drop)
-
-                df = df.apply(pd.to_numeric)
-                df = df.sort_index()
-                df = df.transpose()
-                df = df.sort_index()
-                df.index.name = "Patient_ID"
-                df = df.sort_index()
-
-                self._data["transcriptomics"] = df
-
-            elif file_name == "luad-v3.0-rnaseq-circ-rna_parsed.tsv.gz" and self._version == "3.1.1":
+            if self.version in ["2.0", "3.1"]:
                 df = pd.read_csv(file_path, sep='\t', dtype={"spanning.reads": "int16"}, engine="c")
                 df = df.reset_index() # More memory efficient to do this here, rather than save with a range index when we parse the file it originally
                 df = df.pivot(index="Sample.ID", columns="geneID", values="spanning.reads")
                 df.index.name = "Patient_ID"
                 df = df.sort_index()
-                self._data['circular_RNA'] = df
-
-            elif file_name in ["luad-v2.0-rnaseq-circ-rna.csv.gz", "luad-v3.0-rnaseq-circ-rna.csv.gz"] and self._version in ["2.0", "3.1"]:
+            else:
                 df = pd.read_csv(file_path, sep=",")
 
                 junct_3_split = df['junction.3'].str.split(':', n=2, expand=True)
@@ -365,127 +256,322 @@ class AwgLuad(Source):
                 df = df.pivot(index="Sample.ID", columns="geneID")['spanning.reads']
                 df.index.name = "Patient_ID"
                 df = df.sort_index()
-                self._data['circular_RNA'] = df
 
-            elif file_name == "luad-v2.0-sample-annotation.csv.gz" or file_name == "luad-v3.1-sample-annotation.csv.gz":
-                df = pd.read_csv(file_path, sep=",")
-                
-                filter = df['QC.status'] == "QC.pass" # There are some samples that are internal references. IRs are used for scaling purposes, and don't belong to a single patient, so we want to drop them.
-                df = df[filter]
+            # save df in self._data
+            self.save_df(df_type, df)
 
-                df = df.drop(columns="Participant") # Get rid of the "Participant" column becuase the same information is stored in Sample.ID  which is formatted the way we want.
-                df = df.set_index("Sample.ID")
-                df.index.name="Patient_ID"
-                df = df.rename(columns={"Type":"Sample_Tumor_Normal"})
-                df["Sample_Tumor_Normal"] = df["Sample_Tumor_Normal"].replace(to_replace="NAT", value="Normal")
 
-                # Split the metadata into multiple dataframes
+    def load_followup(self):
+        df_type = 'followup'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+            df = pd.read_excel(file_path)
 
-                # Make experimental_design dataframe
-                if self._version == "2.0":
-                    experimental_design_cols = ['Experiment', 'Channel', 'QC.status']
-                elif self._version in ["3.1", "3.1.1"]:
-                    experimental_design_cols = ["Experiment", "Channel", "Aliquot", "QC.status"]
+            # Replace redundant values for "not reported" with NaN
+            nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Applicable',
+                'na', 'unknown', 'Not Performed', 'Unknown tumor status', 'Unknown',
+                'Unknown Tumor Status', 'Not specified']
 
-                experimental_design_df = df[experimental_design_cols]
-                experimental_design_df.insert(0, "Sample_Tumor_Normal", df["Sample_Tumor_Normal"].copy()) # This is useful in both tables
-                df = df.drop(columns=experimental_design_cols)
+            df = df.replace(nan_equivalents, np.nan)
 
-                # Make derived_molecular dataframe
-                if self._version == "2.0":
-                    derived_molecular_cols = ['TP53.mutation', 'KRAS.mutation', 'STK11.mutation', 'EGFR.mutation', 'KEAP1.mutation', 'RB1.mutation',
-                        'IL21R.mutation', 'EGFL6.mutation', 'LMO2.mutation', 'C10orf62.mutation', 'DKK3.mutation', 'BIRC6.mutation', 'TP53.mutation.status',
-                        'KRAS.mutation.status', 'STK11.mutation.status', 'EGFR.mutation.status', 'KEAP1.mutation.status', 'RB1.mutation.status', 'IL21R.mutation.status',
-                        'EGFL6.mutation.status', 'LMO2.mutation.status', 'C10orf62.mutation.status', 'DKK3.mutation.status', 'BIRC6.mutation.status',
-                        'Mutation.Signature.Activity.W1.COSMIC5', 'Mutation.Signature.Activity.W2.COSMIC4', 'Mutation.Signature.Activity.W3.COSMIC2', 'fusion.EML4-ALK']
+            # Replace redundant values for cause of death
+            disease_prog_equivalents = ['Progression of disease', 'Progression of disease ', 'Tumor', 'Disease progression',
+                'Progressive Disease', 'disease progression', 'disease progression ', 'main disease ']
 
-                elif self._version in ["3.1", "3.1.1"]:
-                    derived_molecular_cols = ["Smoking.Score.WGS", "Smoking.Signature.Fraction.WGS", "Dominant.Signature.WGS.notSmoking.50perc",
-                        "Dominant.Signature.Fraction.WGS.notSmoking", "DNP.GG.to.TT.or.CC.to.AA.Count.WGS", "NMF.consensus", "NMF.cluster.membership",
-                        "mRNA.Expression.Subtype.TCGA", "mRNA.stemness.index", "CIMP.status", "Tumor.Purity.byESTIMATE.RNAseq", "TSNet Purity", "ESTIMATEScore",
-                        "ESTIMATE ImmuneScore", "ESTIMATE StromalScore", "TP53.mutation", "KRAS.mutation", "STK11.mutation", "EGFR.mutation", "KEAP1.mutation",
-                        "RB1.mutation", "IL21R.mutation", "EGFL6.mutation", "LMO2.mutation", "C10orf62.mutation", "DKK3.mutation", "BIRC6.mutation",
-                        "BRAF.mutation", "ARAF.mutation", "ERBB2.mutation", "TP53.mutation.status", "KRAS.mutation.status", "STK11.mutation.status",
-                        "EGFR.mutation.status", "KEAP1.mutation.status", "RB1.mutation.status", "IL21R.mutation.status", "EGFL6.mutation.status", "LMO2.mutation.status",
-                        "C10orf62.mutation.status", "DKK3.mutation.status", "BIRC6.mutation.status", "BRAF.mutation.status", "ARAF.mutation.status",
-                        "ERBB2.mutation.status", "Total.Mutation.Count.WGS", "Mutation.Count.ExcludingINDELs.WGS", "Total.DNP.Count.WGS", "Number.somatic.mutations",
-                        "Mutation.Signature.Activity.W1.COSMIC5", "Mutation.Signature.Activity.W2.COSMIC4", "Mutation.Signature.Activity.W3.COSMIC2", "ALK.fusion",
-                        "ROS1.fusion", "RET.fusion", "Putative.driver.mutation"]
+            df['Cause of Death'] = df['Cause of Death'].replace(disease_prog_equivalents, 'Disease progression')
 
-                derived_molecular_df = df[derived_molecular_cols]
-                df = df.drop(columns = derived_molecular_cols)
-
-                self._data["clinical"] = df
-                self._data['experimental_design'] = experimental_design_df
-                self._data['derived_molecular'] = derived_molecular_df
-
-            elif file_name == 'LUAD_followup_9_12.xlsx' and self._version in ["3.1", "3.1.1"]:
-                df = pd.read_excel(file_path)
-
-                # Replace redundant values for "not reported" with NaN
-                nan_equivalents = ['Not Reported/ Unknown', 'Reported/ Unknown', 'Not Applicable',
-                    'na', 'unknown', 'Not Performed', 'Unknown tumor status', 'Unknown',
-                    'Unknown Tumor Status', 'Not specified']
-
-                df = df.replace(nan_equivalents, np.nan)
-
-                # Replace redundant values for cause of death
-                disease_prog_equivalents = ['Progression of disease', 'Progression of disease ', 'Tumor', 'Disease progression',
-                    'Progressive Disease', 'disease progression', 'disease progression ', 'main disease ']
-
-                df['Cause of Death'] = df['Cause of Death'].replace(disease_prog_equivalents, 'Disease progression')
-
-                # Rename, set, and sort by index
-                df = df.rename(columns={"Case ID": "Patient_ID"})
-                df = df.set_index("Patient_ID")
-                df = df.sort_index()
-
-                self._data["followup"] = df
-
-        print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
-        print(formatting_msg, end='\r')
-
-        # Get a union of all dataframes' indices, with duplicates removed
-        # Exclude the followup dataframe because it has samples from a different cohort that aren't included anywhere else in the dataset
-        master_index = unionize_indices(self._data, exclude="followup")
-
-        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        clinical = self._data["clinical"]
-        clinical = clinical.reindex(master_index)
-        self._data['clinical'] = clinical
-
-        # Drop samples C3N.00545 and C3N.00545.N from the dataset. They were excluded due to poor sample quality (see data freeze README; excluded in data freeze 3.0)
-        cases_to_drop = ["C3N.00545", "C3N.00545.N"]
-        for name in self._data.keys(): # Loop over the keys so we can alter the values without any issues
-            df = self._data[name]
-            df = df.drop(index=cases_to_drop, errors="ignore")
-            self._data[name] = df
-
-        # Replace periods with hyphens in all Patient_IDs
-        for name in self._data.keys(): # Loop over just the keys to avoid any issues that would come if we looped over the values while editing them
-            df = self._data[name]
-
-            # Make the index a column so we can edit it
-            df.index.name = "Patient_ID"
-            df = df.reset_index()
-            
-            # Replace all '.' with '-'
-            df["Patient_ID"] = df["Patient_ID"].str.replace(r"\.", "-", regex=True) 
-            df["Patient_ID"] = df["Patient_ID"].str.replace(r"-N$", ".N", regex=True) # If there's a "-N" at the end, it's part of the normal identifier, which we want to actually be ".N"
-            
-            # Set the index back to Patient_ID
+            # Rename, set, and sort by index
+            df = df.rename(columns={"Case ID": "Patient_ID"})
             df = df.set_index("Patient_ID")
+            df = df.sort_index()
 
-            self._data[name] = df
+            # save df in self._data
+            self.save_df(df_type, df)
 
-        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-        self._data = sort_all_rows(self._data)
 
-        # Call function from dataframe_tools.py to standardize the names of the index and column axes
-        self._data = standardize_axes_names(self._data)
+    def load_CNV(self):
+        df_type = 'CNV'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+            df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object)
 
-        print(" " * len(formatting_msg), end='\r') # Erase the formatting message
+            # Filter out metadata rows
+            if self.version == "2.0":
+                gene_filter = df['Description'] != 'na'
+            elif self.version in ["3.1", "3.1.1"]:
+                gene_filter = df['geneSymbol'] != 'na'
+            df = df[gene_filter]
+
+            # Drop non-quantitative columns
+            if self.version == "2.0":
+                cols_to_drop = ["GeneID","Description"]
+            elif self.version in ["3.1", "3.1.1"]:
+                cols_to_drop = ["id", "gene_id"]
+            df = df.drop(columns=cols_to_drop)
+
+            # Set index
+            if self.version == "2.0":
+                df = df.set_index("id")
+            elif self.version in ["3.1", "3.1.1"]:
+                df = df.set_index("geneSymbol")
+
+            df = df.apply(pd.to_numeric)
+            df = df.sort_index()
+            df = df.transpose()
+
+            df = df.sort_index()
+            df.index.name="Patient_ID"
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_lincRNA(self):
+        df_type = 'lincRNA'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object)
+
+            # Filter out metadata rows
+            gene_filter = df["geneSymbol"] != 'na' 
+            df = df[gene_filter]
+
+            # Filter out just lincRNA. Currently it has a bunch of other RNA types too. We'll worry about them later.
+            lincRNA_filter = df["gene_type"] == "lincRNA"
+            df = df[lincRNA_filter]
+
+            # Drop unneeded columns, set index, sort, transpose
+            df = df.drop(columns=["id", "gene_id", "gene_type", "length"])
+            df = df.rename(columns={"geneSymbol": "Name"})
+            df = df.set_index("Name")
+            df = df.apply(pd.to_numeric)
+            df = df.sort_index()
+            df = df.transpose()
+            df.index.name = "Patient_ID"
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_phosphoproteomics(self):
+        df_type = 'phosphoproteomics'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+            df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object)
+
+            # Drop rows of metadata
+            gene_filter = df['geneSymbol'] != 'na' 
+            df = df[gene_filter]
+
+            # Prepare some columns we'll need later for the multiindex
+            df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "", regex=True) # Get rid of all lowercase delimeters and whitespace in the sites
+            df = df.rename(columns={
+                "geneSymbol": "Name",
+                "variableSites": "Site",
+                "sequence": "Peptide", # We take this instead of sequenceVML, to match the other datasets' format
+                "accession_numbers": "Database_ID" # We take all accession numbers they have, instead of the singular accession_number column
+                })
+
+            # Some rows have at least one localized phosphorylation site, but also have other phosphorylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
+            unlocalized_to_drop = df.index[~df['Best_numActualVMSites_sty'].eq(df['Best_numLocalizedVMsites_sty']) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)] # Column 3 of the split "id" column is number of phosphorylations detected, and column 4 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
+            df = df.drop(index=unlocalized_to_drop)
+
+            # Give it a multiindex
+            df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])                
+
+            # Drop non-quantitative columns
+            if self.version == "2.0":
+                cols_to_drop = ['id', 'id.1', 'id.description', 'numColumnsVMsiteObserved', 'bestScore', 'bestDeltaForwardReverseScore',
+                    'Best_scoreVML', 'Best_numActualVMSites_sty', 'Best_numLocalizedVMsites_sty', 'sequenceVML',
+                    'accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA', 'protein_mw', 'species',
+                    'speciesMulti', 'orfCategory', 'accession_number', 'protein_group_num', 'entry_name', 'GeneSymbol']
+            elif self.version in ["3.1", "3.1.1"]:
+                cols_to_drop = ["id", "id.description", "numColumnsVMsiteObserved", "bestScore", "bestDeltaForwardReverseScore",
+                    "Best_scoreVML", "Best_numActualVMSites_sty", "Best_numLocalizedVMsites_sty", "sequenceVML",
+                    "accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA", "protein_mw", "species",
+                    "speciesMulti", "orfCategory", "accession_number", "protein_group_num", "entry_name", "GeneSymbol"]
+            df = df.drop(columns=cols_to_drop)
+
+            # Format table
+            df = df.apply(pd.to_numeric)
+            df = df.sort_index()
+            df = df.transpose()
+            df = df.sort_index()
+            df.index.name="Patient_ID"
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_acetylproteomics(self):
+        df_type = 'acetylproteomics'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+            df = pd.read_csv(file_path, sep='\t', skiprows=2, dtype=object)
+
+            #Drop rows of metadata
+            gene_filter = df['geneSymbol'] != 'na'
+            df = df[gene_filter]
+
+            # Prepare some columns we'll need later for the multiindex
+            df["variableSites"] = df["variableSites"].str.replace(r"[a-z\s]", "", regex=True) # Get rid of all lowercase delimeters and whitespace in the sites
+            df = df.rename(columns={
+                "geneSymbol": "Name",
+                "variableSites": "Site",
+                "sequence": "Peptide", # We take this instead of sequenceVML, to match the other datasets' format
+                "accession_numbers": "Database_ID" # We take all accession numbers they have, instead of the singular accession_number column
+                })
+
+            # Some rows have at least one localized acetylation site, but also have other acetylations that aren't localized.
+            # We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates,
+            # because we only preserve information about the localized sites in a given row.
+            # However, if the localized sites aren't duplicated in another row, we'll keep the row.
+            localization = df["accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA"].str.split("_", expand=True)
+            # Column 3 of the split localization data column is number of acetylation sites detected,
+            # and column 4 is number of acetylation sites localized, so if the two values aren't equal,
+            # the row has at least one unlocalized site
+            unlocalized_to_drop = localization.index[~localization[3].eq(localization[4]) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)]
+            df = df.drop(index=unlocalized_to_drop)
+
+            # Give it a multiindex
+            df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])                
+
+            cols_to_drop = [
+                "id",
+                "id.description",
+                "numColumnsVMsiteObserved",
+                "bestScore",
+                "bestDeltaForwardReverseScore",
+                "Best_scoreVML",
+                "sequenceVML",
+                "accessionNumber_VMsites_numVMsitesPresent_numVMsitesLocalizedBest_earliestVMsiteAA_latestVMsiteAA",
+                "protein_mw",
+                "species",
+                "speciesMulti",
+                "orfCategory",
+                "accession_number",
+                "protein_group_num",
+                "entry_name",
+                "GeneSymbol",
+                ]
+            df = df.drop(columns=cols_to_drop)
+
+            df = df.apply(pd.to_numeric)
+            df = df.sort_index()
+            df = df.transpose()
+            df = df.sort_index()
+            df.index.name="Patient_ID"
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_annotation(self):
+        df_type = 'annotation'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+            df = pd.read_csv(file_path, sep=',')
+
+            # There are some samples that are internal references. IRs are used for scaling purposes, and don't belong to a single patient, so we want to drop them.
+            filter = df['QC.status'] == "QC.pass"
+            df = df[filter]
+
+            # Get rid of the "Participant" column becuase the same information is stored in Sample.ID  which is formatted the way we want.
+            df = df.drop(columns="Participant")
+            df = df.set_index("Sample.ID")
+            df.index.name="Patient_ID"
+            df = df.rename(columns={"Type":"Sample_Tumor_Normal"})
+            df["Sample_Tumor_Normal"] = df["Sample_Tumor_Normal"].replace(to_replace="NAT", value="Normal")
+
+            # Split the metadata into multiple dataframes
+
+            # Make experimental_design dataframe
+            if self.version == "2.0":
+                experimental_design_cols = ['Experiment', 'Channel', 'QC.status']
+            elif self.version in ["3.1", "3.1.1"]:
+                experimental_design_cols = ["Experiment", "Channel", "Aliquot", "QC.status"]
+
+            experimental_design_df = df[experimental_design_cols]
+            experimental_design_df.insert(0, "Sample_Tumor_Normal", df["Sample_Tumor_Normal"].copy()) # This is useful in both tables
+            df = df.drop(columns=experimental_design_cols)
+
+            # Make derived_molecular dataframe
+            if self.version == "2.0":
+                derived_molecular_cols = ['TP53.mutation', 'KRAS.mutation', 'STK11.mutation', 'EGFR.mutation', 'KEAP1.mutation', 'RB1.mutation',
+                    'IL21R.mutation', 'EGFL6.mutation', 'LMO2.mutation', 'C10orf62.mutation', 'DKK3.mutation', 'BIRC6.mutation', 'TP53.mutation.status',
+                    'KRAS.mutation.status', 'STK11.mutation.status', 'EGFR.mutation.status', 'KEAP1.mutation.status', 'RB1.mutation.status', 'IL21R.mutation.status',
+                    'EGFL6.mutation.status', 'LMO2.mutation.status', 'C10orf62.mutation.status', 'DKK3.mutation.status', 'BIRC6.mutation.status',
+                    'Mutation.Signature.Activity.W1.COSMIC5', 'Mutation.Signature.Activity.W2.COSMIC4', 'Mutation.Signature.Activity.W3.COSMIC2', 'fusion.EML4-ALK']
+
+            elif self.version in ["3.1", "3.1.1"]:
+                derived_molecular_cols = ["Smoking.Score.WGS", "Smoking.Signature.Fraction.WGS", "Dominant.Signature.WGS.notSmoking.50perc",
+                    "Dominant.Signature.Fraction.WGS.notSmoking", "DNP.GG.to.TT.or.CC.to.AA.Count.WGS", "NMF.consensus", "NMF.cluster.membership",
+                    "mRNA.Expression.Subtype.TCGA", "mRNA.stemness.index", "CIMP.status", "Tumor.Purity.byESTIMATE.RNAseq", "TSNet Purity", "ESTIMATEScore",
+                    "ESTIMATE ImmuneScore", "ESTIMATE StromalScore", "TP53.mutation", "KRAS.mutation", "STK11.mutation", "EGFR.mutation", "KEAP1.mutation",
+                    "RB1.mutation", "IL21R.mutation", "EGFL6.mutation", "LMO2.mutation", "C10orf62.mutation", "DKK3.mutation", "BIRC6.mutation",
+                    "BRAF.mutation", "ARAF.mutation", "ERBB2.mutation", "TP53.mutation.status", "KRAS.mutation.status", "STK11.mutation.status",
+                    "EGFR.mutation.status", "KEAP1.mutation.status", "RB1.mutation.status", "IL21R.mutation.status", "EGFL6.mutation.status", "LMO2.mutation.status",
+                    "C10orf62.mutation.status", "DKK3.mutation.status", "BIRC6.mutation.status", "BRAF.mutation.status", "ARAF.mutation.status",
+                    "ERBB2.mutation.status", "Total.Mutation.Count.WGS", "Mutation.Count.ExcludingINDELs.WGS", "Total.DNP.Count.WGS", "Number.somatic.mutations",
+                    "Mutation.Signature.Activity.W1.COSMIC5", "Mutation.Signature.Activity.W2.COSMIC4", "Mutation.Signature.Activity.W3.COSMIC2", "ALK.fusion",
+                    "ROS1.fusion", "RET.fusion", "Putative.driver.mutation"]
+
+            derived_molecular_df = df[derived_molecular_cols]
+            df = df.drop(columns = derived_molecular_cols)
+
+            # save dfs in self._data
+            self.save_df("clinical", df)
+            self.save_df("experimental_design", experimental_design_df)
+            self.save_df("derived_molecular", derived_molecular_df)
+
+
+    # load_annotation takes care of the data for these three datatypes
+    def load_clinical(self):
+        if 'clinical' not in self._data:
+            self.load_annotation()
+
+    def load_experimental_design(self):
+        if 'experimental_design' not in self._data:
+            self.load_annotation()
+
+    def load_derived_molecular(self):
+        if 'derived_molecular' not in self._data:
+            self.load_annotation()
+
+
+    # Override the save_df function from source.py so we can do a few awg luad specific things
+    def save_df(self, datatype, df):
+        # Drop samples C3N.00545 and C3N.00545.N from the dataset. 
+        # They were excluded due to poor sample quality (see data freeze README; excluded in data freeze 3.0)
+        cases_to_drop = ["C3N.00545", "C3N.00545.N"]
+        df = df.drop(index=cases_to_drop, errors="ignore")
+        
+        # Replace periods with hyphens in all Patient_IDs
+        # Make the index a column so we can edit it
+        df.index.name = "Patient_ID"
+        df = df.reset_index()
+
+        # Replace all '.' with '-'
+        df["Patient_ID"] = df["Patient_ID"].str.replace(r"\.", "-", regex=True)
+        # If there's a "-N" at the end, it's part of the normal identifier, which we want to actually be ".N"
+        df["Patient_ID"] = df["Patient_ID"].str.replace(r"-N$", ".N", regex=True)
+
+        # Set the index back to Patient_ID
+        df = df.set_index("Patient_ID")
+        
+        self._data[datatype] = df
+        standardize_axes_names(self._data[datatype])
+        # TODO: We do want to sort the rows eventually
+        # Ideally by sample status, then alphabetically
+        #sort_all_rows(self._data[datatype])
+
 
     def how_to_cite(self):
         return super().how_to_cite(cancer_type='lung adenocarcinoma', pmid=32649874)
