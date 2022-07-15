@@ -79,7 +79,7 @@ class Source:
         normal = df.loc[df.index.str.contains('\.[NC]$', regex = True, na = False)]
         # Tumor samples don't have any special endings except in the awg confirmatory cohorts for now
         tumor = df.loc[~ df.index.str.contains('\.[NC]$', regex = True, na = False)]
-        df = tumor.append(normal)
+        df = pd.concat([tumor, normal])
 
         self._data[df_type] = df
 
