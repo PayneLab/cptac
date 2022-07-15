@@ -562,15 +562,9 @@ class AwgLuad(Source):
         df["Patient_ID"] = df["Patient_ID"].str.replace(r"\.", "-", regex=True)
         # If there's a "-N" at the end, it's part of the normal identifier, which we want to actually be ".N"
         df["Patient_ID"] = df["Patient_ID"].str.replace(r"-N$", ".N", regex=True)
-
-        # Set the index back to Patient_ID
-        df = df.set_index("Patient_ID")
         
-        self._data[datatype] = df
-        standardize_axes_names(self._data[datatype])
-        # TODO: We do want to sort the rows eventually
-        # Ideally by sample status, then alphabetically
-        #sort_all_rows(self._data[datatype])
+        # Inherit the parent event
+        super.save_df(datatype, df)
 
 
     def how_to_cite(self):
