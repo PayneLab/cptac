@@ -29,7 +29,7 @@ class Source:
         self.load_functions = load_functions
         self.set_version(version)
         self.valid_versions = valid_versions
-        
+
     def get_df(self, df_type):
         """Get the dataframe of the specified data type
         I'm thinking about having tissue_type do its thing here. If all dfs are parsed to have normal samples clearly identified,
@@ -68,15 +68,20 @@ class Source:
 
 
     def save_df(self, df_type, df):
-        # sort rows and columns and perform any other formatting needed
+        """Perform final formatting so all cptac data is consistent, and save the dataframe in the self._data dictionary with df_type as the key"""
+
+        # set the index name to "Patient_ID" and the columns name to "Name"
+        standardize_axes_names(df)
+
+        # Sort the dataframe based off sample status (tumor or normal), then alphabetically
+        df = df.sort_index()
+        #'.N' for normal, '.C' for cored normals (in HNSCC)
+        normal = df.loc[df.index.str.contains('\.[NC]$', regex = True, na = False)]
+        # Tumor samples don't have any special endings except in the awg confirmatory cohorts for now
+        tumor = df.loc[~ df.index.str.contains('\.[NC]$', regex = True, na = False)]
+        df = tumor.append(normal)
 
         self._data[df_type] = df
-
-        # standardize axis names (this may also mean we could clear up a lot of pandas renaming operations to slim the code a little)
-        # It looks to be called in the get_df function, but I think it makes more sense to just do that here
-        # the get_df only did this in awg and awgconf, but I think all sources do this
-        #if self.source in ['awg', 'awgconf']:
-        standardize_axes_names(self._data[df_type])
 
 
     def set_version(self, version):
@@ -122,7 +127,7 @@ class Source:
     def locate_files(self, datatype):
         """Checks if the datatype is valid for the source's set version. 
         If the datatype is valid, it finds the file path, downloading the files if necessary
-        
+
         Parameters:
             datatype (str): The datatype to get all filepaths for.
 
