@@ -78,7 +78,7 @@ def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, equal_var=T
     '''Verify precondition that label column exists and has exactly 2 unique values'''
     label_values = df[label_column].unique()
     if len(label_values) != 2:
-        raise ValueError("Incorrectly Formatted Dataframe! Label column must have exactly 2 unique values.")
+        raise InvalidParameterError("Incorrectly Formatted Dataframe! Label column must have exactly 2 unique values.")
 
     '''Partition dataframe into two sets, one for each of the two unique values from the label column'''
     partition1 = df.loc[df[label_column] == label_values[0]]
