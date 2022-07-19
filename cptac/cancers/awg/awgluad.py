@@ -474,7 +474,7 @@ class AwgLuad(Source):
 
     def load_annotation(self):
         df_type = 'annotation'
-        if df_type not in self._data:
+        if 'clinical' not in self._data:
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
             df = pd.read_csv(file_path, sep=',')
