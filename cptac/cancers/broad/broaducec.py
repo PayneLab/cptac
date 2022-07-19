@@ -107,7 +107,6 @@ class BroadUcec(Source):
             
             # Add gene names to transcriptomic data
             self.load_mapping()
-            df = self._data["transcriptomics"] 
             broad_gene_names = self._helper_tables["broad_gene_names"]
             broad_dict = self._helper_tables["broad_key"]
             mapping_df = self._helper_tables["map_ids"]
