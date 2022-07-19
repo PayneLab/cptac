@@ -127,7 +127,7 @@ class UmichCoad(Source):
                    'RefInt_ColonRef21', 'RefInt_ColonRef22-1']
             df = df.drop(drop_cols, axis='index')
             
-            if self._version == "1.1":
+            if self.version == "1.1":
                 self.load_mapping()
                 mapping_dict = self._helper_tables["map_ids"]
 
@@ -169,7 +169,7 @@ class UmichCoad(Source):
                    'RefInt_ColonRef21', 'RefInt_ColonRef22-1']
             df = df.drop(drop_cols, axis='index')
 
-            if self._version == "1.1":
+            if self.version == "1.1":
                 self.load_mapping()
                 mapping_dict = self._helper_tables["map_ids"]
 

@@ -114,7 +114,7 @@ class UmichOv(Source):
             df = df.subtract(ref_intensities, axis="columns")#Subtract reference intensities from all the values (get ratios)
             df = df.iloc[1:,:] # drop ReferenceIntensity row
             
-            if self._version == "1.1":         
+            if self.version == "1.1":
                 # Get dictionary with aliquots as keys and patient IDs as values
                 self.load_mapping()
                 mapping_dict = self._helper_tables["map_ids"]
@@ -146,7 +146,7 @@ class UmichOv(Source):
             df.index.name = 'Patient_ID'
             df = df.loc[df.index[~ df.index.str.contains('JHU', regex = True)]] # drop ref intensity and quality control
             
-            if self._version == "1.1":         
+            if self.version == "1.1":
                 # Get dictionary with aliquots as keys and patient IDs as values
                 self.load_mapping()
                 mapping_dict = self._helper_tables["map_ids"]

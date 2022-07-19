@@ -148,7 +148,7 @@ class UmichBrca(Source):
             # Drop quality control and ref intensity cols
             df = df.drop(drop_cols, axis = 'index')
             
-            if self._version == "1.0":
+            if self.version == "1.0":
                 self.load_mapping()
                 not_tumor = self._helper_tables["not_tumor"]
                 replicate_list = self._helper_tables["replicate_list"]
@@ -189,7 +189,7 @@ class UmichBrca(Source):
                'RefInt_Pool17']                
             df = df.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
             
-            if self._version == "1.0":
+            if self.version == "1.0":
                 self.load_mapping()
                 not_tumor = self._helper_tables["not_tumor"]
                 replicate_list = self._helper_tables["replicate_list"]
