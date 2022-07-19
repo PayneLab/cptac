@@ -63,7 +63,7 @@ class AwgLscc(Source):
                 "annotation"        : "lscc-v3.2-sample-annotation.csv.gz",
                 "CNV"               : "lscc-v3.2-gene-level-cnv-gistic2-all_data_by_genes.gct.gz",
                 "somatic_mutation"  : "lscc-v3.2-mutsig-2cv-umich-v2-lscc-poncptac3-lscc-v3beta.final-analysis-set.maf.gz",
-                "ubiquitinomics"    : "lscc-v3.2-ubiquitylome-ratio-norm-NArm.gct.gz",
+                "ubiquitylomics"    : "lscc-v3.2-ubiquitylome-ratio-norm-NArm.gct.gz",
                 "circular_RNA"      : "lscc-v3.2-circular-rna-rsem-uq-log2.gct.gz"},
             "3.2.1": {
                 "acetylproteomics"  : "lscc-v3.2-acetylome-ratio-norm-NArm.gct.gz",
@@ -76,7 +76,7 @@ class AwgLscc(Source):
                 "proteomics"        : "lscc-v3.2-proteome-ratio-norm-NArm.gct.gz",
                 "transcriptomics"   : "lscc-v3.2-rnaseq-uq-fpkm-log2-NArm.gct.gz",
                 "annotation"        : "lscc-v3.2-sample-annotation.csv.gz",
-                "ubiquitinomics"    : "lscc-v3.2-ubiquitylome-ratio-norm-NArm.gct.gz"},
+                "ubiquitylomics"    : "lscc-v3.2-ubiquitylome-ratio-norm-NArm.gct.gz"},
             "3.3": {
                 "somatic_mutation"  : "lscc-v3.2-mutsig-2cv-umich-v2-lscc-poncptac3-lscc-v3beta.final-analysis-set.maf.gz",
                 "gene_fusion"       : "lscc-v3.2-cptac3-lscc-rna-seq-fusion-v2.2-y2.all-20190807.txt.gz",
@@ -89,7 +89,7 @@ class AwgLscc(Source):
                 "proteomics"        : "lscc-v3.3-public-proteome-ratio-norm-NArm.gct.gz",
                 "transcriptomics"   : "lscc-v3.3-public-rnaseq-uq-fpkm-log2-NArm.gct.gz",
                 "annotation"        : "lscc-v3.3-public-sample-annotation.csv.gz",
-                "ubiquitinomics"    : "lscc-v3.3-public-ubiquitylome-batch-corrected-ratio-norm-NArm.gct.gz"},
+                "ubiquitylomics"    : "lscc-v3.3-public-ubiquitylome-batch-corrected-ratio-norm-NArm.gct.gz"},
         }
 
         self.load_functions = {
@@ -98,7 +98,7 @@ class AwgLscc(Source):
             'derived_molecular'       : self.load_derived_molecular,
             'experimental_design'     : self.load_experimental_design,
             'circular_RNA'            : self.load_circular_RNA,
-            'ubiquitinomics'          : self.load_ubiquitinomics,
+            'ubiquitylomics'          : self.load_ubiquitylomics,
             'acetylproteomics'        : self.load_acetylproteomics,
             'gene_fusion'             : self.load_gene_fusion,
             'miRNA'                   : self.load_miRNA,
@@ -279,8 +279,8 @@ class AwgLscc(Source):
             self.save_df(df_type, df)
 
 
-    def load_ubiquitinomics(self):
-        df_type = 'ubiquitinomics'
+    def load_ubiquitylomics(self):
+        df_type = 'ubiquitylomics'
         if df_type not in self._data:
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
