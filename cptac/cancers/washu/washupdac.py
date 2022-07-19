@@ -78,7 +78,7 @@ class WashuPdac(Source):
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
         if df_type not in self._data:
-            file_path_list = self.perform_initial_checks(df_type)
+            file_path_list = self.locate_files(df_type)
             # loop over list of file paths
             for file_path in file_path_list:
                 path_elements = file_path.split(os.sep) # Get a list of the levels of the path
@@ -116,7 +116,7 @@ class WashuPdac(Source):
     def load_somatic_mutation(self):
         df_type = 'somatic_mutation'
         if df_type not in self._data:
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
 
             df = pd.read_csv(file_path, sep='\t')    
             # Rename the columns we want to keep to the appropriate names
@@ -142,7 +142,7 @@ class WashuPdac(Source):
     def load_precursor_miRNA(self):
         df_type = 'precursor_miRNA'
         if df_type not in self._data:
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
 
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
             df = df.transpose()
@@ -162,7 +162,7 @@ class WashuPdac(Source):
     def load_mature_miRNA(self):
         df_type = 'mature_miRNA'
         if df_type not in self._data:
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias', 'Derives_from'])
             df = df.transpose()
@@ -182,7 +182,7 @@ class WashuPdac(Source):
     def load_total_mRNA(self):
         df_type = 'total_miRNA'
         if df_type not in self._data:
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
             df = df.transpose()
@@ -202,7 +202,7 @@ class WashuPdac(Source):
     def load_xcell(self):
         df_type = 'xcell'
         if df_type not in self._data:
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
         
             df = pd.read_csv(file_path, sep = '\t', index_col = 0) 
             df = df.transpose()
@@ -216,7 +216,7 @@ class WashuPdac(Source):
     def load_cibersort(self):
         df_type = 'cibersort'
         if df_type not in self._data:
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
 
             df = pd.read_csv(file_path, sep = '\t', index_col = 0) 
             df.index.name = 'Patient_ID'
@@ -229,7 +229,7 @@ class WashuPdac(Source):
     def load_mapping(self):
         df_type = 'mapping'
         if "CNV_gene_ids" not in self._helper_tables:
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
 
             df = read_gtf(file_path)
             df = df[["gene_name","gene_id"]]
@@ -241,7 +241,7 @@ class WashuPdac(Source):
     def load_CNV(self):
         df_type = 'CNV'
         if df_type not in self._data:
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
 
             df = pd.read_csv(file_path, sep="\t")
             df = df.rename(columns={"Gene": "Name"})
@@ -262,7 +262,7 @@ class WashuPdac(Source):
     def load_tumor_purity(self):
         df_type = 'tumor_purity'
         if df_type not in self._data:
-            file_path = self.perform_initial_checks(df_type)
+            file_path = self.locate_files(df_type)
         
             df = pd.read_csv(file_path, sep = "\t", na_values = 'NA')
             df.Sample_ID = df.Sample_ID.str.replace(r'-T', '', regex=True) # only tumor samples in file
@@ -277,7 +277,7 @@ class WashuPdac(Source):
     def load_readme(self):
         df_type = 'readme'
         if not self._readme_files:
-            file_path_list = self.perform_initial_checks(df_type)
+            file_path_list = self.locate_files(df_type)
             # loop over list of file paths
             for file_path in file_path_list:
                 path_elements = file_path.split(os.sep) # Get a list of the levels of the path
