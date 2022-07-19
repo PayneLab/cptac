@@ -475,8 +475,8 @@ class AwgLscc(Source):
 
         #These are the columns for the experimental_design dataframe
         experimental_design_cols = ['Experiment', 'Channel', 'QC.status']
-        if self.version != "1.0":
-            experimental_design_cols.extend(['Aliquot'])
+        if self.version in ["3.2", "3.2.1", "3.3"]:
+            experimental_design_cols = ['Experiment', 'Channel', 'QC.status', 'Aliquot.tmt']
 
         experimental_design_df = df[experimental_design_cols]
         df = df.drop(columns=experimental_design_cols)
