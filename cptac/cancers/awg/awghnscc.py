@@ -53,250 +53,295 @@ class AwgHnscc(Source):
                 "somatic_mutation"  : "SomaticMutations_maf.tsv.gz"},
         }
 
-        super().__init__(cancer_type="hnscc", version=version, valid_versions=self.valid_versions, data_files=self.data_files, no_internet=no_internet)
+        self.load_functions = {
+            'clinical'                : self.load_clinical,
+            'derived_molecular'       : self.load_derived_molecular,
+            'CNV'                     : self.load_CNV,
+            'followup'                : self.load_followup,
+            'circular_RNA'            : self.load_circular_RNA,
+            'miRNA'                   : self.load_miRNA,
+            'phosphoproteomics'       : self.load_phosphoproteomics,
+            'proteomics'              : self.load_proteomics,
+            'somatic_mutation'        : self.load_somatic_mutation,
+            'transcriptomics'         : self.load_transcriptomics,
+        }
 
-        # Load the data into dataframes in the self._data dict
-        loading_msg = f"Loading {self.get_cancer_type()} v{self.version()}"
-        for file_path in self._data_files_paths: # Loops through files variable
+        if version == "latest":
+            version = sorted(self.valid_versions)[-1]
 
-            # Print a loading message. We add a dot every time, so the user knows it's not frozen.
-            loading_msg = loading_msg + "."
-            print(loading_msg, end='\r')
+        super().__init__(cancer_type="hnscc", source='awg', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
-            path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-            file_name = path_elements[-1] # The last element will be the name of the file
-            df_name = file_name.split(".")[0] # Our dataframe name will be the first section of file name (i.e. proteomics.txt.gz becomes proteomics)
 
-            if file_name == "SCNA_gene_level.cct.gz" or file_name == "SCNA_log2_gene_level.cct.gz":
-                df = pd.read_csv(file_path, sep="\t")
+    def load_CNV(self):
+        df_type = 'CNV'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+            df = pd.read_csv(file_path, sep='\t')
 
-                if self._version == "2.0":
-                    df = df.set_index('gene_symbol')
+            if self.version == "2.0":
+                df = df.set_index('gene_symbol')
 
-                df = df.sort_index()
-                df = df.transpose()
-                df = df.sort_index()
-                df.columns.name=None
-                df.index.name = "Patient_ID"
-                self._data["CNV"] = df
+            df = df.sort_index()
+            df = df.transpose()
+            df = df.sort_index()
+            df.columns.name=None
+            df.index.name = "Patient_ID"
 
-            elif file_name == "microRNA_log2_Combined.cct.gz" and self._version == "2.0":
-                df = pd.read_csv(file_path, sep='\t', index_col=0)
-                df = df.sort_index()
-                df = df.transpose()
+            # save df in self._data
+            self.save_df(df_type, df)
 
-                # Reformat patient ids
+
+    def load_miRNA(self):
+        df_type = 'miRNA'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+            df = pd.read_csv(file_path, sep='\t', index_col=0)
+            df = df.sort_index()
+            df = df.transpose()
+
+            # Reformat patient ids
+            df.index = df.index.str.replace(r'-T$', '', 1, regex=True)
+            df.index = df.index.str.replace(r'-N$', '.N', 1, regex=True)
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_transcriptomics(self):
+        df_type = 'transcriptomics'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+            df = pd.read_csv(file_path, sep='\t')
+
+            if self.version == "2.0":
+                df = df.set_index('Idx')
+
+            df = df.sort_index()
+            df = df.transpose()
+            df = df.sort_index()
+            df.columns.name=None
+
+            if self.version == "0.1":
+                df.index = df.index.str.replace(r'\.', '-', 1, regex=True)
+                df.index = df.index.str.replace(r'\.T$', '', 1, regex=True)
+            elif self.version == "2.0":
                 df.index = df.index.str.replace(r'-T$', '', 1, regex=True)
                 df.index = df.index.str.replace(r'-N$', '.N', 1, regex=True)
 
-                self._data["miRNA"] = df
+            df.index.name = "Patient_ID"
 
-            elif file_name == "RNAseq_RSEM_UQ_log2.cct.gz" or file_name == "RNAseq_RSEM_UQ_Combined.cct.gz":
-                df = pd.read_csv(file_path, sep="\t")
+            # save df in self._data
+            self.save_df(df_type, df)
 
-                if self._version == "2.0":
-                    df = df.set_index('Idx')
 
-                df = df.sort_index()
-                df = df.transpose()
-                df = df.sort_index()
-                df.columns.name=None
+    def load_circular_RNA(self):
+        df_type = 'circular_RNA'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
 
-                if self._version == "0.1":
-                    df.index = df.index.str.replace(r'\.', '-', 1, regex=True)
-                    df.index = df.index.str.replace(r'\.T$', '', 1, regex=True)
-                elif self._version == "2.0":
-                        df.index = df.index.str.replace(r'-T$', '', 1, regex=True)
-                        df.index = df.index.str.replace(r'-N$', '.N', 1, regex=True)
+            df = pd.read_csv(file_path, sep='\t')
+            df = df.sort_index()
+            df = df.transpose()
+            df = df.sort_index()
+            df.columns.name=None
 
-                df.index.name = "Patient_ID"
-                self._data["transcriptomics"] = df
+            if self.version == "0.1":
+                # We want all the patientIDs to have the the format C3L-00977, and these have the form C3L.00977.N, so we need to replace the first "." with a "-"
+                df.index = df.index.str.replace(r'\.', '-', 1, regex=True)
+                df.index = df.index.str.replace(r'\.T$', '', 1, regex=True)
 
-            elif file_name == "RNAseq_circ_RSEM_UQ_log2.cct.gz" or file_name == "circRNAseq_RSEM_UQ_log2_Combined.cct.gz":
+            elif self.version == "2.0":
+                df.index = df.index.str.replace(r'-T$', '', 1, regex=True)
+                df.index = df.index.str.replace(r'-N$', '.N', 1, regex=True)
+
+            df.index.name = "Patient_ID"
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_followup(self):
+        df_type = 'followup'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+            df = pd.read_excel(file_path)
+
+            # Rename, set, and sort by index
+            df = df.rename(columns={"CASE_ID": "Patient_ID"})
+            df = df.set_index("Patient_ID")
+            df = df.sort_index()
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_phosphoproteomics(self):
+        df_type = 'phosphoproteomics'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+            df = pd.read_csv(file_path, sep='\t')
+            df = df.rename(columns={"Gene": "Name"})
+
+            # Drop unlocalized sites
+            unlocalized_sites = (df["Index"].str.rsplit("_", n=1, expand=True)[1] == '0')
+            df = df[~unlocalized_sites]
+
+            # Parse a few columns out of the "Index" column that we'll need for our multiindex
+            split_ids = df["Index"].str.split('_', expand=True)
+            df = df.drop(columns="Index")
+            sites = split_ids.iloc[:, -1]
+            database_ids = split_ids[0].str.cat(split_ids[1], sep='_')
+            df = df.assign(**{"Site": sites, "Database_ID": database_ids})
+
+            # Some rows have at least one localized phosphorylation site, but also have other phosphorylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
+            unlocalized_to_drop = df.index[~split_ids[4].eq(split_ids[5]) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)] # Column 4 of the split "Index" column is number of phosphorylations detected, and column 5 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
+            df = df.drop(index=unlocalized_to_drop)
+
+            # Give it a multiindex
+            df = df.set_index(["Name", "Site", "Peptide", "Database_ID"]) # This will create a multiindex from these columns, in this order.
+            df = df.sort_index()
+            df = df.transpose()
+            df.index = df.index.str.replace(r'-T$', '', 1, regex=True)
+            df.index = df.index.str.replace(r'-N$', '.N', 1, regex=True)
+            df.index = df.index.str.replace(r'-C$', '.C', 1, regex=True) #-C is cored NAT samples
+            df = df.sort_index()
+
+            # save df in self._data
+            self.save_df(df_type, df)
+
+
+    def load_proteomics(self):
+        df_type = 'proteomics'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            if self.version == "0.1":
+                for file in file_path:
+                    path_elements = file.split(os.sep) # Get a list of the levels of the path
+                    file_name = path_elements[-1]# The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
+
+                    # Combine the two proteomics dataframes
+                    if file_name == "Proteomics_DIA_Gene_level_Normal.cct.gz":
+                        df_normal = pd.read_csv(file, sep='\t')
+                        df_normal = df_normal.transpose()
+                        df_normal.columns.name=None
+                        df_normal.index.name = "Patient_ID"
+
+                    elif file_name == "Proteomics_DIA_Gene_level_Tumor.cct.gz":
+                        df_tumor = pd.read_csv(file, sep='\t')
+                        df = df.transpose()
+                        df.columns.name=None
+                        df.index.name = "Patient_ID"
+
+                df_normal.index = df_normal.index + ".N" #concatenate a ".N" onto the end of the normal data so we can identify it as normal after it's appended to tumor
+                prot_combined = pd.concat([df_tumor, df_normal]) #append the normal data onto the end of the tumor data
+                prot_combined = prot_combined.sort_index(axis='columns') # Put all the columns in alphabetical order
+                prot_combined = prot_combined.sort_index()
+                df = prot_combined
+
+            if self.version == "2.0":
                 df = pd.read_csv(file_path, sep='\t')
-                df = df.sort_index()
-                df = df.transpose()
-                df = df.sort_index()
-                df.columns.name=None
-
-                if self._version == "0.1":
-                    df.index = df.index.str.replace(r'\.', '-', 1, regex=True) # We want all the patientIDs to have the the format C3L-00977, and these have the form C3L.00977.N, so we need to replace the first "." with a "-"
-                    df.index = df.index.str.replace(r'\.T$', '', 1, regex=True)
-
-                elif self._version == "2.0":
-                    df.index = df.index.str.replace(r'-T$', '', 1, regex=True)
-                    df.index = df.index.str.replace(r'-N$', '.N', 1, regex=True)
-
-                df.index.name = "Patient_ID"
-                self._data["circular_RNA"] = df
-
-            elif file_name == "HNSCC.strelka.sorted.filtered.annovar.hg19_multianno_filtered.maf.txt.gz" or file_name == "SomaticMutations_maf.tsv.gz":
-                df = pd.read_csv(file_path, sep="\t")
-
-                if self._version == "0.1":
-                    df = df.rename(columns={"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol_Annovar":"Gene","Variant_Classification_Annovar":"Mutation"}) #Rename the columns we want to keep to the appropriate names
-                    df['Location'] = df['Annovar_Info_protein'].str.extract(r'([^:]+$)') #The location that we care about is stored after the last colon
-                    df = df[['Patient_ID', 'Gene', 'Mutation', 'Location']]
-
-                elif self._version == "2.0":
-                    df = df[['Tumor_Sample_Barcode','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
-                    df = df.rename(columns={
-                        "Tumor_Sample_Barcode":"Patient_ID",
-                        "Hugo_Symbol":"Gene",
-                        "Variant_Classification":"Mutation",
-                        "HGVSp_Short":"Location"}) #Rename the columns we want to keep to the appropriate names
-
-                df = df.sort_values(by=["Patient_ID", "Gene"])
-                df = df.set_index("Patient_ID")
-                df = df.sort_index()
-                df.columns.name=None
-                self._data["somatic_mutation"] = df
-
-            elif file_name == "clinic.tsi.gz" or file_name == "Meta_table.tsv.gz":
-                df = pd.read_csv(file_path, sep="\t")
-
-                if self._version == "2.0":
-                    df = df.set_index('case_id')
-                elif self._version == "0.1":
-                    df = df.set_index('CASE_ID')
-
-                df.columns.name=None
-                df.index.name="Patient_ID"
-
-                # Split the clinical data in to clinical data and derived molecular data
-
-                if self._version == "0.1":
-                    derived_molecular_cols = ['P53GENE_ANALYSIS', 'EGFR_AMP_STATUS']
-
-                elif self._version == "2.0":
-                    derived_molecular_cols = ['NAT_pathology_review', 'tumor_pathology_review',
-                       'ESTIMATE_stromal_score', 'ESTIMATE_immune_score', 'stemness_score',
-                       'mutation_count', 'TP53_mutation', 'CDKN2A_mutation', 'FAT1_mutation',
-                       'NOTCH1_mutation', 'CSMD3_mutation', 'DNAH5_mutation', 'KMT2D_mutation',
-                       'transcriptomic_subtype', 'chr_instability_idx', 'tumor_proportion',
-                       'normal_epithelial_proportion', 'immune_proportion',
-                       'muscle_proportion', 'fibroblast_proportion', 'EGFR_pathway',
-                       'Hypoxia_pathway', 'JAK.STAT_pathway', 'MAPK_pathway', 'NFkB_pathway',
-                       'PI3K_pathway', 'TGFb_pathway', 'TNFa_pathway', 'Trail_pathway',
-                       'VEGF_pathway', 'p53_pathway']
-
-                derived_molecular_df = df[derived_molecular_cols]
-                derived_molecular_df = derived_molecular_df.sort_index(axis='columns')
-                derived_molecular_df = derived_molecular_df.sort_index()
-
-                df = df.drop(columns=derived_molecular_cols)
-                df = df.sort_index()
-                df = df.sort_index(axis='columns')
-
-                self._data["clinical"] = df
-                self._data["derived_molecular"] = derived_molecular_df
-
-            elif file_name in ["Proteomics_DIA_Gene_level_Normal.cct.gz", "Proteomics_DIA_Gene_level_Tumor.cct.gz", "Proteomics_TMT_gene_level_combined_all.cct.gz"]:
-                df = pd.read_csv(file_path, sep="\t")
-
-                if self._version == "2.0":
-                    df = df.set_index('Index')
+                df = df.set_index('Index')
 
                 df = df.transpose()
                 df.columns.name=None
                 df.index.name = "Patient_ID"
 
-                if self._version == "2.0":
-                    df.index = df.index.str.replace(r'-T$', '', 1, regex=True)
-                    df.index = df.index.str.replace(r'-N$', '.N', 1, regex=True)
-                    df.index = df.index.str.replace(r'-C$', '.C', 1, regex=True) #-C is cored NAT samples
-
-                # Once the files are formatted correctly load them into self._data
-                if file_name == "Proteomics_DIA_Gene_level_Normal.cct.gz":
-                    self._data["proteomics_normal"] = df
-
-                elif file_name == "Proteomics_DIA_Gene_level_Tumor.cct.gz":
-                    self._data["proteomics_tumor"] = df
-
-                elif file_name == "Proteomics_TMT_gene_level_combined_all.cct.gz":
-                    self._data["proteomics"] = df
-
-            elif file_name == "Phosphoproteomics_TMT_site_level_combined_all.cct.gz" and self._version == "2.0":
-                df = pd.read_csv(file_path, sep='\t')
-
-                df = df.rename(columns={"Gene": "Name"})
-
-                # Drop unlocalized sites
-                unlocalized_sites = (df["Index"].str.rsplit("_", n=1, expand=True)[1] == '0')
-                df = df[~unlocalized_sites]
-
-                # Parse a few columns out of the "Index" column that we'll need for our multiindex
-                split_ids = df["Index"].str.split('_', expand=True)
-                df = df.drop(columns="Index")
-                sites = split_ids.iloc[:, -1]
-                database_ids = split_ids[0].str.cat(split_ids[1], sep='_')
-                df = df.assign(**{"Site": sites, "Database_ID": database_ids})
-
-                # Some rows have at least one localized phosphorylation site, but also have other phosphorylations that aren't localized. We'll drop those rows, if their localized sites are duplicated in another row, to avoid creating duplicates, because we only preserve information about the localized sites in a given row. However, if the localized sites aren't duplicated in another row, we'll keep the row.
-                unlocalized_to_drop = df.index[~split_ids[4].eq(split_ids[5]) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)] # Column 4 of the split "Index" column is number of phosphorylations detected, and column 5 is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
-                df = df.drop(index=unlocalized_to_drop)
-
-                # Give it a multiindex
-                df = df.set_index(["Name", "Site", "Peptide", "Database_ID"]) # This will create a multiindex from these columns, in this order.
-                df = df.sort_index()
-                df = df.transpose()
                 df.index = df.index.str.replace(r'-T$', '', 1, regex=True)
                 df.index = df.index.str.replace(r'-N$', '.N', 1, regex=True)
                 df.index = df.index.str.replace(r'-C$', '.C', 1, regex=True) #-C is cored NAT samples
-                df = df.sort_index()
-                self._data["phosphoproteomics"] = df
 
-            elif file_name == 'HN_followUp_9_24.xlsx' and self._version == "2.0":
-                df = pd.read_excel(file_path)
+            # save df in self._data
+            self.save_df(df_type, df)
 
-                # Rename, set, and sort by index
-                df = df.rename(columns={"CASE_ID": "Patient_ID"})
-                df = df.set_index("Patient_ID")
-                df = df.sort_index()
 
-                self._data["followup"] = df
+    def load_somatic_mutation(self):
+        df_type = 'somatic_mutation'
+        if df_type not in self._data:
+            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+            df = pd.read_csv(file_path, sep='\t')
 
-        print(' ' * len(loading_msg), end='\r') # Erase the loading message
-        formatting_msg = "Formatting dataframes..."
-        print(formatting_msg, end='\r')
+            if self.version == "0.1":
+                #Rename the columns we want to keep to the appropriate names
+                df = df.rename(columns={"Tumor_Sample_Barcode":"Patient_ID","Hugo_Symbol_Annovar":"Gene","Variant_Classification_Annovar":"Mutation"})
+                df['Location'] = df['Annovar_Info_protein'].str.extract(r'([^:]+$)') #The location that we care about is stored after the last colon
+                df = df[['Patient_ID', 'Gene', 'Mutation', 'Location']]
 
-        if self._version == "0.1":
-            # Combine the two proteomics dataframes
-            df_normal = self._data.get("proteomics_normal")
-            df_tumor = self._data.get("proteomics_tumor")
+            elif self.version == "2.0":
+                df = df[['Tumor_Sample_Barcode','Hugo_Symbol','Variant_Classification','HGVSp_Short']]
+                df = df.rename(columns={
+                    "Tumor_Sample_Barcode":"Patient_ID",
+                    "Hugo_Symbol":"Gene",
+                    "Variant_Classification":"Mutation",
+                    "HGVSp_Short":"Location"}) #Rename the columns we want to keep to the appropriate names
 
-            df_normal.index = df_normal.index + ".N" #concatenate a ".N" onto the end of the normal data so we can identify it as normal after it's appended to tumor
-            prot_combined = df_tumor.append(df_normal) #append the normal data onto the end of the tumor data
-            prot_combined = prot_combined.sort_index(axis='columns') # Put all the columns in alphabetical order
-            prot_combined = prot_combined.sort_index()
-            self._data["proteomics"] = prot_combined
-            del self._data["proteomics_normal"]
-            del self._data["proteomics_tumor"]
+            df = df.sort_values(by=["Patient_ID", "Gene"])
+            df = df.set_index("Patient_ID")
+            df = df.sort_index()
+            df.columns.name=None
 
-        # Get a union of all dataframes' indices, with duplicates removed
-        master_index = unionize_indices(self._data, exclude="followup")
+            # save df in self._data
+            self.save_df(df_type, df)
 
-        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        master_clinical = self._data['clinical'].reindex(master_index)
 
-        # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample is a tumor or normal sample. Samples with a Patient_ID ending in ".N" are normal.
-        clinical_status_col = generate_sample_status_col(master_clinical, normal_test=lambda sample: sample[-2:] in ['.N', '.C'])
-        master_clinical.insert(0, "Sample_Tumor_Normal", clinical_status_col)
+    def load_annotation(self):
+        # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
+        file_path = self.locate_files('annotation')
+        df = pd.read_csv(file_path, sep='\t')
 
-        # Add a column called "Cored_Sample", with True for the six cored normal samples, and False for all others. The cored normal samples have a Patient_ID ending with a ".C".
-        cored_sample_col = master_clinical.index.str.endswith(".C")
-        master_clinical.insert(1, "Cored_Sample", cored_sample_col)
+        if self.version == "2.0":
+            df = df.set_index('case_id')
+        elif self.version == "0.1":
+            df = df.set_index('CASE_ID')
 
-        # Replace the clinical dataframe in the data dictionary with our new and improved version!
-        self._data['clinical'] = master_clinical
+        df.columns.name=None
+        df.index.name="Patient_ID"
 
-        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-        self._data = sort_all_rows(self._data)
+        # Split the clinical data in to clinical data and derived molecular data
+        if self.version == "0.1":
+            derived_molecular_cols = ['P53GENE_ANALYSIS', 'EGFR_AMP_STATUS']
 
-        # Call function from dataframe_tools.py to standardize the names of the index and column axes
-        self._data = standardize_axes_names(self._data)
+        elif self.version == "2.0":
+            derived_molecular_cols = ['NAT_pathology_review', 'tumor_pathology_review',
+               'ESTIMATE_stromal_score', 'ESTIMATE_immune_score', 'stemness_score',
+               'mutation_count', 'TP53_mutation', 'CDKN2A_mutation', 'FAT1_mutation',
+               'NOTCH1_mutation', 'CSMD3_mutation', 'DNAH5_mutation', 'KMT2D_mutation',
+               'transcriptomic_subtype', 'chr_instability_idx', 'tumor_proportion',
+               'normal_epithelial_proportion', 'immune_proportion',
+               'muscle_proportion', 'fibroblast_proportion', 'EGFR_pathway',
+               'Hypoxia_pathway', 'JAK.STAT_pathway', 'MAPK_pathway', 'NFkB_pathway',
+               'PI3K_pathway', 'TGFb_pathway', 'TNFa_pathway', 'Trail_pathway',
+               'VEGF_pathway', 'p53_pathway']
 
-        print(" " * len(formatting_msg), end='\r') # Erase the formatting message
+        derived_molecular_df = df[derived_molecular_cols]
+        derived_molecular_df = derived_molecular_df.sort_index(axis='columns')
+        derived_molecular_df = derived_molecular_df.sort_index()
+
+        df = df.drop(columns=derived_molecular_cols)
+        df = df.sort_index()
+        df = df.sort_index(axis='columns')
+
+        # save dfs in self._data
+        self.save_df("clinical", df)
+        self.save_df("derived_molecular", derived_molecular_df)
+
+    # load_annotation takes care of the data for these datatypes
+    def load_clinical(self):
+        if 'clinical' not in self._data:
+            self.load_annotation()
+
+    def load_derived_molecular(self):
+        if 'derived_molecular' not in self._data:
+            self.load_annotation()
+
 
     def how_to_cite(self):
         return super().how_to_cite(cancer_type='head and neck squamous cell carcinoma', pmid=33417831)
