@@ -223,12 +223,6 @@ class AwgLuad(Source):
             file_path = self.locate_files(df_type)
 
             if self.version in ["2.0", "3.1"]:
-                df = pd.read_csv(file_path, sep='\t', dtype={"spanning.reads": "int16"}, engine="c")
-                df = df.reset_index() # More memory efficient to do this here, rather than save with a range index when we parse the file it originally
-                df = df.pivot(index="Sample.ID", columns="geneID", values="spanning.reads")
-                df.index.name = "Patient_ID"
-                df = df.sort_index()
-            else:
                 df = pd.read_csv(file_path, sep=",")
 
                 junct_3_split = df['junction.3'].str.split(':', n=2, expand=True)
@@ -254,6 +248,12 @@ class AwgLuad(Source):
                 df = df.sort_values(by='spanning.reads', ascending=False).drop_duplicates(['Sample.ID','geneID']).sort_index()
 
                 df = df.pivot(index="Sample.ID", columns="geneID")['spanning.reads']
+                df.index.name = "Patient_ID"
+                df = df.sort_index()
+            else:
+                df = pd.read_csv(file_path, sep='\t', dtype={"spanning.reads": "int16"}, engine="c")
+                df = df.reset_index() # More memory efficient to do this here, rather than save with a range index when we parse the file it originally
+                df = df.pivot(index="Sample.ID", columns="geneID", values="spanning.reads")
                 df.index.name = "Patient_ID"
                 df = df.sort_index()
 
