@@ -68,7 +68,6 @@ class AwgUcec(Source):
             'derived_molecular'       : self.load_derived_molecular,
             'experimental_design'     : self.load_experimental_design,
             'miRNA'                   : self.load_miRNA,
-            'phosphoproteomics_gene'  : self.load_phosphoproteomics_gene,
             'phosphoproteomics'       : self.load_phosphoproteomics,
             'proteomics'              : self.load_proteomics,
             'somatic_mutation_binary' : self.load_somatic_mutation_binary,
@@ -77,6 +76,9 @@ class AwgUcec(Source):
             'transcriptomics'         : self.load_transcriptomics,
             'followup'                : self.load_followup,
         }
+
+        if version == "2.1":
+            self.load_functions['phosphoproteomics_gene'] = self.load_phosphoproteomics_gene
 
         if version == "latest":
             version = sorted(self.valid_versions)[-1]
