@@ -120,7 +120,7 @@ class PdcHnscc(Source):
             
             
     def load_proteomics(self):
-        df_type = 'INSERT'
+        df_type = 'proteomics'
         
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
