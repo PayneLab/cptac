@@ -621,11 +621,34 @@ class Cancer:
         """Return the dataset version of this instance, as a string."""
         return self._sources[source]
 
-    def get_dataframe(self, name, source, tissue_type="both", imputed=False):
-        """Check that a given dataframe from a given source exists, and return a copy if it does."""
+    def get_dataframe(self, name, source=None, tissue_type="both", imputed=False):
+        """Check that a given dataframe from a given source exists, and return a copy if it does.
+
+        Parameters:
+        name (str): The datatype for which you want the dataframe.
+        source (str): The source of the dataframe.
+        tissue_type (str, optional): Acceptable values in ["tumor","normal","both"]. Specifies the tissue type desired in the dataframe. Defaults to "both".
+        imputed (bool, optional): whether the data is imputed. Defaults to False.
+
+        Returns: pandas.DataFrame
+        """
 
         if imputed:
             name = name + "_imputed"
+
+        # If no source specified, tell user what sources are available for that datatype
+        if source is None:
+            sources_for_data = []
+            for src in self._sources.keys():
+                if name in self._sources[src].load_functions.keys():
+                    sources_for_data.append(src)
+            if len(sources_for_data) == 1:
+                # Warn the user that a default value is being used
+                source = sources_for_data[0]
+                warnings.warn(f"Using source {source} for {name} data as no other sources provide this data. To remove this warning, pass {source} as the source parameter.", ParameterWarning, stacklevel=3)
+            else:
+                # Raise error and let user know what sources are available
+                raise DataSourceNotFoundError(f"No source selected. Available sources for {self._cancer_type} {name} data are: {sources_for_data}.")
 
         if source in self._sources.keys():
             df = self._sources[source].get_df(name)
@@ -686,7 +709,7 @@ class Cancer:
         omics_df_name (str): Name of omics dataframe to select column(s) from.
         source (str): Source for data to select column(s) from.
         genes (str, or list or array-like of str): Gene(s) to use to select columns from omics_df. str if one gene, list or array-like if multiple. Passing None will select the entire omics dataframe.
-        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the tissue type desired in the dataframe. Defaults to "both".
 
         Returns:
         pandas.DataFrame: The selected columns from the dataframe.
@@ -750,7 +773,7 @@ class Cancer:
         df_name (str): The name of the metadata dataframe to select the column(s) from.
         source (str): The source for the metadata.
         cols (str, or list or array-like of str): The column(s) to select from the dataframe. str if single, list or array-like of str if multiple. Passing None will select the entire dataframe.
-        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the tissue type desired in the dataframe. Defaults to "both".
 
         Returns:
         pandas.DataFrame: The specified columns from the given dataframe.
