@@ -12,6 +12,7 @@
 from cptac.cancers.cancer import Cancer
 
 from cptac.cancers.awg.awgucec import AwgUcec
+from cptac.cancers.awgconf.awgconfucec import AwgConfUcec
 from cptac.cancers.bcm.bcmucec import BcmUcec
 from cptac.cancers.broad.broaducec import BroadUcec
 from cptac.cancers.pdc.pdcucec import PdcUcec
@@ -29,6 +30,7 @@ class Ucec(Cancer):
         super().__init__(cancer_type="ucec")
 
         self._sources["awg"] = AwgUcec(version="latest", no_internet=no_internet)
+        self._sources["awgconf"] = AwgConfUcec(version="latest", no_internet=no_internet)
         self._sources["bcm"] = BcmUcec(version="latest", no_internet=no_internet)
         self._sources["broad"] = BroadUcec(version="latest", no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='ucec', version="latest", no_internet=no_internet)
