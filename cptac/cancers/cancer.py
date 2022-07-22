@@ -109,58 +109,58 @@ class Cancer:
     # Clinical table getters
     def get_clinical(self, source='mssm', tissue_type="both", imputed=False):
         """Get the clinical dataframe from the specified data source."""
-        return self._get_dataframe("clinical", source, tissue_type, imputed=imputed)
+        return self.get_dataframe("clinical", source, tissue_type, imputed=imputed)
 
     def get_demographic(self, source='mssm', tissue_type="both", imputed=False):
         """Get the demographic dataframe from the specified data source."""
-        return self._get_dataframe("demographic", source, tissue_type, imputed=imputed)
+        return self.get_dataframe("demographic", source, tissue_type, imputed=imputed)
 
     def get_derived_molecular(self, source='awg', tissue_type="both"):
         """Get the derived_molecular dataframe."""
-        return self._get_dataframe("derived_molecular", source, tissue_type)
+        return self.get_dataframe("derived_molecular", source, tissue_type)
 
     def get_experimental_design(self, source='awg', tissue_type="both"):
         """Get the experimental_design dataframe."""
-        return self._get_dataframe("experimental_design", source, tissue_type)
+        return self.get_dataframe("experimental_design", source, tissue_type)
 
     def get_medical_conditions(self, source='mssm', tissue_type="both", imputed=False):
         """Get the medical_conditions dataframe from the specified data source."""
-        return self._get_dataframe("medical_conditions", source, tissue_type, imputed=imputed)
+        return self.get_dataframe("medical_conditions", source, tissue_type, imputed=imputed)
 
     def get_medical_history(self, source='awg', tissue_type="both"):
         """Get the medical_history dataframe."""
-        return self._get_dataframe("medical_history", source, tissue_type)
+        return self.get_dataframe("medical_history", source, tissue_type)
 
     def get_previous_cancer(self, source='mssm', tissue_type="both", imputed=False):
         """Get the previous_cancer dataframe from the specified data source."""
-        return self._get_dataframe("previous_cancer", source, tissue_type, imputed=imputed)
+        return self.get_dataframe("previous_cancer", source, tissue_type, imputed=imputed)
 
     def get_cancer_diagnosis(self, source='mssm', tissue_type="both", imputed=False):
         """Get the cancer_diagnosis dataframe from the specified data source."""
-        return self._get_dataframe("cancer_diagnosis", source, tissue_type, imputed=imputed)
+        return self.get_dataframe("cancer_diagnosis", source, tissue_type, imputed=imputed)
 
     def get_followup(self, source='mssm', tissue_type="both", imputed=False):
         """Get the followup dataframe from the specified data source."""
-        return self._get_dataframe("followup", source, tissue_type, imputed=imputed)
+        return self.get_dataframe("followup", source, tissue_type, imputed=imputed)
 
 
 
     # Quantitative table getters
     def get_acetylproteomics(self, source, tissue_type="both", imputed=False):
         """Get the acetylproteomics dataframe from the specified data source."""
-        return self._get_dataframe("acetylproteomics", source, tissue_type, imputed=imputed)
+        return self.get_dataframe("acetylproteomics", source, tissue_type, imputed=imputed)
 
     def get_acetylproteomics_gene(self, source='awg', tissue_type="both"):
         """Get the acetylproteomics_gene dataframe. The gene level acetylation measurement is an aggregate metric which potentially averages together individual measurements of different sites. Use get_acetylproteomics() to view the data for individual sites."""
-        return self._get_dataframe("acetylproteomics_gene", source, tissue_type)
+        return self.get_dataframe("acetylproteomics_gene", source, tissue_type)
 
     def get_circular_RNA(self, source="bcm", tissue_type="both", imputed=False):
         """Get a circular RNA dataframe from the specified data source."""
-        return self._get_dataframe("circular_RNA", source, tissue_type, imputed=imputed)
+        return self.get_dataframe("circular_RNA", source, tissue_type, imputed=imputed)
 
     def get_CNV(self, source="washu", tissue_type="both", imputed=False):
         """Get a CNV dataframe from the specified data source."""
-        return self._get_dataframe("CNV", source, tissue_type, imputed=imputed)
+        return self.get_dataframe("CNV", source, tissue_type, imputed=imputed)
 
     def get_deconvolution(self, source='washu', deconv_algorithm=None, tissue_type="both", imputed=False):
         """Get a deconvolution dataframe from the specified data source.
@@ -173,27 +173,27 @@ class Cancer:
         if deconv_algorithm is None or deconv_algorithm not in valid_algs:
             raise InvalidParameterError(f"Please pass a valid value to the 'deconv_algorithm' parameter to specify which algorithm you want deconvolution data from. Valid options are {valid_algs}.")
 
-        return self._get_dataframe(deconv_algorithm, source, tissue_type, imputed=imputed)
+        return self.get_dataframe(deconv_algorithm, source, tissue_type, imputed=imputed)
 
     def get_lincRNA(self, source='awg', tissue_type="both"):
         """Get the lincRNA dataframe."""
-        return self._get_dataframe("lincRNA",source, tissue_type)
+        return self.get_dataframe("lincRNA",source, tissue_type)
 
     def get_lipidomics(self, source='awg', tissue_type="both"):
         """Get the lipidomics dataframe."""
-        return self._get_dataframe("lipidomics", source, tissue_type)
+        return self.get_dataframe("lipidomics", source, tissue_type)
 
     def get_gene_fusion(self, source='awg'):
         """Get the gene_fusion dataframe."""
-        return self._get_dataframe("gene_fusion", source)
+        return self.get_dataframe("gene_fusion", source)
 
     def get_metabolomics(self, source='awg', tissue_type="both"):
         """Get the metabolomics dataframe."""
-        return self._get_dataframe("metabolomics", source, tissue_type)
+        return self.get_dataframe("metabolomics", source, tissue_type)
 
     def get_methylation(self, source='awg', tissue_type="both"):
         """Get the methylation dataframe."""
-        return self._get_dataframe("methylation", source, tissue_type)
+        return self.get_dataframe("methylation", source, tissue_type)
 
     def get_miRNA(self, source='washu', miRNA_type='total', tissue_type="both", imputed=False):
         """Get miRNA dataframe from the specified data source.
@@ -202,15 +202,15 @@ class Cancer:
         source (str): Select data generated by a certain institution. Available sources are ['washu']. Defaults to 'washu'.
         miRNA_type (str): Choose the type of miRNA molecules measured. Acceptable values are ['total', 'precursor', 'mature'].
         """
-        return self._get_dataframe(miRNA_type+'_miRNA', source, tissue_type, imputed=imputed)
+        return self.get_dataframe(miRNA_type+'_miRNA', source, tissue_type, imputed=imputed)
 
     def get_phosphoproteomics(self, source="umich", tissue_type="both", imputed=False):
         """Get the phosphoproteomics dataframe from the specified data source."""
-        return self._get_dataframe("phosphoproteomics", source, tissue_type, imputed=imputed)
+        return self.get_dataframe("phosphoproteomics", source, tissue_type, imputed=imputed)
 
     def get_phosphoproteomics_gene(self, source='awg', tissue_type="both"):
         """Get the phosphoproteomics_gene dataframe. The gene level phosphorylation measurement is an aggregate metric which potentially averages together individual measurements of different sites. Use get_phosphoproteomics() to view the data for individual sites."""
-        return self._get_dataframe("phosphoproteomics_gene", source, tissue_type)
+        return self.get_dataframe("phosphoproteomics_gene", source, tissue_type)
 
     def get_phosphosites(self, genes, source='awg'):
         """Returns dataframe with all phosphosites of specified gene or list of genes.
@@ -225,45 +225,45 @@ class Cancer:
 
     def get_proteomics(self, source="umich", tissue_type="both", imputed=False):
         """Get the proteomics dataframe from the specified data source."""
-        return self._get_dataframe("proteomics", source, tissue_type, imputed=imputed)
+        return self.get_dataframe("proteomics", source, tissue_type, imputed=imputed)
 
     def get_somatic_mutation(self, source="harmonized", tissue_type="both", imputed=False):
         """Get the somatic mutation dataframe from the specified data source."""
         ''' source (str): Select data generated by a certain institution. Default is harmonized. "washu" is also available'''
-        return self._get_dataframe("somatic_mutation", source, tissue_type, imputed=imputed)
+        return self.get_dataframe("somatic_mutation", source, tissue_type, imputed=imputed)
 
     def get_somatic_mutation_binary(self, source='awg'):
         """Get the somatic_mutation_binary dataframe, which has a binary value indicating, for each location on each gene, whether there was a mutation in that gene at that location, for each sample."""
-        return self._get_dataframe("somatic_mutation_binary", source)
+        return self.get_dataframe("somatic_mutation_binary", source)
 
     def get_targeted_phosphoproteomics(self, source='awg', tissue_type="both"):
         """Get the targeted_phosphoproteomics dataframe."""
-        return self._get_dataframe("targeted_phosphoproteomics", source, tissue_type)
+        return self.get_dataframe("targeted_phosphoproteomics", source, tissue_type)
 
     def get_targeted_proteomics(self, source='awg', tissue_type="both"):
         """Get the targeted_proteomics dataframe."""
-        return self._get_dataframe("targeted_proteomics", source, tissue_type)
+        return self.get_dataframe("targeted_proteomics", source, tissue_type)
 
     def get_transcriptomics(self, source, tissue_type="both", imputed=False):
         """Get the transcriptomics dataframe from the specified data source."""
         """source (str): Select data generated by a certain institution. Available sources are ['washu','bcm','broad']."""
-        return self._get_dataframe("transcriptomics", source, tissue_type, imputed=imputed)
+        return self.get_dataframe("transcriptomics", source, tissue_type, imputed=imputed)
 
     def get_treatment(self, source='awg', tissue_type="both"):
         """Get the treatment dataframe."""
-        return self._get_dataframe("treatment", source, tissue_type)
+        return self.get_dataframe("treatment", source, tissue_type)
 
     def get_tumor_purity(self, source='washu', tissue_type="both", imputed=False):
         """Get the tumor purity dataframe from the specified data source."""
-        return self._get_dataframe("tumor_purity", source, tissue_type, imputed=imputed)
+        return self.get_dataframe("tumor_purity", source, tissue_type, imputed=imputed)
 
     def get_ubiquitinomics(self, source='awg', tissue_type="both"):
         """Get the ubiquitinomics dataframe."""
-        return self._get_dataframe("ubiquitinomics", tissue_type)
+        return self.get_dataframe("ubiquitinomics", tissue_type)
 
     def get_ubiquitylomics(self, source, tissue_type="both", imputed=False):
         """Get the ubiquitylomics dataframe from the specified data source."""
-        return self._get_dataframe("ubiquitylomics", source, tissue_type, imputed=imputed)
+        return self.get_dataframe("ubiquitylomics", source, tissue_type, imputed=imputed)
 
     def get_docs(self, data, source='washu', tissue_type="both", imputed=False):
         """Get the readme docs for the specified data type and source."""
@@ -389,7 +389,7 @@ class Cancer:
 #             self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
 
 #         # Sort the dataframe so all the tumor samples are first, then all the normal samples
-#         sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
+#         sample_status_col = self.get_dataframe("clinical")["Sample_Tumor_Normal"]
 #         joined = sort_df_by_sample_status(joined, sample_status_col)
 
 #         return joined
@@ -427,7 +427,7 @@ class Cancer:
 #             self._warn_inserted_nans(metadata_df_name, omics_df_name, metadata_selected.index, omics_selected.index)
 
 #         # Sort the dataframe so all the tumor samples are first, then all the normal samples
-#         sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
+#         sample_status_col = self.get_dataframe("clinical")["Sample_Tumor_Normal"]
 #         joined = sort_df_by_sample_status(joined, sample_status_col)
 
 #         return joined
@@ -466,7 +466,7 @@ class Cancer:
 #             self._warn_inserted_nans(metadata_df_name, "somatic_mutation", metadata.index, mutations.index)
 
 #         # Sort the dataframe so all the tumor samples are first, then all the normal samples
-#         sample_status_col = self._get_dataframe("clinical")["Sample_Tumor_Normal"]
+#         sample_status_col = self.get_dataframe("clinical")["Sample_Tumor_Normal"]
 #         joined = sort_df_by_sample_status(joined, sample_status_col)
 
 #         return joined
@@ -621,6 +621,24 @@ class Cancer:
         """Return the dataset version of this instance, as a string."""
         return self._sources[source]
 
+    def get_dataframe(self, name, source, tissue_type="both", imputed=False):
+        """Check that a given dataframe from a given source exists, and return a copy if it does."""
+
+        if imputed:
+            name = name + "_imputed"
+
+        if source in self._sources.keys():
+            df = self._sources[source].get_df(name)
+
+            if tissue_type == "normal":
+                df = self._normal_only(df)
+            elif tissue_type == "tumor":
+                df = self._tumor_only(df)
+
+            return df
+        else:
+            raise DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
+
     # "Private" methods
     def _check_df_valid(self, df_name, source, df_type):
         """Checks whether a dataframe with this name is valid for use as an omics or metadata dataframe in one of the utilties functions. Throws an InvalidParameterError if it isn't.
@@ -651,24 +669,6 @@ class Cancer:
                     error_msg = error_msg + '\n\t' + valid_name
             raise InvalidParameterError(error_msg)
 
-    def _get_dataframe(self, name, source, tissue_type="both", imputed=False):
-        """Check that a given dataframe from a given source exists, and return a copy if it does."""
-
-        if imputed:
-            name = name + "_imputed"
-
-        if source in self._sources.keys():
-            df = self._sources[source].get_df(name)
-
-            if tissue_type == "normal":
-                df = self._normal_only(df)
-            elif tissue_type == "tumor":
-                df = self._tumor_only(df)
-
-            return df
-        else:
-            raise DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
-
     def _tumor_only(self, df):
         """For a given dataframe, keep only the tumor samples."""
         tumor_df = df[~df.index.str.endswith(".N")]
@@ -694,8 +694,8 @@ class Cancer:
         # Check that they passed a valid omics df
         self._check_df_valid(omics_df_name, source, "omics")
 
-        # Get our omics df, using _get_dataframe to catch invalid requests
-        omics_df = self._get_dataframe(omics_df_name, source, tissue_type).copy()
+        # Get our omics df, using get_dataframe to catch invalid requests
+        omics_df = self.get_dataframe(omics_df_name, source, tissue_type).copy()
 
         # Process genes parameter
         if isinstance(genes, str): # If it's a single gene, make it a list so we can treat everything the same
@@ -758,8 +758,8 @@ class Cancer:
         # Check that they passed a valid metadata df
         self._check_df_valid(df_name, source, "metadata")
 
-        # Get our dataframe, using _get_dataframe to catch invalid requests
-        df = self._get_dataframe(df_name, source, tissue_type).copy()
+        # Get our dataframe, using get_dataframe to catch invalid requests
+        df = self.get_dataframe(df_name, source, tissue_type).copy()
 
         # Process genes parameter
         if isinstance(cols, str): # If it's a single column, make it a list so we can treat everything the same
