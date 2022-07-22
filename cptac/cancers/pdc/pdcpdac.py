@@ -42,45 +42,47 @@ class PdcPdac(Source):
                 "mapping"              : "aliquot_to_patient_ID.tsv"
             }
         }
-        
+
         self.load_functions = {
             'clinical' : self.load_clinical,
             'phosphoproteomics' : self.load_phosphoproteomics,
             'proteomics' : self.load_proteomics,
         }
-        
+
         if version == "latest":
             version = sorted(self.valid_versions)[-1]
 
         # Call the parent class __init__ function
         super().__init__(cancer_type="pdac", source='pdc', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
-        
-        
+
+
     def load_clinical(self):
         df_type = 'clinical'
-        
+
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
-            
             df = pd.read_csv(file_path, sep='\t', index_col=0)
+
+            # Quality control and reference rows
+            drop_rows = ['KoreanReference1', 'KoreanReference2', 'KoreanReference3',
+                 'QC1', 'QC2', 'QC3', 'QC4', 'QC5', 'QC6', 'WU-PDA1']
             df = df.drop(drop_rows + ['WU-pooled sample', 'pooled sample'], axis = 'index') # drop quality control and references
-            self._data["clinical"] = df
 
             # save df in self._data
             self.save_df(df_type, df)
-            
-            
+
+
     def load_phosphoproteomics(self):
         df_type = 'phosphoproteomics'
-        
+
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
-            
+
             df = pd.read_csv(file_path, sep='\t')
-            
-            # Quality control and reference rows 
+
+            # Quality control and reference rows
             drop_rows = ['KoreanReference1', 'KoreanReference2', 'KoreanReference3',
                  'QC1', 'QC2', 'QC3', 'QC4', 'QC5', 'QC6', 'WU-PDA1']
 
@@ -99,21 +101,21 @@ class PdcPdac(Source):
             df = df.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')        
             df = df.drop(drop_rows + ['WU-pooled sample', 'pooled sample'], axis = 'index') # drop quality control and references
             df = map_database_to_gene_pdc(df, 'refseq') # map refseq IDs to gene names
-            
+
             # save df in self._data
             self.save_df(df_type, df)
-            
-            
+
+
     def load_proteomics(self):
         df_type = 'proteomics'
-        
+
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
-            
+
             df = pd.read_csv(file_path, sep='\t')
-            
-            # Quality control and reference rows 
+
+            # Quality control and reference rows
             drop_rows = ['KoreanReference1', 'KoreanReference2', 'KoreanReference3',
                  'QC1', 'QC2', 'QC3', 'QC4', 'QC5', 'QC6', 'WU-PDA1']
 
@@ -125,23 +127,23 @@ class PdcPdac(Source):
             # Get dictionary with aliquots as keys and patient IDs as values
             self.load_mapping()
             mapping_dict = self._helper_tables["map_ids"]
-    
+
             df['Patient_ID'] = df['aliquot_submitter_id'].replace(mapping_dict) # aliquots to patient IDs (normals have '.N')
             df = df.set_index('Patient_ID')
             df = df.rename(index = manually_mapped) # map 8 aliquots that were not in the mapping file
             df = df.drop(['aliquot_submitter_id', 'case_submitter_id'], axis = 'columns')
             df = df.drop(drop_rows, axis = 'index') # drop quality control and references
-            
+
             # save df in self._data
             self.save_df(df_type, df)
-            
-            
+
+
     def load_mapping(self):
         df_type = 'mapping'
-        
+
         if not self._helper_tables:
             file_path = self.locate_files(df_type)
-            
+
             # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
             # so there is no need to slice out cancer specific aliquots
             df = pd.read_csv(file_path, sep='\t', index_col = 'aliquot_ID', usecols = ['aliquot_ID', 'patient_ID'])
