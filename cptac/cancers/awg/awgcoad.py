@@ -34,7 +34,7 @@ class AwgCoad(Source):
 
         self.data_files = {
             "0.0": {
-                "annotation"                : "clinical.tsi.gz",
+                "annotation"              : "clinical.tsi.gz",
                 "miRNA"                   : "miRNA.cct.gz",
                 "somatic_mutation_binary" : "mutation_binary.cbt.gz",
                 "somatic_mutation"        : "mutation.txt.gz",
@@ -42,7 +42,7 @@ class AwgCoad(Source):
                 "proteomics"              : ["proteomics_normal.cct.gz", "proteomics_tumor.cct.gz"],
                 "transcriptomics"         : "transcriptomics.gz"},
             "0.0.1": {
-                "annotation"                : "clinical.tsi.gz",
+                "annotation"              : "clinical.tsi.gz",
                 "followup"                : "Colon_One_Year_Clinical_Data_20160927.xls",
                 "CNV"                     : "Human__CPTAC_COAD__VU__SCNA__ExomeSeq__01_28_2016__BCM__Gene__BCM_CopyWriteR_GISTIC2.cct.gz",
                 "miRNA"                   : "miRNA.cct.gz",
@@ -66,7 +66,7 @@ class AwgCoad(Source):
             "transcriptomics"           : self.load_transcriptomics,
         }
 
-        super().__init__(cancer_type="colon", version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
+        super().__init__(cancer_type="coad", source='awg', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
         
 
