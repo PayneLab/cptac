@@ -64,8 +64,8 @@ class PdcPdac(Source):
             file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep='\t', index_col=0)
-            clin = clin.drop(drop_rows + ['WU-pooled sample', 'pooled sample'], axis = 'index') # drop quality control and references
-            self._data["clinical"] = clin
+            df = df.drop(drop_rows + ['WU-pooled sample', 'pooled sample'], axis = 'index') # drop quality control and references
+            self._data["clinical"] = df
 
             # save df in self._data
             self.save_df(df_type, df)
