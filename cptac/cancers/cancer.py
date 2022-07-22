@@ -642,7 +642,10 @@ class Cancer:
             for src in self._sources.keys():
                 if name in self._sources[src].load_functions.keys():
                     sources_for_data.append(src)
-            if len(sources_for_data) == 1:
+            if len(sources_for_data) == 0:
+                # Desired datatype does not exist
+                raise DataFrameNotIncludedError(f"{name} datatype not included in the {self._cancer_type} dataset. Use <cancer object>.list_data_sources() to see which data are available.")
+            elif len(sources_for_data) == 1:
                 # Warn the user that a default value is being used
                 source = sources_for_data[0]
                 warnings.warn(f"Using source {source} for {name} data as no other sources provide this data. To remove this warning, pass {source} as the source parameter.", ParameterWarning, stacklevel=3)
@@ -653,6 +656,7 @@ class Cancer:
         if source in self._sources.keys():
             df = self._sources[source].get_df(name)
 
+            # Handle tissue type and filter df as specified
             if tissue_type == "normal":
                 df = self._normal_only(df)
             elif tissue_type == "tumor":
