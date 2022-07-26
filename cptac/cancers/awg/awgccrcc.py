@@ -227,7 +227,7 @@ class AwgCcrcc(Source):
 
              # reindex with clinical data
             df = self._specimen_reindex(df_type, df)
-            
+
             # Move the prepended N to a .N at the end to match other normal sample labeling in cptac
             df.index = df.index.where(~df.index.str.startswith('N'), df.index.str[1:] + ".N")
 
@@ -308,6 +308,9 @@ class AwgCcrcc(Source):
             
             # reindex with clinical data
             df = self._specimen_reindex(df_type, df)
+
+            # Move the prepended N to a .N at the end to match other normal sample labeling in cptac
+            df.index = df.index.where(~df.index.str.startswith('N'), df.index.str[1:] + ".N")
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -417,7 +420,10 @@ class AwgCcrcc(Source):
                 tran_map = get_reindex_map(self.rna_ids)
                 df = reindex_dataframe(df, tran_map, new_index_name="Patient_ID", keep_old=False)
             except ReindexMapError:
-                warnings.warn("Error mapping sample ids in transcriptomics dataframe. At least one RNA.ID did not have a corresponding Patient_ID mapped in the clinical dataframe. transcriptomics dataframe not loaded.", FailedReindexWarning, stacklevel=2)       
+                warnings.warn("Error mapping sample ids in transcriptomics dataframe. At least one RNA.ID did not have a corresponding Patient_ID mapped in the clinical dataframe. transcriptomics dataframe not loaded.", FailedReindexWarning, stacklevel=2)
+
+            # Move the prepended N to a .N at the end to match other normal sample labeling in cptac
+            df.index = df.index.where(~df.index.str.startswith('N'), df.index.str[1:] + ".N")
 
             # save df in self._data
             self.save_df(df_type, df)
