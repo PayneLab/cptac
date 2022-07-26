@@ -186,6 +186,10 @@ class AwgOv(Source):
             df = df.transpose()
             # Take C prefix off of indices for those samples that have them (tumor samples have C, normal have N)
             df.index = df.index.where(~df.index.str.startswith('C'), df.index.str[1:])
+
+            # Move the prepended N to a .N at the end to match other normal sample labeling in cptac
+            df.index = df.index.where(~df.index.str.startswith('N'), df.index.str[1:] + ".N")
+
             # Drop all OV_QC samples--they're quality control samples not relevant for data analysis
             df = df.drop(index=df.index[df.index.str.startswith("OV_QC")])
 
@@ -244,31 +248,6 @@ class AwgOv(Source):
                     term = line[0]
                     definition = line[1]
                     self._definitions[term] = definition
-
-
-
-    # TODO: Add this functionality back in, mostly the normal samples need .N appended at the end
-
-#     # Get a union of all dataframes' indices, with duplicates removed
-#     master_index = unionize_indices(self._data, exclude="followup")
-
-#     # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN
-#     master_clinical = self._data['clinical'].reindex(master_index)
-
-#     # Add a column called Sample_Tumor_Normal to the clinical dataframe indicating whether each sample was a tumor or normal sample. Normal samples have a Patient_ID that begins with 'N'.
-#     clinical_status_col = generate_sample_status_col(master_clinical, normal_test=lambda sample: sample[0] == 'N')
-#     master_clinical.insert(0, "Sample_Tumor_Normal", clinical_status_col)
-
-#     # Replace the clinical dataframe in the data dictionary with our new and improved version!
-#     self._data['clinical'] = master_clinical
-
-#     # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. Currently, all the normal samples have an "N" prepended. We're going to erase that and put a ".N" at the end.
-#     self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
-
-#         # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-#         self._data = sort_all_rows(self._data)
-#         # Call function from dataframe_tools.py to standardize the names of the index and column axes
-#         self._data = standardize_axes_names(self._data)
 
 
     def how_to_cite(self):
