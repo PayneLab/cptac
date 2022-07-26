@@ -57,10 +57,6 @@ class Source:
                 # call the load function for that df type
                 self.load_functions[df_type]()
 
-                # Call function from dataframe_tools.py to standardize the names of the index and column axes
-#                 if self.source in ['awg', 'awgconf']:
-#                     standardize_axes_names(self._data[df_type])
-
                 # Erase the loading message
                 print(' ' * len(loading_msg), end='\r')
 
