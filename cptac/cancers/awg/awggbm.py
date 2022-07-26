@@ -102,7 +102,10 @@ class AwgGbm(Source):
             "transcriptomics"        : self.load_transcriptomics,
         }
 
-        super().__init__(cancer_type="gbm", version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
+        if version == "latest":
+            version = sorted(self.valid_versions)[-1]
+
+        super().__init__(cancer_type="gbm", source='awg', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
         
         # Get a union of all dataframes' indices, with duplicates removed
@@ -161,7 +164,7 @@ class AwgGbm(Source):
             self.save_df(df_type, df)
 
     def load_circular_RNA(self):
-        df_type = 'circular_RNA':
+        df_type = 'circular_RNA'
         if df_type not in self._data:
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
@@ -307,7 +310,7 @@ class AwgGbm(Source):
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
 
-            CODE HERE
+#             CODE HERE
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -366,7 +369,7 @@ class AwgGbm(Source):
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
 
-            CODE HERE
+#             CODE HERE
 
             # save df in self._data
             self.save_df(df_type, df)
