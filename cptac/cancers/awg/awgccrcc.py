@@ -227,6 +227,9 @@ class AwgCcrcc(Source):
 
              # reindex with clinical data
             df = self._specimen_reindex(df_type, df)
+            
+            # Move the prepended N to a .N at the end to match other normal sample labeling in cptac
+            df.index = df.index.where(~df.index.str.startswith('N'), df.index.str[1:] + ".N")
 
             # save df in self._data
             self.save_df(df_type, df)
