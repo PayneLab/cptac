@@ -79,24 +79,6 @@ class AwgBrca(Source):
 
         super().__init__(cancer_type="brca", source='awg', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
-        # TODO: figure out how to do refactor this part
-
-        # Get a union of all dataframes' indices, with duplicates removed
-        master_index = unionize_indices(self._data, exclude="followup")
-
-        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        clinical = self._data["clinical"]
-        clinical = clinical.reindex(master_index)
-
-        # Fill in NaNs in the clinical table's Sample_Tumor_Normal column
-        clinical["Sample_Tumor_Normal"] = clinical["Sample_Tumor_Normal"].where(cond=~(pd.isnull(clinical["Sample_Tumor_Normal"]) & ~clinical.index.str.endswith(".N")), other="Tumor")
-
-        # Replace the clinical dataframe in the data dictionary with our new and improved version!
-        self._data['clinical'] = clinical
-
-        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-        self._data = sort_all_rows(self._data)
-
     def how_to_cite(self):
         return super().how_to_cite(cancer_type='breast cancer', pmid=33212010)
 
