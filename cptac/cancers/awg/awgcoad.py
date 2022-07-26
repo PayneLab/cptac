@@ -71,11 +71,6 @@ class AwgCoad(Source):
 
         super().__init__(cancer_type="coad", source='awg', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
-        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets
-        # Currently, normal patient IDs have an "N" appended. We're going to make that a ".N"
-        #self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="end")
-
-
     # Overload the default how_to_cite function, to provide the specific publication information for the Colon dataset
     def how_to_cite(self):
         """Print instructions for citing the data."""
