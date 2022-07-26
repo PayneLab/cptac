@@ -29,9 +29,6 @@ class WashuBrca(Source):
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
-        #ignore logging messages
-        #logger = logging.getLogger()
-        #logger.setLevel(logging.CRITICAL)
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
@@ -52,19 +49,16 @@ class WashuBrca(Source):
             }
         }
 
-        self._readme_files = {}
-        self._helper_tables = {}
-        self._data = {}
+        #self._readme_files = {}
         
         self.load_functions = {
             'transcriptomics'   : self.load_transcriptomics,
             'somatic_mutation'  : self.load_somatic_mutation,
             'xcell'             : self.load_xcell,
             'cibersort'         : self.load_cibersort,
-            'mapping'           : self.load_mapping,
             'CNV'               : self.load_CNV,
             'tumor_purity'      : self.load_tumor_purity,
-            'readme'            : self.load_readme,
+            #'readme'            : self.load_readme,
         }
 
         if version == "latest":
@@ -72,11 +66,6 @@ class WashuBrca(Source):
 
         # Call the parent class __init__ function
         super().__init__(cancer_type="brca", source="washu", version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
-
-        # TODO: figure out how to do refactor this part
-        # Used to slice out cancer specific patient_IDs in tumor_purity file
-        mssmclin = Mssm(filter_type='brca', version=version, no_internet=no_internet) #_get_version - pancandataset
-        self._clinical_df = mssmclin.get_df('clinical')
 
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
@@ -174,7 +163,6 @@ class WashuBrca(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
-    # TODO FIX so we're not dependent on self._clinical_df
     def load_tumor_purity(self):
         df_type = 'tumor_purity'
         if df_type not in self._data:
@@ -184,45 +172,49 @@ class WashuBrca(Source):
             df.Sample_ID = df.Sample_ID.str.replace(r'-T', '', regex=True) # only tumor samples in file
             df = df.set_index('Sample_ID') 
             df.index.name = 'Patient_ID' 
-            # Use list of patient_ids to slice out cancers                
-            patient_ids = self._clinical_df.index.to_list()
-            df = df.loc[df.index.isin(patient_ids)]                
+
+            # Use mssm clinical to slice out cancer specific patient_IDs in tumor_purity file
+            mssmclin = Mssm(filter_type='brca', version=self.version, no_internet=self.no_internet)
+            clinical_df = mssmclin.get_df('clinical')
+            patient_ids = clinical_df.index.to_list()
+            df = df.loc[df.index.isin(patient_ids)]
+
             # save df in self._data
             self.save_df(df_type, df)
     
     # TODO FIX
-    def load_readme(self):
-        df_type = 'readme'
-        if not self._readme_files: # if self._readme_files is empty
-            file_path_list = self.perform_initial_checks(df_type)
-            # loop over list of file paths
-            for file_path in file_path_list:
-                path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-                file_name = path_elements[-1]# The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
+    # def load_readme(self):
+    #     df_type = 'readme'
+    #     if not self._readme_files: # if self._readme_files is empty
+    #         file_path_list = self.perform_initial_checks(df_type)
+    #         # loop over list of file paths
+    #         for file_path in file_path_list:
+    #             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
+    #             file_name = path_elements[-1]# The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
 
-                if file_name == "README_miRNA":
-                    with open(file_path, 'r') as reader:
-                        self._readme_files["readme_miRNA"] = reader.read()
+    #             if file_name == "README_miRNA":
+    #                 with open(file_path, 'r') as reader:
+    #                     self._readme_files["readme_miRNA"] = reader.read()
                         
-                elif file_name == "README_CIBERSORT":
-                    with open(file_path, 'r') as reader:
-                        self._readme_files["readme_cibersort"] = reader.read()
+    #             elif file_name == "README_CIBERSORT":
+    #                 with open(file_path, 'r') as reader:
+    #                     self._readme_files["readme_cibersort"] = reader.read()
                         
-                elif file_name == "README_xCell":
-                    with open(file_path, 'r') as reader:
-                        self._readme_files["readme_xcell"] = reader.read()
+    #             elif file_name == "README_xCell":
+    #                 with open(file_path, 'r') as reader:
+    #                     self._readme_files["readme_xcell"] = reader.read()
                 
-                elif file_name == "README_somatic_mutation_WXS":
-                    with open(file_path, 'r') as reader:
-                        self._readme_files["readme_somatic_mutation"] = reader.read()
+    #             elif file_name == "README_somatic_mutation_WXS":
+    #                 with open(file_path, 'r') as reader:
+    #                     self._readme_files["readme_somatic_mutation"] = reader.read()
                         
-                elif file_name == "README_gene_expression":
-                    with open(file_path, 'r') as reader:
-                        self._readme_files["readme_transcriptomics"] = reader.read()
+    #             elif file_name == "README_gene_expression":
+    #                 with open(file_path, 'r') as reader:
+    #                     self._readme_files["readme_transcriptomics"] = reader.read()
                 
-                elif file_name == "README.boxnote":
-                    self._readme_files["readme_cnv"] = get_boxnote_text(file_path)
+    #             elif file_name == "README.boxnote":
+    #                 self._readme_files["readme_cnv"] = get_boxnote_text(file_path)
                     
-                elif file_name == "README_ESTIMATE_WashU":
-                    with open(file_path, 'r') as reader:
-                        self._readme_files["readme_tumor_purity"] = reader.read()
+    #             elif file_name == "README_ESTIMATE_WashU":
+    #                 with open(file_path, 'r') as reader:
+    #                     self._readme_files["readme_tumor_purity"] = reader.read()
