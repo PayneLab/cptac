@@ -201,6 +201,9 @@ class AwgCcrcc(Source):
             medical_history_parsed = medical_history_parsed.set_index("Patient_ID")
             medical_history_parsed = medical_history_parsed.sort_index()
 
+            # Move the prepended N to a .N at the end to match other normal sample labeling in cptac
+            clinical.index = clinical.index.where(~clinical.index.str.startswith('N'), clinical.index.str[1:] + ".N")
+
             # save dfs in self._data
             self.save_df('clinical', clinical)
             self.save_df("medical_history", medical_history_parsed)
