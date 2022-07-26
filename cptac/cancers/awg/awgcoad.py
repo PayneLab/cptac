@@ -86,7 +86,7 @@ class AwgCoad(Source):
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_path = self.locate_files('annotation')
 
-            df = pd.read_csv(file_path, sep="\t",index_col=0)
+            df = pd.read_csv(file_path, sep='\t',index_col=0)
             df = df.sort_index()
             df = df.transpose()
 
@@ -120,7 +120,7 @@ class AwgCoad(Source):
         if df_type not in self._data:
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
-       
+
             # parse followup file
             df = pd.read_excel(file_path)
             # Replace redundant values for "not reported" with NaN
@@ -143,7 +143,7 @@ class AwgCoad(Source):
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
 
-            df = pd.read_csv(file_path, sep="\t",index_col=0)
+            df = pd.read_csv(file_path, sep='\t',index_col=0)
             df = df.sort_index()
             df = df.transpose()
             # save df in self._data
@@ -158,7 +158,7 @@ class AwgCoad(Source):
             phosphoproteomics_dfs = {}
             for file_path in file_paths:
                 file_name = file_path.split(os.sep)[-1]
-                df = pd.read_csv(file_path, sep="\t",index_col=0)
+                df = pd.read_csv(file_path, sep='\t',index_col=0)
                 df = df.sort_index()
                 df = df.transpose()
 
@@ -171,8 +171,8 @@ class AwgCoad(Source):
             phos_tumor = phosphoproteomics_dfs["tumor"]
             phos_normal = phosphoproteomics_dfs["normal"]
 
-            # Mark entries in phosphoproteomics_normal dataframe with an N at the end of the ID
-            phos_normal = phos_normal.set_index(phos_normal.index + 'N')
+            # Mark entries in phosphoproteomics_normal dataframe with .N at the end of the ID
+            phos_normal = phos_normal.set_index(phos_normal.index + '.N')
 
             # Combine the two phosphoproteomics dataframes into one dataframe
             phos_combined = phos_tumor.append(phos_normal)
@@ -190,21 +190,32 @@ class AwgCoad(Source):
     def load_proteomics(self):
         df_type = 'proteomics'
         if df_type not in self._data:
-            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
-            file_paths = self.locate_files(df_type)
 
-            proteomics = None
-            for file_path in file_paths:
-                df = pd.read_csv(file_path, sep="\t",index_col=0)
-                df = df.sort_index()
-                df = df.transpose()
-                if proteomics == None:
-                    proteomics = df
-                else:
-                    proteomics.append(df)
+            file_path_list = self.locate_files(df_type)
+
+            for file_path in file_path_list:
+                path_elements = file_path.split(os.sep) # Get a list of the levels of the path
+                file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
+
+                if file_name == "proteomics_normal.cct.gz":
+                    df_normal = pd.read_csv(file_path, sep='\t', index_col=0)
+                    df_normal = df_normal.sort_index()
+                    df_normal = df_normal.transpose()
+                    # append .N to patient ids from the normal table
+                    df_normal = df_normal.rename(index=lambda s: s + ".N")
+
+                if file_name == "proteomics_tumor.cct.gz":
+                    df_tumor = pd.read_csv(file_path, sep='\t', index_col=0)
+                    df_tumor = df_tumor.sort_index()
+                    df_tumor = df_tumor.transpose()
+
+            # merge tumor and normal data
+            df_combined = pd.concat([df_normal, df_tumor])
+            df_combined.index.name = "Patient_ID"
+            df_combined.columns.name = "Name"
 
             # save dataframe in self._data
-            self.save_df(df_type, proteomics)
+            self.save_df(df_type, df_combined)
 
     def load_somatic_mutation(self):
         df_type = 'somatic_mutation'
@@ -212,7 +223,7 @@ class AwgCoad(Source):
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
 
-            df = pd.read_csv(file_path, sep="\t",index_col=0)
+            df = pd.read_csv(file_path, sep='\t',index_col=0)
             df = df.sort_index()
             df = df.sort_values(by="SampleID")
             df = df.reset_index()
@@ -231,7 +242,7 @@ class AwgCoad(Source):
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
 
-            df = pd.read_csv(file_path, sep="\t",index_col=0)
+            df = pd.read_csv(file_path, sep='\t',index_col=0)
             df = df.sort_index()
             df = df.transpose()
 
@@ -244,7 +255,7 @@ class AwgCoad(Source):
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
 
-            df = pd.read_csv(file_path, sep="\t",index_col=0)
+            df = pd.read_csv(file_path, sep='\t',index_col=0)
             df = df.sort_index()
             df = df.transpose()
             # save df in self._data
