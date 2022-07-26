@@ -94,11 +94,6 @@ class AwgCcrcc(Source):
 
         # TODO: Why is proteomics used to drop unique columns from CNV and methylation and not clinical?
 
-
-        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets.
-        # Currently, normal patient IDs have an "N" prepended. We're going to erase that and append a ".N"
-        #self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
-
     def load_annotation(self):
         df_type = 'annotation'
         if df_type not in self._data:
