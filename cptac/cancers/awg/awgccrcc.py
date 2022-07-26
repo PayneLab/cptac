@@ -405,7 +405,7 @@ class AwgCcrcc(Source):
 
             # Use the RNA.ID column from clinical dataframe to reindex transcriptomics dataframe with patient ids
             try:
-                tran_map = get_reindex_map(self._data['clinical']["RNA.ID"])
+                tran_map = get_reindex_map(self.rna_ids)
                 df = reindex_dataframe(df, tran_map, new_index_name="Patient_ID", keep_old=False)
             except ReindexMapError:
                 warnings.warn("Error mapping sample ids in transcriptomics dataframe. At least one RNA.ID did not have a corresponding Patient_ID mapped in the clinical dataframe. transcriptomics dataframe not loaded.", FailedReindexWarning, stacklevel=2)       
