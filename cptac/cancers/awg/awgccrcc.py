@@ -328,6 +328,9 @@ class AwgCcrcc(Source):
             self.save_df(df_type, df)
 
     def load_methylation(self):
+        # proteomics dfs required to fully load methylation
+        self.load_proteomics()
+
         df_type = 'methylation'
         if df_type not in self._data:
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
