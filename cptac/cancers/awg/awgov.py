@@ -47,7 +47,7 @@ class AwgOv(Source):
                 "CNV"               : "cnv.tsv.gz",
                 "definitions"       : "definitions.txt",
                 "followup"          : "Ovary_One_Year_Clinical_Data_20160927.xls",
-                "phophoproteomics"  : "phosphoproteomics.txt.gz",
+                "phosphoproteomics" : "phosphoproteomics.txt.gz",
                 "proteomics"        : "proteomics.txt.gz",
                 "somatic_mutation"  : "somatic_38.maf.gz",
                 "transcriptomics"   : "transcriptomics.tsv.gz",
