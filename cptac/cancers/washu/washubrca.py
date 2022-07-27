@@ -10,7 +10,6 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
 import os
 from gtfparse import read_gtf
 

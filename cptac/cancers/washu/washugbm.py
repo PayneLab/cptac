@@ -10,9 +10,7 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
 import os
-import logging
 from gtfparse import read_gtf
 
 from cptac.cancers.source import Source

@@ -10,7 +10,6 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
 import os
 from gtfparse import read_gtf
 
@@ -29,9 +28,6 @@ class WashuCoad(Source):
         version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
-        #ignore logging messages
-        #logger = logging.getLogger()
-        #logger.setLevel(logging.CRITICAL)
         
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
