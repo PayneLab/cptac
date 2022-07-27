@@ -114,19 +114,6 @@ class AwgGbm(Source):
         super().__init__(cancer_type="gbm", source='awg', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
 
-#         # Construct the sample status column
-#         sample_status_col = np.where(clinical.index.str.startswith("PT"), "Normal", "Tumor")
-#         clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
-
-        # For versions 1.0, 2.0, and 2.1, the gender is mis-entered for two samples in the clinical dataframe. Both C3N-01196 and C3N-01856 are entered as Female, but are actually Male. Let's fix that, if we're loading one of those versions.
-#         if self.version in ("1.0", "2.0", "2.1"):
-#             clinical.loc[clinical.index.isin(["C3N-01196", "C3N-01856"]), "gender"] = "Male"
-
-
-        # Append a ".N" to the Patient_IDs of the normal samples, to match the other datasets
-#         self._data = reformat_normal_patient_ids(self._data)
-
-
     def how_to_cite(self):
         return super().how_to_cite(cancer_type='glioblastoma', pmid=33577785)
 
@@ -179,6 +166,11 @@ class AwgGbm(Source):
             file_path = self.locate_files(df_type)
 
             df = pd.read_csv(file_path, sep='\t', index_col=0).assign(Stage="IV") # By definition they're all stage IV, since it's glioblastoma
+
+            # For versions 1.0, 2.0, and 2.1, the gender is mis-entered for two samples in the clinical dataframe.
+            # Both C3N-01196 and C3N-01856 are entered as Female, but are actually Male. Let's fix that.
+            if self.version in ("1.0", "2.0", "2.1"):
+                df.loc[df.index.isin(["C3N-01196", "C3N-01856"]), "gender"] = "Male"
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -364,7 +356,6 @@ class AwgGbm(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
-
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
         if df_type not in self._data:
@@ -381,3 +372,12 @@ class AwgGbm(Source):
 
             # save df in self._data
             self.save_df(df_type, df)
+
+    # Override the save_df function from source.py so we can mark normal samples
+    def save_df(self, datatype, df):
+        # Append a ".N" to the Patient_IDs of the normal samples, to match the other datasets
+        # In GBM all normal samples begin with "PT"
+        df.index = df.index.where(~df.index.str.startswith('PT'), df.index + ".N")
+
+        # Inherit the parent event
+        super().save_df(datatype, df)
