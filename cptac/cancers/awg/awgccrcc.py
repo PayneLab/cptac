@@ -64,7 +64,8 @@ class AwgCcrcc(Source):
         }
 
         self.load_functions = {
-            "annotation"             : self.load_annotation,
+            "clinical"               : self.load_annotation,
+            "medical_history"        : self.load_annotation,
             "CNV"                    : self.load_CNV,
             "followup"               : self.load_followup,
             "methylation"            : self.load_methylation,
@@ -92,24 +93,6 @@ class AwgCcrcc(Source):
         self.rna_ids = None
 
         # TODO: Why is proteomics used to drop unique columns from CNV and methylation and not clinical?
-
-
-        # Get a union of all dataframes' indices, with duplicates removed
-        master_index = unionize_indices(self._data, exclude="followup")
-
-        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        clinical = self._data["clinical"]
-        clinical = clinical.reindex(master_index)
-        self._data['clinical'] = clinical
-
-        # Edit the format of the Patient_IDs to have normal samples marked the same way as in other datasets. Currently, normal patient IDs have an "N" prepended. We're going to erase that and append a ".N"
-        self._data = reformat_normal_patient_ids(self._data, existing_identifier="N", existing_identifier_location="start")
-
-        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-        self._data = sort_all_rows(self._data)
-
-        # Call function from dataframe_tools.py to standardize the names of the index and column axes
-        self._data = standardize_axes_names(self._data)
 
     def load_annotation(self):
         df_type = 'annotation'
@@ -176,7 +159,7 @@ class AwgCcrcc(Source):
             clinical = clinical.drop(columns=["MS.Directory.Name", "Batch", "Data.Set", "TMT.Channel", "Mass.Spectrometer", "Mass.Spectrometer.Operator", "Set.A", "Set.B", "tissue_type"]) # tissue_type column is a duplicate of Sample_Tumor_Normal
 
             # If this if version 0.1 or greater, join the immune group data into the clinical dataframe
-            if self._version == "0.1":
+            if self.version == "0.1":
                 clinical = clinical.join(immune_groups, on="Specimen.Label", how="outer")
 
             # Save the RNA.ID and Specimen.Label columns to reindex the dataframes that need it, and drop from clinical
@@ -213,6 +196,9 @@ class AwgCcrcc(Source):
             medical_history_parsed = medical_history_parsed.set_index("Patient_ID")
             medical_history_parsed = medical_history_parsed.sort_index()
 
+            # Move the prepended N to a .N at the end to match other normal sample labeling in cptac
+            clinical.index = clinical.index.where(~clinical.index.str.startswith('N'), clinical.index.str[1:] + ".N")
+
             # save dfs in self._data
             self.save_df('clinical', clinical)
             self.save_df("medical_history", medical_history_parsed)
@@ -230,12 +216,15 @@ class AwgCcrcc(Source):
             # process the file
             df = pd.read_csv(file_path, sep='\t', index_col=0)
             ref_intensities = df["ReferenceIntensity"] # Copy this out, so we can subtract the reference intensities later
-            df = df.drop(columns=["NumberPSM", "Proteins", "ReferenceIntensity"] + self.self.nci_dotted_labels + self.qc_labels)
+            df = df.drop(columns=["NumberPSM", "Proteins", "ReferenceIntensity"] + self.nci_dotted_labels + self.qc_labels)
             df = df.subtract(ref_intensities, axis="index") # Subtract reference intensities from all the values, to get ratios
             df = df.transpose()
 
              # reindex with clinical data
             df = self._specimen_reindex(df_type, df)
+
+            # Move the prepended N to a .N at the end to match other normal sample labeling in cptac
+            df.index = df.index.where(~df.index.str.startswith('N'), df.index.str[1:] + ".N")
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -315,6 +304,9 @@ class AwgCcrcc(Source):
             # reindex with clinical data
             df = self._specimen_reindex(df_type, df)
 
+            # Move the prepended N to a .N at the end to match other normal sample labeling in cptac
+            df.index = df.index.where(~df.index.str.startswith('N'), df.index.str[1:] + ".N")
+
             # save df in self._data
             self.save_df(df_type, df)
 
@@ -337,6 +329,9 @@ class AwgCcrcc(Source):
             self.save_df(df_type, df)
 
     def load_methylation(self):
+        # proteomics dfs required to fully load methylation
+        self.load_proteomics()
+
         df_type = 'methylation'
         if df_type not in self._data:
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
@@ -417,10 +412,13 @@ class AwgCcrcc(Source):
 
             # Use the RNA.ID column from clinical dataframe to reindex transcriptomics dataframe with patient ids
             try:
-                tran_map = get_reindex_map(self._data['clinical']["RNA.ID"])
+                tran_map = get_reindex_map(self.rna_ids)
                 df = reindex_dataframe(df, tran_map, new_index_name="Patient_ID", keep_old=False)
             except ReindexMapError:
-                warnings.warn("Error mapping sample ids in transcriptomics dataframe. At least one RNA.ID did not have a corresponding Patient_ID mapped in the clinical dataframe. transcriptomics dataframe not loaded.", FailedReindexWarning, stacklevel=2)       
+                warnings.warn("Error mapping sample ids in transcriptomics dataframe. At least one RNA.ID did not have a corresponding Patient_ID mapped in the clinical dataframe. transcriptomics dataframe not loaded.", FailedReindexWarning, stacklevel=2)
+
+            # Move the prepended N to a .N at the end to match other normal sample labeling in cptac
+            df.index = df.index.where(~df.index.str.startswith('N'), df.index.str[1:] + ".N")
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -431,7 +429,7 @@ class AwgCcrcc(Source):
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
 
-            # process the file elif file_name == 'CCRCC_followup_9_12.xlsx' and self._version == "0.1.1":
+            # process the file elif file_name == 'CCRCC_followup_9_12.xlsx' and self.version == "0.1.1":
             df = pd.read_excel(file_path)
 
             # Replace redundant values for "not reported" with NaN
@@ -466,7 +464,7 @@ class AwgCcrcc(Source):
         Returns: reindexed df
         """
         try:
-            specimen_label_map = get_reindex_map(self._data['clinical']["Specimen.Label"])
+            specimen_label_map = get_reindex_map(self.specimen_labels)
         except ReindexMapError:
             warnings.warn(f"Error mapping sample ids in {df_type} dataframe. Specimen.Label mapping in clinical dataframe was not one-to-one. Dataframe not loaded.", FailedReindexWarning, stacklevel=2)
         
