@@ -119,7 +119,7 @@ class AwgGbm(Source):
 #         clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
 
         # For versions 1.0, 2.0, and 2.1, the gender is mis-entered for two samples in the clinical dataframe. Both C3N-01196 and C3N-01856 are entered as Female, but are actually Male. Let's fix that, if we're loading one of those versions.
-#         if self._version in ("1.0", "2.0", "2.1"):
+#         if self.version in ("1.0", "2.0", "2.1"):
 #             clinical.loc[clinical.index.isin(["C3N-01196", "C3N-01856"]), "gender"] = "Male"
 
 
@@ -312,11 +312,11 @@ class AwgGbm(Source):
             # Get rid of all lowercase s, t, and y delimeters in the sites
             df["Site"] = df["Site"].str.replace(r"[sty]", r"", regex=True)
 
-            if self._version == "1.0":
+            if self.version == "1.0":
                 df = df.rename(columns={"gene": "Name", "peptide": "Peptide"})
                 df = df.set_index(["Name", "Site", "Peptide"]) # Turn these columns into a multiindex
 
-            elif self._version in ("2.0", "2.1", "3.0"):
+            elif self.version in ("2.0", "2.1", "3.0"):
                 df = df.rename(columns={
                         "gene": "Name",
                         "peptide": "Peptide",
@@ -338,7 +338,7 @@ class AwgGbm(Source):
 
             df = pd.read_csv(file_path, sep='\t', index_col=0)
 
-            if self._version in ("2.0", "2.1", "3.0"):
+            if self.version in ("2.0", "2.1", "3.0"):
                 df = df.drop(columns="refseq_id") # We don't need this database ID, because the gene name index is already unique
 
             df = df.sort_index()
