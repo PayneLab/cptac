@@ -58,7 +58,7 @@ class WashuLscc(Source):
             'cibersort'         : self.load_cibersort,
             'CNV'               : self.load_CNV,
             'tumor_purity'      : self.load_tumor_purity,
-            'readme'            : self.load_readme,
+            #'readme'            : self.load_readme,
         }
 
         if version == "latest":
