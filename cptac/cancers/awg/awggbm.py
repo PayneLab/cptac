@@ -35,6 +35,9 @@ class AwgGbm(Source):
         # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
         self.valid_versions = ["1.0", "2.0", "2.1", "3.0"]
 
+        if version == "latest":
+            version = sorted(self.valid_versions)[-1]
+
         self.data_files = {
             "1.0": {
                 "clinical"              : "clinical_data_core.v1.0.20190802.tsv.gz",
@@ -62,7 +65,7 @@ class AwgGbm(Source):
             "2.1": {
                 "acetylproteomics"      : "acetylome_mssm_per_gene_clean.v2.1.20190927.tsv.gz",
                 "clinical"              : "clinical_data_core.v2.1.20190927.tsv.gz",
-                "metabolimics"          : "metabolome_pnnl.v2.1.20190927.tsv.gz",
+                "metabolomics"          : "metabolome_pnnl.v2.1.20190927.tsv.gz",
                 "experimental_design"   : ["metabolome_sample_info.v2.1.20190927.tsv.gz", "proteome_tmt_design.v2.1.20190927.tsv.gz"],
                 "miRNA"                 : "mirnaseq_mirna_mature_tpm.v2.1.20190927.tsv.gz",
                 "lipidomics"            : ["negative_lipidome_pnnl.v2.1.20190927.tsv.gz", "positive_lipidome_pnnl.v2.1.20190927.tsv.gz"],
@@ -93,49 +96,38 @@ class AwgGbm(Source):
         self.load_functions = {
             "clinical"               : self.load_clinical,
             "CNV"                    : self.load_CNV,
+            "experimental_design"    : self.load_experimental_design,
             "followup"               : self.load_followup,
-            "methylation"            : self.load_methylation,
+            "miRNA"                  : self.load_miRNA,
             "phosphoproteomics"      : self.load_phosphoproteomics,
-            "phosphoproteomics_gene" : self.load_phosphoproteomics_gene,
             "proteomics"             : self.load_proteomics,
             "somatic_mutation"       : self.load_somatic_mutation,
             "transcriptomics"        : self.load_transcriptomics,
         }
 
-        if version == "latest":
-            version = sorted(self.valid_versions)[-1]
+        if version != "1.0":
+            self.load_functions["acetylproteomics"] = self.load_acetylproteomics
+            self.load_functions["metabolomics"] = self.load_metabolomics
+            self.load_functions["lipidomics"] = self.load_lipidomics
+            self.load_functions["circular_RNA"] = self.load_circular_RNA
+            self.load_functions["gene_fusion"] = self.load_gene_fusion
 
         super().__init__(cancer_type="gbm", source='awg', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
-        
-        # Get a union of all dataframes' indices, with duplicates removed
-        master_index = unionize_indices(self._data)
 
-        # Use the master index to reindex the clinical dataframe, so the clinical dataframe has a record of every sample in the dataset. Rows that didn't exist before (such as the rows for normal samples) are filled with NaN.
-        clinical = self._data["clinical"]
-        clinical = clinical.reindex(master_index)
-
-        # Construct the sample status column
-        sample_status_col = np.where(clinical.index.str.startswith("PT"), "Normal", "Tumor")
-        clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
+#         # Construct the sample status column
+#         sample_status_col = np.where(clinical.index.str.startswith("PT"), "Normal", "Tumor")
+#         clinical.insert(0, "Sample_Tumor_Normal", sample_status_col)
 
         # For versions 1.0, 2.0, and 2.1, the gender is mis-entered for two samples in the clinical dataframe. Both C3N-01196 and C3N-01856 are entered as Female, but are actually Male. Let's fix that, if we're loading one of those versions.
-        if self._version in ("1.0", "2.0", "2.1"):
-            clinical.loc[clinical.index.isin(["C3N-01196", "C3N-01856"]), "gender"] = "Male"
+#         if self._version in ("1.0", "2.0", "2.1"):
+#             clinical.loc[clinical.index.isin(["C3N-01196", "C3N-01856"]), "gender"] = "Male"
 
-        # Replace the clinical dataframe in the data dictionary with our new and improved version!
-        self._data['clinical'] = clinical
 
         # Append a ".N" to the Patient_IDs of the normal samples, to match the other datasets
-        self._data = reformat_normal_patient_ids(self._data)
+#         self._data = reformat_normal_patient_ids(self._data)
 
-        # Call function from dataframe_tools.py to sort all tables first by sample status, and then by the index
-        self._data = sort_all_rows(self._data)
 
-        # Call function from dataframe_tools.py to standardize the names of the index and column axes
-        self._data = standardize_axes_names(self._data)
-
-       
     def how_to_cite(self):
         return super().how_to_cite(cancer_type='glioblastoma', pmid=33577785)
 
@@ -146,10 +138,12 @@ class AwgGbm(Source):
             file_path = self.locate_files(df_type)
 
             df = pd.read_csv(file_path, sep='\t')
-            split_genes = df["site"].str.rsplit("-", n=1,expand=True)  # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
+            # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
+            split_genes = df["site"].str.rsplit("-", n=1,expand=True)
             df = df.drop(columns="site")
             df = df.assign(Site=split_genes[1])
-            df["Site"] = df["Site"].str.replace(r"k", r"", regex=True)  # Get rid of all lowercase k delimeters in the sites
+            # Get rid of all lowercase k delimeters in the sites
+            df["Site"] = df["Site"].str.replace(r"k", r"", regex=True)
 
             # Create the multiindex
             df = df.rename(columns={
@@ -159,6 +153,7 @@ class AwgGbm(Source):
                 })
             df = df.set_index(["Name", "Site", "Peptide", "Database_ID"])  # Turn these columns into a multiindex
             df = df.sort_index()
+            df = df.transpose()
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -185,7 +180,7 @@ class AwgGbm(Source):
             file_path = self.locate_files(df_type)
 
             df = pd.read_csv(file_path, sep='\t', index_col=0).assign(Stage="IV") # By definition they're all stage IV, since it's glioblastoma
-        
+
             # save df in self._data
             self.save_df(df_type, df)
 
@@ -222,9 +217,6 @@ class AwgGbm(Source):
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_paths = self.locate_files(df_type)
 
-            sample_info = None
-            experimental_design = None
-
             for file_path in file_paths:
                 df = pd.read_csv(file_path, sep='\t', index_col=0)
                 df.index.name = "Patient_ID"
@@ -239,7 +231,7 @@ class AwgGbm(Source):
             experimental_design = experimental_design.join(useful_cols, how="outer")
 
             # save df in self._data
-            self.save_df(df_type, df)
+            self.save_df(df_type, experimental_design)
 
     def load_followup(self):
         df_type = 'followup'
@@ -269,9 +261,6 @@ class AwgGbm(Source):
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_paths = self.locate_files(df_type)
 
-            lipidomics_positive = None
-            lipidomics_negative = None
-
             for file_path in file_paths:
                 if "positive_lipidome_pnnl" in file_path:
                     df = pd.read_csv(file_path, sep='\t', index_col=0)
@@ -289,8 +278,7 @@ class AwgGbm(Source):
             lipidomics = lipidomics_positive.join(lipidomics_negative, how="outer")
 
             # save df in self._data
-            self.save_df(df_type, df)
-
+            self.save_df(df_type, lipidomics)
 
     def load_metabolomics(self):
         df_type = 'metabolomics'
@@ -300,17 +288,6 @@ class AwgGbm(Source):
 
             df = pd.read_csv(file_path, sep='\t', index_col=0)
             df = df.transpose()
-        
-            # save df in self._data
-            self.save_df(df_type, df)
-
-    def load_methylation(self):
-        df_type = 'methylation'
-        if df_type not in self._data:
-            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
-            file_path = self.locate_files(df_type)
-
-#             CODE HERE
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -336,14 +313,16 @@ class AwgGbm(Source):
         if df_type not in self._data:
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
-        
+
             df = pd.read_csv(file_path, sep='\t')
 
             # Create our multiindex
-            split_genes = df["site"].str.rsplit("-", n=1, expand=True) # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
+            # Split the genes from the sites, splitting from the right since some genes have hyphens in their names, but the genes and sites are also separated by hyphens
+            split_genes = df["site"].str.rsplit("-", n=1, expand=True)
             df = df.drop(columns="site")
             df = df.assign(Site=split_genes[1])
-            df["Site"] = df["Site"].str.replace(r"[sty]", r"", regex=True) # Get rid of all lowercase s, t, and y delimeters in the sites
+            # Get rid of all lowercase s, t, and y delimeters in the sites
+            df["Site"] = df["Site"].str.replace(r"[sty]", r"", regex=True)
 
             if self._version == "1.0":
                 df = df.rename(columns={"gene": "Name", "peptide": "Peptide"})
@@ -363,23 +342,12 @@ class AwgGbm(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
-    def load_phosphoproteomics_gene(self):
-        df_type = 'phosphoproteomics_gene'
-        if df_type not in self._data:
-            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
-            file_path = self.locate_files(df_type)
-
-#             CODE HERE
-
-            # save df in self._data
-            self.save_df(df_type, df)
-
     def load_proteomics(self):
         df_type = 'proteomics'
         if df_type not in self._data:
             # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
-            
+
             df = pd.read_csv(file_path, sep='\t', index_col=0)
 
             if self._version in ("2.0", "2.1", "3.0"):
@@ -387,7 +355,7 @@ class AwgGbm(Source):
 
             df = df.sort_index()
             df = df.transpose()
-            
+
             # save df in self._data
             self.save_df(df_type, df)
 
