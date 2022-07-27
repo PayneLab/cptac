@@ -32,6 +32,8 @@ class AwgBrca(Source):
 
         self.valid_versions = ["3.1", "3.1.1", "5.4"] # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
 
+        if version == "latest":
+            version = sorted(self.valid_versions)[-1]
 
         self.data_files = {
             "3.1": {
@@ -67,15 +69,15 @@ class AwgBrca(Source):
             'clinical'          : self.load_annotations,
             'CNV'               : self.load_CNV,
             'derived_molecular' : self.load_annotations,
-            'followup'          : self.load_followup,
             'phosphoproteomics' : self.load_phosphoproteomics,
             'proteomics'        : self.load_proteomics,
             'transcriptomics'   : self.load_transcriptomics,
-            'somatic_mutation'  : self.load_somatic_mutation
         }
 
-        if version == "latest":
-            version = sorted(self.valid_versions)[-1]
+        if version != "3.1":
+            self.load_functions["somatic_mutation"] = self.load_somatic_mutation
+        if version == "3.1.1":
+            self.load_functions["followup"] = self.load_followup
 
         super().__init__(cancer_type="brca", source='awg', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
