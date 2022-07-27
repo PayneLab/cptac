@@ -97,7 +97,6 @@ class AwgGbm(Source):
             "clinical"               : self.load_clinical,
             "CNV"                    : self.load_CNV,
             "experimental_design"    : self.load_experimental_design,
-            "followup"               : self.load_followup,
             "miRNA"                  : self.load_miRNA,
             "phosphoproteomics"      : self.load_phosphoproteomics,
             "proteomics"             : self.load_proteomics,
@@ -232,17 +231,6 @@ class AwgGbm(Source):
 
             # save df in self._data
             self.save_df(df_type, experimental_design)
-
-    def load_followup(self):
-        df_type = 'followup'
-        if df_type not in self._data:
-            # verify the df_type is valid for the current version and get file path (defined in source.py, the parent class)
-            file_path = self.locate_files(df_type)
-
-            df = pd.read_csv(file_path, sep='\t', index_col=0)
-
-            # save df in self._data
-            self.save_df(df_type, df)
 
     def load_gene_fusion(self):
         df_type = 'gene_fusion'
