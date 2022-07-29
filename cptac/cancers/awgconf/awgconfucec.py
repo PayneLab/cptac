@@ -170,9 +170,6 @@ class AwgConfUcec(Source):
         # Call the parent class __init__ function
         super().__init__(cancer_type="ucec", source='awgconf', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
-        # Print password access only warning
-        warnings.warn("The UcecConf data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)
-
 
     def load_acetylproteomics_gene(self):
         df_type = 'acetylproteomics_gene'
@@ -503,3 +500,13 @@ class AwgConfUcec(Source):
             
             # save df in self._data
             self.save_df(df_type, df)
+
+
+    # Override the save_df function from source.py so we can give an access warning the first time the data is used
+    def save_df(self, datatype, df):
+        if self._data == {}:
+            # Print password access only warning
+            warnings.warn("The UcecConf data is currently strictly reserved for CPTAC investigators. Otherwise, you are not authorized to access these data. Additionally, even after these data become publicly available, they will be subject to a publication embargo (see https://proteomics.cancer.gov/data-portal/about/data-use-agreement or enter cptac.embargo() to open the webpage for more details).", PublicationEmbargoWarning, stacklevel=2)
+
+        # Inherit the parent event
+        super().save_df(datatype, df)
