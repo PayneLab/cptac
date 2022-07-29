@@ -41,7 +41,7 @@ class WashuCcrcc(Source):
                 "mapping"           : "gencode.v22.annotation.gtf.gz",
                 "miRNA"             : ["ccRCC_precursor_miRNA_combined.tsv", "ccRCC_mature_miRNA_combined.tsv", "ccRCC_total_miRNA_combined.tsv"],
                 "readme"            : ["README_miRNA", "README_CIBERSORT", "README_xCell", "README_somatic_mutation_WXS", "README_gene_expression", "README.boxnote", "README_ESTIMATE_WashU"],
-                "somatic mutation"  : "ccRCC_discovery.dnp.annotated.exonic.maf.gz",
+                "somatic_mutation"  : "ccRCC_discovery.dnp.annotated.exonic.maf.gz",
                 "transcriptomics"   : ["ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz", "ccRCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
                 "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
                 "xcell"             : "ccRCC_xCell.txt",
