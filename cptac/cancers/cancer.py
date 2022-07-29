@@ -295,7 +295,7 @@ class Cancer:
 
     # Join functions
     # Note: These are helper functions that call multi_join on awg data. They will be removed in the future
-    def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None, how="outer", quiet=False, tissue_type="both"):
+    def join_omics_to_omics(self, df1_name, df2_name, df1_source=None, df2_source=None, genes1=None, genes2=None, how="outer", quiet=False, tissue_type="both"):
         """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -310,13 +310,19 @@ class Cancer:
         Returns:
         pandas.DataFrame: The selected columns from the two omics dataframes, joined into one dataframe.
         """
-
         # Check to make sure that the "how" parameter is valid
         self._check_how_parameter(how)
 
+        if df1_source is None:
+            df1_source = "awg"
+            warnings.warn(f"No source specified for {df1_name} data. Source awg used, pass a source to the df1_source parameter to prevent this warning", stacklevel=3)
+        if df2_source is None:
+            df2_source = "awg"
+            warnings.warn(f"No source specified for {df1_name} data. Source awg used, pass a source to the df2_source parameter to prevent this warning", stacklevel=3)
+
         # Set up parameters to work with multi_join
-        df1_name = f"awg {df1_name}"
-        df2_name = f"awg {df2_name}"
+        df1_name = f"{df1_source} {df1_name}"
+        df2_name = f"{df2_source} {df2_name}"
 
         if genes1 is None:
             genes1 = []
