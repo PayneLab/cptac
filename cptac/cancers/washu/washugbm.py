@@ -234,7 +234,7 @@ class WashuGbm(Source):
             df.index.name = 'Patient_ID'
 
             # get clinical df (used to slice out cancer specific patient_IDs in tumor_purity file)
-            mssmclin = Mssm(filter_type='gbm', version=version, no_internet=no_internet) #_get_version - pancandataset
+            mssmclin = Mssm(filter_type='gbm', version=self.version, no_internet=self.no_internet) #_get_version - pancandataset
             self._clinical_df = mssmclin.get_df('clinical')
             patient_ids = self._clinical_df.index.to_list()
             df = df.loc[df.index.isin(patient_ids)]
