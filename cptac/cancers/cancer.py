@@ -293,178 +293,176 @@ class Cancer:
         else:
             raise NoDefinitionsError("No definitions provided for this dataset.")
 
-#     # Join functions
-#     def join_omics_to_omics(self, df1_name, df2_name, df1_source, df2_source, genes1=None, genes2=None, how="outer", quiet=False, tissue_type="both"):
-#         """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
+    # Join functions
+    # Note: These are helper functions that call multi_join on awg data. They will be removed in the future
+    def join_omics_to_omics(self, df1_name, df2_name, genes1=None, genes2=None, how="outer", quiet=False, tissue_type="both"):
+        """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
 
-#         Parameters:
-#         df1_name (str): Name of first omics dataframe to select columns from.
-#         df2_name (str): Name of second omics dataframe to select columns from.
-#         genes1 (str, or list or array-like of str, optional): Gene(s) for column(s) to select from df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
-#         genes2 (str, or list or array-like of str, optional): Gene(s) for Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
-#         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
-#         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
-#         tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
+        Parameters:
+        df1_name (str): Name of first omics dataframe to select columns from.
+        df2_name (str): Name of second omics dataframe to select columns from.
+        genes1 (str, or list or array-like of str, optional): Gene(s) for column(s) to select from df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
+        genes2 (str, or list or array-like of str, optional): Gene(s) for Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
+        how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
+        quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
 
-#         Returns:
-#         pandas.DataFrame: The selected columns from the two omics dataframes, joined into one dataframe.
-#         """
+        Returns:
+        pandas.DataFrame: The selected columns from the two omics dataframes, joined into one dataframe.
+        """
 
-#         df1_name = f"{df1_source}_{df1_name}"
-#         df2_name = f"{df2_source}_{df2_name}"
+        # Check to make sure that the "how" parameter is valid
+        self._check_how_parameter(how)
 
-#         # TODO, rewrite without joining_dataset
-#         return self._joining_dataset.join_omics_to_omics(
-#             df1_name=df1_name, 
-#             df2_name=df2_name,
-#             genes1=genes1, 
-#             genes2=genes2, 
-#             how=how, 
-#             quiet=quiet, 
-#             tissue_type=tissue_type
-#         )
+        # Set up parameters to work with multi_join
+        df1_name = f"awg {df1_name}"
+        df2_name = f"awg {df2_name}"
 
-#     def join_omics_to_mutations(self, omics_df_name, omics_source, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both",mutation_cols=["Mutation","Location"]):
-#         """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
+        if genes1 is None:
+            genes1 = []
+        if genes2 is None:
+            genes2 = []
 
-#         Parameters:
-#         omics_df (str): Name of omics dataframe to join the mutation data to.
-#         mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
-#         omics_genes (str, or list or array-like of str, optional): Gene(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
-#         mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
-#         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
-#         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
-#         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
-#         tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
+        # Warn the user that this function is only for awg data and will be deprecated
+        warnings.warn(f"This function will be removed in a future version of cptac, please use the multi_join function to join these data.", FutureWarning, stacklevel=3)
 
-#         Returns:
-#         pandas.DataFrame: The mutations for the specified gene, joined to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
-#         """
-#         omics_df_name = f"{omics_source}_{omics_df_name}"
+        return self.multi_join({df1_name:genes1, df2_name:genes2}, how=how, tissue_type=tissue_type)
 
-#         # TODO, rewrite without joining_dataset
-#         return self._joining_dataset.join_omics_to_mutations(
-#             omics_df_name = omics_df_name,
-#             mutations_genes = mutations_genes,
-#             omics_genes=omics_genes,
-#             mutations_filter=mutations_filter,
-#             show_location=show_location,
-#             how=how,
-#             quiet=quiet,
-#             tissue_type=tissue_type,
-#             mutation_cols=mutation_cols
-#         )
+    def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both",mutation_cols=["Mutation","Location"]):
+        """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
-#     def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None, how="outer", quiet=False, tissue_type="both"):
-#         """Take specified column(s) from one metadata dataframe, and join to specified columns(s) from another metadata dataframe. Intersection (inner join) of indices is used.
+        Parameters:
+        omics_df (str): Name of omics dataframe to join the mutation data to.
+        mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
+        omics_genes (str, or list or array-like of str, optional): Gene(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
+        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
+        show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
+        how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
+        quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
 
-#         Parameters:
-#         df1_name (str): Name of first metadata dataframe to select columns from.
-#         df2_name (str): Name of second metadata dataframe to select columns from.
-#         cols1 (str, or list or array-like of str, optional): Column(s) to select from df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
-#         cols2 (str, or list or array-like of str, optional): Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
-#         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
-#         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
-#         tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
+        Returns:
+        pandas.DataFrame: The mutations for the specified gene, joined to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
+        """
 
-#         Returns:
-#         pandas.DataFrame: The selected columns from the two metadata dataframes, joined into one dataframe.
-#         """
-#         # Check to make sure that the "how" parameter is valid
-#         self._check_how_parameter(how)
+        # Check to make sure that the "how" parameter is valid
+        self._check_how_parameter(how)
 
-#         # Select the columns from each dataframe
-#         selected1 = self._get_metadata_cols(df1_name, cols1, tissue_type)
-#         selected2 = self._get_metadata_cols(df2_name, cols2, tissue_type)
+        # Set up parameters to work with multi_join
+        df1_name = f"awg {omics_df_name}"
+        df2_name = "awg somatic_mutation"
 
-#         joined = selected1.join(selected2, how=how, rsuffix='_from_' + df2_name) # Use suffix in case both dataframes have a particular column, such as Patient_ID
+        if omics_genes is None:
+            genes1 = []
+        else:
+            genes1 = omics_genes
 
-#         # Warn them about any NaNs that were inserted in the outer join
-#         if not quiet and how != "inner":
-#             self._warn_inserted_nans(df1_name, df2_name, selected1.index, selected2.index)
+        # Warn the user that this function is only for awg data and will be deprecated
+        warnings.warn(f"This function will be removed in a future version of cptac, please use the multi_join function to join these data.", FutureWarning, stacklevel=3)
 
-#         # Sort the dataframe so all the tumor samples are first, then all the normal samples
-#         sample_status_col = self.get_dataframe("clinical")["Sample_Tumor_Normal"]
-#         joined = sort_df_by_sample_status(joined, sample_status_col)
+        return self.multi_join({df1_name:genes1, df2_name:mutations_genes}, mutations_filter=mutations_filter, how=how, tissue_type=tissue_type)
 
-#         return joined
+    def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None, how="outer", quiet=False, tissue_type="both"):
+        """Take specified column(s) from one metadata dataframe, and join to specified columns(s) from another metadata dataframe. Intersection (inner join) of indices is used.
 
-#     def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None, how="outer", quiet=False, tissue_type="both"):
-#         """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_design) to part or all of an omics dataframe. Intersection (inner join) of indices is used.
+        Parameters:
+        df1_name (str): Name of first metadata dataframe to select columns from.
+        df2_name (str): Name of second metadata dataframe to select columns from.
+        cols1 (str, or list or array-like of str, optional): Column(s) to select from df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
+        cols2 (str, or list or array-like of str, optional): Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
+        how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
+        quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
 
-#         Parameters:
-#         metadata_df_name (str): Name of metadata dataframe to select columns from.
-#         omics_df_name (str): Name of omics dataframe to join the metadata columns to.
-#         metadata_cols (str, or list or array-like of str, optional): Column(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select the entire metadata dataframe.
-#         omics_genes (str, or list or array-like of str, optional): Gene(s) to select data for from the omics dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select entire dataframe.
-#         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
-#         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
-#         tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
+        Returns:
+        pandas.DataFrame: The selected columns from the two metadata dataframes, joined into one dataframe.
+        """
 
-#         Returns:
-#         pandas.DataFrame: The selected metadata columns, joined with all or part of the omics dataframe.
-#         """
-#         # Check to make sure that the "how" parameter is valid
-#         self._check_how_parameter(how)
+        # Check to make sure that the "how" parameter is valid
+        self._check_how_parameter(how)
 
-#         # Select the columns from each dataframe
-#         metadata_selected = self._get_metadata_cols(metadata_df_name, metadata_cols, tissue_type)
-#         omics_selected = self._get_omics_cols(omics_df_name, omics_genes,tissue_type)
+        # Set up parameters to work with multi_join
+        df1_name = f"awg {df1_name}"
+        df2_name = f"awg {df2_name}"
 
-#         # Make the indices the same
-#         if metadata_selected.columns.names != omics_selected.columns.names:
-#             metadata_selected.columns = add_index_levels(to=metadata_selected.columns, source=omics_selected.columns)
+        if cols1 is None:
+            cols1 = []
+        if cols2 is None:
+            cols2 = []
 
-#         joined = metadata_selected.join(omics_selected, how=how)
+        # Warn the user that this function is only for awg data and will be deprecated
+        warnings.warn(f"This function will be removed in a future version of cptac, please use the multi_join function to join these data.", FutureWarning, stacklevel=3)
 
-#         # Warn them about any NaNs that were inserted in the outer join
-#         if not quiet and how != "inner":
-#             self._warn_inserted_nans(metadata_df_name, omics_df_name, metadata_selected.index, omics_selected.index)
+        return self.multi_join({df1_name:cols1, df2_name:cols2}, how=how, tissue_type=tissue_type)
 
-#         # Sort the dataframe so all the tumor samples are first, then all the normal samples
-#         sample_status_col = self.get_dataframe("clinical")["Sample_Tumor_Normal"]
-#         joined = sort_df_by_sample_status(joined, sample_status_col)
+    def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None, how="outer", quiet=False, tissue_type="both"):
+        """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_design) to part or all of an omics dataframe. Intersection (inner join) of indices is used.
 
-#         return joined
+        Parameters:
+        metadata_df_name (str): Name of metadata dataframe to select columns from.
+        omics_df_name (str): Name of omics dataframe to join the metadata columns to.
+        metadata_cols (str, or list or array-like of str, optional): Column(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select the entire metadata dataframe.
+        omics_genes (str, or list or array-like of str, optional): Gene(s) to select data for from the omics dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select entire dataframe.
+        how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
+        quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
 
-#     def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both"):
-#         """Select all mutations for specified gene(s), and joins them to all or part of the given metadata dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
+        Returns:
+        pandas.DataFrame: The selected metadata columns, joined with all or part of the omics dataframe.
+        """
 
-#         Parameters:
-#         metadata_df_name (str): Name of metadata dataframe to join the mutation data to.
-#         mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
-#         metadata_cols (str, or list or array-like of str, optional): Gene(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
-#         mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
-#         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
-#         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
-#         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
-#         tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
+        # Check to make sure that the "how" parameter is valid
+        self._check_how_parameter(how)
 
-#         Returns:
-#         pandas.DataFrame: The mutations for the specified gene, joined to all or part of the metadata dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
-#         """
-#         # Check to make sure that the "how" parameter is valid
-#         self._check_how_parameter(how)
+        # Set up parameters to work with multi_join
+        df1_name = f"awg {metadata_df_name}"
+        df2_name = f"awg {omics_df_name}"
 
-#         # Select the data from each dataframe
-#         metadata = self._get_metadata_cols(metadata_df_name, metadata_cols, tissue_type)
-#         mutations = self._get_genes_mutations(mutations_genes, mutations_filter)
+        if metadata_cols is None:
+            genes1 = []
+        else:
+            genes1 = metadata_cols
+        if omics_genes is None:
+            genes2 = []
+        else:
+            genes2 = omics_genes
 
-#         if tissue_type == "normal":
-#             mutations = mutations.iloc[0:0] #If tissue type is normal, we drop all of the mutations rows and join only with the columns.
+        # Warn the user that this function is only for awg data and will be deprecated
+        warnings.warn(f"This function will be removed in a future version of cptac, please use the multi_join function to join these data.", FutureWarning, stacklevel=3)
 
-#         mutations_were_filtered = mutations_filter is not None
-#         joined = self._join_other_to_mutations(metadata, mutations, mutations_were_filtered, show_location,how=how, quiet=quiet)
+        return self.multi_join({df1_name:genes1, df2_name:genes2}, how=how, tissue_type=tissue_type)
 
-#         # Warn them about any NaNs that were inserted in the outer join
-#         if not quiet and how != "inner":
-#             self._warn_inserted_nans(metadata_df_name, "somatic_mutation", metadata.index, mutations.index)
+    def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both"):
+        """Select all mutations for specified gene(s), and joins them to all or part of the given metadata dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
-#         # Sort the dataframe so all the tumor samples are first, then all the normal samples
-#         sample_status_col = self.get_dataframe("clinical")["Sample_Tumor_Normal"]
-#         joined = sort_df_by_sample_status(joined, sample_status_col)
+        Parameters:
+        metadata_df_name (str): Name of metadata dataframe to join the mutation data to.
+        mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
+        metadata_cols (str, or list or array-like of str, optional): Gene(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
+        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
+        show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
+        how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
+        quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
 
-#         return joined
+        Returns:
+        pandas.DataFrame: The mutations for the specified gene, joined to all or part of the metadata dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
+        """
+
+        # Check to make sure that the "how" parameter is valid
+        self._check_how_parameter(how)
+
+        # Set up parameters to work with multi_join
+        df1_name = f"awg {metadata_df_name}"
+        df2_name = "awg somatic_mutation"
+
+        if metadata_cols is None:
+            metadata_cols = []
+
+        # Warn the user that this function is only for awg data and will be deprecated
+        warnings.warn(f"This function will be removed in a future version of cptac, please use the multi_join function to join these data.", FutureWarning, stacklevel=3)
+
+        return self.multi_join({df1_name:metadata_cols, df2_name:mutations_genes}, how=how, tissue_type=tissue_type, mutations_filter=mutations_filter)
 
     def multi_join(self, join_dict, mutations_filter=None, flatten=False, levels_to_drop=[], how="outer", tissue_type="both"):    
         """Takes a dictionary where keys include a source and datatype (either in a ('source', 'datatype') tuple or as a space separated string "source datatype"), and values are columns from those dataframes. Joins all the columns into one dataframe. If the value is an empty list it will join the entire dataframe
@@ -541,7 +539,7 @@ class Cancer:
                 if i in column_names:
                     columns = columns.rename(columns={i: str(i)+'_'+source+'_'+datatype})
                 column_names.append(i)
-            ###     
+            ###
 
             to_join.append(columns)
 
