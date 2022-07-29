@@ -99,7 +99,7 @@ class WashuCcrcc(Source):
             # Combine the two transcriptomics dataframes
             rna_tumor = self._helper_tables.get("transcriptomics_tumor")
             rna_normal = self._helper_tables.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
-            rna_combined = rna_tumor.append(rna_normal)
+            rna_combined = pd.concat([rna_tumor, rna_normal])
 
             # save df in self._data
             self.save_df(df_type, rna_combined)
@@ -143,7 +143,7 @@ class WashuCcrcc(Source):
             normal = normal.sort_values(by=["Patient_ID"])
             tumor = df.loc[~ df.index.str.contains('\.N$', regex =True)]
             tumor = tumor.sort_values(by=["Patient_ID"])
-            all_df = tumor.append(normal)
+            all_df = pd.concat([tumor, normal])
             # save df in self._data
             self.save_df(df_type, all_df)
 
@@ -162,7 +162,7 @@ class WashuCcrcc(Source):
             normal = normal.sort_values(by=["Patient_ID"])
             tumor = df.loc[~ df.index.str.contains('\.N$', regex =True)]
             tumor = tumor.sort_values(by=["Patient_ID"])
-            all_df = tumor.append(normal)
+            all_df = pd.concat([tumor, normal])
             # save df in self._data
             self.save_df(df_type, all_df)
 
@@ -181,7 +181,7 @@ class WashuCcrcc(Source):
             normal = normal.sort_values(by=["Patient_ID"])
             tumor = df.loc[~ df.index.str.contains('\.N$', regex =True)]
             tumor = tumor.sort_values(by=["Patient_ID"])
-            all_df = tumor.append(normal)
+            all_df = pd.concat([tumor, normal])
             # save df in self._data
             self.save_df(df_type, all_df)
 

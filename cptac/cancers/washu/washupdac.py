@@ -147,7 +147,7 @@ class WashuPdac(Source):
             normal = normal.sort_values(by=["Patient_ID"])
             tumor = df.loc[~ df.index.str.contains('\.N$', regex =True)]
             tumor = tumor.sort_values(by=["Patient_ID"])
-            all_df = tumor.append(normal)
+            all_df = pd.concat([tumor, normal])
             # save df in self._data
             self.save_df(df_type, all_df)
 
@@ -167,7 +167,7 @@ class WashuPdac(Source):
             normal = normal.sort_values(by=["Patient_ID"])
             tumor = df.loc[~ df.index.str.contains('\.N$', regex =True)]
             tumor = tumor.sort_values(by=["Patient_ID"])
-            all_df = tumor.append(normal)
+            all_df = pd.concat([tumor, normal])
             # save df in self._data
             self.save_df(df_type, all_df)
     
@@ -187,7 +187,7 @@ class WashuPdac(Source):
             normal = normal.sort_values(by=["Patient_ID"])
             tumor = df.loc[~ df.index.str.contains('\.N$', regex =True)]
             tumor = tumor.sort_values(by=["Patient_ID"])
-            all_df = tumor.append(normal)
+            all_df = pd.concat([tumor, normal])
             # save df in self._data
             self.save_df(df_type, all_df)
 
