@@ -41,9 +41,9 @@ class WashuHnscc(Source):
                 "mapping"           : "gencode.v22.annotation.gtf.gz",
                 "miRNA"             : ["HNSCC_mature_miRNA_combined.tsv","HNSCC_precursor_miRNA_combined.tsv","HNSCC_total_miRNA_combined.tsv"],
                 "readme"            : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"],
-                "somatic mutation"  : "HNSCC_discovery.dnp.annotated.exonic.maf.gz",
+                "somatic_mutation"  : "HNSCC_discovery.dnp.annotated.exonic.maf.gz",
                 "transcriptomics"   : ["HNSCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz","HNSCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
-                "tumor purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
+                "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
                 "xcell"             : "HNSCC_xCell.txt",
             }
         }
