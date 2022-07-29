@@ -106,7 +106,7 @@ class AwgBrca(Source):
                      "Replicate_Measurement_IDs", "Sample_Tumor_Normal", "Age.in.Month", "Gender", "Race", "Human.Readable.Label", "Experiment", "Channel", "Stage", 
                      "PAM50", "NMF.v2.1", "ER", "PR", "ER.IHC.Score", "PR.IHC.Score", "Coring.or.Excision", "Ischemia.Time.in.Minutes", 
                      "Ischemia.Decade", "Necrosis", "Tumor.Cellularity", "Total.Cellularity", "In.CR", "QC.status"]]
-                self._data["clinical"] = clinical
+                self.save_df("clinical", clinical)
 
                 derived_molecular = df[[
                     "HER2.IHC.Score", "HER2.FISH.Status", "HER2.original", "HER2.Amplified", "HER2.refined", "STARD3.ERBB2.GRB7.protein", 
@@ -115,7 +115,7 @@ class AwgBrca(Source):
                     "GATA3.mutation.status", "MAP3K1.mutation.status", "PIK3CA.mutation.status", "PTEN.mutation.status", "TP53.mutation.status", 
                     "Number.of.Mutations", "Number.of.Mutated.Genes", "Chromosome.INstability.index.CIN.", "ESTIMATE.TumorPurity", 
                     "ESTIMATE.ImmuneScore", "ESTIMATE.StromalScore", "xCell.ImmuneScore", "xCell.StromaScore", "Cibersort.Absolute.score", "Stemness.Score"]]
-                self._data["derived_molecular"] = derived_molecular
+                self.save_df("derived_molecular", derived_molecular)
                 
             elif file_name == "prosp-brca-v5.4-public-sample-annotation.csv.gz":
                 df = pd.read_csv(file_path, index_col=0)
@@ -135,7 +135,7 @@ class AwgBrca(Source):
                    'ER.Updated.Clinical.Status', 'PR.Clinical.Status',
                    'ERBB2.Updated.Clinical.Status', 'TNBC.Updated.Clinical.Status',
                    'ERBB2.Proteogenomic.Status', 'TOP2A.Proteogenomic.Status']]
-                self._data["clinical"] = clinical
+                self.save_df("clinical", clinical)
                 
                 derived_molecular = df[[
                    'ERBB2.Gene.Amplified', 'TOP2A.Gene.Amplified', 'ESTIMATE.TumorPurity', 'CIBERSORT.Absolute.Score', 'ESTIMATE.Immune.Score',
@@ -145,7 +145,7 @@ class AwgBrca(Source):
                    'ARID1A.Mutation.Type', 'MLLT4.Mutation.Type', 'TP53.Mutation.Status', 'PIK3CA.Mutation.Status', 'PTEN.Mutation.Status',
                    'MAP3K1.Mutation.Status', 'AKT1.Mutation.Status', 'GATA3.Mutation.Status', 'CBFB.Mutation.Status',
                    'KMT2C.Mutation.Status', 'SF3B1.Mutation.Status', 'ARID1A.Mutation.Status', 'MLLT4.Mutation.Status']]
-                self._data["derived_molecular"] = derived_molecular
+                self.save_df("derived_molecular", derived_molecular)
 
     def load_acetylproteomics(self):
         df_type = 'acetylproteomics'
@@ -182,7 +182,7 @@ class AwgBrca(Source):
             df = df.transpose()
             df = df.sort_index()
             df.index.name = "Patient_ID"
-            self._data["acetylproteomics"] = df
+            self.save_df(df_type, df)
 
     def load_CNV(self):
         df_type = 'CNV'
@@ -202,7 +202,7 @@ class AwgBrca(Source):
             df = df.transpose()
             df = df.sort_index()
             df.index.name = "Patient_ID"
-            self._data["CNV"] = df
+            self.save_df(df_type, df)
     
     def load_phosphoproteomics(self):
         df_type = 'phosphoproteomics'
@@ -240,7 +240,7 @@ class AwgBrca(Source):
             df = df.transpose()
             df = df.sort_index()
             df.index.name = "Patient_ID"
-            self._data["phosphoproteomics"] = df
+            self.save_df(df_type, df)
 
     def load_proteomics(self):
         df_type = 'proteomics'
@@ -263,7 +263,7 @@ class AwgBrca(Source):
             df = df.transpose()
             df = df.sort_index()
             df.index.name = "Patient_ID"
-            self._data["proteomics"] = df
+            self.save_df(df_type, df)
 
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
@@ -283,7 +283,7 @@ class AwgBrca(Source):
             df = df.transpose()
             df = df.sort_index()
             df.index.name = "Patient_ID"
-            self._data["transcriptomics"] = df
+            self.save_df(df_type, df)
 
     def load_followup(self):
         df_type = 'followup'
@@ -307,7 +307,7 @@ class AwgBrca(Source):
             df = df.set_index("Patient_ID")
             df = df.sort_index()
 
-            self._data["followup"] = df
+            self.save_df(df_type, df)
 
     def load_somatic_mutation(self):
         df_type = 'somatic_mutation'
@@ -328,4 +328,4 @@ class AwgBrca(Source):
             df = df.sort_values(by=["Patient_ID", "Gene"])
             df = df.set_index("Patient_ID")
 
-            self._data["somatic_mutation"] = df
+            self.save_df(df_type, df)
