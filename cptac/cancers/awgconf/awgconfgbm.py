@@ -421,8 +421,14 @@ class AwgConfGbm(Source):
     def save_df(self, datatype, df):
 
         # Delete discovery cohort samples from all data types
+        if datatype != 'clinical':
+            self.load_clinical() # loads self._helper_tables["discovery_cohort_ids"]
         dfd = self._helper_tables["discovery_cohort_ids"]
         df = df[~df.index.isin(dfd["preferred_sample_name"])]
+
+        # Function to remove suffix "-NAT" from Patient_IDs and add .N
+        # This is necessary to sort tumor and normal samples in functions written in (ie _tumor_only or _normal_only)
+        df.index = df.index.where(~df.index.str.endswith('-NAT'), df.index.str[:-4] + ".N")
 
         if self._data == {}:
             # Print password access only warning
