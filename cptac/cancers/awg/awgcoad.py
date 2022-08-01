@@ -170,7 +170,7 @@ class AwgCoad(Source):
             phos_normal = phos_normal.set_index(phos_normal.index + '.N')
 
             # Combine the two phosphoproteomics dataframes into one dataframe
-            phos_combined = phos_tumor.append(phos_normal)
+            phos_combined = pd.concat([phos_tumor, phos_normal])
 
             # Create our phosphoproteomics columns multiindex
             multiindex = phos_combined.columns.str.split('[_:]', expand=True) # Split the column names into their constituent parts
