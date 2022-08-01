@@ -162,7 +162,15 @@ class Cancer:
         """Get a CNV dataframe from the specified data source."""
         return self.get_dataframe("CNV", source, tissue_type, imputed=imputed)
 
-    def get_deconvolution(self, source=None, deconv_algorithm=None, tissue_type="both", imputed=False):
+    def get_deconvolution_cibersort(self, source=None, tissue_type="both", imputed=False):
+        """Get a deconvolution dataframe from the specified data source using the cibersort algorithm."""
+        return self.get_dataframe('xcell', source, tissue_type, imputed=imputed)
+
+    def get_deconvolution_xcell(self, source=None, tissue_type="both", imputed=False):
+        """Get a deconvolution dataframe from the specified data source using the cibersort algorithm."""
+        return self.get_dataframe('cibersort', source, tissue_type, imputed=imputed)
+
+    def get_deconvolution(self, deconv_algorithm=None, source=None, tissue_type="both", imputed=False):
         """Get a deconvolution dataframe from the specified data source.
 
         Parameters:
