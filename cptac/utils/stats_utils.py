@@ -128,14 +128,14 @@ def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, equal_var=T
         if len(pvals) == 0: # None of the groups had enough members to pass the mincount
             raise InvalidParameterError("No groups had enough members to pass mincount; no tests run.")
 
-        '''Correct for multiple testing to determine if each comparison meets the new cutoff'''
+        # Correct for multiple testing to determine if each comparison meets the new cutoff
         results = statsmodels.stats.multitest.multipletests(pvals=pvals, alpha=alpha, method=correction_method)
         reject = results[0]
 
-        '''Format results in a pandas dataframe'''
+        # Format results in a pandas dataframe
         results_df = pd.DataFrame(columns=['Comparison','P_Value'])
 
-        '''If return all, add all comparisons and p-values to dataframe'''
+        # If return all, add all comparisons and p-values to dataframe
         if return_all:
             if pval_return_corrected:
                 results_df['Comparison'] = comparisons
@@ -145,26 +145,26 @@ def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, equal_var=T
                 results_df['Comparison'] = comparisons
                 results_df['P_Value'] = pvals
 
-            '''Else only add significant comparisons'''
+        # Else only add significant comparisons
         else:
             for i in range(0, len(reject)):
                 if reject[i]:
                     if pval_return_corrected:
-                        results_df = results_df.append({'Comparison':comparisons[i],'P_Value':results[1][i]}, ignore_index=True)
+                        new_result = pd.DataFrame({'Comparison':comparisons[i],'P_Value':results[1][i]}, index=[0])
+                        results_df = pd.concat([results_df, new_result])
                     else:
-                        results_df = results_df.append({'Comparison':comparisons[i],'P_Value':pvals[i]}, ignore_index=True)
+                        new_result = pd.DataFrame({'Comparison':comparisons[i],'P_Value':pvals[i]}, index=[0])
+                        results_df = pd.concat([results_df, new_result])
 
-
-        '''Sort dataframe by ascending p-value'''
+        # Sort dataframe by ascending p-value
         results_df = results_df.sort_values(by='P_Value', ascending=True)
         results_df = results_df.reset_index(drop=True)
 
-        '''If results df is not empty, return it, else return None'''
+        # If results df is not empty, return it, else return None
         if len(results_df) > 0:
             return results_df
         else:
             return None
-
 
     except:
         print("Incorrectly Formatted Dataframe!")
