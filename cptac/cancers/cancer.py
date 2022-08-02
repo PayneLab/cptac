@@ -92,12 +92,12 @@ class Cancer:
         if source == 'all':
             deleted_from = list()
             for key in self._sources.keys():
-                if df_type in self._sources[key]:
-                    del self._sources[key][df_type]
+                if df_type in self._sources[key]._data:
+                    del self._sources[key]._data[df_type]
                     deleted_from.append(key)
         else:
-            if df_type in self._sources[source]:
-                del self._sources[source][df_type]
+            if df_type in self._sources[source]._data:
+                del self._sources[source]._data[df_type]
                 deleted_from = source
 
         if deleted_from:
