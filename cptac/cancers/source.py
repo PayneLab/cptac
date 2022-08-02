@@ -82,6 +82,8 @@ class Source:
 
     def set_version(self, version):
         # check if version is valid
+        if version == "latest":
+            version = sorted(self.valid_versions)[-1]
         if version not in self.valid_versions:
             raise InvalidDataVersionError(f"{version} is not a valid version. These are the valid versions: {self.valid_versions}")
         else:
