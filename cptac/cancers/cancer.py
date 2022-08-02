@@ -68,14 +68,15 @@ class Cancer:
         logger = logging.getLogger()
         logger.setLevel(logging.CRITICAL)
 
-    def set_version(self, source, version):
+    def set_source_version(self, source, version):
         """Set the data version you wish to use for a single source
 
         Parameters:
         source (string): the desired source (e.g. 'broad' or 'washu')
-        version (string): the desired version (e.g. '3.1')
+        version (string): the desired version (e.g. '3.1' or 'latest')
         """
-        self._sources[source]._set_version(version)
+        self._sources[source].set_version(version)
+        print(f"{self._cancer_type} cancer data from source {source} now using data freeze {self._sources[source].get_version()}")
 
     def delete_df(self, df_type, source='all'):
         '''This function enables users to delete dataframes they no longer need to free up RAM
