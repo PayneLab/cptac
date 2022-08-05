@@ -714,12 +714,14 @@ class Cancer:
 
     def _tumor_only(self, df):
         """For a given dataframe, keep only the tumor samples."""
-        tumor_df = df[~df.index.str.endswith(".N")]
+        normal_endings = ('.N', '.C') # HNSCC data has cored normal samples marked .C
+        tumor_df = df[~df.index.str.endswith(normal_endings)]
         return tumor_df
 
     def _normal_only(self, df):
         """For a given dataframe, keep only the normal samples."""
-        normal_df = df[df.index.str.endswith(".N")]
+        normal_endings = ('.N', '.C') # HNSCC data has cored normal samples marked .C
+        normal_df = df[df.index.str.endswith(normal_endings)]
         return normal_df
 
     def _get_omics_cols(self, omics_df_name, source, genes, tissue_type="both"):
