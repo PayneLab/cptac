@@ -303,7 +303,7 @@ class Cancer:
             raise NoDefinitionsError("No definitions provided for this dataset.")
 
     # Join functions
-    # Note: These are helper functions that call multi_join on awg data. They will be removed in the future
+    # Note: These are now helper functions that call multi_join on awg data by default
     def join_omics_to_omics(self, df1_name, df2_name, df1_source=None, df2_source=None, genes1=None, genes2=None, how="outer", quiet=False, tissue_type="both"):
         """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
 
@@ -338,12 +338,9 @@ class Cancer:
         if genes2 is None:
             genes2 = []
 
-        # Warn the user that this function is only for awg data and will be deprecated
-        warnings.warn(f"This function will be removed in a future version of cptac, please use the multi_join function to join these data.", FutureWarning, stacklevel=3)
-
         return self.multi_join({df1_name:genes1, df2_name:genes2}, how=how, tissue_type=tissue_type)
 
-    def join_omics_to_mutations(self, omics_df_name, mutations_genes, omics_genes=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both",mutation_cols=["Mutation","Location"]):
+    def join_omics_to_mutations(self, omics_name, mutations_genes, omics_source=None, mutations_source=None, omics_genes=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both",mutation_cols=["Mutation","Location"]):
         """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
@@ -363,21 +360,26 @@ class Cancer:
         # Check to make sure that the "how" parameter is valid
         self._check_how_parameter(how)
 
+        # Figure out sources, default to awg
+        if omics_source is None:
+            omics_source = "awg"
+            warnings.warn(f"No source specified for {omics_name} data. Source awg used, pass a source to the omics_source parameter to prevent this warning", stacklevel=3)
+        if mutations_source is None:
+            mutations_source = "awg"
+            warnings.warn(f"No source specified for mutations data. Source awg used, pass a source to the mutations_source parameter to prevent this warning", stacklevel=3)
+
         # Set up parameters to work with multi_join
-        df1_name = f"awg {omics_df_name}"
-        df2_name = "awg somatic_mutation"
+        df1_name = f"{omics_source} {omics_name}"
+        df2_name = f"{mutations_source} somatic_mutation"
 
         if omics_genes is None:
             genes1 = []
         else:
             genes1 = omics_genes
 
-        # Warn the user that this function is only for awg data and will be deprecated
-        warnings.warn(f"This function will be removed in a future version of cptac, please use the multi_join function to join these data.", FutureWarning, stacklevel=3)
-
         return self.multi_join({df1_name:genes1, df2_name:mutations_genes}, mutations_filter=mutations_filter, how=how, tissue_type=tissue_type)
 
-    def join_metadata_to_metadata(self, df1_name, df2_name, cols1=None, cols2=None, how="outer", quiet=False, tissue_type="both"):
+    def join_metadata_to_metadata(self, df1_name, df2_name, df1_source=None, df2_source=None, cols1=None, cols2=None, how="outer", quiet=False, tissue_type="both"):
         """Take specified column(s) from one metadata dataframe, and join to specified columns(s) from another metadata dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -396,26 +398,31 @@ class Cancer:
         # Check to make sure that the "how" parameter is valid
         self._check_how_parameter(how)
 
+        # Figure out sources, default to awg
+        if df1_source is None:
+            df1_source = "awg"
+            warnings.warn(f"No source specified for {df1_name} data. Source awg used, pass a source to the df1_source parameter to prevent this warning", stacklevel=3)
+        if df2_source is None:
+            df2_source = "awg"
+            warnings.warn(f"No source specified for {df1_name} data. Source awg used, pass a source to the df2_source parameter to prevent this warning", stacklevel=3)
+
         # Set up parameters to work with multi_join
-        df1_name = f"awg {df1_name}"
-        df2_name = f"awg {df2_name}"
+        df1_name = f"{df1_source} {df1_name}"
+        df2_name = f"{df2_source} {df2_name}"
 
         if cols1 is None:
             cols1 = []
         if cols2 is None:
             cols2 = []
 
-        # Warn the user that this function is only for awg data and will be deprecated
-        warnings.warn(f"This function will be removed in a future version of cptac, please use the multi_join function to join these data.", FutureWarning, stacklevel=3)
-
         return self.multi_join({df1_name:cols1, df2_name:cols2}, how=how, tissue_type=tissue_type)
 
-    def join_metadata_to_omics(self, metadata_df_name, omics_df_name, metadata_cols=None, omics_genes=None, how="outer", quiet=False, tissue_type="both"):
+    def join_metadata_to_omics(self, metadata_name, omics_name, omics_source=None, metadata_source=None, metadata_cols=None, omics_genes=None, how="outer", quiet=False, tissue_type="both"):
         """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_design) to part or all of an omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
-        metadata_df_name (str): Name of metadata dataframe to select columns from.
-        omics_df_name (str): Name of omics dataframe to join the metadata columns to.
+        metadata_name (str): Name of metadata dataframe to select columns from.
+        omics_name (str): Name of omics dataframe to join the metadata columns to.
         metadata_cols (str, or list or array-like of str, optional): Column(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select the entire metadata dataframe.
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select data for from the omics dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select entire dataframe.
         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
@@ -429,9 +436,17 @@ class Cancer:
         # Check to make sure that the "how" parameter is valid
         self._check_how_parameter(how)
 
+        # Figure out sources, default to awg
+        if omics_source is None:
+            omics_source = "awg"
+            warnings.warn(f"No source specified for {omics_name} data. Source awg used, pass a source to the omics_source parameter to prevent this warning", stacklevel=3)
+        if metadata_name is None:
+            metadata_name = "awg"
+            warnings.warn(f"No source specified for {metadata_name} data. Source awg used, pass a source to the mutations_source parameter to prevent this warning", stacklevel=3)
+
         # Set up parameters to work with multi_join
-        df1_name = f"awg {metadata_df_name}"
-        df2_name = f"awg {omics_df_name}"
+        df1_name = f"{metadata_source} {metadata_name}"
+        df2_name = f"{omics_source} {omics_name}"
 
         if metadata_cols is None:
             genes1 = []
@@ -442,16 +457,13 @@ class Cancer:
         else:
             genes2 = omics_genes
 
-        # Warn the user that this function is only for awg data and will be deprecated
-        warnings.warn(f"This function will be removed in a future version of cptac, please use the multi_join function to join these data.", FutureWarning, stacklevel=3)
-
         return self.multi_join({df1_name:genes1, df2_name:genes2}, how=how, tissue_type=tissue_type)
 
-    def join_metadata_to_mutations(self, metadata_df_name, mutations_genes, metadata_cols=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both"):
+    def join_metadata_to_mutations(self, metadata_name, mutations_genes, metadata_source=None, mutations_source=None,  metadata_cols=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both"):
         """Select all mutations for specified gene(s), and joins them to all or part of the given metadata dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
-        metadata_df_name (str): Name of metadata dataframe to join the mutation data to.
+        metadata_name (str): Name of metadata dataframe to join the mutation data to.
         mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
         metadata_cols (str, or list or array-like of str, optional): Gene(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
         mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
@@ -467,15 +479,20 @@ class Cancer:
         # Check to make sure that the "how" parameter is valid
         self._check_how_parameter(how)
 
+        # Figure out sources, default to awg
+        if metadata_source is None:
+            metadata_source = "awg"
+            warnings.warn(f"No source specified for {metadata_name} data. Source awg used, pass a source to the metadata_source parameter to prevent this warning", stacklevel=3)
+        if mutations_source is None:
+            mutations_source = "awg"
+            warnings.warn(f"No source specified for mutations data. Source awg used, pass a source to the mutations_source parameter to prevent this warning", stacklevel=3)
+
         # Set up parameters to work with multi_join
-        df1_name = f"awg {metadata_df_name}"
-        df2_name = "awg somatic_mutation"
+        df1_name = f"{metadata_source} {metadata_name}"
+        df2_name = f"{mutations_source} somatic_mutation"
 
         if metadata_cols is None:
             metadata_cols = []
-
-        # Warn the user that this function is only for awg data and will be deprecated
-        warnings.warn(f"This function will be removed in a future version of cptac, please use the multi_join function to join these data.", FutureWarning, stacklevel=3)
 
         return self.multi_join({df1_name:metadata_cols, df2_name:mutations_genes}, how=how, tissue_type=tissue_type, mutations_filter=mutations_filter)
 
