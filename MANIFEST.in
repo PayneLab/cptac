@@ -1,80 +1,86 @@
+# General files
 include README.md
-include cptac/data_brca/index_urls.tsv
-include cptac/data_ccrcc/index_urls.tsv
-include cptac/data_colon/index_urls.tsv
-include cptac/data_endometrial/index_urls.tsv
-include cptac/data_gbm/index_urls.tsv
-include cptac/data_gbmconf/index_urls.tsv
-include cptac/data_hnscc/index_urls.tsv
-include cptac/data_lscc/index_urls.tsv
-include cptac/data_luad/index_urls.tsv
-include cptac/data_ovarian/index_urls.tsv
-include cptac/data_pdac/index_urls.tsv
-include cptac/data_ucecconf/index_urls.tsv
-
+include cptac/options.tsv
 include cptac/utils/data/BioPlex_293T_Network_10K_Dec_2019.tsv.gz
 include cptac/utils/data/Uniprot_Proteome.tsv.gz
 include cptac/utils/data/WikiPathwaysDataframe.tsv.gz
 
-include cptac/pancan/data_mssmclinical/index_urls.tsv
-include cptac/pancan/data_harmonized/index_urls.tsv
+# awg files
+include cptac/data/data_awg_brca/index_urls.tsv
+include cptac/data/data_awg_ccrcc/index_urls.tsv
+include cptac/data/data_awg_coad/index_urls.tsv
+include cptac/data/data_awg_gbm/index_urls.tsv
+include cptac/data/data_awg_hnscc/index_urls.tsv
+include cptac/data/data_awg_lscc/index_urls.tsv
+include cptac/data/data_awg_luad/index_urls.tsv
+include cptac/data/data_awg_ov/index_urls.tsv
+include cptac/data/data_awg_pdac/index_urls.tsv
+include cptac/data/data_awg_ucec/index_urls.tsv
 
-include cptac/pancan/data_bcmbrca/index_urls.tsv
-include cptac/pancan/data_broadbrca/index_urls.tsv
-include cptac/pancan/data_umichbrca/index_urls.tsv
-include cptac/pancan/data_washubrca/index_urls.tsv
-include cptac/pancan/data_pdcbrca/index_urls.tsv
+# awgconf files
+include cptac/data/data_awgconf_ucec/index_urls.tsv
+include cptac/data/data_awgconf_gbm/index_urls.tsv
 
-include cptac/pancan/data_bcmccrcc/index_urls.tsv
-include cptac/pancan/data_broadccrcc/index_urls.tsv
-include cptac/pancan/data_umichccrcc/index_urls.tsv
-include cptac/pancan/data_washuccrcc/index_urls.tsv
-include cptac/pancan/data_pdcccrcc/index_urls.tsv
+# bcm files
+include cptac/data/data_bcm_brca/index_urls.tsv
+include cptac/data/data_bcm_ccrcc/index_urls.tsv
+include cptac/data/data_bcm_coad/index_urls.tsv
+include cptac/data/data_bcm_gbm/index_urls.tsv
+include cptac/data/data_bcm_hnscc/index_urls.tsv
+include cptac/data/data_bcm_lscc/index_urls.tsv
+include cptac/data/data_bcm_luad/index_urls.tsv
+include cptac/data/data_bcm_ov/index_urls.tsv
+include cptac/data/data_bcm_pdac/index_urls.tsv
+include cptac/data/data_bcm_ucec/index_urls.tsv
 
-include cptac/pancan/data_bcmcoad/index_urls.tsv
-include cptac/pancan/data_broadcoad/index_urls.tsv
-include cptac/pancan/data_umichcoad/index_urls.tsv
-include cptac/pancan/data_washucoad/index_urls.tsv
-include cptac/pancan/data_pdccoad/index_urls.tsv
+# broad files
+include cptac/data/data_broad_brca/index_urls.tsv
+include cptac/data/data_broad_ccrcc/index_urls.tsv
+include cptac/data/data_broad_coad/index_urls.tsv
+include cptac/data/data_broad_gbm/index_urls.tsv
+include cptac/data/data_broad_hnscc/index_urls.tsv
+include cptac/data/data_broad_lscc/index_urls.tsv
+include cptac/data/data_broad_luad/index_urls.tsv
+include cptac/data/data_broad_ov/index_urls.tsv
+include cptac/data/data_broad_pdac/index_urls.tsv
+include cptac/data/data_broad_ucec/index_urls.tsv
 
-include cptac/pancan/data_bcmgbm/index_urls.tsv
-include cptac/pancan/data_broadgbm/index_urls.tsv
-include cptac/pancan/data_umichgbm/index_urls.tsv
-include cptac/pancan/data_washugbm/index_urls.tsv
-include cptac/pancan/data_pdcgbm/index_urls.tsv
+# harmonized and mssm files
+include cptac/data/data_harmonized/index_urls.tsv
+include cptac/data/data_mssm/index_urls.tsv
 
-include cptac/pancan/data_bcmhnscc/index_urls.tsv
-include cptac/pancan/data_broadhnscc/index_urls.tsv
-include cptac/pancan/data_umichhnscc/index_urls.tsv
-include cptac/pancan/data_washuhnscc/index_urls.tsv
-include cptac/pancan/data_pdchnscc/index_urls.tsv
+# pdc files
+include cptac/data/data_pdc_brca/index_urls.tsv
+include cptac/data/data_pdc_ccrcc/index_urls.tsv
+include cptac/data/data_pdc_coad/index_urls.tsv
+include cptac/data/data_pdc_gbm/index_urls.tsv
+include cptac/data/data_pdc_hnscc/index_urls.tsv
+include cptac/data/data_pdc_lscc/index_urls.tsv
+include cptac/data/data_pdc_luad/index_urls.tsv
+include cptac/data/data_pdc_ov/index_urls.tsv
+include cptac/data/data_pdc_pdac/index_urls.tsv
+include cptac/data/data_pdc_ucec/index_urls.tsv
 
-include cptac/pancan/data_bcmlscc/index_urls.tsv
-include cptac/pancan/data_broadlscc/index_urls.tsv
-include cptac/pancan/data_umichlscc/index_urls.tsv
-include cptac/pancan/data_washulscc/index_urls.tsv
-include cptac/pancan/data_pdclscc/index_urls.tsv
+# umich files
+include cptac/data/data_umich_brca/index_urls.tsv
+include cptac/data/data_umich_ccrcc/index_urls.tsv
+include cptac/data/data_umich_coad/index_urls.tsv
+include cptac/data/data_umich_gbm/index_urls.tsv
+include cptac/data/data_umich_hnscc/index_urls.tsv
+include cptac/data/data_umich_lscc/index_urls.tsv
+include cptac/data/data_umich_luad/index_urls.tsv
+include cptac/data/data_umich_ov/index_urls.tsv
+include cptac/data/data_umich_pdac/index_urls.tsv
+include cptac/data/data_umich_ucec/index_urls.tsv
 
-include cptac/pancan/data_bcmluad/index_urls.tsv
-include cptac/pancan/data_broadluad/index_urls.tsv
-include cptac/pancan/data_umichluad/index_urls.tsv
-include cptac/pancan/data_washuluad/index_urls.tsv
-include cptac/pancan/data_pdcluad/index_urls.tsv
-
-include cptac/pancan/data_bcmov/index_urls.tsv
-include cptac/pancan/data_broadov/index_urls.tsv
-include cptac/pancan/data_umichov/index_urls.tsv
-include cptac/pancan/data_washuov/index_urls.tsv
-include cptac/pancan/data_pdcov/index_urls.tsv
-
-include cptac/pancan/data_bcmucec/index_urls.tsv
-include cptac/pancan/data_broaducec/index_urls.tsv
-include cptac/pancan/data_umichucec/index_urls.tsv
-include cptac/pancan/data_washuucec/index_urls.tsv
-include cptac/pancan/data_pdcucec/index_urls.tsv
-
-include cptac/pancan/data_bcmpdac/index_urls.tsv
-include cptac/pancan/data_broadpdac/index_urls.tsv
-include cptac/pancan/data_umichpdac/index_urls.tsv
-include cptac/pancan/data_washupdac/index_urls.tsv
-include cptac/pancan/data_pdcpdac/index_urls.tsv
+# washu files
+include cptac/data/data_washu_brca/index_urls.tsv
+include cptac/data/data_washu_ccrcc/index_urls.tsv
+include cptac/data/data_washu_coad/index_urls.tsv
+include cptac/data/data_washu_gbm/index_urls.tsv
+include cptac/data/data_washu_hnscc/index_urls.tsv
+include cptac/data/data_washu_lscc/index_urls.tsv
+include cptac/data/data_washu_luad/index_urls.tsv
+include cptac/data/data_washu_ov/index_urls.tsv
+include cptac/data/data_washu_pdac/index_urls.tsv
+include cptac/data/data_washu_ucec/index_urls.tsv

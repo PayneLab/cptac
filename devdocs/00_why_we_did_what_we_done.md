@@ -23,19 +23,20 @@ cptac is freely distributed through the Python Package Index (PyPI). Anyone can 
 
 # Basics of how the package works
 
-Currently (June 2020), the package contains 9 datasets: 
+Currently (August 2022), the package contains 10 datasets:
 
 
 
 *   Breast cancer (BRCA)
 *   Clear cell renal cell carcinoma (CCRCC)
-*   Colon cancer
+*   Colon cancer (COAD)
 *   Endometrial cancer (UCEC)
 *   Glioblastoma (GBM)
 *   Head and neck squamous cell carcinoma (HNSCC)
 *   Lung adenocarcinoma (LUAD)
 *   Lung squamous cell carcinoma (LSCC)
-*   Ovarian cancer
+*   Ovarian cancer (OV)
+*   Pancreatic ductal adenocarcinoma (PDAC)
 
 This list will continue to grow as the consortium generates more datasets. All of these data files would be too much for a user to download all at once when they install the package; additionally, PyPI limits the size of our package to 60 MB. So, instead of storing the data files as part of the package, we store them remotely, and provide a function in cptac, cptac.download, for downloading the dataset files that the user wants to work with. Currently, the files are stored on Sam's Box drive.
 

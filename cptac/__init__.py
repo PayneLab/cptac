@@ -9,44 +9,110 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import io
 import os.path as path
-import pandas as pd
 import sys
 import threading
 import warnings
 import webbrowser
+import pandas as pd
+
+# cptac base path
+CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
 
 # Function imports
-from .file_download import download
-from .file_download import download_text as _download_text
-from .exceptions import CptacError, CptacWarning, InvalidParameterError, NoInternetError, OldPackageVersionWarning
+from cptac.tools.download_tools.download import download
+from cptac.tools.download_tools.box_download import download_text as _download_text
+from cptac.exceptions import CptacError, CptacWarning, InvalidParameterError, NoInternetError, OldPackageVersionWarning
 
 # Dataset imports
-from .brca import Brca
-from .ccrcc import Ccrcc
-from .colon import Colon
-from .endometrial import Endometrial
-from .gbm import Gbm
-from .hnscc import Hnscc
-from .lscc import Lscc
-from .luad import Luad
-from .ovarian import Ovarian
-from .pdac import Pdac
-from .ucecconf import UcecConf
-from .gbmconf import GbmConf
+from cptac.cancers.brca import Brca
+from cptac.cancers.ccrcc import Ccrcc
+from cptac.cancers.coad import Coad
+from cptac.cancers.gbm import Gbm
+from cptac.cancers.hnscc import Hnscc
+from cptac.cancers.lscc import Lscc
+from cptac.cancers.luad import Luad
+from cptac.cancers.ov import Ov
+from cptac.cancers.pdac import Pdac
+from cptac.cancers.ucec import Ucec
+
+# auth import
+from cptac.tools.auth_tools.box_auth import BoxAuth
+box_auth = BoxAuth()
+
+#### This code generates the __OPTIONS__ dataframe which shows all possible cancer, source, datatype combinations
+def _load_options():
+    """Load the tsv file with all the possible cancer, source, datatype combinations"""
+    options_file = path.join(CPTAC_BASE_DIR, "options.tsv")
+    df = pd.read_csv(options_file, sep="\t")
+    return df
+
+__OPTIONS__ = _load_options()
+
+def get_options():
+    return __OPTIONS__.copy()
+
+def get_cancer_options():
+    df = __OPTIONS__.copy()
+    return df["Cancers"].unique()
+
+def get_source_options():
+    df = __OPTIONS__.copy()
+    return df["Sources"].unique()
 
 def list_datasets():
     """List all available datasets."""
+    df = __OPTIONS__.\
+    copy().\
+    drop("Loadable datatypes", axis=1)
 
-    dataset_list_url = "https://byu.box.com/shared/static/5vwsvgu8fyzao0pb7rx8lt26huofcdax.tsv"
+    df = df.\
+    assign(Datatypes=df["Datatypes"].str.split("\ *,\ *", expand=False, regex=True)).\
+    explode("Datatypes").\
+    reset_index(drop=True)
 
-    try:
-        dataset_list_text = _download_text(dataset_list_url)
-    except NoInternetError:
-        raise NoInternetError("Insufficient internet to download available dataset info. Check your internet connection.") from None
+    # Print our dataframe as a pretty tree structure
+    info = {}
+    for row in df.set_index(["Cancers", "Sources", "Datatypes"]).index.values:
+        if row[0] not in info.keys():
+            info[row[0]] = {}
+        if row[1] not in info[row[0]].keys():
+            info[row[0]][row[1]] = []
+        info[row[0]][row[1]].append(row[2])
 
-    return pd.read_csv(io.StringIO(dataset_list_text), sep="\t", index_col=0)
+    df_tree = _tree(info)
+    print(df_tree)
+
+    #if the dataframe is needed it can be returned. If not,
+    #the python interpreter will print anything that is returned, so no return for now
+    #return df
+
+def _tree(nest, prepend=""):
+    """Recursively build a formatted string to represent a dictionary"""
+    tree_str = ""
+    if isinstance(nest, dict):
+        for i, (k, v) in enumerate(nest.items()):
+            if i == len(nest.keys()) - 1:
+                branch = "└"
+                newprepend = prepend + "    "
+            else:
+                branch = "├"
+                newprepend = prepend + "│   "
+            tree_str += f"{prepend}{branch}── {k}\n"
+            tree_str += _tree(nest=v, prepend=newprepend)
+    elif isinstance(nest, list):
+        for i, v in enumerate(nest):
+            if i == len(nest) - 1:
+                branch = "└"
+            else:
+                branch = "├"
+            tree_str += f"{prepend}{branch}── {v}\n"
+    else:
+        raise ValueError(f"Unexpected type '{type(nest)}'")
+
+    return tree_str
+
+#### End __OPTIONS__ code
 
 def embargo():
     """Open CPTAC embargo details in web browser."""
@@ -58,11 +124,10 @@ def embargo():
 def version():
     """Return version number of cptac package."""
     version = {}
-    path_here = path.abspath(path.dirname(__file__))
-    version_path = path.join(path_here, "version.py")
+    version_path = path.join(CPTAC_BASE_DIR, "version.py")
     with open(version_path) as fp:
         exec(fp.read(), version)
-    return(version['__version__'])
+    return version['__version__']
 
 def how_to_cite():
     """Give instructions for citing CPTAC datasets."""
@@ -70,8 +135,11 @@ def how_to_cite():
     print('\n')
     print("For instructions on how to cite a specific dataset, please call its how_to_cite method, e.g. cptac.Endometrial().how_to_cite()")
 
-# Helper functions for handling exceptions and warnings
-def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): # Because Python binds default arguments when the function is defined, default_hook's default will always refer to the original sys.excepthook
+#### Helper functions for handling exceptions and warnings
+
+# Because Python binds default arguments when the function is defined,
+# default_hook's default will always refer to the original sys.excepthook
+def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): 
     """Catch cptac-generated exceptions, and make them prettier."""
     if issubclass(type(exception), CptacError):
         print(f"cptac error: {str(exception)} ({traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno})", file=sys.stderr) # We still send to stderr
@@ -85,12 +153,12 @@ def _warning_displayer(message, category, filename, lineno, file=None, line=None
     else:
         default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
 
-sys.excepthook = _exception_handler # Set our custom exception hook
+#sys.excepthook = _exception_handler # Set our custom exception hook
 warnings.showwarning = _warning_displayer # And our custom warning displayer
 warnings.simplefilter("always", category=CptacWarning) # Edit the warnings filter to show multiple occurences of cptac-generated warnings
 
-# Check in background whether the package is up-to-date
 def check_version():
+    """Check in background whether the package is up-to-date"""
     version_url = "https://byu.box.com/shared/static/kbwivmqnrdnn5im2gu6khoybk5a3rfl0.txt"
     try:
         remote_version = _download_text(version_url)
