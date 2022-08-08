@@ -520,6 +520,9 @@ class Cancer:
         column_names = []
         to_join=[]
 
+        # a flag for if mutations data is included, for formatting later
+        format_mutations = False
+
         for source_data_key in join_dict.keys():
             if isinstance(source_data_key, tuple):
                 source, datatype = source_data_key
@@ -559,10 +562,8 @@ class Cancer:
             ## If key is somatic_mutation 
             elif datatype == "somatic_mutation":
                 columns = self._get_genes_mutations(source, join_dict[source_data_key], mutations_filter = mutations_filter)
-
-                # Format the mutations data
-                mutations_were_filtered = mutations_filter is not None
-                columns = self._format_mutations_data(columns, mutations_were_filtered, how=how, tissue_type=tissue_type)
+                # Set flag that mutations data in join_dict
+                format_mutations = True
 
             ### Checks if there are columns with the same name and adds the name of the
             for i in columns.columns:
@@ -576,6 +577,11 @@ class Cancer:
             to_join.append(columns)
 
         joined, how = reduce(self._join_dataframe, to_join, how)
+
+        # Format any included mutations data
+        if format_mutations:
+            mutations_were_filtered = mutations_filter is not None
+            joined = self._format_mutations_data(joined, mutations_were_filtered, how=how, tissue_type=tissue_type)
 
         if len(levels_to_drop) != 0:
             joined = ut.reduce_multiindex(joined, levels_to_drop=levels_to_drop)
@@ -843,7 +849,7 @@ class Cancer:
         selected = df[cols]
         return selected
 
-    def _get_genes_mutations(self, source, genes, mutations_filter ,mutation_cols = ["Mutation","Location"]):
+    def _get_genes_mutations(self, source, genes, mutations_filter, mutation_cols = ["Mutation","Location"]):
             """Gets all the mutations for one or multiple genes, for all patients.
 
             Parameters:
