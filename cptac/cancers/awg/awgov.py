@@ -184,14 +184,6 @@ class AwgOv(Source):
 
             df = df.sort_index()
             df = df.transpose()
-            # Take C prefix off of indices for those samples that have them (tumor samples have C, normal have N)
-            df.index = df.index.where(~df.index.str.startswith('C'), df.index.str[1:])
-
-            # Move the prepended N to a .N at the end to match other normal sample labeling in cptac
-            df.index = df.index.where(~df.index.str.startswith('N'), df.index.str[1:] + ".N")
-
-            # Drop all OV_QC samples--they're quality control samples not relevant for data analysis
-            df = df.drop(index=df.index[df.index.str.startswith("OV_QC")])
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -211,10 +203,6 @@ class AwgOv(Source):
             df = df.set_index(["Name", "Database_ID"])
             df = df.sort_index()
             df = df.transpose()
-            # Take C prefix off of indices for those samples that have them (tumor samples have C, normal have N)
-            df.index = df.index.where(~df.index.str.startswith('C'), df.index.str[1:])
-            # Drop all OV_QC samples--they're quality control samples not relevant for data analysis
-            df = df.drop(index=df.index[df.index.str.startswith("OV_QC")])
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -248,6 +236,22 @@ class AwgOv(Source):
                     term = line[0]
                     definition = line[1]
                     self._definitions[term] = definition
+
+
+    # Override the save_df function from source.py so we can mark normal ov samples
+    def save_df(self, datatype, df):
+
+        # Take C prefix off of indices for those samples that have them (tumor samples have C, normal have N)
+        df.index = df.index.where(~df.index.str.startswith('C'), df.index.str[1:])
+
+        # Move the prepended N to a .N at the end to match other normal sample labeling in cptac
+        df.index = df.index.where(~df.index.str.startswith('N'), df.index.str[1:] + ".N")
+
+        # Drop all OV_QC samples--they're quality control samples not relevant for data analysis
+        df = df.drop(index=df.index[df.index.str.startswith("OV_QC")])
+
+        # Inherit the parent event
+        super().save_df(datatype, df)
 
 
     def how_to_cite(self):
