@@ -626,25 +626,45 @@ class Cancer:
             # no additional message will be printed if we have not passed in parameters
             pass
 
-    def list_data_sources(self):
+    def list_data_sources(self, source_filter="all"):
         """Print which sources provide each data type.
 
         Parameters:
-        print_list (bool, optional): Whether to print the list. Default is True. Otherwise, it's returned as a string.
+        source_filter (str or list[str], optional): filter which sources are shown in the table, default "all" returns all sources and datatypes.
+            If a source is specified, only datatypes with data from that source will be shown.
         """
 
         # This dict will be keyed by data type, and the values will be each source that provides that data type
         data_sources = {}
+        datatypes_to_keep = []
 
+        # handle sources filter parameter
+        if source_filter == "all":
+            source_filter = self._sources.keys()
+        elif isinstance(source_filter, str): # If it's a single source, make it a list so we can treat everything the same
+            source_filter = [source_filter]
+        for src in source_filter:
+            if src not in self._sources.keys():
+                raise InvalidParameterError(f"{src} is not a valid source for the {self._cancer_type} datatset. Valid sources are: {list(self._sources.keys())}")
+
+
+        # Get each datatype and its sources
         for source in sorted(self._sources.keys()):
             for df_name in sorted(self._sources[source].load_functions.keys()):
                 if df_name in ["cibersort", "xcell"]:
                     df_name = f"deconvolution_{df_name}" # For clarity
 
+                if source in source_filter:
+                    datatypes_to_keep.append(df_name)
+
                 if df_name in data_sources.keys():
                     data_sources[df_name][0] += f", {source}"
                 else:
                     data_sources[df_name] = [source]
+
+        # Filter based on user parameter
+        kept_data = {k: data_sources[k] for k in datatypes_to_keep}
+        data_sources = kept_data
 
         data_sources = pd.\
         DataFrame(data_sources).\
