@@ -32,12 +32,9 @@ class Source:
 
     def get_df(self, df_type):
         """Get the dataframe of the specified data type
-        I'm thinking about having tissue_type do its thing here. If all dfs are parsed to have normal samples clearly identified,
-        then this function can return the whole data frame for "both", or a subset of it for "tumor" or "normal"
 
         Parameters:
         df_type (str): Name of datatype to return e.g. "proteomics".
-        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
 
         Returns:
         pandas.DataFrame: The dataframe of the desired datatype.
