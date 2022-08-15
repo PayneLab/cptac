@@ -24,7 +24,7 @@ from cptac.tools.dataframe_tools import add_index_levels, join_col_to_dataframe,
 from cptac.tools.dataframe_tools import unionize_indices, generate_sample_status_col
 
 class Cancer:
-    """Note that all cancer datasets are class objects that inherit from cptac.dataset. Therefore
+    """Note that all cancer datasets are class objects that inherit from cptac.cancer. Therefore
     the same function calls exist for cptac.Brca, cptac.Gbm, etc.
     """
 
