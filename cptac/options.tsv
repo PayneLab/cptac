@@ -24,6 +24,7 @@ coad	pdc	"clinical, phosphoproteomics, proteomics"
 coad	umich	"proteomics, phosphoproteomics"	
 coad	washu	"somatic_mutation, transcriptomics, xcell, cibersort, CNV, tumor_purity"	
 gbm	awg	"acetylproteomics, clinical, derived_molecular, metabolomics, miRNA, phosphoproteomics, proteomics, experimental_design, circular_RNA, gene_fusion, transcriptomics, somatic_mutation, CNV, lipidomics"	
+gbm	awgconf	"acetylproteomics, clinical, targeted_proteomics, targeted_phosphoproteomics, metabolomics, miRNA, phosphoproteomics, proteomics, lipidomics, gene_fusion, transcriptomics, somatic_mutation, CNV"	
 gbm	bcm	"transcriptomics, circular_RNA"	
 gbm	broad	transcriptomics	
 gbm	harmonized	somatic_mutation	
