@@ -54,11 +54,11 @@ def get_options():
 
 def get_cancer_options():
     df = __OPTIONS__.copy()
-    return df["Cancers"].unique()
+    return list(df["Cancers"].unique())
 
 def get_source_options():
     df = __OPTIONS__.copy()
-    return df["Sources"].unique()
+    return list(df["Sources"].unique())
 
 def list_datasets():
     """List all available datasets."""
