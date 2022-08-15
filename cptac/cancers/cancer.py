@@ -310,11 +310,15 @@ class Cancer:
         Parameters:
         df1_name (str): Name of first omics dataframe to select columns from.
         df2_name (str): Name of second omics dataframe to select columns from.
-        genes1 (str, or list or array-like of str, optional): Gene(s) for column(s) to select from df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
-        genes2 (str, or list or array-like of str, optional): Gene(s) for Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
+        df1_source (str, optional): Name of source for the first omics dataframe. Default will use awg data.
+        df2_source (str, optional): Name of source for the second omics dataframe. Default will use awg data.
+        genes1 (str, or list or array-like of str, optional): Gene(s) for column(s) to select from df1_name. str if one key, list or array-like of str if multiple.
+            Default of None will select entire dataframe.
+        genes2 (str, or list or array-like of str, optional): Gene(s) for Column(s) to select from df2_name. str if one key, list or array-like of str if multiple.
+            Default of None will select entire dataframe.
         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
-        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type for the dataframe. Defaults to "both".
 
         Returns:
         pandas.DataFrame: The selected columns from the two omics dataframes, joined into one dataframe.
@@ -346,12 +350,20 @@ class Cancer:
         Parameters:
         omics_df (str): Name of omics dataframe to join the mutation data to.
         mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
-        omics_genes (str, or list or array-like of str, optional): Gene(s) to select from the omics dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
-        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
+        omics_source (str, optional): Name of source for the omics data. Default will use awg data.
+        mutations_source (str, optional): Name of source for the mutations data. Default will use awg data.
+        omics_genes (str, or list or array-like of str, optional): Gene(s) to select from the omics dataframe.
+            str if one gene, list or array-like of str if multiple.
+            Default will select entire dataframe.
+        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority.
+            If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize
+                truncation over missense mutations, and then mutations earlier in the sequence over later mutations.
+            Passing an empty list will cause this default hierarchy to be applied to all samples.
+            Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
-        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type for the dataframe. Defaults to "both".
 
         Returns:
         pandas.DataFrame: The mutations for the specified gene, joined to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
@@ -385,11 +397,17 @@ class Cancer:
         Parameters:
         df1_name (str): Name of first metadata dataframe to select columns from.
         df2_name (str): Name of second metadata dataframe to select columns from.
-        cols1 (str, or list or array-like of str, optional): Column(s) to select from df1_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
-        cols2 (str, or list or array-like of str, optional): Column(s) to select from df2_name. str if one key, list or array-like of str if multiple. Default of None will select entire dataframe.
+        df1_source (str, optional): Name of source for the first dataframe. Default will use awg data.
+        df2_source (str, optional): Name of source for the second dataframe. Default will use awg data.
+        cols1 (str, or list or array-like of str, optional): Column(s) to select from df1_name.
+            str if one key, list or array-like of str if multiple.
+            Default of None will select entire dataframe.
+        cols2 (str, or list or array-like of str, optional): Column(s) to select from df2_name.
+            str if one key, list or array-like of str if multiple.
+            Default of None will select entire dataframe.
         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
-        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type for the dataframe. Defaults to "both".
 
         Returns:
         pandas.DataFrame: The selected columns from the two metadata dataframes, joined into one dataframe.
@@ -423,11 +441,15 @@ class Cancer:
         Parameters:
         metadata_name (str): Name of metadata dataframe to select columns from.
         omics_name (str): Name of omics dataframe to join the metadata columns to.
-        metadata_cols (str, or list or array-like of str, optional): Column(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select the entire metadata dataframe.
-        omics_genes (str, or list or array-like of str, optional): Gene(s) to select data for from the omics dataframe. str if one gene, list or array-like of str if multiple. Default is None, which will select entire dataframe.
+        metadata_cols (str, or list or array-like of str, optional): Column(s) to select from the metadata dataframe.
+            str if one gene, list or array-like of str if multiple.
+            Default is None, which will select the entire metadata dataframe.
+        omics_genes (str, or list or array-like of str, optional): Gene(s) to select data for from the omics dataframe.
+            str if one gene, list or array-like of str if multiple.
+            Default is None, which will select entire dataframe.
         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
-        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type for the dataframe. Defaults to "both".
 
         Returns:
         pandas.DataFrame: The selected metadata columns, joined with all or part of the omics dataframe.
@@ -465,12 +487,18 @@ class Cancer:
         Parameters:
         metadata_name (str): Name of metadata dataframe to join the mutation data to.
         mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
-        metadata_cols (str, or list or array-like of str, optional): Gene(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple. Default will select entire dataframe.
-        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
+        metadata_source (str, optional): Name of source for metadata. Default will use awg data.
+        mutations_source (str, optional): Name of source for mutations data. Default will use awg data.
+        metadata_cols (str, or list or array-like of str, optional): Gene(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple.
+            Default will select entire dataframe.
+        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority.
+            If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations.
+            Passing an empty list will cause this default hierarchy to be applied to all samples.
+            Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
-        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both".
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type for the dataframe. Defaults to "both".
 
         Returns:
         pandas.DataFrame: The mutations for the specified gene, joined to all or part of the metadata dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
@@ -507,13 +535,17 @@ class Cancer:
 
             For somatic_mutation_binary it joins all columns that match a gene. Example {'awg somatic_mutation_binary' : ['A1CF', 'ZYG11B']} It returns a dataframe with all columns that contain those genes.
 
-        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize truncation over missense mutations, and then mutations earlier in the sequence over later mutations. Passing an empty list will cause this default hierarchy to be applied to all samples. Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
+        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority. 
+            If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize
+                truncation over missense mutations, and then mutations earlier in the sequence over later mutations. 
+            Passing an empty list will cause this default hierarchy to be applied to all samples. 
+            Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
 
         flatten (bool, optional): Defaults to False and will flatten the multiindexes if set to True.
 
         levels_to_drop (list, optional): Defaults to empty list. Takes a list of strings. Strings are levels to be dropped. If empty it will not drop any.
 
-        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type desired in the dataframe. Defaults to "both"
+        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type for the dataframe. Defaults to "both"
 
         Returns: pandas.DataFrame
         """
