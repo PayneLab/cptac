@@ -12,10 +12,11 @@
 from os import path
 
 import cptac
+import pandas as pd
 
 from cptac import CPTAC_BASE_DIR
 from cptac.exceptions import DataTypeNotInSourceError, InvalidDataVersionError, MissingFileError
-from cptac.tools.dataframe_tools import *
+from cptac.tools.dataframe_tools import standardize_axes_names
 
 class Source:
 
