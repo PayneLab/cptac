@@ -32,7 +32,6 @@ class Cancer:
 
         Parameters:
         cancer_type (str): The cancer type requested for this dataset
-
         """
 
         self._cancer_type = cancer_type
@@ -61,7 +60,6 @@ class Cancer:
             "experimental_design",
             #"followup", # Right now there are duplicate rows, so don't include follow up tables for joins.
             ] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in Ccrcc, because they both have multiple rows for each sample.
-
 
         #ignore logging messages
         logger = logging.getLogger()
@@ -142,7 +140,6 @@ class Cancer:
     def get_followup(self, source=None, tissue_type="both", imputed=False):
         """Get the followup dataframe from the specified data source."""
         return self.get_dataframe("followup", source, tissue_type, imputed=imputed)
-
 
 
     # Quantitative table getters
@@ -618,6 +615,15 @@ class Cancer:
 
         if flatten == True:
             joined = ut.reduce_multiindex(joined, flatten=flatten)
+
+        # Sort the dataframe for good measure (based off sample status (tumor or normal), then alphabetically)
+        joined = joined.sort_index()
+        #'.N' for normal, '.C' for cored normals (in HNSCC)
+        normal = joined.loc[joined.index.str.contains('\.[NC]$', regex = True, na = False)]
+        # Tumor samples don't have any special endings except in the awg confirmatory cohorts for now
+        tumor = joined.loc[~ joined.index.str.contains('\.[NC]$', regex = True, na = False)]
+        joined = pd.concat([tumor, normal])
+
         return joined
 
     # Help functions
