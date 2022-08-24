@@ -461,8 +461,8 @@ class Cancer:
         if omics_source is None:
             omics_source = "awg"
             warnings.warn(f"No source specified for {omics_name} data. Source awg used, pass a source to the omics_source parameter to prevent this warning", stacklevel=3)
-        if metadata_name is None:
-            metadata_name = "awg"
+        if metadata_source is None:
+            metadata_source = "awg"
             warnings.warn(f"No source specified for {metadata_name} data. Source awg used, pass a source to the mutations_source parameter to prevent this warning", stacklevel=3)
 
         # Set up parameters to work with multi_join
