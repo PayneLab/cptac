@@ -65,6 +65,10 @@ class Cancer:
         logger = logging.getLogger()
         logger.setLevel(logging.CRITICAL)
 
+    def get_source_version(self, source):
+        """Return the version of a particular dataset, as a string."""
+        return self._sources[source].get_version()
+
     def set_source_version(self, source, version):
         """Set the data version you wish to use for a single source
 
@@ -711,10 +715,6 @@ class Cancer:
         data_sources.columns=["Data type", "Available sources"]
 
         return data_sources
-
-    def version(self, source):
-        """Return the dataset version of this instance, as a string."""
-        return self._sources[source]
 
     def get_dataframe(self, name, source=None, tissue_type="both", imputed=False):
         """Check that a given dataframe from a given source exists, and return a copy if it does.
