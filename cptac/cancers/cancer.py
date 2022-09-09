@@ -123,7 +123,9 @@ class Cancer:
 
     def get_experimental_design(self, source=None, tissue_type="both"):
         """Get the experimental_design dataframe."""
-        return self.get_dataframe("experimental_design", source, tissue_type)ef get_genotype_all_vars(self, mutations_gene, omics_source, mutations_filter=None, show_location=True, mutation_hotspot=None):
+        return self.get_dataframe("experimental_design", source, tissue_type)
+        
+    def get_genotype_all_vars(self, mutations_gene, omics_source, mutations_filter=None, show_location=True, mutation_hotspot=None):
         """Return a dataframe that has the mutation type and wheather or not it is a multiple mutation
         Parameters:
         mutation_genes (str, or list or array-like of str): The gene(s) to get mutation data for.
