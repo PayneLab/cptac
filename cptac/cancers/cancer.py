@@ -125,97 +125,6 @@ class Cancer:
         """Get the experimental_design dataframe."""
         return self.get_dataframe("experimental_design", source, tissue_type)
         
-    def get_genotype_all_vars(self, mutations_gene, omics_source, mutations_filter=None, show_location=True, mutation_hotspot=None):
-        """Return a dataframe that has the mutation type and wheather or not it is a multiple mutation
-        Parameters:
-        mutation_genes (str, or list or array-like of str): The gene(s) to get mutation data for.
-        mutations_filter (list, optional):  List of mutations to prioritize when filtering out multiple mutations, in order of priority.
-        omics_source(str): Source of omics data ex "bcm", "washu", "broad", "umich"
-        show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
-        mutation_hotspot (optional): a list of hotspot locations
-        
-        Returns:
-        A dataframe specifying the primary mutation type (as specified by mutations_filter), its location (optional), and whether there is one or multiple mutations
-        """
-
-        #check that gene is in the somatic_mutation DataFrame
-        somatic_mutation = self.get_somatic_mutation(source = omics_source)
-        if mutations_gene not in somatic_mutation["Gene"].unique(): #if the gene isn't in the somatic mutations df it will still have CNV data that we want          
-            cnv = self.get_CNV(source = omics_source)
-            if isinstance(cnv.keys(), pd.core.indexes.multi.MultiIndex):
-                cnv = ut.reduce_multiindex(df=cnv, levels_to_drop=['Database_ID'])       
-            gene_cnv = cnv[[mutations_gene]]
-            gene_cnv["mutation"] = np.select([gene_cnv[mutations_gene] <= -.2, gene_cnv[mutations_gene] >= .2], ['Deletion', 'Amplification'], 'No_Mutation')
-            return gene_cnv
-
-
-        #combine the cnv and mutations dataframe
-        combined = self.join_omics_to_mutations(omics_df_name="CNV", mutations_genes, mutation_hotspot = ['p.L113del'] = mutations_gene, omics_genes = mutations_gene, omics_source = omics_source)
-        combined = ut.reduce_multiindex(df=combined, levels_to_drop=['Database_ID'])
-        combined["mutations_list"] = np.empty((len(combined), 0)).tolist()
-        
-        #Load the mutation types
-        CNV_col = mutations_gene+ "_" + omics_source + "_CNV"
-        isAmplification = lambda row: row[CNV_col] >= .2
-        isDeletion = lambda row: row[CNV_col] <= -.2
-        mut_type = lambda row: row[mutations_gene + "_Mutation"]
-
-        combined["mutations_list"] = combined.apply(lambda row: row["mutations_list"] + ['Deletion'] if isDeletion(row) else 
-                                                                row["mutations_list"] + ['Amplification'] if isAmplification(row) >= .2 else 
-                                                                row["mutations_list"], axis = 1)
-        combined["locations_list"] = combined["mutations_list"]
-
-        combined["mutations_list"] = combined.apply(lambda row: row["mutations_list"] if (mut_type(row) == ["Wildtype_Tumor"] and (isAmplification(row) or isDeletion(row))) else
-                                                                row["mutations_list"] + row[mutations_gene + "_Mutation"], axis = 1)
-        combined["locations_list"] = combined.apply(lambda row: row["locations_list"] if (mut_type(row) == ["Wildtype_Tumor"] and (isAmplification(row) or isDeletion(row))) else
-                                                                row["locations_list"] + row[mutations_gene + "_Location"], axis = 1)
-
-        # Determine hotspots
-        if mutation_hotspot is not None:
-            combined["mutations_list"] = combined.apply(lambda row: [mut + "_hotspot" if row["locations_list"][i] in mutation_hotspot else mut 
-                                        for i, mut in enumerate(row["mutations_list"])], axis = 1)
-
-        #Sort mutation types
-        if mutations_filter == None:
-            mutations_filter = ["Deletion",
-                                    'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', #truncation
-                                    'Missense_Mutation',
-                                    'Amplification',
-                                    'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site' ,
-                                    'De_Novo_Start_Out_Frame' ,'De_Novo_Start_In_Frame', 
-                                    'Start_Codon_Ins', 'Start_Codon_SNP', 
-                                    'Silent',
-                                    'Wildtype_Tumor']
-        if mutation_hotspot != None:
-            mutations_filter = {mutation : 2 * rank + 1 for rank, mutation in enumerate(mutations_filter)}
-            hotspot_filter = {mutation + "_hotspot" : rank for rank, mutation in enumerate(mutations_filter)}
-            mutations_filter.update(hotspot_filter)
-
-        # Although seemingly complex, the following four lines do the following:
-        # 1. For each row, link (zip) the items in the ["mutations_list"] and ["locations_list"] columns together
-        # 2. Sort the ["mutations_list"] column based on its position in mutations_filter, including its respective location
-        # 3. Unlink the lists using list comprehension (last 3 lines)
-        sorted_mut_loc = combined.apply(lambda row: sorted(zip(row["mutations_list"], row["locations_list"]), key = lambda pair: mutations_filter[pair[0]]), axis = 1).tolist()
-        sorted_mut_loc = list(sorted_mut_loc)
-        combined["mutations_list"] = [[items[0] for items in row] for row in sorted_mut_loc]
-        combined["locations_list"] = [[items[1] for items in row] for row in sorted_mut_loc]
-
-
-        combined["Mutation"] = combined.apply(lambda row: row["mutations_list"][0], axis = 1)
-        combined["Location"] = combined.apply(lambda row: row["locations_list"][0], axis = 1)
-        combined["Mutation_Status"] = combined.apply(lambda row: "Wildtype_Tumor" if row["mutations_list"][0] == "Wildtype_Tumor" else
-                                                                                      "Single_mutation" if len(row["mutations_list"]) == 1 else
-                                                                                      "Multiple_mutation", axis = 1)
-        result = combined.filter(["Mutation", "Location", "Mutation_Status"])
-        if not show_location:
-            result.drop("Location", inplace = True)
-        return result
-
-#     Additional information for some datasets, not applicable to pancan
-#     truncations = ['Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', 'Splice_Site']
-#     missenses = ['In_Frame_Del', 'In_Frame_Ins', 'Missense_Mutation']
-#     noncodings = ["Intron", "RNA", "3'Flank", "Splice_Region", "5'UTR", "5'Flank", "3'UTR"]
-
     def get_medical_conditions(self, source=None, tissue_type="both", imputed=False):
         """Get the medical_conditions dataframe from the specified data source."""
         return self.get_dataframe("medical_conditions", source, tissue_type, imputed=imputed)
@@ -434,7 +343,20 @@ class Cancer:
 
         return self.multi_join({df1_name:genes1, df2_name:genes2}, how=how, tissue_type=tissue_type)
 
-    def join_omics_to_mutations(self, omics_name, mutations_genes, omics_source=None, mutations_source=None, omics_genes=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both",mutation_cols=["Mutation","Location"]):
+    def join_omics_to_mutations(
+                self,
+				omics_name,
+				mutations_genes,
+				omics_source=None,
+				mutations_source=None,
+				omics_genes=None,
+				mutations_filter=None,
+				show_location=True,
+				how="outer",
+				quiet=False,
+				tissue_type="both",
+				mutation_cols=["Mutation","Location"]
+        ):
         """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
@@ -1431,12 +1353,13 @@ class Cancer:
         status_map.name = "Sample_Status"
         return status_map
 
-    def get_genotype_all_vars(self, mutations_gene, omics_source, mutations_filter=None, show_location=True, mutation_hotspot=None):
-        """Return a dataframe that has the mutation type and wheather or not it is a multiple mutation
+    def get_genotype_all_vars(self, mutations_gene, omics_source, mutations_source, mutations_filter=None, show_location=True, mutation_hotspot=None):
+        """Return a dataframe that has the mutation type and whether or not it is a multiple mutation
         Parameters:
         mutation_genes (str, or list or array-like of str): The gene(s) to get mutation data for.
         mutations_filter (list, optional):  List of mutations to prioritize when filtering out multiple mutations, in order of priority.
         omics_source(str): Source of omics data ex "bcm", "washu", "broad", "umich"
+        mutations_source(str): Source of mutations data ex "bcm", "washu", "broad", "umich"
         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
         mutation_hotspot (optional): a list of hotspot locations
         
@@ -1446,17 +1369,29 @@ class Cancer:
 
         #check that gene is in the somatic_mutation DataFrame
         somatic_mutation = self.get_somatic_mutation(source=omics_source)
-        if mutations_gene not in somatic_mutation["Gene"].unique(): #if the gene isn't in the somatic mutations df it will still have CNV data that we want          
+        #if the gene isn't in the somatic mutations df it will still have CNV data that we want          
+        if mutations_gene not in somatic_mutation["Gene"].unique(): 
             cnv = self.get_CNV(source = omics_source)
             if isinstance(cnv.keys(), pd.core.indexes.multi.MultiIndex):
                 cnv = ut.reduce_multiindex(df=cnv, levels_to_drop=['Database_ID'])       
             gene_cnv = cnv[[mutations_gene]]
-            gene_cnv["mutation"] = np.select([gene_cnv[mutations_gene] <= -.2, gene_cnv[mutations_gene] >= .2], ['Deletion', 'Amplification'], 'No_Mutation')
+            gene_cnv["mutation"] = np.select(
+                    [gene_cnv[mutations_gene] <= -.2, gene_cnv[mutations_gene] >= .2], 
+                    ['Deletion', 'Amplification'], 
+                    'No_Mutation'
+            )
             return gene_cnv
 
 
         #combine the cnv and mutations dataframe
-        combined = self.join_omics_to_mutations(omics_df_name="CNV", mutations_genes = mutations_gene, mutation_hotspot = mutation_hotspot, omics_genes = mutations_gene, omics_source = omics_source)
+        combined = self.join_omics_to_mutations(
+                omics_name="CNV",
+                mutations_genes=mutations_gene,
+                omics_source=omics_source,
+                mutations_source=mutations_source,
+                omics_genes=mutations_gene,
+                mutations_filter=mutations_filter
+        )
         combined = ut.reduce_multiindex(df=combined, levels_to_drop=['Database_ID'])
         combined["mutations_list"] = np.empty((len(combined), 0)).tolist()
         
@@ -1466,42 +1401,69 @@ class Cancer:
         isDeletion = lambda row: row[CNV_col] <= -.2
         mut_type = lambda row: row[mutations_gene + "_Mutation"]
         
-        combined["mutations_list"] = combined.apply(lambda row: row["mutations_list"] + ['Deletion'] if isDeletion(row) else 
-                                                                row["mutations_list"] + ['Amplification'] if isAmplification(row) >= .2 else 
-                                                                row["mutations_list"], axis = 1)
+        combined["mutations_list"] = combined.apply(lambda row: 
+                row["mutations_list"] + ['Deletion'] if isDeletion(row) 
+                else row["mutations_list"] + ['Amplification'] if isAmplification(row) >= .2 
+                else row["mutations_list"], 
+            axis = 1)
         combined["locations_list"] = combined["mutations_list"]
 
-        combined["mutations_list"] = combined.apply(lambda row: row["mutations_list"] if (mut_type(row) == ["Wildtype_Tumor"] and (isAmplification(row) or isDeletion(row))) else
-                                                                row["mutations_list"] + row[mutations_gene + "_Mutation"], axis = 1)
-        combined["locations_list"] = combined.apply(lambda row: row["locations_list"] if (mut_type(row) == ["Wildtype_Tumor"] and (isAmplification(row) or isDeletion(row))) else
-                                                                row["locations_list"] + row[mutations_gene + "_Location"], axis = 1)
+        combined["mutations_list"] = combined.apply(lambda row: 
+                row["mutations_list"] if (mut_type(row) == ["Wildtype_Tumor"] 
+                        and (isAmplification(row) or isDeletion(row))) 
+                else row["mutations_list"] + row[mutations_gene + "_Mutation"],
+            axis = 1)
+        combined["locations_list"] = combined.apply(lambda row: 
+                row["locations_list"] if (mut_type(row) == ["Wildtype_Tumor"] 
+                        and (isAmplification(row) or isDeletion(row))) 
+                else row["locations_list"] + row[mutations_gene + "_Location"],
+            axis = 1)
         
         # Determine hotspots
         if mutation_hotspot is not None:
-            combined["mutations_list"] = combined.apply(lambda row: [mut + "_hotspot" if row["locations_list"][i] in mutation_hotspot else mut 
-                                        for i, mut in enumerate(row["mutations_list"])], axis = 1)
+            combined["mutations_list"] = combined.apply(lambda row: 
+                    [
+                        mut + "_hotspot" if row["locations_list"][i] in mutation_hotspot 
+                        else mut 
+                        for i, mut in enumerate(row["mutations_list"])], 
+                axis = 1
+            )
         
         #Sort mutation types
         if mutations_filter == None:
-            mutations_filter = ["Deletion",
-                                    'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', #truncation
-                                    'Missense_Mutation',
-                                    'Amplification',
-                                    'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site' ,
-                                    'De_Novo_Start_Out_Frame' ,'De_Novo_Start_In_Frame', 
-                                    'Start_Codon_Ins', 'Start_Codon_SNP', 
-                                    'Silent',
-                                    'Wildtype_Tumor']
+            mutations_filter = [
+                'Deletion',
+                'Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation',
+                'Missense_Mutation',
+                'Amplification',
+                'In_Frame_Del', 'In_Frame_Ins', 'Splice_Site' ,
+                'De_Novo_Start_Out_Frame' ,'De_Novo_Start_In_Frame', 
+                'Start_Codon_Ins', 'Start_Codon_SNP', 
+                'Silent',
+                'Wildtype_Tumor'
+            ]
         if mutation_hotspot != None:
-            mutations_filter = {mutation : 2 * rank + 1 for rank, mutation in enumerate(mutations_filter)}
-            hotspot_filter = {mutation + "_hotspot" : rank for rank, mutation in enumerate(mutations_filter)}
+            mutations_filter = {
+                mutation : 2 * rank + 1 for rank, mutation in enumerate(mutations_filter)
+            }
+            hotspot_filter = {
+                mutation + "_hotspot" : rank for rank, mutation in enumerate(mutations_filter)
+            }
             mutations_filter.update(hotspot_filter)
 
         # Although seemingly complex, the following four lines do the following:
-        # 1. For each row, link (zip) the items in the ["mutations_list"] and ["locations_list"] columns together
-        # 2. Sort the ["mutations_list"] column based on its position in mutations_filter, including its respective location
+        # 1. For each row, link (zip) the items in the 
+        #       ["mutations_list"] and ["locations_list"] columns together
+        # 2. Sort the ["mutations_list"] column based on its position in mutations_filter, 
+        #       including its respective location
         # 3. Unlink the lists using list comprehension (last 3 lines)
-        sorted_mut_loc = combined.apply(lambda row: sorted(zip(row["mutations_list"], row["locations_list"]), key = lambda pair: mutations_filter[pair[0]]), axis = 1).tolist()
+        sorted_mut_loc = combined.apply(lambda row: 
+                sorted(
+                    zip(row["mutations_list"], row["locations_list"]), 
+                    key = lambda pair: mutations_filter[pair[0]]
+                ), 
+            axis = 1)
+        sorted_mut_loc = sorted_mut_loc.tolist()
         sorted_mut_loc = list(sorted_mut_loc)
         combined["mutations_list"] = [[items[0] for items in row] for row in sorted_mut_loc]
         combined["locations_list"] = [[items[1] for items in row] for row in sorted_mut_loc]
@@ -1509,9 +1471,12 @@ class Cancer:
 
         combined["Mutation"] = combined.apply(lambda row: row["mutations_list"][0], axis = 1)
         combined["Location"] = combined.apply(lambda row: row["locations_list"][0], axis = 1)
-        combined["Mutation_Status"] = combined.apply(lambda row: "Wildtype_Tumor" if row["mutations_list"][0] == "Wildtype_Tumor" else
-                                                                                      "Single_mutation" if len(row["mutations_list"]) == 1 else
-                                                                                      "Multiple_mutation", axis = 1)
+        combined["Mutation_Status"] = combined.apply(lambda row: 
+                "Wildtype_Tumor" if row["mutations_list"][0] == "Wildtype_Tumor" 
+                else "Single_mutation" if len(row["mutations_list"]) == 1 
+                else "Multiple_mutation", 
+            axis = 1
+            )
         result = combined.filter(["Mutation", "Location", "Mutation_Status"])
         if not show_location:
             result.drop("Location", inplace = True)
