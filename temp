@@ -22,13 +22,8 @@ import cptac.utils as ut
 from cptac.exceptions import *
 from cptac.tools.dataframe_tools import add_index_levels, join_col_to_dataframe
 
-### TEMP DEBUG
-import cProfile
-### /DEBUG
-
 class Cancer:
-    """Note that all cancer datasets are class objects that inherit 
-        from cptac.cancer.
+    """Note that all cancer datasets are class objects that inherit from cptac.cancer.
     Therefore the same function calls exist for cptac.Brca, cptac.Gbm, etc.
     """
 
@@ -296,7 +291,7 @@ class Cancer:
         elif term in self._definitions.keys():
             print(self._definitions[term])
         else:
-            raise InvalidParameterError("{} not found in definitions. Check capitalization. Alternatively, the 'search(<your term>)' function, available for import from the cptac.utils sub-module, can be used to perform a web search of the term provided.".format(term))
+            raise InvalidParameterError(f"{term} not found in definitions. Check capitalization. Alternatively, the 'search(<your term>)' function, available for import from the cptac.utils sub-module, can be used to perform a web search of the term provided.")
 
     def list_definitions(self):
         """Print all terms defined in the dataset's list of definitions."""
@@ -307,49 +302,6 @@ class Cancer:
             raise NoDefinitionsError("No definitions provided for this dataset.")
 
     # Join functions
-    def quick_join(self, df1_name, df2_name, df1_source=None, df2_source=None, genes1=None, genes2=None, how='outer', flatten=True):
-        """A joins two specified cptac dataframes; optimized for speed.
-
-        Parameters:
-        df_name (str): Name of first dataframe. Must be in the form 'source name' if df_source is not provided. (ex. 'washu proteomics')
-        df_source (str): Name of source for the first dataframe. If df_name was in the form 'source name', this parameter is ignored
-        genes (str, or list or array-like of str, optional): Gene(s) for column(s) to select from df_name. str if one key, list or array-like of str if multiple.
-            Default of None will select entire dataframe.
-        how (str, optional): How to perform the join; see Pandas.DataFrame.join.
-        flatten (bool): Whether to flatten any multiindex encountered, ignoring the irrelevant ones (need better explanation lol).
-
-        Returns:
-        pandas.DataFrame: The selected columns from the two dataframes, joined into one dataframe.
-        """
-        pr = cProfile.Profile()
-        pr.enable()
-
-
-        if ' ' in df1_name:
-            df1_source, df1_name = df1_name.split(' ')
-        if ' ' in df2_name:
-            df2_source, df2_name = df2_name.split(' ')
-
-        if isinstance(genes1, str):
-            genes1 = [genes1]
-        if isinstance(genes2, str):
-            genes2 = [genes2]
-
-        #df1 = self.get_dataframe(df1_name, df1_source)
-        df2 = self.get_dataframe(df2_name, df2_source)
-
-
-        pr.disable()
-        pr.print_stats()
-
-
-        #print(df1)
-#        print('\n\n====================================================\n')
-#        print(df2)
-        return
-
-
-
     # Note: These are now helper functions that call multi_join on awg data by default
     def join_omics_to_omics(self, df1_name, df2_name, df1_source=None, df2_source=None, genes1=None, genes2=None, how="outer", quiet=False, tissue_type="both"):
         """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
@@ -389,7 +341,7 @@ class Cancer:
         if genes2 is None:
             genes2 = []
 
-        return self.multi_join({df1_name:genes1, df2_name:genes2}, how=how, tissue_type=tissue_type, flatten=True)
+        return self.multi_join({df1_name:genes1, df2_name:genes2}, how=how, tissue_type=tissue_type)
 
     def join_omics_to_mutations(
                 self,
@@ -449,7 +401,7 @@ class Cancer:
         else:
             genes1 = omics_genes
 
-        return self.multi_join({df1_name:genes1, df2_name:mutations_genes}, mutations_filter=mutations_filter, how=how, tissue_type=tissue_type, flatten=True)
+        return self.multi_join({df1_name:genes1, df2_name:mutations_genes}, mutations_filter=mutations_filter, how=how, tissue_type=tissue_type)
 
     def join_metadata_to_metadata(self, df1_name, df2_name, df1_source=None, df2_source=None, cols1=None, cols2=None, how="outer", quiet=False, tissue_type="both"):
         """Take specified column(s) from one metadata dataframe, and join to specified columns(s) from another metadata dataframe. Intersection (inner join) of indices is used.
@@ -493,7 +445,7 @@ class Cancer:
         if cols2 is None:
             cols2 = []
 
-        return self.multi_join({df1_name:cols1, df2_name:cols2}, how=how, tissue_type=tissue_type, flatten=True)
+        return self.multi_join({df1_name:cols1, df2_name:cols2}, how=how, tissue_type=tissue_type)
 
     def join_metadata_to_omics(self, metadata_name, omics_name, omics_source=None, metadata_source=None, metadata_cols=None, omics_genes=None, how="outer", quiet=False, tissue_type="both"):
         """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_design) to part or all of an omics dataframe. Intersection (inner join) of indices is used.
@@ -539,7 +491,7 @@ class Cancer:
         else:
             genes2 = omics_genes
 
-        return self.multi_join({df1_name:genes1, df2_name:genes2}, how=how, tissue_type=tissue_type, flatten=True)
+        return self.multi_join({df1_name:genes1, df2_name:genes2}, how=how, tissue_type=tissue_type)
 
     def join_metadata_to_mutations(self, metadata_name, mutations_genes, metadata_source=None, mutations_source=None,  metadata_cols=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both"):
         """Select all mutations for specified gene(s), and joins them to all or part of the given metadata dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
@@ -582,7 +534,7 @@ class Cancer:
         if metadata_cols is None:
             metadata_cols = []
 
-        return self.multi_join({df1_name:metadata_cols, df2_name:mutations_genes}, how=how, tissue_type=tissue_type, mutations_filter=mutations_filter, flatten=True)
+        return self.multi_join({df1_name:metadata_cols, df2_name:mutations_genes}, how=how, tissue_type=tissue_type, mutations_filter=mutations_filter)
 
     def multi_join(self, join_dict, mutations_filter=None, flatten=False, levels_to_drop=[], how="outer", tissue_type="both"):
         """Takes a dictionary where keys include a source and datatype (either in a ('source', 'datatype') tuple or as a space separated string "source datatype"), and values are columns from those dataframes. Joins all the columns into one dataframe. If the value is an empty list it will join the entire dataframe
@@ -615,6 +567,10 @@ class Cancer:
         # a flag for if mutations data is included, for formatting later
         format_mutations = False
 
+        #TEMP DEBUG
+        print(join_dict)
+        #/DEBUG
+
         for source_data_key in join_dict.keys():
             if isinstance(source_data_key, tuple):
                 source, datatype = source_data_key
@@ -625,6 +581,13 @@ class Cancer:
             # Make sure all requested data exists and is valid
             if datatype not in self._sources[source].load_functions:
                 raise DataFrameNotIncludedError(f"{source} {datatype} is not a valid dataframe in the {self.get_cancer_type()} dataset.")
+
+            #TEMP DEBUG
+            print(f"source_data_key = {source_data_key}")
+            print(f"source = {source}")
+            print(f"datatype = {datatype}")
+            #/DEBUG
+
 
             ## If key belongs to omics
             if datatype in self._valid_omics_dfs:
@@ -670,9 +633,6 @@ class Cancer:
 
         joined, how = reduce(self._join_dataframe, to_join, how)
 
-        if flatten == True:
-            joined = ut.reduce_multiindex(joined, flatten=flatten)
-
         # Format any included mutations data
         if format_mutations:
             mutations_were_filtered = mutations_filter is not None
@@ -680,6 +640,9 @@ class Cancer:
 
         if len(levels_to_drop) != 0:
             joined = ut.reduce_multiindex(joined, levels_to_drop=levels_to_drop)
+
+        if flatten == True:
+            joined = ut.reduce_multiindex(joined, flatten=flatten)
 
         # Sort the dataframe for good measure (based off sample status (tumor or normal), then alphabetically)
         joined = joined.sort_index()
@@ -895,7 +858,7 @@ class Cancer:
                 omics_df = omics_df.add_suffix('_' + source + '_' + omics_df_name)
             return omics_df
         else: # If it's none of those, they done messed up. Tell 'em.
-            raise InvalidParameterError("Genes parameter \n{}\nis of invalid type {}. Valid types: str, list or array-like of str, or NoneType.".format(genes, type(genes)))
+            raise InvalidParameterError(f"Genes parameter \n{genes}\nis of invalid type {type(genes)}. Valid types: str, list or array-like of str, or NoneType.")
 
         genes = pd.Index(genes, name="Name")
 
@@ -954,7 +917,7 @@ class Cancer:
         elif cols is None: # If it's the default of None, return the entire dataframe
             return df
         else: # If it's none of those, they done messed up. Tell 'em.
-            raise InvalidParameterError("Columns parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(cols, type(cols)))
+            raise InvalidParameterError(f"Columns parameter {cols} is of invalid type {type(cols)}. Valid types: str, or list or array-like of str.")
 
         cols = pd.Index(cols).drop_duplicates()
 
@@ -993,7 +956,7 @@ class Cancer:
         elif isinstance(genes, (list, pd.Series, pd.Index)): # If it's already a list or array-like, we're all good
             pass
         else: # If it's neither of those, they done messed up. Tell 'em.
-            raise InvalidParameterError("Genes parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(genes, type(genes)))
+            raise InvalidParameterError(f"Genes parameter {genes} is of invalid type {type(genes)}. Valid types: str, or list or array-like of str.")
 
         # Process mutations_filter parameter
         if mutations_filter is not None:
@@ -1002,7 +965,7 @@ class Cancer:
             elif isinstance(mutations_filter, (list, pd.Series, pd.Index)): # If it's already a list or array-like, we're all good
                 pass
             else: # Again, let them know if their parameter is not going to cut it
-                raise InvalidParameterError("mutations_filter parameter {} is of invalid type {}. Valid types: str, or list or array-like of str.".format(mutations_filter, type(mutations_filter)))
+                raise InvalidParameterError(f"mutations_filter parameter {mutations_filter} is of invalid type {type(mutations_filter)}. Valid types: str, or list or array-like of str.")
 
         # Set some column names for use later
         gene_col = "Gene"
@@ -1023,7 +986,7 @@ class Cancer:
         for gene in genes:
             gene_mutations = somatic_mutation[somatic_mutation[gene_col] == gene] # Get all the mutations for that gene
             if len(gene_mutations) == 0: # If the gene doesn't match any genes in the dataframe, tell them
-                raise InvalidParameterError("{} gene not found in somatic_mutation data.".format(gene))
+                raise InvalidParameterError(f"{gene} gene not found in somatic_mutation data.")
             gene_mutations = gene_mutations.drop(columns=[gene_col]) # Gene column is same for every sample, so we don't need it anymore.
 
             # Check whether all filter values exist for this particular gene. If not, that's fine, we just want to warn the user.
@@ -1376,7 +1339,7 @@ class Cancer:
     def _check_how_parameter(self, given_how):
         possible_values = ['outer', 'inner', 'left', 'right']
         if given_how not in possible_values:
-            raise InvalidParameterError("'{}' is not a valid value for 'how'. Possible values are 'outer', 'inner', 'left', 'right'.".format(given_how))
+            raise InvalidParameterError(f"'{given_how}' is not a valid value for 'how'. Possible values are 'outer', 'inner', 'left', 'right'.")
 
     def _join_dataframe(self, df1, df2):
         """Joins a dataframe to another dataframe.
@@ -1430,7 +1393,6 @@ class Cancer:
             )
             return gene_cnv
 
-
         #combine the cnv and mutations dataframe
         combined = self.join_omics_to_mutations(
                 omics_name="CNV",
@@ -1440,6 +1402,9 @@ class Cancer:
                 omics_genes=mutations_gene,
                 mutations_filter=mutations_filter
         )
+        #TEMP DEBUG
+        print("checkpoint2")
+        #/DEBUG
         combined = ut.reduce_multiindex(df=combined, levels_to_drop=['Database_ID'])
         combined["mutations_list"] = np.empty((len(combined), 0)).tolist()
         
