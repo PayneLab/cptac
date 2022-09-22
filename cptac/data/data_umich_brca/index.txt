@@ -1,0 +1,6 @@
+#1.0
+Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv	bce0008db6c2d9585b177982e9ac3734	784704293519	phosphoproteomics
+Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv	d2b985769c047235e56210a734a7cdf6	784687672793	proteomics
+prosp-brca-all-samples.txt	d87cbdc37b8817b27a0821d689771901	829095757631	mapping
+README_v3.boxnote	7cf699dafc8408647f8dad68933c2080	784692840521	readme
+README.boxnote	25a218b4f883741abc09863a9e0ad6e6	790929303483	readme

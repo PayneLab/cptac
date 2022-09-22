@@ -321,9 +321,6 @@ class Cancer:
         Returns:
         pandas.DataFrame: The selected columns from the two dataframes, joined into one dataframe.
         """
-        pr = cProfile.Profile()
-        pr.enable()
-
 
         if ' ' in df1_name:
             df1_source, df1_name = df1_name.split(' ')
@@ -335,12 +332,8 @@ class Cancer:
         if isinstance(genes2, str):
             genes2 = [genes2]
 
-        #df1 = self.get_dataframe(df1_name, df1_source)
+        df1 = self.get_dataframe(df1_name, df1_source)
         df2 = self.get_dataframe(df2_name, df2_source)
-
-
-        pr.disable()
-        pr.print_stats()
 
 
         #print(df1)
@@ -670,7 +663,7 @@ class Cancer:
 
         joined, how = reduce(self._join_dataframe, to_join, how)
 
-        if flatten == True:
+        if flatten == True and isinstance(joined.columns, pd.MultiIndex):
             joined = ut.reduce_multiindex(joined, flatten=flatten)
 
         # Format any included mutations data
