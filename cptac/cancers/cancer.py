@@ -664,7 +664,7 @@ class Cancer:
         joined, how = reduce(self._join_dataframe, to_join, how)
 
         if flatten == True and isinstance(joined.columns, pd.MultiIndex):
-            joined = ut.reduce_multiindex(joined, flatten=flatten)
+            joined.columns = joined.columns.droplevel('Database_ID')
 
         # Format any included mutations data
         if format_mutations:
@@ -1416,11 +1416,15 @@ class Cancer:
             if isinstance(cnv.keys(), pd.core.indexes.multi.MultiIndex):
                 cnv = ut.reduce_multiindex(df=cnv, levels_to_drop=['Database_ID'])       
             gene_cnv = cnv[[mutations_gene]]
-            gene_cnv["mutation"] = np.select(
+            gene_cnv["Mutation"] = np.select(
                     [gene_cnv[mutations_gene] <= -.2, gene_cnv[mutations_gene] >= .2], 
                     ['Deletion', 'Amplification'], 
-                    'No_Mutation'
+                    'Wildtype_Tumor'
             )
+            gene_cnv['Location'] = gene_cnv['Mutation']
+            gene_cnv['Mutation_status'] = 'Single_mutation'
+            gene_cnv.loc[gene_cnv['Mutation'] == 'Wildtype_Tumor'] = 'Wildtype_Tumor'
+            gene_cnv = gene_cnv.drop(mutations_gene, axis=1)
             return gene_cnv
 
 
@@ -1433,7 +1437,8 @@ class Cancer:
                 omics_genes=mutations_gene,
                 mutations_filter=mutations_filter
         )
-        combined = ut.reduce_multiindex(df=combined, levels_to_drop=['Database_ID'])
+        if isinstance(combined.index, pd.MultiIndex):
+            combined.columns = combined.columns.droplevel(0)
         combined["mutations_list"] = np.empty((len(combined), 0)).tolist()
         
         #Load the mutation types
@@ -1483,10 +1488,10 @@ class Cancer:
                 'Silent',
                 'Wildtype_Tumor'
             ]
+        mutations_filter = {
+            mutation : 2 * rank + 1 for rank, mutation in enumerate(mutations_filter)
+        }
         if mutation_hotspot != None:
-            mutations_filter = {
-                mutation : 2 * rank + 1 for rank, mutation in enumerate(mutations_filter)
-            }
             hotspot_filter = {
                 mutation + "_hotspot" : rank for rank, mutation in enumerate(mutations_filter)
             }
@@ -1518,7 +1523,7 @@ class Cancer:
                 else "Multiple_mutation", 
             axis = 1
             )
-        result = combined.filter(["Mutation", "Location", "Mutation_Status"])
+        result = combined[["Mutation", "Location", "Mutation_Status"]]
         if not show_location:
             result.drop("Location", inplace = True)
         return result
