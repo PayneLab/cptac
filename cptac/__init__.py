@@ -60,17 +60,18 @@ def get_source_options():
     df = __OPTIONS__.copy()
     return list(df["Sources"].unique())
 
-def list_datasets():
+def list_datasets(print_tree=False):
     """List all available datasets."""
     df = __OPTIONS__.\
     copy().\
     drop("Loadable datatypes", axis=1)
+    if not print_tree:
+        return df
 
     df = df.\
     assign(Datatypes=df["Datatypes"].str.split("\ *,\ *", expand=False, regex=True)).\
     explode("Datatypes").\
     reset_index(drop=True)
-
     # Print our dataframe as a pretty tree structure
     info = {}
     for row in df.set_index(["Cancers", "Sources", "Datatypes"]).index.values:
@@ -82,10 +83,6 @@ def list_datasets():
 
     df_tree = _tree(info)
     print(df_tree)
-
-    #if the dataframe is needed it can be returned. If not,
-    #the python interpreter will print anything that is returned, so no return for now
-    #return df
 
 def _tree(nest, prepend=""):
     """Recursively build a formatted string to represent a dictionary"""

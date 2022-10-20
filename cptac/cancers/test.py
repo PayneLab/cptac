@@ -7,3 +7,5 @@ br = cptac.Brca()
 df1 = br.get_dataframe('proteomics', 'umich')
 df2 = br.get_dataframe('transcriptomic', 'washu')
 
+print(br.quick_join('umich proteomics', 'washu transcriptomics'))
+

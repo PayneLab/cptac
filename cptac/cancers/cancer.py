@@ -333,13 +333,20 @@ class Cancer:
             genes2 = [genes2]
 
         df1 = self.get_dataframe(df1_name, df1_source)
+        print('got df1')
         df2 = self.get_dataframe(df2_name, df2_source)
+        print('got df2')
 
+        if isinstance(df1.columns, pd.MultiIndex):
+            df1.columns = df1.columns.droplevel('Database_ID')
+        if isinstance(df2.columns, pd.MultiIndex):
+            df2.columns = df2.columns.droplevel('Database_ID')
 
-        #print(df1)
-#        print('\n\n====================================================\n')
-#        print(df2)
-        return
+        df1 = df1.add_prefix(df1_name.title()+'_')
+        df2 = df2.add_prefix(df2_name.title()+'_')
+
+        result = df1.merge(df2, left_index=True, right_index=True)
+        return result
 
 
 
@@ -1422,7 +1429,7 @@ class Cancer:
                     'Wildtype_Tumor'
             )
             gene_cnv['Location'] = gene_cnv['Mutation']
-            gene_cnv['Mutation_status'] = 'Single_mutation'
+            gene_cnv['Mutation_Status'] = 'Single_mutation'
             gene_cnv.loc[gene_cnv['Mutation'] == 'Wildtype_Tumor'] = 'Wildtype_Tumor'
             gene_cnv = gene_cnv.drop(mutations_gene, axis=1)
             return gene_cnv
