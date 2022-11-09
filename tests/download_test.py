@@ -9,11 +9,12 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import time
 import cptac
 import logging
 import pytest
 from itertools import product
-from cptac.exceptions import InvalidParameterError 
+from cptac.exceptions import InvalidParameterError
 
 class TestDownload:
     '''
@@ -39,20 +40,24 @@ class TestDownload:
         # return a flattened list of (cancer, {source:datatype}) items
         return [item for sublist in combos.to_list() for item in sublist]
 
+    # def get_public_datasets(get_all_datasets):
+    #     public_datasets = []
+    #     for dataset in get_all_datasets:
+    #         if dataset.loc[dataset, "Data reuse stats"] == "no restricions":
+    #             public_datasets.append(dataset.lower())
+    #     return public_datasets
+
+
     @pytest.mark.parametrize("cancer, source", inputs())
     def test_datasets_redownload(self, cancer, source):
-        assert cptac.download(sources=source, cancers=cancer, redownload=True)
+        time.sleep(1)
+        # awgconf is currently password protected, so to speed up test time:
+        if 'awgconf' not in source:
+            assert cptac.download(sources=source, cancers=cancer, redownload=True)
 
     @pytest.mark.parametrize("cancer, source", inputs())
     def test_datasets_no_redownload(self, cancer, source):
-        assert cptac.download(sources=source, cancers=cancer, redownload=False)
+        time.sleep(1)
+        if 'awgconf' not in source:
+            assert cptac.download(sources=source, cancers=cancer, redownload=False)
 
-    # @pytest.mark.parametrize("cancer, source", inputs())
-    # def test_pdc_download(self, cancer, source):
-    #     if 'pdc' in source:
-    #         assert cptac.download(sources=source, cancers=cancer, redownload=True)
-
-    @pytest.mark.parametrize("cancer, source", inputs())
-    def test_washu_download(self, cancer, source):
-        if 'washu' in source and cancer == 'ucec':
-            assert cptac.download(sources=source, cancers=cancer, redownload=True)
