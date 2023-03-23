@@ -52,7 +52,7 @@ setup(name='cptac',
         'License :: OSI Approved :: Apache Software License',
 	],
 	keywords='bioinformatics cancer proteomics genomics open science open data',
-	python_requires='>=3.6.*',
+	python_requires='>=3.6',
 	zip_safe=False,
 	include_package_data=True,
 	project_urls={
