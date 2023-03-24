@@ -10,7 +10,6 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
 import os
 import warnings
 import datetime
@@ -106,13 +105,12 @@ class NameOrAcronym(Source):
             # save df in self._data, basically 'self._data["awesomeomics"] = df' but with extra formatting
             self.save_df(df_type, df)
 
-    def load_awesome_omics(self):
-        df_type = 'awesome_omics'
+    def load_other_data(self):
+        df_type = 'other_data'
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
             df = pd.read_csv(file_path, sep='\t', index_col=0)
-            df = df.drop(columns=["columns", "we", "don't", "want"])
             df = df.super_crazy_dataframe_formatting_function()
             df = df.even_crazier()
 

@@ -10,14 +10,11 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
 import os
 import warnings
-import datetime
 
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
-from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError, InvalidParameterError
+from cptac.exceptions import PublicationEmbargoWarning
 
 class AwgConfGbm(Source):
 
@@ -31,7 +28,9 @@ class AwgConfGbm(Source):
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
-        # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
+        # This keeps a record of all versions that the code is equipped to handle.
+        # That way, if there's a new data release but they didn't update their package,
+        # it won't try to parse the new data version it isn't equipped to handle.
         self.valid_versions = ["0.1", "2.0"]
 
         if version == "latest":
@@ -81,7 +80,6 @@ class AwgConfGbm(Source):
             self.load_functions["miRNA"] = self.load_miRNA
             self.load_functions["lipidomics"] = self.load_lipidomics
             self.load_functions["gene_fusion"] = self.load_gene_fusion
-
 
         # Call the parent class __init__ function
         super().__init__(cancer_type="gbm", source='awgconf', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
@@ -376,8 +374,6 @@ class AwgConfGbm(Source):
             df = df.set_index("Gene")
             df = df.sort_index()
             df = df.transpose()
-#             df.index.name = "Patient_ID"
-#             df.columns.name = "Name"
 
             # save df in self._data
             self.save_df(df_type, df)

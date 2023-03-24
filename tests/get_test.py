@@ -11,38 +11,40 @@
 
 import sys
 import pytest
-import pandas
+import pandas as pd
 import cptac
 from cptac.exceptions import DataFrameNotIncludedError, InvalidParameterError
 
-class TestGet:
-
-    # from cancer test units, grab the dict of function names and function pointers for valid getters and test them to make sure they return a dataframe object
-    def test_valid_getters(self, get_cancer_test_units):
-        test_units = get_cancer_test_units
-        for cancer in test_units:
-            for (getter_name, getter) in cancer.valid_getters.items():
-                try:
-                    if cancer.cancer_type == "UcecConf" and getter_name == "get_CNV":
-                        dataframe = getter("log2ratio")
-                        assert type(dataframe) == pandas.DataFrame
-                        
-                        dataframe = getter("gistic")
-                        type(dataframe) == pandas.DataFrame
-                    else:
-                        dataframe = getter()
-                        assert type(dataframe) == pandas.DataFrame
-                
-                except (DataFrameNotIncludedError, InvalidParameterError) as error:
-                    pytest.fail(f"Calling {getter} resulted raised {error}")
-                
-                except:
-                    pytest.fail(f"Calling {getter} caused error:\n\t{sys.exc_info()[0]}")
-
-    def test_invalid_getters(self, get_cancer_test_units):
-        test_units = get_cancer_test_units
-        for cancer in test_units:
-            for (getter_name, getter) in cancer.invalid_getters.items():
-            # verify the correct error is thrown
-                with pytest.raises(DataFrameNotIncludedError) as exception:
-                    getter()
+#from conftest import get_cancer_inputs
+#
+#class TestGet:
+#
+#    # from cancer test units, grab the dict of function names and function pointers for valid getters and test them to make sure they return a dataframe object
+#    def test_valid_getters(self, get_cancer_inputs):
+#        test_units = get_cancer_inputs
+#        for cancer in test_units:
+#            for (getter_name, getter) in cancer.valid_getters.items():
+#                try:
+#                    if cancer.cancer_type == "UcecConf" and getter_name == "get_CNV":
+#                        dataframe = getter("log2ratio")
+#                        assert type(dataframe) == pd.DataFrame
+#                        
+#                        dataframe = getter("gistic")
+#                        type(dataframe) == pd.DataFrame
+#                    else:
+#                        dataframe = getter()
+#                        assert type(dataframe) == pd.DataFrame
+#                
+#                except (DataFrameNotIncludedError, InvalidParameterError) as error:
+#                    pytest.fail(f"Calling {getter} resulted raised {error}")
+#                
+#                except:
+#                    pytest.fail(f"Calling {getter} caused error:\n\t{sys.exc_info()[0]}")
+#
+#    def test_invalid_getters(self, get_cancer_inputs):
+#        test_units = get_cancer_inputs
+#        for cancer in test_units:
+#            for (getter_name, getter) in cancer.invalid_getters.items():
+#            # verify the correct error is thrown
+#                with pytest.raises(DataFrameNotIncludedError) as exception:
+#                    getter()

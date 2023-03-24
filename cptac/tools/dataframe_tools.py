@@ -21,121 +21,85 @@ import mygene
 @contextmanager
 def suppress_stdout():
     """Temporarily stops output from being printed. Use before a function when you don't want its output to
-    be printed. 
-    Example: with suppress_stdout(): 
+    be printed.
+    Example: with suppress_stdout():
                  function()
     """
     with open(os.devnull, "w") as devnull:
         old_stdout = sys.stdout
         sys.stdout = devnull
-        try:  
+        try:
             yield
         finally:
             sys.stdout = old_stdout
-            
 
-def map_database_to_gene_pdc(df, database_name = 'refseq', sep = ':'): 
-    """Add gene name to dataframe based on database IDs. This function is based on the format of PDC files. 
-    Only phosphoproteomics and acetylproteomics need the gene name added. 
+
+def map_database_to_gene_pdc(df, database_name = 'refseq', sep = ':'):
+    """Add gene name to dataframe based on database IDs. This function is based on the format of PDC files.
+    Only phosphoproteomics and acetylproteomics need the gene name added.
 
     Parameters:
     df (dict): The dataframe that needs gene names.
     database_name (str): dataframe name to use with mygene 'scopes' parameter.
-    sep (str): separator to split string with database ID. 
+    sep (str): separator to split string with database ID.
 
     Returns:
     df: The dataframe with gene name, database ID and site as a multiindex (sorted by gene name).
     """
-    
+
     if isinstance(df.index, pd.core.indexes.multi.MultiIndex):
         was_multiindex = True
         df = df.reset_index() # make index not a multiindex
     else:
         was_multiindex = False
-        
+
     df = df.T.reset_index()
-    df[['Database_ID',"Site"]] = df.iloc[:, 0].str.split(sep, expand=True) # first column is reset index  
+    df[['Database_ID',"Site"]] = df.iloc[:, 0].str.split(sep, expand=True) # first column is reset index
     df.Site = df.Site.str.upper() # capitalize all amino acids sites (for consistency)
-    
+
     id_list = df.Database_ID.to_list()
     with suppress_stdout():
         mg = mygene.MyGeneInfo()
         db_results = mg.querymany(id_list, scopes=database_name, fields='symbol', species='human') # map ID to gene
     db_to_gene = {results['query']: results['symbol'] for results in db_results \
                            if 'notfound' not in results.keys()} # get mapping dictionary of ID and gene name
-    df['Name'] = df['Database_ID'].replace(db_to_gene) # add gene name 
+    df['Name'] = df['Database_ID'].replace(db_to_gene) # add gene name
     df = df.set_index(['Name','Site','Database_ID']) # set multiindex
     df = df.sort_index(level='Name', axis = 'index') # sort based on gene name
     df = df.drop('index', axis = 1)
     df = df.T
-    
+
     if was_multiindex == True:
         df = df.set_index([df.columns[-1], df.columns[-2]])
         df.index.names = ['case_submitter_id','aliquot_submitter_id']
-        
+
     return df
 
-
-def sort_rows_and_columns(df):
-    """This should be called on each dataframe before loading so that the order of data in all dataframes is consistent across cptac
-    The user can expect data to look the same as long as this is called on each datatype when it is parsed
-    
-    Sorts dataframe prioritized by:
-        1) Sample status (tumor samples first, followed by normal samples)
-        2) Index (patient C0001 before C0002)
-        3) Columns alhabetically based on the first level of the multiindex
-
-    Parameters:
-    df (pandas.DataFrame): The dataframe to be sorted.
-
-    Returns:
-    pandas.DataFrame: The dataframe, but sorted.
-    The index is also given the standard name ('Patient_ID').
-    """
-    
-    df = df.sort_index(axis = 'columns', level = 0) # sort columns based on first level
-    if isinstance(df.index, pd.core.indexes.multi.MultiIndex):
-        df.index.rename(['Patient_ID', 'Aliquot'], level = [0,1], inplace = True)
-        new_df = df.sort_values('Patient_ID')
-        return new_df
-    else:
-        df.index.name = "Patient_ID" # set the name of the index
-        # Sort normal samples
-        normal = df.loc[df.index.str.contains('\.[NC]$', regex = True, na = False)]#'.N' for normal, '.C' for cored normals (in HNSCC)
-        normal = normal.sort_index() # index should be Patient_ID
-        # Sort tumor samples
-        tumor = df.loc[~ df.index.str.contains('\.[NC]$', regex = True, na = False)]
-        tumor = tumor.sort_index()
-        # append normal to tumor
-        all_df = pd.concat([tumor,normal], axis=0, join='outer')
-        return all_df
-
-
 def rename_duplicate_labels(df, label_type='columns'):
-    """Returns a df with unique labels for columns or indices 
+    """Returns a df with unique labels for columns or indices
     Parameters:
     df (pandas.DataFrame): The df containing duplicate labels.
-    label_type (str): use 'columns' to make unique column labels and 'index' to make unique indices. 
-    
+    label_type (str): use 'columns' to make unique column labels and 'index' to make unique indices.
+
     Returns:
     pandas.DataFrame: df with with unique labels. ".i" is appended to every duplicate, increasing incrementally.
     """
     if label_type == 'columns':
         labs = pd.Series(df.columns[:])
 
-        for dup in labs[labs.duplicated()].unique(): 
+        for dup in labs[labs.duplicated()].unique():
             labs[labs[labs == dup].index.values.tolist()] = [dup + '.' + str(i) if i != 0 else dup for i in range(sum(labs == dup))]
 
-        # rename the columns with the labs list.
+        # rename the columns with the labs list
         df.columns=labs
-        
+
     elif label_type == 'index':
         labs = pd.Series(df.index[:])
 
-        for dup in labs[labs.duplicated()].unique(): 
+        for dup in labs[labs.duplicated()].unique():
             labs[labs[labs == dup].index.values.tolist()] = [dup + '.' + str(i) if i != 0 else dup for i in range(sum(labs == dup))]
 
-        # rename the columns with the labs list.
+        # rename the columns with the labs list
         df.index=labs
     return df
 
@@ -143,16 +107,16 @@ def average_replicates(df, id_list = [], normal_identifier = '.N', common = '\.'
     """Returns a df with one row for each patient_ID (all replicates for a patient are averaged)
     Parameters:
     df (pandas.DataFrame): The df containing replicates (duplicate entries for the same tissue_type).
-    id_list: list of IDs with replicates (use the ID format that is common between replicates so the 
-            list can be used to slice out all replicates for that ID). Make sure the IDs 
+    id_list: list of IDs with replicates (use the ID format that is common between replicates so the
+            list can be used to slice out all replicates for that ID). Make sure the IDs
             in the list include the symbol that distinguishes normal samples ('.N' or '-N').
     common: regex string that is common between replicates (identifies duplicate entries)
     to_drop: regex string to drop to find each patient_ID that has replicates (used to slice out all replicates)
-    
+
     Returns:
     pandas.DataFrame: df with with replicate rows averaged and one row for each patient_ID.
     """
-    # If no list of replicate IDs is given, make list from common regex 
+    # If no list of replicate IDs is given, make list from common regex
     if len(id_list) == 0:
         replicate_df = df[df.index.str.contains(common)]
         patient_ids = pd.Series(replicate_df.index) # create series of replicate IDs to prep removing appended ".i"
@@ -173,45 +137,11 @@ def average_replicates(df, id_list = [], normal_identifier = '.N', common = '\.'
             id_df = df[df.index.str.contains(patient_ID, regex = True) & \
                        ~ df.index.str.contains(norm_regex, regex = True)] # don't include normals
         #print(id_df.index.to_list())
-        vals = list(id_df.mean(axis=0)) 
+        vals = list(id_df.mean(axis=0))
         new_df = new_df.drop(id_df.index.to_list(), axis = 'index') # drop unaveraged rows
         new_df.loc[patient_ID] = vals # add averaged row
 
     return new_df
-
-def unionize_indices(dataset, exclude=[]):
-    """Return a union of all indices in a dataset, without duplicates.
-
-    Parameters:
-    dataset (dict of str: pandas.DataFrame): The data dictionary containing the dataset.
-    exclude (str or list of str, optional): A list of dataframes to exclude when unionizing indices.
-
-    Returns:
-    pandas.Index: Union of all indices in the dataset, without duplicates.
-    """
-    if isinstance(exclude, str): # If it's a single dataframe name, make it a list so we can treat everything the same
-        exclude = [exclude]
-    indices = [df.index for name, df in dataset.items() if name not in exclude]
-    master_index = pd.Index([])
-    for index in indices:
-        master_index = master_index.union(index)
-        master_index = master_index.drop_duplicates()
-   
-    return master_index
-
-def generate_sample_status_col(df, normal_test):
-    """Create a sample status column, called Sample_Tumor_Normal, for a dataframe.
-
-    Parameters:
-    df (pandas.DataFrame): The dataframe to create a Sample_Status column for, indexed with Patient_IDs.
-    normal_test (function): A function that takes a given Patient_ID and returns a bool indicating whether it corresponds to a normal sample.
-
-    Returns:
-    pandas Series: A sample status column for the dataframe.
-    """
-    sample_status_array = np.where(df.index.map(normal_test), "Normal", "Tumor")
-    sample_status_col = pd.Series(data=sample_status_array, index=df.index.copy())
-    return sample_status_col
 
 def get_reindex_map(series):
     """Generate a reindexing map from a series where the index is the new indices, and the values are the old indices.
@@ -386,17 +316,17 @@ def join_col_to_dataframe(df, col):
     pandas.DataFrame: The dataframe with the column joined in.
     """
     col_df = col.to_frame().copy(deep=True)
-    
+
     # Make sure the columns axes all have the same name
     df.columns.name = "Name"
     col_df.columns.name = "Name"
 
     # If df has a column multiindex, edit the col_df column index to match, so we can join them
     if col_df.columns.names != df.columns.names:
-        col_df.columns = add_index_levels(to=col_df.columns, source=df.columns) 
-    
+        col_df.columns = add_index_levels(to=col_df.columns, source=df.columns)
+
     if col_df.columns.names != df.columns.names: # Just to make sure
-        raise CptacDevError(f"col_df's column axes had levels not found in the dataframe's columns.")
+        raise CptacDevError("col_df's column axes had levels not found in the dataframe's columns.")
 
     df = df.join(col_df, how="left") # We do a left join because we only want rows that exist in our dataframe
 
@@ -413,54 +343,6 @@ def standardize_axes_names(df):
     """
     df.index.name = "Patient_ID"
     df.columns.name = "Name"
-
-def sort_all_rows(data_dict):
-    """For all dataframes in the given dictionary, sort them first by sample status, with tumor samples first, and then by the index.
-
-    Parameters:
-    data_dict (dict): The dataframe dictionary of the dataset.
-
-    Returns:
-    dict: The dataframe dictionary, with the dataframes sorted by their indices. Keys are str of dataframe names, values are pandas.DataFrame
-    """
-    # Get the Sample_Tumor_Normal column as a single-column dataframe
-    sample_status_col = data_dict["clinical"]["Sample_Tumor_Normal"].copy(deep=True) # We'll need this every time
-
-    for name in data_dict.keys(): # Loop over the keys so we can alter the values without any issues
-        df = data_dict[name]
-        df = sort_df_by_sample_status(df, sample_status_col)
-        data_dict[name] = df
-
-    return data_dict
-
-def sort_df_by_sample_status(df, sample_status_col):
-    """Sort a dataframe first by sample status, with tumor first, and then by Patient_ID.
-
-    df (pandas.DataFrame): The dataframe to sort.
-    sample_status_col (pandas Series): The Sample_Tumor_Normal column for the dataset.
-
-    Returns:
-    pandas.DataFrame: The dataframe, sorted.
-    """
-    # Add in the tumor/normal statuses for these samples, if they aren't already in the table
-    added_sample_statuses = False # So we can keep track of whether to drop the column when we're done
-
-    if "Sample_Tumor_Normal" not in df.columns:
-        df = join_col_to_dataframe(df, sample_status_col)
-        added_sample_statuses = True
-
-    # Sort first by the Sample_Tumor_Normal column, and then by the index
-    df.index.name = "Patient_ID" # To make sure we can reference it in the next line
-    df = df.sort_values(by=["Sample_Tumor_Normal", "Patient_ID"], ascending=[False, True]) # Sorts first by sample status, and in descending order, so "Tumor" samples are first
-
-    # If we added the Sample_Tumor_Normal column, drop it
-    if added_sample_statuses:
-        if isinstance(df.columns, pd.MultiIndex):
-            df = df.drop(columns="Sample_Tumor_Normal", level=0) # level=0 prevents a PerformanceWarning
-        else:
-            df = df.drop(columns="Sample_Tumor_Normal")
-
-    return df
 
 def add_index_levels(to, source, fill=""):
     """Add levels to the "to" index so it has all levels in the "source" index. The possible levels are, in this order: "Name", "Site", "Peptide", "Database_ID"
