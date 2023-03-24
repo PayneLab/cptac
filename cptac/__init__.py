@@ -35,7 +35,6 @@ from cptac.cancers.luad import Luad
 from cptac.cancers.ov import Ov
 from cptac.cancers.pdac import Pdac
 from cptac.cancers.ucec import Ucec
-print("hello")
 
 # auth import
 from cptac.tools.auth_tools.box_auth import BoxAuth
