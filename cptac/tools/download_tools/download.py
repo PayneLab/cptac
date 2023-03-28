@@ -14,6 +14,7 @@ import os
 import cptac
 
 from cptac.exceptions import DataSourceNotFoundError, InvalidParameterError, NoInternetError
+from cptac.tools.download_tools.box_download import *
 
 
 def download(sources, cancers='all', version="latest", redownload=False):
