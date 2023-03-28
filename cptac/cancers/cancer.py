@@ -346,15 +346,15 @@ class Cancer:
 
 
 
-    # Note: These are now helper functions that call multi_join on awg data by default
+    # Note: These are now helper functions that call multi_join
     def join_omics_to_omics(self, df1_name, df2_name, df1_source=None, df2_source=None, genes1=None, genes2=None, how="outer", quiet=False, tissue_type="both"):
         """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
         df1_name (str): Name of first omics dataframe to select columns from.
         df2_name (str): Name of second omics dataframe to select columns from.
-        df1_source (str, optional): Name of source for the first omics dataframe. Default will use awg data.
-        df2_source (str, optional): Name of source for the second omics dataframe. Default will use awg data.
+        df1_source (str, optional): Name of source for the first omics dataframe.
+        df2_source (str, optional): Name of source for the second omics dataframe.
         genes1 (str, or list or array-like of str, optional): Gene(s) for column(s) to select from df1_name. str if one key, list or array-like of str if multiple.
             Default of None will select entire dataframe.
         genes2 (str, or list or array-like of str, optional): Gene(s) for Column(s) to select from df2_name. str if one key, list or array-like of str if multiple.
@@ -368,13 +368,6 @@ class Cancer:
         """
         # Check to make sure that the "how" parameter is valid
         self._check_how_parameter(how)
-
-        if df1_source is None:
-            df1_source = "awg"
-            warnings.warn(f"No source specified for {df1_name} data. Source awg used, pass a source to the df1_source parameter to prevent this warning", stacklevel=3)
-        if df2_source is None:
-            df2_source = "awg"
-            warnings.warn(f"No source specified for {df1_name} data. Source awg used, pass a source to the df2_source parameter to prevent this warning", stacklevel=3)
 
         # Set up parameters to work with multi_join
         df1_name = f"{df1_source} {df1_name}"
@@ -406,8 +399,8 @@ class Cancer:
         Parameters:
         omics_df (str): Name of omics dataframe to join the mutation data to.
         mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
-        omics_source (str, optional): Name of source for the omics data. Default will use awg data.
-        mutations_source (str, optional): Name of source for the mutations data. Default will use awg data.
+        omics_source (str, optional): Name of source for the omics data.
+        mutations_source (str, optional): Name of source for the mutations data.
         omics_genes (str, or list or array-like of str, optional): Gene(s) to select from the omics dataframe.
             str if one gene, list or array-like of str if multiple.
             Default will select entire dataframe.
@@ -428,14 +421,6 @@ class Cancer:
         # Check to make sure that the "how" parameter is valid
         self._check_how_parameter(how)
 
-        # Figure out sources, default to awg
-        if omics_source is None:
-            omics_source = "awg"
-            warnings.warn(f"No source specified for {omics_name} data. Source awg used, pass a source to the omics_source parameter to prevent this warning", stacklevel=3)
-        if mutations_source is None:
-            mutations_source = "awg"
-            warnings.warn("No source specified for mutations data. Source awg used, pass a source to the mutations_source parameter to prevent this warning", stacklevel=3)
-
         # Set up parameters to work with multi_join
         df1_name = f"{omics_source} {omics_name}"
         df2_name = f"{mutations_source} somatic_mutation"
@@ -453,8 +438,8 @@ class Cancer:
         Parameters:
         df1_name (str): Name of first metadata dataframe to select columns from.
         df2_name (str): Name of second metadata dataframe to select columns from.
-        df1_source (str, optional): Name of source for the first dataframe. Default will use awg data.
-        df2_source (str, optional): Name of source for the second dataframe. Default will use awg data.
+        df1_source (str, optional): Name of source for the first dataframe.
+        df2_source (str, optional): Name of source for the second dataframe.
         cols1 (str, or list or array-like of str, optional): Column(s) to select from df1_name.
             str if one key, list or array-like of str if multiple.
             Default of None will select entire dataframe.
@@ -471,14 +456,6 @@ class Cancer:
 
         # Check to make sure that the "how" parameter is valid
         self._check_how_parameter(how)
-
-        # Figure out sources, default to awg
-        if df1_source is None:
-            df1_source = "awg"
-            warnings.warn(f"No source specified for {df1_name} data. Source awg used, pass a source to the df1_source parameter to prevent this warning", stacklevel=3)
-        if df2_source is None:
-            df2_source = "awg"
-            warnings.warn(f"No source specified for {df1_name} data. Source awg used, pass a source to the df2_source parameter to prevent this warning", stacklevel=3)
 
         # Set up parameters to work with multi_join
         df1_name = f"{df1_source} {df1_name}"
@@ -514,14 +491,6 @@ class Cancer:
         # Check to make sure that the "how" parameter is valid
         self._check_how_parameter(how)
 
-        # Figure out sources, default to awg
-        if omics_source is None:
-            omics_source = "awg"
-            warnings.warn(f"No source specified for {omics_name} data. Source awg used, pass a source to the omics_source parameter to prevent this warning", stacklevel=3)
-        if metadata_source is None:
-            metadata_source = "awg"
-            warnings.warn(f"No source specified for {metadata_name} data. Source awg used, pass a source to the mutations_source parameter to prevent this warning", stacklevel=3)
-
         # Set up parameters to work with multi_join
         df1_name = f"{metadata_source} {metadata_name}"
         df2_name = f"{omics_source} {omics_name}"
@@ -543,8 +512,8 @@ class Cancer:
         Parameters:
         metadata_name (str): Name of metadata dataframe to join the mutation data to.
         mutations_genes (str, or list or array-like of str): The gene(s) to get mutation data for. str if one gene, list or array-like of str if multiple.
-        metadata_source (str, optional): Name of source for metadata. Default will use awg data.
-        mutations_source (str, optional): Name of source for mutations data. Default will use awg data.
+        metadata_source (str, optional): Name of source for metadata.
+        mutations_source (str, optional): Name of source for mutations data.
         metadata_cols (str, or list or array-like of str, optional): Gene(s) to select from the metadata dataframe. str if one gene, list or array-like of str if multiple.
             Default will select entire dataframe.
         mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority.
@@ -563,14 +532,6 @@ class Cancer:
         # Check to make sure that the "how" parameter is valid
         self._check_how_parameter(how)
 
-        # Figure out sources, default to awg
-        if metadata_source is None:
-            metadata_source = "awg"
-            warnings.warn(f"No source specified for {metadata_name} data. Source awg used, pass a source to the metadata_source parameter to prevent this warning", stacklevel=3)
-        if mutations_source is None:
-            mutations_source = "awg"
-            warnings.warn(f"No source specified for mutations data. Source awg used, pass a source to the mutations_source parameter to prevent this warning", stacklevel=3)
-
         # Set up parameters to work with multi_join
         df1_name = f"{metadata_source} {metadata_name}"
         df2_name = f"{mutations_source} somatic_mutation"
@@ -584,12 +545,12 @@ class Cancer:
         """Takes a dictionary where keys include a source and datatype (either in a ('source', 'datatype') tuple or as a space separated string "source datatype"), and values are columns from those dataframes. Joins all the columns into one dataframe. If the value is an empty list it will join the entire dataframe
 
         Parameters:
-        join_dict (dict): A dictionary with the dataframe and columns to join. Keys are the names of the dataframes and the value is a list of string with the name of the columns corresponding to each dataframe. Example: {('awg', 'phosphoproteomics'):['A2M', 'AAAS'],'awg proteomics':['AAAS', 'ZZZ3'], 'awg somatic_mutation':['AHCTF1', 'ZFHX3']}.
+        join_dict (dict): A dictionary with the dataframe and columns to join. Keys are the names of the dataframes and the value is a list of string with the name of the columns corresponding to each dataframe. Example: {('bcm', 'phosphoproteomics'):['A2M', 'AAAS'],'bcm proteomics':['AAAS', 'ZZZ3'], 'bcm somatic_mutation':['AHCTF1', 'ZFHX3']}.
 
             Valid dataframes are: acetylproteomics, CNV, phosphoproteomics, phosphoproteomics_gene, proteomics,
             somatic_mutation_binary, somatic_mutation, transcriptomics, clinical, derived_molecular and experimental_design.
 
-            For somatic_mutation_binary it joins all columns that match a gene. Example {'awg somatic_mutation_binary' : ['A1CF', 'ZYG11B']} It returns a dataframe with all columns that contain those genes.
+            For somatic_mutation_binary it joins all columns that match a gene. Example {'bcm somatic_mutation_binary' : ['A1CF', 'ZYG11B']} It returns a dataframe with all columns that contain those genes.
 
         mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority.
             If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize
@@ -681,7 +642,7 @@ class Cancer:
         joined = joined.sort_index()
         #'.N' for normal, '.C' for cored normals (in HNSCC)
         normal = joined.loc[joined.index.str.contains('\.[NC]$', regex = True, na = False)]
-        # Tumor samples don't have any special endings except in the awg confirmatory cohorts for now
+        # Tumor samples don't have any special endings except in the bcm confirmatory cohorts for now
         tumor = joined.loc[~ joined.index.str.contains('\.[NC]$', regex = True, na = False)]
         joined = pd.concat([tumor, normal])
 
