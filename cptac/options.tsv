@@ -1,5 +1,4 @@
 Cancers	Sources	Datatypes	Loadable datatypes
-brca	awg	"somatic_mutation, acetylproteomics, CNV, phosphoproteomics, proteomics, transcriptomics, clinical, derived_molecular"	
 brca	bcm	transcriptomics	
 brca	broad	transcriptomics	
 brca	harmonized	somatic_mutation	
@@ -7,7 +6,6 @@ brca	mssm	clinical	"demographic, previous_cancer, medical_conditions, cancer_dia
 brca	pdc	"clinical, acetylproteomics, phosphoproteomics, proteomics"	
 brca	umich	"proteomics, phosphoproteomics"	
 brca	washu	"transcriptomics, somatic_mutation, xcell, cibersort, CNV, tumor_purity"	
-ccrcc	awg	"phosphoproteomics_gene, phosphoproteomics, proteomics, followup, methylation, somatic_mutation, CNV, transcriptomics, clinical, medical_history"	
 ccrcc	bcm	"transcriptomics, circular_RNA"	
 ccrcc	broad	transcriptomics	
 ccrcc	harmonized	somatic_mutation	
@@ -15,7 +13,6 @@ ccrcc	mssm	clinical
 ccrcc	pdc	"clinical, phosphoproteomics, proteomics"	
 ccrcc	umich	"proteomics, phosphoproteomics"	
 ccrcc	washu	"transcriptomics, somatic_mutation, miRNA, xcell, CNV, tumor_purity"	
-coad	awg	"clinical, followup, CNV, miRNA, transcriptomics, somatic_mutation, somatic_mutation_binary, derived_molecular, proteomics, phosphoproteomics"	
 coad	bcm	transcriptomics	
 coad	broad	transcriptomics	
 coad	harmonized	somatic_mutation	
@@ -23,8 +20,6 @@ coad	mssm	clinical
 coad	pdc	"clinical, phosphoproteomics, proteomics"	
 coad	umich	"proteomics, phosphoproteomics"	
 coad	washu	"somatic_mutation, transcriptomics, xcell, cibersort, CNV, tumor_purity"	
-gbm	awg	"acetylproteomics, clinical, derived_molecular, metabolomics, miRNA, phosphoproteomics, proteomics, experimental_design, circular_RNA, gene_fusion, transcriptomics, somatic_mutation, CNV, lipidomics"	
-gbm	awgconf	"acetylproteomics, clinical, targeted_proteomics, targeted_phosphoproteomics, metabolomics, miRNA, phosphoproteomics, proteomics, lipidomics, gene_fusion, transcriptomics, somatic_mutation, CNV"	
 gbm	bcm	"transcriptomics, circular_RNA"	
 gbm	broad	transcriptomics	
 gbm	harmonized	somatic_mutation	
@@ -32,7 +27,6 @@ gbm	mssm	clinical
 gbm	pdc	"clinical, acetylproteomics, phosphoproteomics, proteomics"	
 gbm	umich	"proteomics, phosphoproteomics"	
 gbm	washu	"somatic_mutation, transcriptomics, miRNA, xcell, cibersort, CNV, tumor_purity"	
-hnscc	awg	"circular_RNA, followup, clinical, derived_molecular, miRNA, phosphoproteomics, proteomics, transcriptomics, CNV, somatic_mutation"	
 hnscc	bcm	"transcriptomics, circular_RNA"	
 hnscc	broad	transcriptomics	
 hnscc	harmonized	somatic_mutation	
@@ -40,7 +34,6 @@ hnscc	mssm	clinical
 hnscc	pdc	"clinical, phosphoproteomics, proteomics"	
 hnscc	umich	"proteomics, phosphoproteomics"	
 hnscc	washu	"somatic_mutation, transcriptomics, miRNA, xcell, cibersort, CNV, tumor_purity"	
-lscc	awg	"somatic_mutation, gene_fusion, acetylproteomics, circular_RNA, CNV, miRNA, phosphoproteomics, proteomics, transcriptomics, clinical, experimental_design, derived_molecular, ubiquitinomics"	
 lscc	bcm	"transcriptomics, circular_RNA"	
 lscc	broad	transcriptomics	
 lscc	harmonized	somatic_mutation	
@@ -48,7 +41,6 @@ lscc	mssm	clinical
 lscc	pdc	"clinical, acetylproteomics, phosphoproteomics, proteomics, ubiquitylomics"	
 lscc	umich	"proteomics, phosphoproteomics"	
 lscc	washu	"somatic_mutation, transcriptomics, miRNA, xcell, cibersort, CNV, tumor_purity"	
-luad	awg	"followup, circular_RNA, gene_fusion, somatic_mutation, acetylproteomics, CNV, miRNA, phosphoproteomics, proteomics, lincRNA, transcriptomics, clinical, experimental_design, derived_molecular"	
 luad	bcm	"transcriptomics, circular_RNA"	
 luad	broad	transcriptomics	
 luad	harmonized	somatic_mutation	
@@ -56,7 +48,6 @@ luad	mssm	clinical
 luad	pdc	"clinical, acetylproteomics, phosphoproteomics, proteomics"	
 luad	umich	"proteomics, phosphoproteomics"	
 luad	washu	"somatic_mutation, transcriptomics, miRNA, xcell, cibersort, CNV, tumor_purity"	
-ov	awg	"clinical, CNV, followup, phosphoproteomics, proteomics, somatic_mutation, transcriptomics, treatment"	
 ov	bcm	transcriptomics	
 ov	broad	transcriptomics	
 ov	harmonized	somatic_mutation	
@@ -64,7 +55,6 @@ ov	mssm	clinical
 ov	pdc	"clinical, phosphoproteomics, proteomics"	
 ov	umich	"proteomics, phosphoproteomics"	
 ov	washu	"somatic_mutation, transcriptomics, xcell, cibersort, CNV, tumor_purity"	
-pdac	awg	"clinical, miRNA, derived_molecular, transcriptomics, somatic_mutation, phosphoproteomics, proteomics, gene_fusion, CNV"	
 pdac	bcm	"transcriptomics, circular_RNA"	
 pdac	broad	transcriptomics	
 pdac	harmonized	somatic_mutation	
@@ -72,8 +62,6 @@ pdac	mssm	clinical
 pdac	pdc	"clinical, phosphoproteomics, proteomics"	
 pdac	umich	"proteomics, phosphoproteomics"	
 pdac	washu	"somatic_mutation, transcriptomics, miRNA, xcell, cibersort, CNV, tumor_purity"	
-ucec	awg	"acetylproteomics, clinical, miRNA, proteomics, somatic_mutation, followup, derived_molecular, experimental_design, CNV, transcriptomics, circular_RNA, phosphoproteomics, somatic_mutation_binary"	
-ucec	awgconf	"acetylproteomics_gene, acetylproteomics, clinical, methylation, miRNA, phosphoproteomics_gene, phosphoproteomics, proteomics, circular_RNA, gene_fusion, transcriptomics, targeted_proteomics, targeted_phosphoproteomics, somatic_mutation_binary, somatic_mutation, CNV"	
 ucec	bcm	"transcriptomics, circular_RNA"	
 ucec	broad	transcriptomics	
 ucec	harmonized	somatic_mutation	

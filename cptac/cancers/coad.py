@@ -11,7 +11,6 @@
 
 from cptac.cancers.cancer import Cancer
 
-from cptac.cancers.awg.awgcoad import AwgCoad
 from cptac.cancers.bcm.bcmcoad import BcmCoad
 from cptac.cancers.broad.broadcoad import BroadCoad
 from cptac.cancers.pdc.pdccoad import PdcCoad
@@ -28,7 +27,6 @@ class Coad(Cancer):
 
         super().__init__(cancer_type="coad")
 
-        self._sources["awg"] = AwgCoad(version="latest", no_internet=no_internet)
         self._sources["bcm"] = BcmCoad(version="latest", no_internet=no_internet)
         self._sources["broad"] = BroadCoad(version="latest", no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='coad', version="latest", no_internet=no_internet)

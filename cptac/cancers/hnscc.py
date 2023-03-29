@@ -11,7 +11,6 @@
 
 from cptac.cancers.cancer import Cancer
 
-from cptac.cancers.awg.awghnscc import AwgHnscc
 from cptac.cancers.bcm.bcmhnscc import BcmHnscc
 from cptac.cancers.broad.broadhnscc import BroadHnscc
 from cptac.cancers.pdc.pdchnscc import PdcHnscc
@@ -28,7 +27,6 @@ class Hnscc(Cancer):
 
         super().__init__(cancer_type="hnscc")
         
-        self._sources["awg"] = AwgHnscc(version="latest", no_internet=no_internet)
         self._sources["bcm"] = BcmHnscc(version="latest", no_internet=no_internet)
         self._sources["broad"] = BroadHnscc(version="latest", no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='hnscc', version="latest", no_internet=no_internet)

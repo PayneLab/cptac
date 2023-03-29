@@ -11,7 +11,6 @@
 
 from cptac.cancers.cancer import Cancer
 
-from cptac.cancers.awg.awgccrcc import AwgCcrcc
 from cptac.cancers.bcm.bcmccrcc import BcmCcrcc
 from cptac.cancers.broad.broadccrcc import BroadCcrcc
 from cptac.cancers.pdc.pdcccrcc import PdcCcrcc
@@ -28,7 +27,6 @@ class Ccrcc(Cancer):
 
         super().__init__(cancer_type="ccrcc")
         
-        self._sources["awg"] = AwgCcrcc(version="latest", no_internet=no_internet)
         self._sources["bcm"] = BcmCcrcc(version="latest", no_internet=no_internet)
         self._sources["broad"] = BroadCcrcc(version="latest", no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='ccrcc', version="latest", no_internet=no_internet)

@@ -149,28 +149,11 @@ def download_file(url, path, server_hash, source=None, password=None, file_messa
                 headers["Authorization"] = f"Bearer {cptac.box_auth.get_box_token()}"
                 response = requests.get(download_url, headers=headers)
             
-            elif password is None: # No password or OAuth2 (awg files and index files)
+            elif password is None: # No password or OAuth2 (index files)
                 response = requests.get(url, headers=HEADERS, allow_redirects=True)
 
-            else: # The file is password protected (awgconf files)
-                with requests.Session() as session: # Use a session object to save cookies
-                    # Construct the urls for our GET and POST requests
-                    get_url = url
-                    post_url = get_url.replace("https://byu.box.com/shared", "https://byu.app.box.com/public")
-
-                    # Send initial GET request and parse the request token out of the response
-                    get_response = session.get(get_url, headers=HEADERS) 
-                    soup = bs4.BeautifulSoup(get_response.text, "html.parser")
-                    token_tag = soup.find(id="request_token")
-                    token = token_tag.get("value")
-
-                    # Send a POST request, with the password and token, to get the data
-                    payload = {
-                        'password': password,
-                        'request_token': token}
-                    response = session.post(post_url, headers=HEADERS, data=payload)
-
             response.raise_for_status() # Raises a requests.HTTPError if the response code was unsuccessful
+
         except requests.RequestException as e: # Parent class for all exceptions in the requests module
             raise Exception(e) #from None
             
