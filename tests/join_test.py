@@ -69,9 +69,6 @@ def _run_combos(cancer_name, cat1, cat2=None):
     join_function = getattr(cancer_obj, join_function_name)
 
     for source1, source2 in test_units:
-        #TEMP? or Keep exclusion of awg data?
-        if source1[0] == 'awg' or source2[0] == 'awg':
-            continue
         if source1[0] == 'broad' or source2[0] == 'broad':
             print(f"   one of the datasets in ({source1}, {source2}) is too large")
             continue

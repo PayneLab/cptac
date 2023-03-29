@@ -11,7 +11,6 @@
 
 from cptac.cancers.cancer import Cancer
 
-from cptac.cancers.awg.awgov import AwgOv
 from cptac.cancers.bcm.bcmov import BcmOv
 from cptac.cancers.broad.broadov import BroadOv
 from cptac.cancers.pdc.pdcov import PdcOv
@@ -28,7 +27,6 @@ class Ov(Cancer):
 
         super().__init__(cancer_type="ov")
         
-        self._sources["awg"] = AwgOv(version="latest", no_internet=no_internet)
         self._sources["bcm"] = BcmOv(version="latest", no_internet=no_internet)
         self._sources["broad"] = BroadOv(version="latest", no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='ov', version="latest", no_internet=no_internet)

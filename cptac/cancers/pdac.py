@@ -11,7 +11,6 @@
 
 from cptac.cancers.cancer import Cancer
 
-from cptac.cancers.awg.awgpdac import AwgPdac
 from cptac.cancers.bcm.bcmpdac import BcmPdac
 from cptac.cancers.broad.broadpdac import BroadPdac
 from cptac.cancers.pdc.pdcpdac import PdcPdac
@@ -28,7 +27,6 @@ class Pdac(Cancer):
 
         super().__init__(cancer_type="pdac")
 
-        self._sources["awg"] = AwgPdac(version="latest", no_internet=no_internet)
         self._sources["bcm"] = BcmPdac(version="latest", no_internet=no_internet)
         self._sources["broad"] = BroadPdac(version="latest", no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='pdac', version="latest", no_internet=no_internet)

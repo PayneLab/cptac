@@ -11,7 +11,6 @@
 
 from cptac.cancers.cancer import Cancer
 
-from cptac.cancers.awg.awglscc import AwgLscc
 from cptac.cancers.bcm.bcmlscc import BcmLscc
 from cptac.cancers.broad.broadlscc import BroadLscc
 from cptac.cancers.pdc.pdclscc import PdcLscc
@@ -28,7 +27,6 @@ class Lscc(Cancer):
 
         super().__init__(cancer_type="lscc")
         
-        self._sources["awg"] = AwgLscc(version="latest", no_internet=no_internet)
         self._sources["bcm"] = BcmLscc(version="latest", no_internet=no_internet)
         self._sources["broad"] = BroadLscc(version="latest", no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='lscc', version="latest", no_internet=no_internet)

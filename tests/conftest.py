@@ -1,6 +1,6 @@
 import cptac
 
-def get_cancer_inputs(include_restricted=False):
+def get_cancer_inputs():
     """
     Lists all available combinations of cancer-datatype-source.
     @param include_restricted (bool): Include restricted datasets as well.
@@ -10,8 +10,6 @@ def get_cancer_inputs(include_restricted=False):
     datasets = cptac.list_datasets()
     datasets['Datatypes'] = datasets['Datatypes'].str.split(', ')
     datasets = datasets.explode('Datatypes')
-    if not include_restricted:
-        datasets = datasets[~datasets['Sources'].isin(['awgconf'])]
     return list(datasets.itertuples(index=False, name=None))
 
 

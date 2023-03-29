@@ -5,22 +5,6 @@ include cptac/utils/data/BioPlex_293T_Network_10K_Dec_2019.tsv.gz
 include cptac/utils/data/Uniprot_Proteome.tsv.gz
 include cptac/utils/data/WikiPathwaysDataframe.tsv.gz
 
-# awg files
-include cptac/data/data_awg_brca/index_urls.tsv
-include cptac/data/data_awg_ccrcc/index_urls.tsv
-include cptac/data/data_awg_coad/index_urls.tsv
-include cptac/data/data_awg_gbm/index_urls.tsv
-include cptac/data/data_awg_hnscc/index_urls.tsv
-include cptac/data/data_awg_lscc/index_urls.tsv
-include cptac/data/data_awg_luad/index_urls.tsv
-include cptac/data/data_awg_ov/index_urls.tsv
-include cptac/data/data_awg_pdac/index_urls.tsv
-include cptac/data/data_awg_ucec/index_urls.tsv
-
-# awgconf files
-include cptac/data/data_awgconf_ucec/index_urls.tsv
-include cptac/data/data_awgconf_gbm/index_urls.tsv
-
 # bcm files
 include cptac/data/data_bcm_brca/index_urls.tsv
 include cptac/data/data_bcm_ccrcc/index_urls.tsv
