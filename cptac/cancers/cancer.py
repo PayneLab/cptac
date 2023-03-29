@@ -22,6 +22,10 @@ import cptac.utils as ut
 from cptac.exceptions import *
 from cptac.tools.dataframe_tools import add_index_levels, join_col_to_dataframe
 
+### TEMP DEBUG
+import cProfile
+### /DEBUG
+
 class Cancer:
     """Note that all cancer datasets are class objects that inherit 
         from cptac.cancer.

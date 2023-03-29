@@ -11,8 +11,6 @@ options.numbers
 
 # Exclude data files, since they're stored remotely
 
-cptac/data/*
-
 cptac/data_brca/*
 cptac/data_ccrcc/*
 cptac/data_colon/*
