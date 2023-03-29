@@ -1,0 +1,26 @@
+#3.1
+prosp-brca-v3.1-acetylome-ratio-norm-NArm.gct.gz	3df66b637305794fcf4b2a3125665060	https://byu.box.com/shared/static/t3qtw80lvat2cqoify5ymj8k27o4l80z.gz	acetylproteomics
+prosp-brca-v3.1-gene-level-cnv-gistic2-all_data_by_genes.gct.gz	7e1e65b2618541d95fb46ba6a5689faa	https://byu.box.com/shared/static/0sq8hpbatvygzqlahgbsqogwkeal99zx.gz	CNV
+prosp-brca-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz	57ad526e75c45873c3c1265d60458717	https://byu.box.com/shared/static/qzumm3qkir5kdrrs2tbyet4xf9kmfu9s.gz	phosphoproteomics
+prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz	e2fe4a377b34e48ee29c0115a2e60ac3	https://byu.box.com/shared/static/30t3xgrilpbp5ekncl78nigh46ncyi16.gz	proteomics
+prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz	8927d8c4ab0db17d4622ab270cc47965	https://byu.box.com/shared/static/xkf36c9veywx12fgeipouj2uzvdh7foc.gz	transcriptomics
+prosp-brca-v3.1-sample-annotation.csv.gz	296047748e1946a08792745db1386c66	https://byu.box.com/shared/static/1rgwwa0q0k9vf0ftf19d2axfgsmu5uwf.gz	annotation
+#3.1.1
+Breast_One_Year_Clinical_Data_20160927.xls	23dad7d5b14ece1aee9ed32e1ee56189	https://byu.box.com/shared/static/64s0f6x5bwreue6g48h02kcimdo0pimc.xls	followup
+prosp-brca-v3.0-v1.4.somatic.variants.070918.maf.gz	9b51ac3662e7a3fc06bb682306a24038	https://byu.box.com/shared/static/cvsxeojshq6h9lsligolkf6jysiql2yb.gz	somatic_mutation
+prosp-brca-v3.1-acetylome-ratio-norm-NArm.gct.gz	3df66b637305794fcf4b2a3125665060	https://byu.box.com/shared/static/mharh1neno1vi5agjudtgyxjbh93jae0.gz	acetylproteomics
+prosp-brca-v3.1-gene-level-cnv-gistic2-all_data_by_genes.gct.gz	7e1e65b2618541d95fb46ba6a5689faa	https://byu.box.com/shared/static/g48jktnghfjq1o485syqlhtum9suo2i7.gz	CNV
+prosp-brca-v3.1-phosphoproteome-ratio-norm-NArm.gct.gz	57ad526e75c45873c3c1265d60458717	https://byu.box.com/shared/static/gr0nbyr6b4vq5f2uq0j0b1lom0zle4op.gz	phosphoproteomics
+prosp-brca-v3.1-proteome-ratio-norm-NArm.gct.gz	e2fe4a377b34e48ee29c0115a2e60ac3	https://byu.box.com/shared/static/kx1ft6inmxo3qnriyd47aqylecw11gev.gz	proteomics
+prosp-brca-v3.1-rnaseq-fpkm-log2-row-norm-2comp.gct.gz	8927d8c4ab0db17d4622ab270cc47965	https://byu.box.com/shared/static/rsu503mhdplocqp8bdeqk1ajctdifm9v.gz	transcriptomics
+prosp-brca-v3.1-sample-annotation.csv.gz	296047748e1946a08792745db1386c66	https://byu.box.com/shared/static/3u0g4jljn4r2wgst57ztyugn0jfpdf27.gz	annotation
+#5.4
+prosp-brca-v3.0-v1.4.somatic.variants.070918.maf.gz	9b51ac3662e7a3fc06bb682306a24038	https://byu.box.com/shared/static/8qxwczmac3pqe9qp46cwz4ncbapz1jkf.gz	somatic_mutation
+prosp-brca-v5.4-public-acetylome-ratio-norm-NArm.gct.gz	051d60a4bc7d007fbfbbdec49c321457	https://byu.box.com/shared/static/l96ke5u96rb62kadej06jp82e5gc2l6v.gz	acetylproteomics
+prosp-brca-v5.4-public-gene-level-cnv-gistic2-all_data_by_genes.gct.gz	168ac0a80ed10f375ea5764d60078d30	https://byu.box.com/shared/static/upom1na7zhcgl9sx9s6yo72osulktfyr.gz	CNV
+prosp-brca-v5.4-public-immune-profiling-scores-combined.gct.gz	74e786c9082c758880dda9c2ac32d94f	https://byu.box.com/shared/static/jzcd0179p01zrsdb7l6vdb31mahhfzl8.gz	not_used
+prosp-brca-v5.4-public-phosphoproteome-ratio-norm-NArm.gct.gz	55ae60c6ed19641f3049d8e61f9fea56	https://byu.box.com/shared/static/kd8pw934j58okhemtddjtpjfurv2u5fh.gz	phosphoproteomics
+prosp-brca-v5.4-public-proteome-ratio-norm-NArm.gct.gz	c884c68711092ce77e944f09617c91c9	https://byu.box.com/shared/static/eu0frlejptw3zve3obzrjbufwfqvezfy.gz	proteomics
+prosp-brca-v5.4-public-rnaseq-fpkm-log2.gct.gz	2b63324931de38c75133dd9059e4036f	https://byu.box.com/shared/static/zj3wznz08ykplwfxh70hez986c2bj5x4.gz	transcriptomics
+prosp-brca-v5.4-public-rnaseq-fpkm-log2-row-norm-median-mad.gct.gz	804d28365b684ffcd4b4bc0802185174	https://byu.box.com/shared/static/iuf5w5d5ahefsez3oxslb3scq1ucx8cf.gz	not_used
+prosp-brca-v5.4-public-sample-annotation.csv.gz	2584d71692c6c5a603530993367f9893	https://byu.box.com/shared/static/k037w841033shydmetfdt1r4x2peuacv.gz	annotation
