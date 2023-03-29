@@ -11,8 +11,10 @@
 
 from cptac.cancers.cancer import Cancer
 
+from cptac.cancers.awg.awgluad import AwgLuad
 from cptac.cancers.bcm.bcmluad import BcmLuad
 from cptac.cancers.broad.broadluad import BroadLuad
+from cptac.cancers.pdc.pdcluad import PdcLuad
 from cptac.cancers.umich.umichluad import UmichLuad
 from cptac.cancers.washu.washuluad import WashuLuad
 from cptac.cancers.mssm.mssm import Mssm
@@ -26,9 +28,11 @@ class Luad(Cancer):
 
         super().__init__(cancer_type="luad")
         
+        self._sources["awg"] = AwgLuad(version="latest", no_internet=no_internet)
         self._sources["bcm"] = BcmLuad(version="latest", no_internet=no_internet)
         self._sources["broad"] = BroadLuad(version="latest", no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='luad', version="latest", no_internet=no_internet)
+        self._sources["pdc"] = PdcLuad(version="latest", no_internet=no_internet)
         self._sources["umich"] = UmichLuad(version="latest", no_internet=no_internet)
         self._sources["washu"] = WashuLuad(version="latest", no_internet=no_internet)
         self._sources["harmonized"] = Harmonized(filter_type='luad', version="latest", no_internet=no_internet)

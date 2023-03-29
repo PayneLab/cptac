@@ -12,9 +12,10 @@
 import os
 
 import cptac
+from cptac.tools.download_tools.pdc_download import pdc_download
+from cptac.tools.download_tools.box_download import box_download
 
 from cptac.exceptions import DataSourceNotFoundError, InvalidParameterError, NoInternetError
-from cptac.tools.download_tools.box_download import *
 
 
 def download(sources, cancers='all', version="latest", redownload=False):
@@ -51,7 +52,14 @@ def download(sources, cancers='all', version="latest", redownload=False):
     # iterate through cancers and sources and download corresonding data files
     for cancer in cancers:
         for source, datatypes in sources.items():
-            if not box_download(cancer, source, datatypes, version=version, redownload=redownload):
+            if source == "pdc":
+                # download the mapping files
+                if not box_download(cancer=cancer, source=source, datatypes=None, version=version, redownload=redownload):
+                    success = False
+                if not pdc_download(cancer=cancer, datatypes=datatypes, version=version, redownload=redownload):
+                    success = False
+            
+            elif not box_download(cancer, source, datatypes, version=version, redownload=redownload):
                 success = False
 
     return success

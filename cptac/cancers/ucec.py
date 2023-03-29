@@ -11,8 +11,11 @@
 
 from cptac.cancers.cancer import Cancer
 
+from cptac.cancers.awg.awgucec import AwgUcec
+from cptac.cancers.awgconf.awgconfucec import AwgConfUcec
 from cptac.cancers.bcm.bcmucec import BcmUcec
 from cptac.cancers.broad.broaducec import BroadUcec
+from cptac.cancers.pdc.pdcucec import PdcUcec
 from cptac.cancers.umich.umichucec import UmichUcec
 from cptac.cancers.washu.washuucec import WashuUcec
 from cptac.cancers.mssm.mssm import Mssm
@@ -26,9 +29,12 @@ class Ucec(Cancer):
 
         super().__init__(cancer_type="ucec")
 
+        self._sources["awg"] = AwgUcec(version="latest", no_internet=no_internet)
+        self._sources["awgconf"] = AwgConfUcec(version="latest", no_internet=no_internet)
         self._sources["bcm"] = BcmUcec(version="latest", no_internet=no_internet)
         self._sources["broad"] = BroadUcec(version="latest", no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='ucec', version="latest", no_internet=no_internet)
+        self._sources["pdc"] = PdcUcec(version="latest", no_internet=no_internet)
         self._sources["umich"] = UmichUcec(version="latest", no_internet=no_internet)
         self._sources["washu"] = WashuUcec(version="latest", no_internet=no_internet)
         self._sources["harmonized"] = Harmonized(filter_type='ucec', version="latest", no_internet=no_internet)

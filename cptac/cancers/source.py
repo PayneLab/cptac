@@ -71,7 +71,7 @@ class Source:
         df = df.sort_index()
         #'.N' for normal, '.C' for cored normals (in HNSCC)
         normal = df.loc[df.index.str.contains('\.[NC]$', regex = True, na = False)]
-        # Tumor samples don't have any special endings
+        # Tumor samples don't have any special endings except in the awg confirmatory cohorts for now
         tumor = df.loc[~ df.index.str.contains('\.[NC]$', regex = True, na = False)]
         df = pd.concat([tumor, normal])
 

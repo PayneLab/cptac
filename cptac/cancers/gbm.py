@@ -11,8 +11,11 @@
 
 from cptac.cancers.cancer import Cancer
 
+from cptac.cancers.awg.awggbm import AwgGbm
+from cptac.cancers.awgconf.awgconfgbm import AwgConfGbm
 from cptac.cancers.bcm.bcmgbm import BcmGbm
 from cptac.cancers.broad.broadgbm import BroadGbm
+from cptac.cancers.pdc.pdcgbm import PdcGbm
 from cptac.cancers.umich.umichgbm import UmichGbm
 from cptac.cancers.washu.washugbm import WashuGbm
 from cptac.cancers.mssm.mssm import Mssm
@@ -26,9 +29,12 @@ class Gbm(Cancer):
 
         super().__init__(cancer_type="gbm")
 
+        self._sources["awg"] = AwgGbm(version="latest", no_internet=no_internet)
+        self._sources["awgconf"] = AwgConfGbm(version="latest", no_internet=no_internet)
         self._sources["bcm"] = BcmGbm(version="latest", no_internet=no_internet)
         self._sources["broad"] = BroadGbm(version="latest", no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='gbm', version="latest", no_internet=no_internet)
+        self._sources["pdc"] = PdcGbm(version="latest", no_internet=no_internet)
         self._sources["umich"] = UmichGbm(version="latest", no_internet=no_internet)
         self._sources["washu"] = WashuGbm(version="latest", no_internet=no_internet)
         self._sources["harmonized"] = Harmonized(filter_type='gbm', version="latest", no_internet=no_internet)

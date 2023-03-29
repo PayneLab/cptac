@@ -11,8 +11,10 @@
 
 from cptac.cancers.cancer import Cancer
 
+from cptac.cancers.awg.awgcoad import AwgCoad
 from cptac.cancers.bcm.bcmcoad import BcmCoad
 from cptac.cancers.broad.broadcoad import BroadCoad
+from cptac.cancers.pdc.pdccoad import PdcCoad
 from cptac.cancers.umich.umichcoad import UmichCoad
 from cptac.cancers.washu.washucoad import WashuCoad
 from cptac.cancers.mssm.mssm import Mssm
@@ -26,9 +28,11 @@ class Coad(Cancer):
 
         super().__init__(cancer_type="coad")
 
+        self._sources["awg"] = AwgCoad(version="latest", no_internet=no_internet)
         self._sources["bcm"] = BcmCoad(version="latest", no_internet=no_internet)
         self._sources["broad"] = BroadCoad(version="latest", no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='coad', version="latest", no_internet=no_internet)
+        self._sources["pdc"] = PdcCoad(version="latest", no_internet=no_internet)
         self._sources["umich"] = UmichCoad(version="latest", no_internet=no_internet)
         self._sources["washu"] = WashuCoad(version="latest", no_internet=no_internet)
         self._sources["harmonized"] = Harmonized(filter_type='coad', version="latest", no_internet=no_internet)
