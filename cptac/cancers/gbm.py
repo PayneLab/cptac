@@ -13,7 +13,6 @@ from cptac.cancers.cancer import Cancer
 
 from cptac.cancers.bcm.bcmgbm import BcmGbm
 from cptac.cancers.broad.broadgbm import BroadGbm
-from cptac.cancers.pdc.pdcgbm import PdcGbm
 from cptac.cancers.umich.umichgbm import UmichGbm
 from cptac.cancers.washu.washugbm import WashuGbm
 from cptac.cancers.mssm.mssm import Mssm
@@ -30,7 +29,6 @@ class Gbm(Cancer):
         self._sources["bcm"] = BcmGbm(version="latest", no_internet=no_internet)
         self._sources["broad"] = BroadGbm(version="latest", no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='gbm', version="latest", no_internet=no_internet)
-        self._sources["pdc"] = PdcGbm(version="latest", no_internet=no_internet)
         self._sources["umich"] = UmichGbm(version="latest", no_internet=no_internet)
         self._sources["washu"] = WashuGbm(version="latest", no_internet=no_internet)
         self._sources["harmonized"] = Harmonized(filter_type='gbm', version="latest", no_internet=no_internet)

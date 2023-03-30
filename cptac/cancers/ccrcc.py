@@ -13,7 +13,6 @@ from cptac.cancers.cancer import Cancer
 
 from cptac.cancers.bcm.bcmccrcc import BcmCcrcc
 from cptac.cancers.broad.broadccrcc import BroadCcrcc
-from cptac.cancers.pdc.pdcccrcc import PdcCcrcc
 from cptac.cancers.umich.umichccrcc import UmichCcrcc
 from cptac.cancers.washu.washuccrcc import WashuCcrcc
 from cptac.cancers.mssm.mssm import Mssm
@@ -30,7 +29,6 @@ class Ccrcc(Cancer):
         self._sources["bcm"] = BcmCcrcc(version="latest", no_internet=no_internet)
         self._sources["broad"] = BroadCcrcc(version="latest", no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='ccrcc', version="latest", no_internet=no_internet)
-        self._sources["pdc"] = PdcCcrcc(version="latest", no_internet=no_internet)
         self._sources["umich"] = UmichCcrcc(version="latest", no_internet=no_internet)
         self._sources["washu"] = WashuCcrcc(version="latest", no_internet=no_internet)
         self._sources["harmonized"] = Harmonized(filter_type='ccrcc', version="latest", no_internet=no_internet)

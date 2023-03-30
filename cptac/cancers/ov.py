@@ -13,7 +13,6 @@ from cptac.cancers.cancer import Cancer
 
 from cptac.cancers.bcm.bcmov import BcmOv
 from cptac.cancers.broad.broadov import BroadOv
-from cptac.cancers.pdc.pdcov import PdcOv
 from cptac.cancers.umich.umichov import UmichOv
 from cptac.cancers.washu.washuov import WashuOv
 from cptac.cancers.mssm.mssm import Mssm
@@ -30,7 +29,6 @@ class Ov(Cancer):
         self._sources["bcm"] = BcmOv(version="latest", no_internet=no_internet)
         self._sources["broad"] = BroadOv(version="latest", no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='ov', version="latest", no_internet=no_internet)
-        self._sources["pdc"] = PdcOv(version="latest", no_internet=no_internet)
         self._sources["umich"] = UmichOv(version="latest", no_internet=no_internet)
         self._sources["washu"] = WashuOv(version="latest", no_internet=no_internet)
         self._sources["harmonized"] = Harmonized(filter_type='ov', version="latest", no_internet=no_internet)

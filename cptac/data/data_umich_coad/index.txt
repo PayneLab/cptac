@@ -1,0 +1,13 @@
+#1.0
+Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv	208d4388344110d7182ebfd9ba8ffa04	784702741389	phosphoproteomics
+Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv	ee5ac10c339052334e41da183fc4bb6a	784685887887	proteomics
+CRC_Prospective sample info.xlsx	8c42e1bdf4cc59d886bba1541c7640dc	814336914509	mapping
+README_v3.boxnote	7cf699dafc8408647f8dad68933c2080	784692840521	readme
+README.boxnote	25a218b4f883741abc09863a9e0ad6e6	790929303483	readme
+
+#1.1
+Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv	f1bdca02e18aa1431ff013acdf120073	818480102761	phosphoproteomics
+Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv	fdc8600df06c49af20622ad50f083331	818481040493	proteomics
+CRC_Prospective sample info.xlsx	8c42e1bdf4cc59d886bba1541c7640dc	814336914509	mapping
+README_v3.boxnote	7cf699dafc8408647f8dad68933c2080	784692840521	readme
+README.boxnote	25a218b4f883741abc09863a9e0ad6e6	790929303483	readme

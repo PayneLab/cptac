@@ -70,9 +70,9 @@ class Source:
         # Sort the dataframe based off sample status (tumor or normal), then alphabetically
         df = df.sort_index()
         #'.N' for normal, '.C' for cored normals (in HNSCC)
-        normal = df.loc[df.index.str.contains('\.[NC]$', regex = True, na = False)]
+        normal = df.loc[df.index.str.contains(r'\.[NC]$', regex = True, na = False)]
         # Tumor samples don't have any special endings cohorts for now
-        tumor = df.loc[~ df.index.str.contains('\.[NC]$', regex = True, na = False)]
+        tumor = df.loc[~ df.index.str.contains(r'\.[NC]$', regex = True, na = False)]
         df = pd.concat([tumor, normal])
 
         self._data[df_type] = df

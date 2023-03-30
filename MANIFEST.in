@@ -33,18 +33,6 @@ include cptac/data/data_broad_ucec/index_urls.tsv
 include cptac/data/data_harmonized/index_urls.tsv
 include cptac/data/data_mssm/index_urls.tsv
 
-# pdc files
-include cptac/data/data_pdc_brca/index_urls.tsv
-include cptac/data/data_pdc_ccrcc/index_urls.tsv
-include cptac/data/data_pdc_coad/index_urls.tsv
-include cptac/data/data_pdc_gbm/index_urls.tsv
-include cptac/data/data_pdc_hnscc/index_urls.tsv
-include cptac/data/data_pdc_lscc/index_urls.tsv
-include cptac/data/data_pdc_luad/index_urls.tsv
-include cptac/data/data_pdc_ov/index_urls.tsv
-include cptac/data/data_pdc_pdac/index_urls.tsv
-include cptac/data/data_pdc_ucec/index_urls.tsv
-
 # umich files
 include cptac/data/data_umich_brca/index_urls.tsv
 include cptac/data/data_umich_ccrcc/index_urls.tsv

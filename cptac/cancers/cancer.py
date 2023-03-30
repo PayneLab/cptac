@@ -645,9 +645,9 @@ class Cancer:
         # Sort the dataframe for good measure (based off sample status (tumor or normal), then alphabetically)
         joined = joined.sort_index()
         #'.N' for normal, '.C' for cored normals (in HNSCC)
-        normal = joined.loc[joined.index.str.contains('\.[NC]$', regex = True, na = False)]
+        normal = joined.loc[joined.index.str.contains(r'\.[NC]$', regex = True, na = False)]
         # Tumor samples don't have any special endings for now
-        tumor = joined.loc[~ joined.index.str.contains('\.[NC]$', regex = True, na = False)]
+        tumor = joined.loc[~ joined.index.str.contains(r'\.[NC]$', regex = True, na = False)]
         joined = pd.concat([tumor, normal])
 
         return joined

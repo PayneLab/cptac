@@ -49,7 +49,7 @@ def box_download(cancer, source, datatypes, version, redownload):
     # Get the index for the desired version
     # If datatypes are specified, filter out the undesired datatypes
     version_index = index.get(version_number)
-    if datatypes != "all" and source != "pdc":
+    if datatypes != "all":
         version_index = get_filtered_version_index(version_index=version_index, datatypes=datatypes, source=dataset, version=version_number)
 
     # Get list of files to download.
@@ -142,7 +142,7 @@ def download_file(url, path, server_hash, source=None, password=None, file_messa
     for i in range(2):
         try:
             # check if the required file is from a source whose files are stored on Box.com
-            if source in ["bcm", "broad", "harmonized", "mssm", "pdc", "umich", "washu"]: # We are using Box OAuth2
+            if source in ["bcm", "broad", "harmonized", "mssm", "umich", "washu"]: # We are using Box OAuth2
                 cptac.box_auth.refresh_token() # global box_auth object
                 download_url = f"https://api.box.com/2.0/files/{url}/content" # url is actually file ID
                 headers = dict(HEADERS)
