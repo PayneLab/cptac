@@ -10,18 +10,9 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
-import os
-import warnings
-
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
-from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
-from cptac.utils import get_boxnote_text
-
 
 class UmichCcrcc(Source):
-
     def __init__(self, version="latest", no_internet=False):
         """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
@@ -59,7 +50,6 @@ class UmichCcrcc(Source):
         # Call the parent class __init__ function
         super().__init__(cancer_type="ccrcc", source="umich", version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
-
     def load_mapping(self):
         df_type = 'mapping'
 
@@ -80,7 +70,6 @@ class UmichCcrcc(Source):
                     'RefInt_pool12', 'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15', 'RefInt_pool16', 'RefInt_pool17', 
                     'RefInt_pool18', 'RefInt_pool19', 'RefInt_pool20', 'RefInt_pool21', 'RefInt_pool22', 'RefInt_pool23']
             self._helper_tables["drop_cols"] = drop_cols
-            
 
     def load_phosphoproteomics(self):
         df_type = 'phosphoproteomics'
@@ -125,7 +114,6 @@ class UmichCcrcc(Source):
             
             # save df in self._data
             self.save_df(df_type, df)
-
 
     def load_proteomics(self):
         df_type = 'proteomics'

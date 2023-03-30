@@ -10,17 +10,13 @@
 #   limitations under the License.
 
 import pandas as pd
-import os
 from gtfparse import read_gtf
 
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
-from cptac.utils import get_boxnote_text
+import cptac.tools.dataframe_tools as df_tools
 from cptac.cancers.mssm.mssm import Mssm
 
-
 class WashuGbm(Source):
-
     def __init__(self, version="latest", no_internet=False):
         """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
@@ -113,7 +109,7 @@ class WashuGbm(Source):
 
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
             df = df.transpose()
-            df = average_replicates(df, common = '\.\d$') # average duplicate for C3N-02788
+            df = df_tools.average_replicates(df, common = '\.\d$') # average duplicate for C3N-02788
             df.index = df.index.str.replace('\.T$','', regex = True)
             df.index = df.index.str.replace('\.A$','.N', regex = True)
             df.index.name = 'Patient_ID'                

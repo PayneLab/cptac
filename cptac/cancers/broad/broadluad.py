@@ -10,18 +10,11 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
 import os
-import warnings
 from gtfparse import read_gtf
-
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
-from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
-
 
 class BroadLuad(Source):
-
     def __init__(self, version="latest", no_internet=False):
         """Define which broadluad dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
@@ -52,7 +45,6 @@ class BroadLuad(Source):
         # Call the parent class __init__ function
         super().__init__(cancer_type="luad", source='broad', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
-        
     def load_mapping(self):
         df_type = 'mapping'
         
@@ -94,8 +86,7 @@ class BroadLuad(Source):
                 elif file_name == "aliquot_to_patient_ID.tsv":
                     df = pd.read_csv(file_path, sep = "\t", index_col = 0)
                     self._helper_tables["map_ids"] = df
-                    
-        
+
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
 

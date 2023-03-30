@@ -14,13 +14,9 @@ import os
 from gtfparse import read_gtf
 
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
-from cptac.utils import get_boxnote_text
 from cptac.cancers.mssm.mssm import Mssm
 
-
 class WashuLuad(Source):
-
     def __init__(self, version="latest", no_internet=False):
         """Load all of the washuluad dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 

@@ -10,15 +10,9 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
-import os
-import warnings
-
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
 
 class BcmPdac(Source):
-
     def __init__(self, version="latest", no_internet=False):
         """Define which bcmpdac dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
@@ -52,7 +46,6 @@ class BcmPdac(Source):
         # Call the parent class __init__ function
         super().__init__(cancer_type="pdac", source='bcm', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
-        
     def load_circular_RNA(self):
         df_type = 'circular_RNA'
         
@@ -81,7 +74,6 @@ class BcmPdac(Source):
 
             # save df in self._data
             self.save_df(df_type, df)
-            
         
     def load_mapping(self):
         df_type = 'mapping'
@@ -97,7 +89,6 @@ class BcmPdac(Source):
             df = df.drop_duplicates()
             self._helper_tables["gene_key"] = df
             
-
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
 

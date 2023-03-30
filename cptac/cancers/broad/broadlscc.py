@@ -10,18 +10,11 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
 import os
-import warnings
 from gtfparse import read_gtf
-
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
-from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
-
 
 class BroadLscc(Source):
-
     def __init__(self, version="latest", no_internet=False):
         """Define which broadlscc dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
@@ -52,7 +45,6 @@ class BroadLscc(Source):
         # Call the parent class __init__ function
         super().__init__(cancer_type="lscc", source='broad', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
-        
     def load_mapping(self):
         df_type = 'mapping'
         
@@ -85,8 +77,7 @@ class BroadLscc(Source):
                     broad_gene_names = broad_gene_names.set_index("gene_id")
                     broad_gene_names = broad_gene_names.drop_duplicates()
                     self._helper_tables["broad_gene_names"] = broad_gene_names
-        
-        
+
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
 

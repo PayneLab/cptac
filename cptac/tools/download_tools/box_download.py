@@ -1,21 +1,10 @@
-import bs4
 import getpass
 import glob
 import hashlib
-import logging
 import os
 import packaging.version
-import pandas as pd
 import requests
-import threading
 import warnings
-import webbrowser
-
-from datetime import datetime, timedelta
-from importlib.resources import path
-from queue import Queue
-from werkzeug import Request, Response
-from werkzeug.serving import make_server
 
 import cptac
 from cptac.exceptions import *
@@ -139,7 +128,7 @@ def download_file(url, path, server_hash, source=None, password=None, file_messa
     print(download_msg, end='\r')
 
     # download the files
-    for i in range(2):
+    for _ in range(2):
         try:
             # check if the required file is from a source whose files are stored on Box.com
             if source in ["bcm", "broad", "harmonized", "mssm", "umich", "washu"]: # We are using Box OAuth2

@@ -14,13 +14,10 @@ import os
 from gtfparse import read_gtf
 
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
-from cptac.utils import get_boxnote_text
+import cptac.tools.dataframe_tools as df_tools
 from cptac.cancers.mssm.mssm import Mssm
 
-
 class WashuUcec(Source):
-
     def __init__(self, version="latest", no_internet=False):
         """Load all of the WashuUcec dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
@@ -134,7 +131,7 @@ class WashuUcec(Source):
 
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
             df = df.transpose()
-            df = average_replicates(df, common = '\.\d$') # average replicates for C3N-00326
+            df = df_tools.average_replicates(df, common = '\.\d$') # average replicates for C3N-00326
             df.index = df.index.str.replace('\.T$','', regex = True)
             df.index = df.index.str.replace('\.A$','.N', regex = True)
             df.index.name = 'Patient_ID'                
@@ -148,7 +145,7 @@ class WashuUcec(Source):
 
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias', 'Derives_from'])
             df = df.transpose()
-            df = average_replicates(df, common = '\.\d$') # average replicates for C3N-00326
+            df = df_tools.average_replicates(df, common = '\.\d$') # average replicates for C3N-00326
             df.index = df.index.str.replace('\.T$','', regex = True)
             df.index = df.index.str.replace('\.A$','.N', regex = True)
             df.index.name = 'Patient_ID'                
@@ -162,7 +159,7 @@ class WashuUcec(Source):
 
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
             df = df.transpose()
-            df = average_replicates(df, common = '\.\d$') # average replicates for C3N-00326
+            df = df_tools.average_replicates(df, common = '\.\d$') # average replicates for C3N-00326
             df.index = df.index.str.replace('\.T$','', regex = True)
             df.index = df.index.str.replace('\.A$','.N', regex = True)
             df.index.name = 'Patient_ID'                

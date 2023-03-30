@@ -10,15 +10,9 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
-import os
-import warnings
-
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
 
 class BcmBrca(Source):
-
     def __init__(self, version="latest", no_internet=False):
         """Define which bcmbrca dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
@@ -48,7 +42,6 @@ class BcmBrca(Source):
 
         # Call the parent class __init__ function
         super().__init__(cancer_type="brca", source='bcm', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
-
         
     def load_mapping(self):
         df_type = 'mapping'
@@ -64,7 +57,6 @@ class BcmBrca(Source):
             df = df.drop_duplicates()
             self._helper_tables["gene_key"] = df 
             
-        
     def load_transcriptomics(self):
         """Load and parse all files for bcm brca transcriptomics data
            Populates self._data with transcriptomics data in a Pandas dataframe

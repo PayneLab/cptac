@@ -12,8 +12,6 @@
 import os
 import pandas as pd
 import numpy as np
-import sys
-import urllib3
 import json
 import requests
 import webbrowser
@@ -192,17 +190,17 @@ def get_interacting_proteins_wikipathways(protein):
     df = pd.read_csv(file_path, sep="\t", index_col=0)
 
     if (proteinName in df.index):
-    	row = df.loc[proteinName]
-    	filtered_df = df.loc[:, row.values.tolist()]
+        row = df.loc[proteinName]
+        filtered_df = df.loc[:, row.values.tolist()]
 
-    	def has_true(values):
-    		for val in values:
-    			if val == True:
-    				return True
-    		return False
+        def has_true(values):
+            for val in values:
+                if val == True:
+                    return True
+            return False
 
-    	filtered_df_final = filtered_df.loc[filtered_df.apply(lambda row: has_true(row.values.tolist()), axis=1), :]
-    	return filtered_df_final.index.tolist()
+        filtered_df_final = filtered_df.loc[filtered_df.apply(lambda row: has_true(row.values.tolist()), axis=1), :]
+        return filtered_df_final.index.tolist()
 
     return list()  # The protein was not found.
 

@@ -10,18 +10,11 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
-import os
-import warnings
-
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
-from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
-from cptac.utils import get_boxnote_text
+import cptac.tools.dataframe_tools as df_tools
 
 
 class UmichUcec(Source):
-
     def __init__(self, version="latest", no_internet=False):
         """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
@@ -57,7 +50,6 @@ class UmichUcec(Source):
         # Call the parent class __init__ function
         super().__init__(cancer_type="ucec", source="umich", version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
-    
     def load_mapping(self):
         df_type = 'mapping'
 
@@ -70,8 +62,7 @@ class UmichUcec(Source):
             df = pd.read_csv(file_path, sep = "\t", index_col = 'aliquot_ID', usecols = ['aliquot_ID', 'patient_ID'])
             map_dict = df.to_dict()['patient_ID'] # create dictionary with aliquot_ID as keys and patient_ID as values
             self._helper_tables["map_ids"] = map_dict
-            
-    
+
     def load_phosphoproteomics(self):
         df_type = 'phosphoproteomics'
 
@@ -128,13 +119,12 @@ class UmichUcec(Source):
             df = df.reset_index()
             df['Patient_ID'] = df['Patient_ID'].apply(lambda x: x+'.N' if 'NX' in x else x) # 'NX' are enriched normals
             df = df.set_index('Patient_ID')         
-            df = rename_duplicate_labels(df, 'index') # add ".1" to the second ocurrence of the ID with a duplicate
+            df = df_tools.rename_duplicate_labels(df, 'index') # add ".1" to the second ocurrence of the ID with a duplicate
             df = df.drop('C3N-01825.1', axis = 'index') # drop the duplicate that didn't correlate well with flagship       
 
             # save df in self._data
             self.save_df(df_type, df)
-            
-    
+
     def load_proteomics(self):
         df_type = 'proteomics'
 
@@ -179,7 +169,7 @@ class UmichUcec(Source):
             df['Patient_ID'] = df['Patient_ID'].replace(mapping_dict) # replace aliquots with patient IDs
             df['Patient_ID'] = df['Patient_ID'].apply(lambda x: x+'.N' if 'NX' in x else x) # 'NX' are enriched normals 
             df = df.set_index('Patient_ID')
-            df = rename_duplicate_labels(df, 'index') # add ".1" to the second ocurrence of the ID with a duplicate
+            df = df_tools.rename_duplicate_labels(df, 'index') # add ".1" to the second ocurrence of the ID with a duplicate
             df = df.drop('C3N-01825.1', axis = 'index') # drop the duplicate that didn't correlate well with flagship
             
             # save df in self._data

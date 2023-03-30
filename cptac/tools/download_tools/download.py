@@ -9,12 +9,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os
-
 import cptac
 from cptac.tools.download_tools.box_download import box_download
-
-from cptac.exceptions import DataSourceNotFoundError, InvalidParameterError, NoInternetError
+from cptac.exceptions import DataSourceNotFoundError, InvalidParameterError
 
 
 def download(sources, cancers='all', version="latest", redownload=False):

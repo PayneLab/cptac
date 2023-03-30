@@ -10,18 +10,10 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
-import os
-import warnings
-
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
-from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
-from cptac.utils import get_boxnote_text
-
+import cptac.tools.dataframe_tools as df_tools
 
 class UmichHnscc(Source):
-
     def __init__(self, version="latest", no_internet=False):
         """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
@@ -58,7 +50,6 @@ class UmichHnscc(Source):
         # Call the parent class __init__ function
         super().__init__(cancer_type="hnscc", source="umich", version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
-        
     def load_phosphoproteomics(self):
         df_type = 'phosphoproteomics'
 
@@ -113,7 +104,7 @@ class UmichHnscc(Source):
             phos = phos.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols        
             phos = phos.drop(['C3L-02617-N-duplicate2'], axis = 'index') # drop duplicate that did not correlate well
             # average IDs that correlated well to their respective duplicates
-            phos = average_replicates(phos, ['C3L-02617-T','C3L-02617-N','C3L-00994-N'], normal_identifier = '-N') 
+            phos = df_tools.average_replicates(phos, ['C3L-02617-T','C3L-02617-N','C3L-00994-N'], normal_identifier = '-N') 
             phos.index = phos.index.str.replace('-T$','', regex = True)
             phos.index = phos.index.str.replace('-N$','.N', regex = True)
             phos.index = phos.index.str.replace('-C$','.C', regex = True) # 6 cored normal samples in Hnscc
@@ -121,7 +112,6 @@ class UmichHnscc(Source):
             
             # save df in self._data
             self.save_df(df_type, df)
-
 
     def load_proteomics(self):
         df_type = 'proteomics'
@@ -163,7 +153,7 @@ class UmichHnscc(Source):
             prot = prot.drop(['C3L-02617-N-duplicate2'], axis = 'index') # drop duplicate that did not correlate well  
             # These IDs had a high correlation with their respective duplicates, so we average them
             # duplicates: 'C3L-02617-T-duplicate', 'C3L-00994-N-duplicate', 'C3L-02617-N-duplicate'
-            prot = average_replicates(prot, ['C3L-02617-T','C3L-02617-N','C3L-00994-N'], normal_identifier = '-N') 
+            prot = df_tools.average_replicates(prot, ['C3L-02617-T','C3L-02617-N','C3L-00994-N'], normal_identifier = '-N') 
             prot.index = prot.index.str.replace('-T$','', regex = True)
             prot.index = prot.index.str.replace('-N$','.N', regex = True)
             prot.index = prot.index.str.replace('-C$','.C', regex = True) # 6 cored normal samples in Hnscc

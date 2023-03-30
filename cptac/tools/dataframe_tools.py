@@ -10,12 +10,10 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
 import warnings
 from cptac.exceptions import CptacDevError, ReindexMapError, FailedReindexWarning
 from contextlib import contextmanager
 import sys, os
-import mygene
 
 
 @contextmanager

@@ -10,18 +10,10 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
-import os
-import warnings
-
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
-from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
-from cptac.utils import get_boxnote_text
-
+import cptac.tools.dataframe_tools as df_tools
 
 class UmichBrca(Source):
-
     def __init__(self, version="latest", no_internet=False):
         """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
@@ -59,7 +51,6 @@ class UmichBrca(Source):
         # Call the parent class __init__ function
         super().__init__(cancer_type="brca", source="umich", version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
-        
     def load_mapping(self):
         df_type = 'mapping'
         
@@ -102,7 +93,6 @@ class UmichBrca(Source):
             norm_df.index = norm_df.Participant.apply(lambda x: x[1:]+'.1') #remove initial 'X' and add '.1' (did not correlate well)
             not_tumor = norm_df.index.to_list()
             self._helper_tables["not_tumor"] = not_tumor
-
 
     def load_phosphoproteomics(self):
         df_type = 'phosphoproteomics'
@@ -155,12 +145,11 @@ class UmichBrca(Source):
                 not_tumor = self._helper_tables["not_tumor"]
                 replicate_list = self._helper_tables["replicate_list"]
                 df = df.loc[ ~ df.index.isin(not_tumor)] # drop rows that don't correlate well with respective cptac tumor
-                df = average_replicates(df, replicate_list) # average 7 IDs with replicates
+                df = df_tools.average_replicates(df, replicate_list) # average 7 IDs with replicates
 
             # save df in self._data
             self.save_df(df_type, df)
-            
-    
+
     def load_proteomics(self):
         df_type = 'proteomics'
         
@@ -196,7 +185,7 @@ class UmichBrca(Source):
                 not_tumor = self._helper_tables["not_tumor"]
                 replicate_list = self._helper_tables["replicate_list"]
                 df = df.loc[ ~ df.index.isin(not_tumor)] # drop rows that don't correlate well with respective cptac tumor
-                df = average_replicates(df, replicate_list) # average 7 IDs with replicates
+                df = df_tools.average_replicates(df, replicate_list) # average 7 IDs with replicates
 
             # save df in self._data
             self.save_df(df_type, df)

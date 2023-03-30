@@ -10,17 +10,12 @@
 #   limitations under the License.
 
 import pandas as pd
-import os
 from gtfparse import read_gtf
 
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
-from cptac.utils import get_boxnote_text
 from cptac.cancers.mssm.mssm import Mssm
 
-
 class WashuOv(Source):
-
     def __init__(self, version="latest", no_internet=False):
         """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 

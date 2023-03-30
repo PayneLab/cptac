@@ -10,18 +10,9 @@
 #   limitations under the License.
 
 import pandas as pd
-import numpy as np
-import os
-import warnings
-import datetime
-
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
-from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, ReindexMapError
-
 
 class Mssm(Source):
-
     def __init__(self, filter_type, version="latest", no_internet=False):
         """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
@@ -55,7 +46,6 @@ class Mssm(Source):
 
         # Call the parent class __init__ function, cancer_type is dynamic and based on whatever cancer is being filtered for
         super().__init__(cancer_type=filter_type, source='mssm', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
-
 
     # This is all clinical data, but mssm will have other load functions to get only a subset of this data
     def load_clinical(self):
