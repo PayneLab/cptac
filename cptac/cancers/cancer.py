@@ -118,48 +118,40 @@ class Cancer:
         """Get the clinical dataframe from the specified data source."""
         return self.get_dataframe("clinical", source, tissue_type, imputed=imputed)
 
-    def get_demographic(self, source=None, tissue_type="both", imputed=False):
-        """Get the demographic dataframe from the specified data source."""
-        return self.get_dataframe("demographic", source, tissue_type, imputed=imputed)
+    # def get_demographic(self, source=None, tissue_type="both", imputed=False):
+        # """Get the demographic dataframe from the specified data source."""
+        # return self.get_dataframe("demographic", source, tissue_type, imputed=imputed)
 
-    def get_derived_molecular(self, source=None, tissue_type="both"):
-        """Get the derived_molecular dataframe."""
-        return self.get_dataframe("derived_molecular", source, tissue_type)
+    # def get_derived_molecular(self, source=None, tissue_type="both"):
+        # """Get the derived_molecular dataframe."""
+        # return self.get_dataframe("derived_molecular", source, tissue_type)
 
-    def get_experimental_design(self, source=None, tissue_type="both"):
-        """Get the experimental_design dataframe."""
-        return self.get_dataframe("experimental_design", source, tissue_type)
+    # def get_experimental_design(self, source=None, tissue_type="both"):
+        # """Get the experimental_design dataframe."""
+        # return self.get_dataframe("experimental_design", source, tissue_type)
         
-    def get_medical_conditions(self, source=None, tissue_type="both", imputed=False):
-        """Get the medical_conditions dataframe from the specified data source."""
-        return self.get_dataframe("medical_conditions", source, tissue_type, imputed=imputed)
+    # def get_medical_conditions(self, source=None, tissue_type="both", imputed=False):
+        # """Get the medical_conditions dataframe from the specified data source."""
+        # return self.get_dataframe("medical_conditions", source, tissue_type, imputed=imputed)
 
-    def get_medical_history(self, source=None, tissue_type="both"):
-        """Get the medical_history dataframe."""
-        return self.get_dataframe("medical_history", source, tissue_type)
+    # def get_medical_history(self, source=None, tissue_type="both"):
+        # """Get the medical_history dataframe."""
+        # return self.get_dataframe("medical_history", source, tissue_type)
 
-    def get_previous_cancer(self, source=None, tissue_type="both", imputed=False):
-        """Get the previous_cancer dataframe from the specified data source."""
-        return self.get_dataframe("previous_cancer", source, tissue_type, imputed=imputed)
+    # def get_previous_cancer(self, source=None, tissue_type="both", imputed=False):
+        # """Get the previous_cancer dataframe from the specified data source."""
+        # return self.get_dataframe("previous_cancer", source, tissue_type, imputed=imputed)
 
-    def get_cancer_diagnosis(self, source=None, tissue_type="both", imputed=False):
-        """Get the cancer_diagnosis dataframe from the specified data source."""
-        return self.get_dataframe("cancer_diagnosis", source, tissue_type, imputed=imputed)
+    # def get_cancer_diagnosis(self, source=None, tissue_type="both", imputed=False):
+        # """Get the cancer_diagnosis dataframe from the specified data source."""
+        # return self.get_dataframe("cancer_diagnosis", source, tissue_type, imputed=imputed)
 
-    def get_followup(self, source=None, tissue_type="both", imputed=False):
-        """Get the followup dataframe from the specified data source."""
-        return self.get_dataframe("followup", source, tissue_type, imputed=imputed)
+    # def get_followup(self, source=None, tissue_type="both", imputed=False):
+        # """Get the followup dataframe from the specified data source."""
+        # return self.get_dataframe("followup", source, tissue_type, imputed=imputed)
 
 
     # Quantitative table getters
-    def get_acetylproteomics(self, source, tissue_type="both", imputed=False):
-        """Get the acetylproteomics dataframe from the specified data source."""
-        return self.get_dataframe("acetylproteomics", source, tissue_type, imputed=imputed)
-
-    def get_acetylproteomics_gene(self, source=None, tissue_type="both"):
-        """Get the acetylproteomics_gene dataframe. The gene level acetylation measurement is an aggregate metric which potentially averages together individual measurements of different sites. Use get_acetylproteomics() to view the data for individual sites."""
-        return self.get_dataframe("acetylproteomics_gene", source, tissue_type)
-
     def get_circular_RNA(self, source=None, tissue_type="both", imputed=False):
         """Get a circular RNA dataframe from the specified data source."""
         return self.get_dataframe("circular_RNA", source, tissue_type, imputed=imputed)
@@ -189,26 +181,6 @@ class Cancer:
 
         return self.get_dataframe(deconv_algorithm, source, tissue_type, imputed=imputed)
 
-    def get_lincRNA(self, source=None, tissue_type="both"):
-        """Get the lincRNA dataframe."""
-        return self.get_dataframe("lincRNA",source, tissue_type)
-
-    def get_lipidomics(self, source=None, tissue_type="both"):
-        """Get the lipidomics dataframe."""
-        return self.get_dataframe("lipidomics", source, tissue_type)
-
-    def get_gene_fusion(self, source=None):
-        """Get the gene_fusion dataframe."""
-        return self.get_dataframe("gene_fusion", source)
-
-    def get_metabolomics(self, source=None, tissue_type="both"):
-        """Get the metabolomics dataframe."""
-        return self.get_dataframe("metabolomics", source, tissue_type)
-
-    def get_methylation(self, source=None, tissue_type="both"):
-        """Get the methylation dataframe."""
-        return self.get_dataframe("methylation", source, tissue_type)
-
     def get_miRNA(self, source=None, miRNA_type='total', tissue_type="both", imputed=False):
         """Get miRNA dataframe from the specified data source.
 
@@ -222,20 +194,16 @@ class Cancer:
         """Get the phosphoproteomics dataframe from the specified data source."""
         return self.get_dataframe("phosphoproteomics", source, tissue_type, imputed=imputed)
 
-    def get_phosphoproteomics_gene(self, source=None, tissue_type="both"):
-        """Get the phosphoproteomics_gene dataframe. The gene level phosphorylation measurement is an aggregate metric which potentially averages together individual measurements of different sites. Use get_phosphoproteomics() to view the data for individual sites."""
-        return self.get_dataframe("phosphoproteomics_gene", source, tissue_type)
+    #def get_phosphosites(self, genes, source=None):
+        # """Returns dataframe with all phosphosites of specified gene or list of genes.
 
-    def get_phosphosites(self, genes, source=None):
-        """Returns dataframe with all phosphosites of specified gene or list of genes.
+        # Parameters:
+        # genes (str, or list or array-like of str): gene or list of genes to use to select phosphosites. str if single, list or array-like of str if multiple.
 
-        Parameters:
-        genes (str, or list or array-like of str): gene or list of genes to use to select phosphosites. str if single, list or array-like of str if multiple.
-
-        Returns:
-        pandas.DataFrame: The phosphoproteomics for the specified gene(s).
-        """
-        return self._get_omics_cols("phosphoproteomics", genes, source)
+        # Returns:
+        # pandas.DataFrame: The phosphoproteomics for the specified gene(s).
+        # """
+        # return self._get_omics_cols("phosphoproteomics", genes, source)
 
     def get_proteomics(self, source=None, tissue_type="both", imputed=False):
         """Get the proteomics dataframe from the specified data source."""
@@ -261,17 +229,17 @@ class Cancer:
         """Get the transcriptomics dataframe from the specified data source."""
         return self.get_dataframe("transcriptomics", source, tissue_type, imputed=imputed)
 
-    def get_treatment(self, source=None, tissue_type="both"):
-        """Get the treatment dataframe."""
-        return self.get_dataframe("treatment", source, tissue_type)
+    # def get_treatment(self, source=None, tissue_type="both"):
+        # """Get the treatment dataframe."""
+        # return self.get_dataframe("treatment", source, tissue_type)
 
     def get_tumor_purity(self, source=None, tissue_type="both", imputed=False):
         """Get the tumor purity dataframe from the specified data source."""
         return self.get_dataframe("tumor_purity", source, tissue_type, imputed=imputed)
 
-    def get_ubiquitylomics(self, source=None, tissue_type="both", imputed=False):
-        """Get the ubiquitylomics dataframe from the specified data source."""
-        return self.get_dataframe("ubiquitylomics", source, tissue_type, imputed=imputed)
+    # def get_ubiquitylomics(self, source=None, tissue_type="both", imputed=False):
+        # """Get the ubiquitylomics dataframe from the specified data source."""
+        # return self.get_dataframe("ubiquitylomics", source, tissue_type, imputed=imputed)
 
     def get_docs(self, data, source=None, tissue_type="both", imputed=False):
         """Get the readme docs for the specified data type and source."""
