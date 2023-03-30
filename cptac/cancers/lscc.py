@@ -13,7 +13,6 @@ from cptac.cancers.cancer import Cancer
 
 from cptac.cancers.bcm.bcmlscc import BcmLscc
 from cptac.cancers.broad.broadlscc import BroadLscc
-from cptac.cancers.pdc.pdclscc import PdcLscc
 from cptac.cancers.umich.umichlscc import UmichLscc
 from cptac.cancers.washu.washulscc import WashuLscc
 from cptac.cancers.mssm.mssm import Mssm
@@ -30,7 +29,6 @@ class Lscc(Cancer):
         self._sources["bcm"] = BcmLscc(version="latest", no_internet=no_internet)
         self._sources["broad"] = BroadLscc(version="latest", no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='lscc', version="latest", no_internet=no_internet)
-        self._sources["pdc"] = PdcLscc(version="latest", no_internet=no_internet)
         self._sources["umich"] = UmichLscc(version="latest", no_internet=no_internet)
         self._sources["washu"] = WashuLscc(version="latest", no_internet=no_internet)
         self._sources["harmonized"] = Harmonized(filter_type='lscc', version="latest", no_internet=no_internet)
