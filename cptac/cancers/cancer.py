@@ -514,7 +514,8 @@ class Cancer:
         return self.multi_join({df1_name:metadata_cols, df2_name:mutations_genes}, how=how, tissue_type=tissue_type, mutations_filter=mutations_filter, flatten=True)
 
     def multi_join(self, join_dict, mutations_filter=None, flatten=False, levels_to_drop=[], how="outer", tissue_type="both"):
-        """Takes a dictionary where keys include a source and datatype (either in a ('source', 'datatype') tuple or as a space separated string "source datatype"), and values are columns from those dataframes. Joins all the columns into one dataframe. If the value is an empty list it will join the entire dataframe
+        """Takes a dictionary where keys include a source and datatype (either in a ('source', 'datatype') tuple or as a space separated string "source datatype"),
+        and values are columns from those dataframes. Joins all the columns into one dataframe. If the value is an empty list it will join the entire dataframe
 
         Parameters:
         join_dict (dict): A dictionary with the dataframe and columns to join. Keys are the names of the dataframes and the value is a list of string with the name of the columns corresponding to each dataframe. Example: {('bcm', 'phosphoproteomics'):['A2M', 'AAAS'],'bcm proteomics':['AAAS', 'ZZZ3'], 'bcm somatic_mutation':['AHCTF1', 'ZFHX3']}.
