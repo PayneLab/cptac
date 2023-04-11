@@ -32,7 +32,7 @@ class Cancer:
     Therefore the same function calls exist for cptac.Brca, cptac.Gbm, etc.
     """
 
-    def __init__(self, cancer_type):
+    def __init__(self, cancer_type: str):
         """Initialize variables for a Cancer object.
 
         Parameters:
@@ -114,7 +114,7 @@ class Cancer:
 
 
     # Clinical table getters
-    def get_clinical(self, source=None, tissue_type="both", imputed=False):
+    def get_clinical(self, source=None, tissue_type="both", imputed=False) -> pd.DataFrame:
         """Get the clinical dataframe from the specified data source."""
         return self.get_dataframe("clinical", source, tissue_type, imputed=imputed)
 
@@ -152,23 +152,23 @@ class Cancer:
 
 
     # Quantitative table getters
-    def get_circular_RNA(self, source=None, tissue_type="both", imputed=False):
+    def get_circular_RNA(self, source=None, tissue_type="both", imputed=False) -> pd.DataFrame:
         """Get a circular RNA dataframe from the specified data source."""
         return self.get_dataframe("circular_RNA", source, tissue_type, imputed=imputed)
 
-    def get_CNV(self, source=None, tissue_type="both", imputed=False):
+    def get_CNV(self, source=None, tissue_type="both", imputed=False) -> pd.DataFrame:
         """Get a CNV dataframe from the specified data source."""
         return self.get_dataframe("CNV", source, tissue_type, imputed=imputed)
 
-    def get_deconvolution_cibersort(self, source=None, tissue_type="both", imputed=False):
+    def get_deconvolution_cibersort(self, source=None, tissue_type="both", imputed=False) -> pd.DataFrame:
         """Get a deconvolution dataframe from the specified data source using the cibersort algorithm."""
         return self.get_dataframe('xcell', source, tissue_type, imputed=imputed)
 
-    def get_deconvolution_xcell(self, source=None, tissue_type="both", imputed=False):
+    def get_deconvolution_xcell(self, source=None, tissue_type="both", imputed=False) -> pd.DataFrame:
         """Get a deconvolution dataframe from the specified data source using the cibersort algorithm."""
         return self.get_dataframe('cibersort', source, tissue_type, imputed=imputed)
 
-    def get_deconvolution(self, deconv_algorithm=None, source=None, tissue_type="both", imputed=False):
+    def get_deconvolution(self, deconv_algorithm=None, source=None, tissue_type="both", imputed=False) -> pd.DataFrame:
         """Get a deconvolution dataframe from the specified data source.
 
         Parameters:
@@ -181,7 +181,7 @@ class Cancer:
 
         return self.get_dataframe(deconv_algorithm, source, tissue_type, imputed=imputed)
 
-    def get_miRNA(self, source=None, miRNA_type='total', tissue_type="both", imputed=False):
+    def get_miRNA(self, source=None, miRNA_type='total', tissue_type="both", imputed=False) -> pd.DataFrame:
         """Get miRNA dataframe from the specified data source.
 
         Parameters:
@@ -190,7 +190,7 @@ class Cancer:
         """
         return self.get_dataframe(miRNA_type+'_miRNA', source, tissue_type, imputed=imputed)
 
-    def get_phosphoproteomics(self, source=None, tissue_type="both", imputed=False):
+    def get_phosphoproteomics(self, source=None, tissue_type="both", imputed=False) -> pd.DataFrame:
         """Get the phosphoproteomics dataframe from the specified data source."""
         return self.get_dataframe("phosphoproteomics", source, tissue_type, imputed=imputed)
 
@@ -205,27 +205,27 @@ class Cancer:
         # """
         # return self._get_omics_cols("phosphoproteomics", genes, source)
 
-    def get_proteomics(self, source=None, tissue_type="both", imputed=False):
+    def get_proteomics(self, source=None, tissue_type="both", imputed=False) -> pd.DataFrame:
         """Get the proteomics dataframe from the specified data source."""
         return self.get_dataframe("proteomics", source, tissue_type, imputed=imputed)
 
-    def get_somatic_mutation(self, source=None, tissue_type="both", imputed=False):
+    def get_somatic_mutation(self, source=None, tissue_type="both", imputed=False) -> pd.DataFrame:
         """Get the somatic mutation dataframe from the specified data source."""
         return self.get_dataframe("somatic_mutation", source, tissue_type, imputed=imputed)
 
-    def get_somatic_mutation_binary(self, source=None):
+    def get_somatic_mutation_binary(self, source=None) -> pd.DataFrame:
         """Get the somatic_mutation_binary dataframe, which has a binary value indicating, for each location on each gene, whether there was a mutation in that gene at that location, for each sample."""
         return self.get_dataframe("somatic_mutation_binary", source)
 
-    def get_targeted_phosphoproteomics(self, source=None, tissue_type="both"):
+    def get_targeted_phosphoproteomics(self, source=None, tissue_type="both") -> pd.DataFrame:
         """Get the targeted_phosphoproteomics dataframe."""
         return self.get_dataframe("targeted_phosphoproteomics", source, tissue_type)
 
-    def get_targeted_proteomics(self, source=None, tissue_type="both"):
+    def get_targeted_proteomics(self, source=None, tissue_type="both") -> pd.DataFrame:
         """Get the targeted_proteomics dataframe."""
         return self.get_dataframe("targeted_proteomics", source, tissue_type)
 
-    def get_transcriptomics(self, source=None, tissue_type="both", imputed=False):
+    def get_transcriptomics(self, source=None, tissue_type="both", imputed=False) -> pd.DataFrame:
         """Get the transcriptomics dataframe from the specified data source."""
         return self.get_dataframe("transcriptomics", source, tissue_type, imputed=imputed)
 
@@ -233,7 +233,7 @@ class Cancer:
         # """Get the treatment dataframe."""
         # return self.get_dataframe("treatment", source, tissue_type)
 
-    def get_tumor_purity(self, source=None, tissue_type="both", imputed=False):
+    def get_tumor_purity(self, source=None, tissue_type="both", imputed=False) -> pd.DataFrame:
         """Get the tumor purity dataframe from the specified data source."""
         return self.get_dataframe("tumor_purity", source, tissue_type, imputed=imputed)
 
@@ -251,8 +251,8 @@ class Cancer:
         else:
             raise DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
 
-    def define(self, term):
-        """Print the definition a term, if it is in the dataset's list of definitions.
+    def define(self, term: str):
+        """Print the definition of a term, if it is in the dataset's list of definitions.
 
         Parameters:
         term (str): term to be defined
@@ -275,7 +275,7 @@ class Cancer:
             raise NoDefinitionsError("No definitions provided for this dataset.")
 
     # Join functions
-    def quick_join(self, df1_name, df2_name, df1_source=None, df2_source=None, genes1=None, genes2=None, how='outer', flatten=True):
+    def quick_join(self, df1_name: str, df2_name: str, df1_source=None, df2_source=None, genes1=None, genes2=None, how='outer', flatten=True) -> pd.DataFrame:
         """A joins two specified cptac dataframes; optimized for speed.
 
         Parameters:
@@ -319,7 +319,8 @@ class Cancer:
 
 
     # Note: These are now helper functions that call multi_join
-    def join_omics_to_omics(self, df1_name, df2_name, df1_source=None, df2_source=None, genes1=None, genes2=None, how="outer", quiet=False, tissue_type="both"):
+    def join_omics_to_omics(self, df1_name: str, df2_name: str, df1_source=None, df2_source=None, genes1=None, genes2=None, how="outer", quiet=False, tissue_type="both"
+                            ) -> pd.DataFrame:
         """Take specified column(s) from one omics dataframe, and join to specified columns(s) from another omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -354,8 +355,8 @@ class Cancer:
 
     def join_omics_to_mutations(
                 self,
-				omics_name,
-				mutations_genes,
+				omics_name: str,
+				mutations_genes: str or list[str],
 				omics_source=None,
 				mutations_source=None,
 				omics_genes=None,
@@ -365,7 +366,7 @@ class Cancer:
 				quiet=False,
 				tissue_type="both",
 				mutation_cols=["Mutation","Location"]
-        ):
+        ) -> pd.DataFrame:
         """Select all mutations for specified gene(s), and joins them to all or part of the given omics dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
@@ -404,7 +405,8 @@ class Cancer:
 
         return self.multi_join({df1_name:genes1, df2_name:mutations_genes}, mutations_filter=mutations_filter, how=how, tissue_type=tissue_type, flatten=True)
 
-    def join_metadata_to_metadata(self, df1_name, df2_name, df1_source=None, df2_source=None, cols1=None, cols2=None, how="outer", quiet=False, tissue_type="both"):
+    def join_metadata_to_metadata(self, df1_name: str, df2_name: str, df1_source=None, df2_source=None, cols1=None, cols2=None, how="outer", quiet=False, tissue_type="both"
+                                  ) -> pd.DataFrame:
         """Take specified column(s) from one metadata dataframe, and join to specified columns(s) from another metadata dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -440,7 +442,8 @@ class Cancer:
 
         return self.multi_join({df1_name:cols1, df2_name:cols2}, how=how, tissue_type=tissue_type, flatten=True)
 
-    def join_metadata_to_omics(self, metadata_name, omics_name, omics_source=None, metadata_source=None, metadata_cols=None, omics_genes=None, how="outer", quiet=False, tissue_type="both"):
+    def join_metadata_to_omics(self, metadata_name: str, omics_name: str, omics_source=None, metadata_source=None, metadata_cols=None, omics_genes=None, how="outer", quiet=False, tissue_type="both"
+                               ) -> pd.DataFrame:
         """Joins columns from a metadata dataframe (clinical, derived_molecular, or experimental_design) to part or all of an omics dataframe. Intersection (inner join) of indices is used.
 
         Parameters:
@@ -478,7 +481,8 @@ class Cancer:
 
         return self.multi_join({df1_name:genes1, df2_name:genes2}, how=how, tissue_type=tissue_type, flatten=True)
 
-    def join_metadata_to_mutations(self, metadata_name, mutations_genes, metadata_source=None, mutations_source=None,  metadata_cols=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both"):
+    def join_metadata_to_mutations(self, metadata_name: str, mutations_genes: str or list[str], metadata_source=None, mutations_source=None,  metadata_cols=None, mutations_filter=None, show_location=True, how="outer", quiet=False, tissue_type="both"
+                                   ) -> pd.DataFrame:
         """Select all mutations for specified gene(s), and joins them to all or part of the given metadata dataframe. Intersection (inner join) of indices is used. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
 
         Parameters:
@@ -513,7 +517,8 @@ class Cancer:
 
         return self.multi_join({df1_name:metadata_cols, df2_name:mutations_genes}, how=how, tissue_type=tissue_type, mutations_filter=mutations_filter, flatten=True)
 
-    def multi_join(self, join_dict, mutations_filter=None, flatten=False, levels_to_drop=[], how="outer", tissue_type="both"):
+    def multi_join(self, join_dict: dict, mutations_filter=None, flatten=False, levels_to_drop=[], how="outer", tissue_type="both"
+                   ) -> pd.DataFrame:
         """Takes a dictionary where keys include a source and datatype (either in a ('source', 'datatype') tuple or as a space separated string "source datatype"),
         and values are columns from those dataframes. Joins all the columns into one dataframe. If the value is an empty list it will join the entire dataframe
 
@@ -622,11 +627,11 @@ class Cancer:
         return joined
 
     # Help functions
-    def get_cancer_type(self):
+    def get_cancer_type(self) -> str:
         """Return the cancer type for this dataset, as a string."""
         return self._cancer_type
 
-    def get_data_list(self):
+    def get_data_list(self) -> list:
         """Return a list of all data currently loaded into memory"""
         complete_list = {}
         for source in self._sources.keys():
@@ -707,7 +712,7 @@ class Cancer:
 
         return data_sources
 
-    def get_dataframe(self, name, source=None, tissue_type="both", imputed=False):
+    def get_dataframe(self, name: str, source=None, tissue_type="both", imputed=False) -> pd.DataFrame:
         """Check that a given dataframe from a given source exists, and return a copy if it does.
 
         Parameters:
@@ -753,7 +758,7 @@ class Cancer:
             raise DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
 
     # "Private" methods
-    def _check_df_valid(self, df_name, source, df_type):
+    def _check_df_valid(self, df_name: str, source: str, df_type: str):
         """Checks whether a dataframe with this name is valid for use as an omics or metadata dataframe in one of the utilties functions. Throws an InvalidParameterError if it isn't.
 
         Parameters:
@@ -782,19 +787,19 @@ class Cancer:
                     error_msg = error_msg + '\n\t' + valid_name
             raise InvalidParameterError(error_msg)
 
-    def _tumor_only(self, df):
+    def _tumor_only(self, df: pd.DataFrame):
         """For a given dataframe, keep only the tumor samples."""
         normal_endings = ('.N', '.C') # HNSCC data has cored normal samples marked .C
         tumor_df = df[~df.index.str.endswith(normal_endings)]
         return tumor_df
 
-    def _normal_only(self, df):
+    def _normal_only(self, df: pd.DataFrame):
         """For a given dataframe, keep only the normal samples."""
         normal_endings = ('.N', '.C') # HNSCC data has cored normal samples marked .C
         normal_df = df[df.index.str.endswith(normal_endings)]
         return normal_df
 
-    def _get_omics_cols(self, omics_df_name, source, genes, tissue_type="both"):
+    def _get_omics_cols(self, omics_df_name: str, source: str, genes: str or list[str], tissue_type="both") -> pd.DataFrame:
         """Based on a single gene, or a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
 
         Parameters:
@@ -858,7 +863,7 @@ class Cancer:
         selected.columns.name = "Name"
         return selected
 
-    def _get_metadata_cols(self, df_name, source, cols, tissue_type="both"):
+    def _get_metadata_cols(self, df_name: str, source: str, cols: str or list[str], tissue_type="both") -> pd.DataFrame:
         """Select a single column or several columns from a metadata dataframe.
 
         Parameters:
@@ -896,7 +901,7 @@ class Cancer:
         selected = df[cols]
         return selected
 
-    def _get_genes_mutations(self, source, genes, mutations_filter, mutation_cols = ["Mutation","Location"]):
+    def _get_genes_mutations(self, source: str, genes: str or list[str], mutations_filter: str or list[str], mutation_cols = ["Mutation","Location"]) -> pd.DataFrame:
         """Gets all the mutations for one or multiple genes, for all patients.
 
         Parameters:
@@ -1036,7 +1041,8 @@ class Cancer:
 
         return df
 
-    def _format_mutations_data(self, mutations, mutations_were_filtered, show_location=True, how="outer", quiet=False, tissue_type="both", mutation_cols=["Mutation","Location"]):
+    def _format_mutations_data(self, mutations: pd.DataFrame, mutations_were_filtered: bool, show_location=True, how="outer", quiet=False, tissue_type="both", mutation_cols=["Mutation","Location"]
+                               ) -> pd.DataFrame:
         """Format mutations data. Add a Sample_Status column, fill in NaNs with Wildtype_Normal or Wildtype_Tumor.
         Note: This is mostly so that the multi_join function can behave the same way as the old join functions.
         join_other_to_mutations does this same formatting, and should probably be refactored to use this.
@@ -1124,7 +1130,7 @@ class Cancer:
         return mutations
 
 
-    def _join_other_to_mutations(self, other, mutations, mutations_were_filtered, show_location, how, quiet):
+    def _join_other_to_mutations(self, other: pd.DataFrame, mutations: pd.DataFrame, mutations_were_filtered: bool, show_location: bool, how, quiet: bool) -> pd.DataFrame:
         """Join selected mutations data to selected other omics or metadata, add a Sample_Status column, fill in NaNs with Wildtype_Normal or Wildtype_Tumor, and name the dataframe.
 
         Parameters:
@@ -1203,7 +1209,7 @@ class Cancer:
 
         return joined
 
-    def _filter_multiple_mutations(self, mutations_filter, sample_mutations_list, sample_locations_list):
+    def _filter_multiple_mutations(self, mutations_filter: list[str], sample_mutations_list: list[str], sample_locations_list: list[str]) -> str and str:
         """Based on a mutations filter, choose one mutation and its location from two lists of mutations and locations.
 
         Parameters:
@@ -1281,7 +1287,7 @@ class Cancer:
                 soonest_mutation = mutation
         return soonest_mutation, soonest_location
 
-    def _parse_mutation_location(self, location):
+    def _parse_mutation_location(self, location: str) -> int:
         """Parse the number out of the location for a mutation.
 
         Parameters:
@@ -1303,12 +1309,12 @@ class Cancer:
                     return int(num)
         return int(num) # We get here if the location ended with a digit
 
-    def _check_how_parameter(self, given_how):
+    def _check_how_parameter(self, given_how: str):
         possible_values = ['outer', 'inner', 'left', 'right']
         if given_how not in possible_values:
             raise InvalidParameterError("'{}' is not a valid value for 'how'. Possible values are 'outer', 'inner', 'left', 'right'.".format(given_how))
 
-    def _join_dataframe(self, df1, df2):
+    def _join_dataframe(self, df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
         """Joins a dataframe to another dataframe.
 
         Returns: pandas.DataFrame
@@ -1331,7 +1337,8 @@ class Cancer:
         status_map.name = "Sample_Status"
         return status_map
 
-    def get_genotype_all_vars(self, mutations_gene, omics_source, mutations_source, mutations_filter=None, show_location=True, mutation_hotspot=None):
+    def get_genotype_all_vars(self, mutations_gene: str or list[str], omics_source: str, mutations_source: str, mutations_filter=None, show_location=True, mutation_hotspot=None
+                              ) -> pd.DataFrame:
         """Return a dataframe that has the mutation type and whether or not it is a multiple mutation
         Parameters:
         mutation_genes (str, or list or array-like of str): The gene(s) to get mutation data for.
@@ -1470,7 +1477,7 @@ class Cancer:
 #     missenses = ['In_Frame_Del', 'In_Frame_Ins', 'Missense_Mutation']
 #     noncodings = ["Intron", "RNA", "3'Flank", "Splice_Region", "5'UTR", "5'Flank", "3'UTR"]
 
-    def _warn_inserted_nans(self, name1, name2, index1, index2):
+    def _warn_inserted_nans(self, name1: str, name2: str, index1: pd.Index, index2: pd.Index):
         """Compare two indices from two dataframes, and warn the user that any rows with index values not in both indices were filled with NaNs in a join function.
 
         Parameters:
@@ -1487,7 +1494,7 @@ class Cancer:
         self._issue_inserted_nans_warning(unique1, name2)
         self._issue_inserted_nans_warning(unique2, name1)
 
-    def _issue_inserted_nans_warning(self, unique, other_name):
+    def _issue_inserted_nans_warning(self, unique: list[str], other_name: str):
         """Issue a warning that the samples in unique were not found in the other_name dataframe, and those column(s) were filled with NaN.
 
         Parameters:
