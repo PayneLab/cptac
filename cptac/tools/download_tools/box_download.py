@@ -102,13 +102,12 @@ def gather_files(version_path, version_index, redownload):
 
     return files_to_download
 
-def download_file(doi, path, server_hash, file_name, file_message=None, file_number=None, total_files=None): 
+def download_file(doi, path, file_name, file_message=None, file_number=None, total_files=None): 
     """Download a specific file by its name from a Zenodo record using its DOI to the specified location.
 
     Parameters:
     doi (str): The Digital Object Identifier for the Zenodo record.
     path (str): The path to the file (not just the directory) to save the file to on the local machine.
-    server_hash (str): The hash for the file, to check it against. If check fails, try download one more time, then throw an exception.
     file_name (str): The name of the file to download from the Zenodo record
     file_message (str, optional): Identifing message about the file, to be printed while it's downloading. Default None will cause the full file name to be printed.
     file_number (int, optional): Which file this is in a batch of files, if you want to print a "File 1/15", "File 2/15", etc. sort of message. Must also pass total_files parameter.
@@ -146,25 +145,18 @@ def download_file(doi, path, server_hash, file_name, file_message=None, file_num
         raise FileNotFoundError(f"File '{file_name}' not found in Zenodo record (DOI: {doi})")
 
     # Download the files
-    for i in range(2):
-        temp_file_path = wget.download(file_url)
+    temp_file_path = wget.download(file_url)
 
-        with open(temp_file_path, "rb") as f:
-            file_content = f.read()
-        os.remove(temp_file_path)
+    with open(temp_file_path, "rb") as f:
+        file_content = f.read()
+    
+    os.remove(temp_file_path)
 
-        local_hash = hash_bytes(file_content)
-
-        if local_hash == server_hash:
-            with open (path, "wb") as f:
-                f.write(file_content)
-            print(" " * len(download_msg), end='\r') #Erase the downloading message
-            return path
-
-    # If we get to this point, the download failed.
-    file_name = path.split(os.sep)[-1]
-    raise DownloadFailedError(f"Download failed for {file_name}. \nL_Hash: {local_hash}\nS_Hash: {server_hash}")
-
+    with open(path, "wb") as f:
+        f.write(file_content)
+    print(" " * len(download_msg), end='\r') # Erase the downloading message
+    return path
+       
 def get_data_path(dataset):
     """Get the path to the main directory for a dataset.
 
