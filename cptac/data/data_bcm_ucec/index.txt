@@ -1,0 +1,5 @@
+#1.0
+UCEC-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt	7eb9ff838f377a3532b4f8edb4da84aa	747778190955	circular_RNA
+UCEC-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt	4a1ecfa7e6d8aa897b53a3d6c6a04f11	747773649437	transcriptomics
+readme.docx	c5a79fd677c686b2cc3d139e47710d78	747856481756	readme
+gencode.v34.basic.annotation-mapping.txt	623d03e6a85b3e59de947d7360e5a36b	799898867743	mapping

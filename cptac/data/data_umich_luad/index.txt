@@ -1,0 +1,7 @@
+#1.0
+Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv	b2debada31493bacb7e845e19193daff	784704649297	phosphoproteomics
+Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv	fd4fd46a2bed7a359a29c611474db436	784685764509	proteomics
+aliquot_to_patient_ID.tsv	4c4f89b21c74a99f2310d9e1c5ca5d88	794282272484	mapping
+README_v3.boxnote	7cf699dafc8408647f8dad68933c2080	784692840521	readme
+README.boxnote	25a218b4f883741abc09863a9e0ad6e6	790929303483	readme
+

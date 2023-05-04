@@ -1,0 +1,5 @@
+#1.0
+LSCC-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt	b8f2d0f0863aba5b0f1bfd1c6e0ac53a	747770102970	circular_RNA
+LSCC-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt	be74b5f3924058a3b84b69aa814db90e	747778530266	transcriptomics
+readme.docx	c5a79fd677c686b2cc3d139e47710d78	747856481756	readme
+gencode.v34.basic.annotation-mapping.txt	623d03e6a85b3e59de947d7360e5a36b	799898867743	mapping
