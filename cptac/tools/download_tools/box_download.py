@@ -5,6 +5,8 @@ import os
 import packaging.version
 import requests
 import warnings
+import zenodopy
+import wget
 
 import cptac
 from cptac.exceptions import *
@@ -100,15 +102,14 @@ def gather_files(version_path, version_index, redownload):
 
     return files_to_download
 
-def download_file(url, path, server_hash, source=None, password=None, file_message=None, file_number=None, total_files=None): 
-    """Download a file from a given url to the specified location.
+def download_file(doi, path, server_hash, file_name, file_message=None, file_number=None, total_files=None): 
+    """Download a specific file by its name from a Zenodo record using its DOI to the specified location.
 
     Parameters:
-    url (str): The direct download url for the file.
+    doi (str): The Digital Object Identifier for the Zenodo record.
     path (str): The path to the file (not just the directory) to save the file to on the local machine.
-    source(str): The source the file is coming from to help determine authentication needs
     server_hash (str): The hash for the file, to check it against. If check fails, try download one more time, then throw an exception.
-    password (str, optional): If the file is password protected, the password for it. Unneeded otherwise.
+    file_name (str): The name of the file to download from the Zenodo record
     file_message (str, optional): Identifing message about the file, to be printed while it's downloading. Default None will cause the full file name to be printed.
     file_number (int, optional): Which file this is in a batch of files, if you want to print a "File 1/15", "File 2/15", etc. sort of message. Must also pass total_files parameter.
     total_files (int, optional): The total number of files in the download batch, if you're printing that. Must also pass file_number parameter.
@@ -116,6 +117,7 @@ def download_file(url, path, server_hash, source=None, password=None, file_messa
     Returns:
     str: The path the file was downloaded to.
     """
+    zenodo = zenodopy.Client()
     # We provide the option of displaying a message indicating which file this is in a batch of files we're currently downloading
     batch_status = ''
     if (file_number is not None) and (total_files is not None):
@@ -127,34 +129,37 @@ def download_file(url, path, server_hash, source=None, password=None, file_messa
     download_msg = f"Downloading {file_message}{batch_status}..."
     print(download_msg, end='\r')
 
-    # download the files
-    for _ in range(2):
-        try:
-            # check if the required file is from a source whose files are stored on Box.com
-            if source in ["bcm", "broad", "harmonized", "mssm", "umich", "washu"]: # We are using Box OAuth2
-                cptac.box_auth.refresh_token() # global box_auth object
-                download_url = f"https://api.box.com/2.0/files/{url}/content" # url is actually file ID
-                headers = dict(HEADERS)
-                headers["Authorization"] = f"Bearer {cptac.box_auth.get_box_token()}"
-                response = requests.get(download_url, headers=headers)
-            
-            elif password is None: # No password or OAuth2 (index files)
-                response = requests.get(url, headers=HEADERS, allow_redirects=True)
+    record = zenodo.get_urls_from_doi(doi)
 
-            response.raise_for_status() # Raises a requests.HTTPError if the response code was unsuccessful
+    if record is None:
+        raise FileNotFoundError(f"Zenodo record not found (DOI: {doi})")
+    
+    file_url = None
 
-        except requests.RequestException as e: # Parent class for all exceptions in the requests module
-            raise Exception(e) #from None
-            
-        local_hash = hash_bytes(response.content)
-        if local_hash == server_hash: # Only replace the old file if the new one downloaded successfully.
-            with open(path, 'wb') as dest:
-                dest.write(response.content)
-            print(" " * len(download_msg), end='\r') # Erase the downloading message
+    for url in record:
+        file = url.split('/')[-1]
+        if file == file_name:
+            file_url = url
+            break
+    
+    if file_url is None:
+        raise FileNotFoundError(f"File '{file_name}' not found in Zenodo record (DOI: {doi})")
+
+    # Download the files
+    for i in range(2):
+        temp_file_path = wget.download(file_url)
+
+        with open(temp_file_path, "rb") as f:
+            file_content = f.read()
+        os.remove(temp_file_path)
+
+        local_hash = hash_bytes(file_content)
+
+        if local_hash == server_hash:
+            with open (path, "wb") as f:
+                f.write(file_content)
+            print(" " * len(download_msg), end='\r') #Erase the downloading message
             return path
-        elif response.text.strip().startswith("<!DOCTYPE html>"): # The password was wrong, so we just got a webpage
-            print(" " * len(download_msg), end='\r') # Erase the downloading message
-            return "wrong_password"
 
     # If we get to this point, the download failed.
     file_name = path.split(os.sep)[-1]
