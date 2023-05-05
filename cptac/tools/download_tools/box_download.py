@@ -14,14 +14,16 @@ from cptac.exceptions import *
 # Some websites don't like requests from sources without a user agent. Let's preempt that issue.
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
 HEADERS = {'User-Agent': USER_AGENT}
+STATIC_DOI = '10.5281/zenodo.7897498'
  
 def box_download(cancer, source, datatypes, version, redownload):
    
+    
     if source in ["harmonized", "mssm"]:
         dataset = source
     else: 
         dataset = source + "_" + cancer
-
+    
     # Get our dataset path
     dataset_path = get_data_path(dataset)
 
@@ -43,27 +45,26 @@ def box_download(cancer, source, datatypes, version, redownload):
     if datatypes != "all":
         version_index = get_filtered_version_index(version_index=version_index, datatypes=datatypes, source=dataset, version=version_number)
 
+    #Get path of index file
+    #index_path may not be looking in the right directory, could be one before
+    index_file = 'all_index.txt'
+    index_path = os.path.join(dataset_path, index_file)
+
     # Get list of files to download.
-    files_to_download = gather_files(version_path=version_path, version_index=version_index, redownload=redownload)
+    files_to_download = get_file_names(cancer, source, datatypes, index_path)
 
     # Return true if no new files to download
     if files_to_download is None: 
         return True
 
-    # Else Download the files
-    password = cptac.box_auth.get_password(dataset)
     total_files = len(files_to_download)
 
     for data_file in files_to_download:
 
-        file_index = version_index.get(data_file)
-        server_hash = file_index.get("hash")
-        file_url = file_index.get("url")
-
         file_path = os.path.join(version_path, data_file)
         file_number = files_to_download.index(data_file) + 1
 
-        downloaded_path = download_file(url=file_url, path=file_path, server_hash=server_hash,source=source, password=password, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
+        downloaded_path = download_file(doi = STATIC_DOI, path=file_path, file_name = data_file, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
 
         while downloaded_path == "wrong_password":
             if password is None:
@@ -73,9 +74,28 @@ def box_download(cancer, source, datatypes, version, redownload):
             print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
             print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
 
-            downloaded_path = download_file(url=file_url, path=file_path, source=source, server_hash=server_hash, password=password, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
-
+            downloaded_path = download_file(doi = STATIC_DOI, path=file_path, file_name = data_file, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
     return True
+
+def get_file_names(cancer, source, datatypes, index_path):
+    '''Takes the given parameters and returns a list of file names that correspond'''
+    if not os.path.exists(index_path):
+        zenodo = zenodopy.Client()
+        record = zenodo.get_urls_from_doi(STATIC_DOI)
+        for url in record:
+            name = url.split('/')[-1]
+            if name == 'all_index.txt':
+                wget.download(url)
+    file_names = []
+    with open('all_index.txt', 'r') as input:
+        for line in input:
+            indexList = input.split('\t')
+            file_identifiers = indexList.split('_')
+            if file_identifiers[2] in datatypes and file_identifiers[0] == source and file_identifiers[1] == cancer:
+                name = indexList[1]
+            file_names.append(name)
+    return file_names
+
 
 def gather_files(version_path, version_index, redownload):
     if os.path.isdir(version_path): # See if they've downloaded this version before. 
