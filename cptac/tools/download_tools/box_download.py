@@ -88,8 +88,8 @@ def get_file_names(cancer, source, datatypes, index_path):
     file_names = []
     with open('all_index.txt', 'r') as input:
         for line in input:
-            indexList = input.split('\t')
-            file_identifiers = indexList.split('_')
+            indexList = line.split('\t')
+            file_identifiers = indexList[0].split('_')
             if file_identifiers[2] in datatypes and file_identifiers[0] == source and file_identifiers[1] == cancer:
                 name = indexList[1]
             file_names.append(name)
