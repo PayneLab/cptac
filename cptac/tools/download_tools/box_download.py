@@ -17,7 +17,6 @@ HEADERS = {'User-Agent': USER_AGENT}
 STATIC_DOI = '10.5281/zenodo.7897498'
  
 def box_download(cancer, source, datatypes, version, redownload):
-   
     
     if source in ["harmonized", "mssm"]:
         dataset = source
@@ -37,7 +36,7 @@ def box_download(cancer, source, datatypes, version, redownload):
     version_number = validate_version(version, dataset, use_context="download")
 
     # Construct the path to the directory for this version
-    version_path = os.path.join(dataset_path, f"{dataset}_v{version_number}")
+    version_path = os.path.join(dataset_path, f"{dataset}")
 
     # Get the index for the desired version
     # If datatypes are specified, filter out the undesired datatypes
