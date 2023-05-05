@@ -82,7 +82,8 @@ def get_file_names(cancer, source, datatypes, index_path):
                 if file_identifiers[2] in datatypes and file_identifiers[0] == source and file_identifiers[1] == cancer:
                     name = indexList[1]
                     file_names.append(name)
-    return file_names[0]
+        file_name = file_name[0].strip()
+    return file_name
 
 
 def gather_files(version_path, version_index, redownload):
