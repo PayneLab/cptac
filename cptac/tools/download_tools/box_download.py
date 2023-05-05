@@ -17,6 +17,7 @@ HEADERS = {'User-Agent': USER_AGENT}
 STATIC_DOI = '10.5281/zenodo.7897498'
  
 def box_download(cancer, source, datatypes, version, redownload):
+   
     
     if source in ["harmonized", "mssm"]:
         dataset = source
@@ -36,7 +37,7 @@ def box_download(cancer, source, datatypes, version, redownload):
     version_number = validate_version(version, dataset, use_context="download")
 
     # Construct the path to the directory for this version
-    version_path = os.path.join(dataset_path, f"{dataset}")
+    version_path = os.path.join(dataset_path, f"{dataset}_v{version_number}")
 
     # Get the index for the desired version
     # If datatypes are specified, filter out the undesired datatypes
@@ -90,6 +91,7 @@ def get_file_names(cancer, source, datatypes, index_path):
         for line in input:
             indexList = line.split('\t')
             file_identifiers = indexList[0].split('_')
+            print(file_identifiers)
             if file_identifiers[2] in datatypes and file_identifiers[0] == source and file_identifiers[1] == cancer:
                 name = indexList[1]
             file_names.append(name)
@@ -155,8 +157,7 @@ def download_file(doi, path, file_name, file_message=None, file_number=None, tot
     file_url = None
 
     for url in record:
-        file = url.split('/')
-        if file == file_name:
+        if url == file_name:
             file_url = url
             break
     
