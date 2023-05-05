@@ -16,8 +16,6 @@ HEADERS = {'User-Agent': USER_AGENT}
 STATIC_DOI = '10.5281/zenodo.7897498'
  
 def box_download(cancer, source, datatypes, version, redownload):
-   
-    
     if source in ["harmonized", "mssm"]:
         dataset = source
     else: 
@@ -150,7 +148,8 @@ def download_file(doi, path, file_name, file_message=None, file_number=None, tot
     file_url = None
 
     for url in record:
-        if url == file_name:
+        file = url.split('/')[-1]
+        if file == file_name:
             file_url = url
             break
     
