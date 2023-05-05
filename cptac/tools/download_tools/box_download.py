@@ -62,16 +62,8 @@ def box_download(cancer, source, datatypes, version, redownload):
         file_number = files_to_download.index(data_file) + 1
 
         downloaded_path = download_file(doi = STATIC_DOI, path=file_path, file_name = data_file, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
+        print(downloaded_path)
 
-        while downloaded_path == "wrong_password":
-            if password is None:
-                password = getpass.getpass(prompt=f'Password for {dataset} dataset: ') # We manually specify the prompt parameter so it shows up in Jupyter Notebooks
-            else:
-                password = getpass.getpass(prompt="Wrong password. Try again: ")
-            print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
-            print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
-
-            downloaded_path = download_file(doi = STATIC_DOI, path=file_path, file_name = data_file, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
     return True
 
 def get_file_names(cancer, source, datatypes, index_path):
