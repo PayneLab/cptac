@@ -92,9 +92,10 @@ def get_file_names(cancer, source, datatypes, index_path):
             indexList = line.split('\t')
             file_identifiers = indexList[0].split('_')
             print(file_identifiers)
-            if file_identifiers[2] in datatypes and file_identifiers[0] == source and file_identifiers[1] == cancer:
-                name = indexList[1]
-            file_names.append(name)
+            if file_identifiers[0] != 'mssm':
+                if file_identifiers[2] in datatypes and file_identifiers[0] == source and file_identifiers[1] == cancer:
+                    name = indexList[1]
+                file_names.append(name)
     return file_names
 
 
