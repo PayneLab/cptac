@@ -60,7 +60,6 @@ def box_download(cancer, source, datatypes, version, redownload):
     #file_number = files_to_download.index(file_to_download) + 1
 
     downloaded_path = download_file(doi = STATIC_DOI, path=file_path, file_name = file_to_download, file_message=f"{dataset} v{version} data files")
-    print(downloaded_path)
 
     return True
 
@@ -82,7 +81,7 @@ def get_file_names(cancer, source, datatypes, index_path):
             if file_identifiers[0] != 'mssm':
                 if file_identifiers[2] in datatypes and file_identifiers[0] == source and file_identifiers[1] == cancer:
                     name = indexList[1]
-                file_names.append(name)
+                    file_names.append(name)
     return file_names[0]
 
 
