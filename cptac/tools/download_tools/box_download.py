@@ -1,6 +1,5 @@
 import getpass
 import glob
-import hashlib
 import os
 import packaging.version
 import requests
@@ -17,8 +16,6 @@ HEADERS = {'User-Agent': USER_AGENT}
 STATIC_DOI = '10.5281/zenodo.7897498'
  
 def box_download(cancer, source, datatypes, version, redownload):
-   
-    
     if source in ["harmonized", "mssm"]:
         dataset = source
     else: 
@@ -106,15 +103,9 @@ def gather_files(version_path, version_index, redownload):
         else:
             files_to_download = []
             for data_file in version_index.keys():
-                # Compare the server and local hashes, to make sure there was no data corruption
                 file_path = os.path.join(version_path, data_file)
-                if os.path.isfile(file_path):
-                    file_index = version_index.get(data_file)
-                    server_hash = file_index.get("hash")
-                    local_hash = hash_file(file_path) 
-                    if local_hash == server_hash:
-                        continue
-                files_to_download.append(data_file)
+                if not os.path.isfile(file_path):
+                    files_to_download.append(data_file)
 
             if len(files_to_download) == 0:
                 return None
@@ -158,7 +149,8 @@ def download_file(doi, path, file_name, file_message=None, file_number=None, tot
     file_url = None
 
     for url in record:
-        if url == file_name:
+        file = url.split('/')[-1]
+        if file == file_name:
             file_url = url
             break
     
@@ -299,11 +291,9 @@ def get_index(dataset):
             line_list = line.split('\t')
             if len(line_list) > 1:
                 file_name = line_list[0]
-                file_hash = line_list[1]
                 file_url = line_list[2]
                 file_datatype = line_list[3]
                 index[version][file_name] = {}
-                index[version][file_name]["hash"] = file_hash
                 index[version][file_name]["url"] = file_url
                 index[version][file_name]["datatype"] = file_datatype
     return index
@@ -385,35 +375,25 @@ def update_index(dataset):
 
     # Define our file names we'll need
     index_urls_file = "index_urls.tsv"
-    index_hash_file = "index_hash.txt"
     index_file = "index.txt"
 
-    # Get, from the server, what the md5 hash of our index file should be
     index_urls_path = os.path.join(dataset_path, index_urls_file)
     urls_dict = parse_tsv_dict(index_urls_path)
-    index_hash_url = urls_dict.get(index_hash_file)
 
     checking_msg = f"Checking that {dataset} index is up-to-date..."
     print(checking_msg, end='\r')
-    try:
-        server_index_hash = download_text(index_hash_url)
-    finally:
-        print(" " * len(checking_msg), end='\r') # Erase the checking message, even if there was an internet error
+    print(" " * len(checking_msg), end='\r') # Erase the checking message, even if there was an internet error
 
     index_path = os.path.join(dataset_path, index_file)
 
-    if os.path.isfile(index_path):
-        local_index_hash = hash_file(index_path)
-        if local_index_hash == server_index_hash:
-            return True
+    # If the index file is not present or we want to update it, download it
+    if not os.path.isfile(index_path):
+        index_url = urls_dict.get(index_file)
+        download_file(url=index_url, path=index_path, file_message=f"{dataset} index")
 
-    index_url = urls_dict.get(index_file)
-    download_file(url=index_url, path=index_path, server_hash=server_index_hash, file_message=f"{dataset} index")
-
+    # If the index file is present after the download, return True
     if os.path.isfile(index_path):
-        local_index_hash = hash_file(index_path)
-        if local_index_hash == server_index_hash:
-            return True
+        return True
 
     # If we get here, something apparently went wrong with the download.
     raise NoInternetError("Insufficient internet. Check your internet connection.")
@@ -443,33 +423,6 @@ def parse_tsv_dict(path):
         data_dict[key] = value
 
     return data_dict
-
-def hash_file(path):
-    """Return the md5 hash for the file at the given path.
-
-    Parameters:
-    path (str): The absolute path to the file to hash.
-
-    Returns:
-    str: The hash for the file.
-    """
-    with open(path, 'rb') as file_obj:
-        hash = hash_bytes(file_obj.read())
-    return hash
-
-def hash_bytes(bytes):
-    """Hash the given bytes.
-
-    Parameters:
-    bytes (bytes): The bytes to hash.
-
-    Returns:
-    str: The hash for the bytes.
-    """
-    hasher = hashlib.md5()
-    hasher.update(bytes)
-    hash = hasher.hexdigest()
-    return hash
 
 def download_text(url):
     """Download text from a direct download url for a text file.
