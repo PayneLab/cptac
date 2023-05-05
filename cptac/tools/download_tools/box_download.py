@@ -136,7 +136,8 @@ def download_file(doi, path, file_name, file_message=None, file_number=None, tot
     file_url = None
 
     for url in record:
-        if url == file_name:
+        file = url.split('/')
+        if file == file_name:
             file_url = url
             break
     
