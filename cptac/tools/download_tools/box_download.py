@@ -48,30 +48,19 @@ def box_download(cancer, source, datatypes, version, redownload):
     index_path = os.path.join(dataset_path, index_file)
 
     # Get list of files to download.
-    files_to_download = get_file_names(cancer, source, datatypes, index_path)
+    file_to_download = get_file_names(cancer, source, datatypes, index_path)
 
     # Return true if no new files to download
-    if files_to_download is None: 
+    if file_to_download is None: 
         return True
 
-    total_files = len(files_to_download)
+    #total_files = len(file_to_download)
 
-    for data_file in files_to_download:
+    file_path = os.path.join(version_path, file_to_download)
+    #file_number = files_to_download.index(file_to_download) + 1
 
-        file_path = os.path.join(version_path, data_file)
-        file_number = files_to_download.index(data_file) + 1
+    downloaded_path = download_file(doi = STATIC_DOI, path=file_path, file_name = file_to_download, file_message=f"{dataset} v{version} data files")
 
-        downloaded_path = download_file(doi = STATIC_DOI, path=file_path, file_name = data_file, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
-
-        while downloaded_path == "wrong_password":
-            if password is None:
-                password = getpass.getpass(prompt=f'Password for {dataset} dataset: ') # We manually specify the prompt parameter so it shows up in Jupyter Notebooks
-            else:
-                password = getpass.getpass(prompt="Wrong password. Try again: ")
-            print("\033[F", end='\r') # Use an ANSI escape sequence to move cursor back up to the beginning of the last line, so in the next line we can clear the password prompt
-            print("\033[K", end='\r') # Use an ANSI escape sequence to print a blank line, to clear the password prompt
-
-            downloaded_path = download_file(doi = STATIC_DOI, path=file_path, file_name = data_file, file_message=f"{dataset} v{version} data files", file_number=file_number, total_files=total_files)
     return True
 
 def get_file_names(cancer, source, datatypes, index_path):
@@ -89,10 +78,11 @@ def get_file_names(cancer, source, datatypes, index_path):
             indexList = line.split('\t')
             file_identifiers = indexList[0].split('_')
             print(file_identifiers)
-            if file_identifiers[2] in datatypes and file_identifiers[0] == source and file_identifiers[1] == cancer:
-                name = indexList[1]
-            file_names.append(name)
-    return file_names
+            if file_identifiers[0] != 'mssm':
+                if file_identifiers[2] in datatypes and file_identifiers[0] == source and file_identifiers[1] == cancer:
+                    name = indexList[1]
+                    file_names.append(name)
+    return file_names[0]
 
 
 def gather_files(version_path, version_index, redownload):
