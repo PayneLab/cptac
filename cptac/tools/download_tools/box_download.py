@@ -82,7 +82,7 @@ def get_file_names(cancer, source, datatypes, index_path):
                 if file_identifiers[2] in datatypes and file_identifiers[0] == source and file_identifiers[1] == cancer:
                     name = indexList[1]
                     file_names.append(name)
-        file_name = file_name[0].strip()
+        file_name = file_names[0].strip()
     return file_name
 
 
