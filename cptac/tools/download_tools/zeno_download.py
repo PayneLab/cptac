@@ -18,7 +18,7 @@ STATIC_DOI = '10.5281/zenodo.7897498'
 INDEX_FILE_NAME = 'all_index.txt'
 DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data/")
 
-def zeno_download(cancer, source, datatype):
+def zeno_download(cancer, source, datatypes):
     """
     Downloads data files for a specific cancer, source, and datatype from Zenodo
 
@@ -26,18 +26,21 @@ def zeno_download(cancer, source, datatype):
     :param source: The data source (e.g. 'harmonized').
     :param datatype: The datatype of the files to download (e.g. 'clinical')
     """
+<<<<<<< HEAD
     datatype = str(datatype) # Convert datatype to string
 
     if not cancer or not source or not datatype:
+=======
+    if not cancer or not source or not datatypes:
+>>>>>>> b687c45db45e40211ffe755efacb7602e84815b5
         raise ValueError("Cancer, source, and datatypes must be provided.")
     
     index_path = download_index_file_if_needed()
 
-    file_urls = get_file_urls(cancer, source, datatype, index_path)
-    print(file_urls)
+    file_urls = get_file_urls(cancer, source, datatypes, index_path)
 
     if not file_urls:
-        raise FileNotFoundError(f"No matching files found for source='{source}', cancer='{cancer}', datatype='{datatype}'")
+        raise FileNotFoundError(f"No matching files found for source='{source}', cancer='{cancer}', datatype='{datatypes}'")
 
     output_folder = os.path.join(DATA_DIR, f"data_{source}_{cancer}")
 
@@ -85,7 +88,7 @@ def get_index_file_url():
 
     return None
 
-def get_file_urls(cancer, source, datatype, index_path):
+def get_file_urls(cancer, source, datatypes, index_path):
     """
     Gets the URLs of the files that match the given cancer, source, and datatypes
 
@@ -102,7 +105,7 @@ def get_file_urls(cancer, source, datatype, index_path):
             columns = line.split('\t')
             identifiers = columns[0].split('_')
 
-            if identifiers[0] == source and identifiers[1] == cancer and identifiers[2] == datatype:
+            if identifiers[0] == source and identifiers[1] == cancer and identifiers[2] in datatypes:
                 file_urls.append(columns[1].strip())
 
     return file_urls
