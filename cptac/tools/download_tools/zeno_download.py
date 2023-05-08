@@ -7,7 +7,7 @@ STATIC_DOI = '10.5281/zenodo.7897498'
 INDEX_FILE_NAME = 'all_index.txt'
 DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data/")
 
-def download_data(cancer, source, datatype):
+def zeno_download(cancer, source, datatype):
     """
     Downloads data files for a specific cancer, source, and datatype from Zenodo
 
@@ -15,15 +15,21 @@ def download_data(cancer, source, datatype):
     :param source: The data source (e.g. 'harmonized').
     :param datatype: The datatype of the files to download (e.g. 'clinical')
     """
+    if not cancer or not source or not datatype:
+        raise ValueError("Cancer, source, and datatypes must be provided.")
+    
     index_path = download_index_file_if_needed()
 
     file_urls = get_file_urls(cancer, source, datatype, index_path)
+
+    if not file_urls:
+        raise FileNotFoundError(f"No matching files found for cancer='{cancer}', source='{source}', datatype='{datatype}'")
 
     output_folder = os.path.join(DATA_DIR, f"data_{source}_{cancer}")
 
     for url in file_urls:
         download_file(url, output_folder)
-        
+
     return True
 
 def download_index_file_if_needed():
