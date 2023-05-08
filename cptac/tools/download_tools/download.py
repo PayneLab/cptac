@@ -10,7 +10,7 @@
 #   limitations under the License.
 
 import cptac
-from cptac.tools.download_tools.box_download import box_download
+from cptac.tools.download_tools.zeno_download import zeno_download
 from cptac.exceptions import DataSourceNotFoundError, InvalidParameterError
 
 
@@ -41,14 +41,14 @@ def download(sources, cancers='all', version="latest", redownload=False):
     for case in special_cases:
         source = case
         datatypes = sources[case]
-        if not box_download(cancer='brca', source=source, datatypes=datatypes, version=version, redownload=redownload):
+        if not zeno_download(cancer='brca', source=source, datatypes=datatypes):
             success = False
         del sources[case]
 
     # iterate through cancers and sources and download corresonding data files
     for cancer in cancers:
         for source, datatypes in sources.items():
-            if not box_download(cancer, source, datatypes, version=version, redownload=redownload):
+            if not zeno_download(cancer, source, datatypes):
                 success = False
 
     return success
