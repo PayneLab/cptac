@@ -21,7 +21,7 @@ CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
 
 # Function imports
 from cptac.tools.download_tools.download import download
-from cptac.tools.download_tools.box_download import download_text as _download_text
+from cptac.tools.download_tools.zeno_download import download_text as _download_text
 from cptac.exceptions import CptacError, CptacWarning, InvalidParameterError, NoInternetError, OldPackageVersionWarning
 
 # Dataset imports
