@@ -6,6 +6,7 @@ import requests
 import warnings
 import zenodopy
 import wget
+import requests
 
 import cptac
 from cptac.exceptions import *
@@ -26,7 +27,7 @@ def zeno_download(cancer, source, datatype):
     :param datatype: The datatype of the files to download (e.g. 'clinical')
     """
     datatype = str(datatype) # Convert datatype to string
-    
+
     if not cancer or not source or not datatype:
         raise ValueError("Cancer, source, and datatypes must be provided.")
     
