@@ -14,7 +14,7 @@ from cptac.exceptions import *
 # Some websites don't like requests from sources without a user agent. Let's preempt that issue.
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
 HEADERS = {'User-Agent': USER_AGENT}
-DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data/")
+DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data")
 INDEX_FILE_NAME = 'all_index.txt'
 INDEX_FILE_PATH = os.path.join(DATA_DIR, INDEX_FILE_NAME)
 STATIC_DOI = '10.5281/zenodo.7897498'
