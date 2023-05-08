@@ -10,6 +10,8 @@ import wget
 import cptac
 from cptac.exceptions import *
 
+# Some websites don't like requests from sources without a user agent. Let's preempt that issue.
+USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
 HEADERS = {'User-Agent': USER_AGENT}
 STATIC_DOI = '10.5281/zenodo.7897498'
 INDEX_FILE_NAME = 'all_index.txt'
