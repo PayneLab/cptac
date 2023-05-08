@@ -1,7 +1,14 @@
+import getpass
+import glob
 import os
+import packaging.version
+import requests
+import warnings
 import zenodopy
 import wget
+
 import cptac
+from cptac.exceptions import *
 
 STATIC_DOI = '10.5281/zenodo.7897498'
 INDEX_FILE_NAME = 'all_index.txt'
