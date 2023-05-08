@@ -25,8 +25,6 @@ cptac is freely distributed through the Python Package Index (PyPI). Anyone can 
 
 Currently (August 2022), the package contains 10 datasets:
 
-
-
 *   Breast cancer (BRCA)
 *   Clear cell renal cell carcinoma (CCRCC)
 *   Colon cancer (COAD)
