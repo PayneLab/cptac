@@ -23,6 +23,8 @@ def download_data(cancer, source, datatype):
 
     for url in file_urls:
         download_file(url, output_folder)
+        
+    return True
 
 def download_index_file_if_needed():
     """
