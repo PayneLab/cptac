@@ -25,6 +25,8 @@ def zeno_download(cancer, source, datatype):
     :param source: The data source (e.g. 'harmonized').
     :param datatype: The datatype of the files to download (e.g. 'clinical')
     """
+    datatype = str(datatype) # Convert datatype to string
+    
     if not cancer or not source or not datatype:
         raise ValueError("Cancer, source, and datatypes must be provided.")
     
