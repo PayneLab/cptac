@@ -30,7 +30,7 @@ def zeno_download(cancer, source, datatype):
     
     index_path = download_index_file_if_needed()
 
-    file_urls = get_file_urls(source, cancer, datatype, index_path)
+    file_urls = get_file_urls(cancer, source, datatype, index_path)
 
     if not file_urls:
         raise FileNotFoundError(f"No matching files found for source='{source}', cancer='{cancer}', datatype='{datatype}'")
