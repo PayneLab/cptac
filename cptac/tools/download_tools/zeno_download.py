@@ -34,6 +34,9 @@ def zeno_download(cancer, source, datatype):
 
     output_folder = os.path.join(DATA_DIR, f"data_{source}_{cancer}")
 
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
     for url in file_urls:
         download_file(url, output_folder)
 
@@ -48,6 +51,8 @@ def download_index_file_if_needed():
     index_path = os.path.join(DATA_DIR, INDEX_FILE_NAME)
     if not os.path.exists(index_path):
         index_url = get_index_file_url()
+        if not index_url:
+            raise FileNotFoundError(f"Index file '{INDEX_FILE_NAME}' not found in Zenodo record (DOI: {STATIC_DOI})")
         wget.download(index_url, index_path)
 
     return index_path
@@ -62,11 +67,16 @@ def get_index_file_url():
     zenodo = zenodopy.Client()
     record = zenodo.get_urls_from_doi(STATIC_DOI)
 
+    if not record:
+        return None
+
     for url in record:
         if url.endswith(INDEX_FILE_NAME):
             return url
 
     raise FileNotFoundError(f"Index file '{INDEX_FILE_NAME}' not found in Zenodo record (DOI: {STATIC_DOI})")
+
+    return None
 
 def get_file_urls(cancer, source, datatype, index_path):
     """
@@ -97,6 +107,9 @@ def download_file(url, output_folder):
     :param url: The URL of the file to download
     :param output_folder: The folder where the file should be downloaded
     """
+    if not url or not output_folder:
+        raise ValueError("URL and output folder must be provided.")
+    
     file_name = url.split('/')[-1]
     output_path = os.path.join(output_folder, file_name)
 
