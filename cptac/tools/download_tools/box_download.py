@@ -8,6 +8,13 @@ INDEX_FILE_NAME = 'all_index.txt'
 DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data/")
 
 def download_data(cancer, source, datatype):
+    """
+    Downloads data files for a specific cancer, source, and datatype from Zenodo
+
+    :param cancer: The cancer type (e.g. 'brca').
+    :param source: The data source (e.g. 'harmonized').
+    :param datatype: The datatype of the files to download (e.g. 'clinical')
+    """
     index_path = download_index_file_if_needed()
 
     file_urls = get_file_urls(cancer, source, datatype, index_path)
@@ -18,6 +25,11 @@ def download_data(cancer, source, datatype):
         download_file(url, output_folder)
 
 def download_index_file_if_needed():
+    """
+    Downloads the index file if it does not already exist in the data directory
+    
+    :return: The path to the index file
+    """
     index_path = os.path.join(DATA_DIR, INDEX_FILE_NAME)
     if not os.path.exists(index_path):
         index_url = get_index_file_url()
@@ -26,6 +38,12 @@ def download_index_file_if_needed():
     return index_path
 
 def get_index_file_url():
+    """
+    Gets the URL of the index file from the Zenodo record.
+
+    :return: The URL of the index file.
+    :raise FileNotFoundError: If the index file is not found in the Zenodo record
+    """
     zenodo = zenodopy.Client()
     record = zenodo.get_urls_from_doi(STATIC_DOI)
 
@@ -36,6 +54,15 @@ def get_index_file_url():
     raise FileNotFoundError(f"Index file '{INDEX_FILE_NAME}' not found in Zenodo record (DOI: {STATIC_DOI})")
 
 def get_file_urls(cancer, source, datatype, index_path):
+    """
+    Gets the URLs of the files that match the given cancer, source, and datatypes
+
+    :param cancer: The cancer type (e.g. 'brca)
+    :param source: The data source (e.g. 'harmonized)
+    :param datatype: The datatype of the files to download (e.g. 'clinical')
+    :param index_path: The path to the index file.
+    :return: A list of file URLs that match the given parameters
+    """
     file_urls = []
 
     with open(index_path, 'r') as input:
@@ -49,9 +76,14 @@ def get_file_urls(cancer, source, datatype, index_path):
     return file_urls
 
 def download_file(url, output_folder):
+    """
+    Downloads a file from the given URL to the specified output folder if it isn't already downloaded
+
+    :param url: The URL of the file to download
+    :param output_folder: The folder where the file should be downloaded
+    """
     file_name = url.split('/')[-1]
     output_path = os.path.join(output_folder, file_name)
 
     if not os.path.exists(output_path):
         wget.download(url, output_path)
-
