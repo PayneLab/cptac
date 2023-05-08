@@ -14,9 +14,10 @@ from cptac.exceptions import *
 # Some websites don't like requests from sources without a user agent. Let's preempt that issue.
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
 HEADERS = {'User-Agent': USER_AGENT}
-STATIC_DOI = '10.5281/zenodo.7897498'
-INDEX_FILE_NAME = 'all_index.txt'
 DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data/")
+INDEX_FILE_NAME = 'all_index.txt'
+INDEX_FILE_PATH = os.path.join(DATA_DIR, INDEX_FILE_NAME)
+STATIC_DOI = '10.5281/zenodo.7897498'
 
 def zeno_download(cancer, source, datatypes):
     """
@@ -31,9 +32,9 @@ def zeno_download(cancer, source, datatypes):
     
     index_path = download_index_file_if_needed()
 
-    file_urls = get_file_urls(cancer, source, datatypes, index_path)
+    file_names = get_file_names(cancer, source, datatypes, index_path)
 
-    if not file_urls:
+    if not file_names:
         raise FileNotFoundError(f"No matching files found for source='{source}', cancer='{cancer}', datatype='{datatypes}'")
 
     output_folder = os.path.join(DATA_DIR, f"data_{source}_{cancer}")
@@ -41,8 +42,16 @@ def zeno_download(cancer, source, datatypes):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
-    for url in file_urls:
-        download_file(url, output_folder)
+    zenodo = zenodopy.Client()
+    record = zenodo.get_urls_from_doi(STATIC_DOI)
+
+    for file_name in file_names:
+        destination_path = os.path.join(output_folder, file_name)
+        if not os.path.exists(destination_path):
+            for url in record:
+                print(f"Downloading {file_name} to {destination_path}...")
+                wget.download(url, out=destination_path)
+                break
 
     return True
 
@@ -82,7 +91,7 @@ def get_index_file_url():
 
     return None
 
-def get_file_urls(cancer, source, datatypes, index_path):
+def get_file_names(cancer, source, datatypes, index_path):
     """
     Gets the URLs of the files that match the given cancer, source, and datatypes
 
@@ -92,34 +101,17 @@ def get_file_urls(cancer, source, datatypes, index_path):
     :param index_path: The path to the index file.
     :return: A list of file URLs that match the given parameters
     """
-    file_urls = []
+    file_names = []
 
-    with open(index_path, 'r') as input:
-        for line in input:
-            columns = line.split('\t')
-            identifiers = columns[0].split('_')
+    with open(index_path, 'r') as f:
+        for line in f:
+            tokens = line.strip().split('\t')
+            file_identifiers = tokens[0].split('_')
 
-            if identifiers[0] == source and identifiers[1] == cancer and identifiers[2] in datatypes:
-                file_urls.append(columns[1].strip())
-
-    return file_urls
-
-def download_file(url, output_folder):
-    """
-    Downloads a file from the given URL to the specified output folder if it isn't already downloaded
-
-    :param url: The URL of the file to download
-    :param output_folder: The folder where the file should be downloaded
-    """
-    if not url or not output_folder:
-        raise ValueError("URL and output folder must be provided.")
-    
-    file_name = url.split('/')[-1]
-    output_path = os.path.join(output_folder, file_name)
-
-    if not os.path.exists(output_path):
-        wget.download(url, output_path)
-
+            if file_identifiers[0] == source and file_identifiers[1] == cancer and file_identifiers[2] in datatypes:
+                file_name = tokens[1]
+                file_names.append(file_name)
+    return file_names
 
 def download_text(url):
     """Download text from a direct download url for a text file.
