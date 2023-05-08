@@ -136,3 +136,29 @@ def download_text(url):
 
     text = response.text.strip()
     return text
+
+def parse_tsv_dict(path):
+    """Read in a dictionary from the given two column tsv file.
+
+    Parameters:
+    path (str): The path to the two column tsv file.
+
+    Returns:
+    dict: The tsv file read into a dictionary.
+    """
+    if not os.path.isfile(path): 
+        raise MissingFileError(f"Missing file {path}. Please update the cptac package to restore.")
+
+    with open(path, 'r') as data_file:
+        lines = data_file.readlines()
+
+    data_dict = {}
+    for line in lines:                         
+        if len(line.strip()) == 0:
+            continue
+        line_list = line.strip().split("\t")
+        key = line_list[0]
+        value = line_list[1]
+        data_dict[key] = value
+
+    return data_dict
