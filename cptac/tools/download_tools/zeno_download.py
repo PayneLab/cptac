@@ -31,7 +31,7 @@ def zeno_download(cancer, source, datatypes):
 
     if not cancer or not source or not datatypes:
         raise ValueError("Cancer, source, and datatypes must be provided.")
-    
+
     # Download the index file if it's not already present
     index_path = download_index_file_if_needed()
 
@@ -39,22 +39,32 @@ def zeno_download(cancer, source, datatypes):
     file_names = get_file_names(cancer, source, datatypes, index_path)
 
     if not file_names:
-        raise FileNotFoundError(f"No matching files found for source='{source}', cancer='{cancer}', datatype='{datatypes}'")
+        raise FileNotFoundError(
+            f"No matching files found for source='{source}', cancer='{cancer}', datatype='{datatypes}'")
 
     # Create the output directory if it doesn't exist
     output_folder = os.path.join(DATA_DIR, f"data_{source}_{cancer}")
 
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-
-    # Initialize the Zenodo client
-    zenodo = zenodopy.Client(token = ZENO_TOKEN)
+    zenodo = zenodopy.Client()
+    record = zenodo.get_urls_from_doi(STATIC_DOI)
 
     # Download each file in file_names
     for file_name in file_names:
-        destination_path = os.path.join(output_folder, file_name)
-        zenodo.download_file(file_name, destination_path)
-        break
+        url_file_name = urllib.parse.quote(file_name)
+        for url in record:
+            if url.endswith(url_file_name):
+                destination_path = os.path.join(output_folder, file_name)
+                try:
+                    response = requests.get(url, headers=HEADERS, allow_redirects=True)
+                    response.raise_for_status()
+                    with open(destination_path, "wb") as f:
+                        f.write(response.content)
+                except requests.exceptions.HTTPError as e:
+                    if e.response.status_code == 404:
+                        print(f"File not found on server: {file_name}")
+                    else:
+                        raise
+                break
 
     return True
 
