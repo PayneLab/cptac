@@ -52,20 +52,8 @@ def zeno_download(cancer, source, datatypes):
     # Download each file in file_names
     for file_name in file_names:
         destination_path = os.path.join(output_folder, file_name)
-        if not os.path.exists(destination_path):
-            for url in record:
-                temp_name = url.split('/')[-1]
-                words1 = file_name.split("_")
-                words2 = temp_name.split("_")
-                are_first_two_words_equal = True
-                for i in range (2):
-                    if words1[i] != words2[i]:
-                        are_first_two_words_equal = False
-                        break
-                if are_first_two_words_equal:
-                    print(f"Downloading {file_name} to {destination_path}...")
-                    wget.download(url, out=destination_path)
-                    break
+        zenodo.download_file(zenodo, file_name, destination_path)
+        break
 
     return True
 
