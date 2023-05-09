@@ -7,7 +7,7 @@ import warnings
 import zenodopy
 import wget
 import requests
-import urllib.prase
+import urllib.parse
 
 import cptac
 from cptac.exceptions import *
