@@ -96,7 +96,6 @@ class WashuUcec(Source):
             # Combine the two transcriptomics dataframes
             rna_tumor = self._helper_tables.get("transcriptomics_tumor")
             rna_normal = self._helper_tables.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
-            print(rna_tumor, rna_normal)
             rna_combined = pd.concat([rna_tumor, rna_normal])
             # save df in self._data
             self.save_df(df_type, rna_combined)
