@@ -36,9 +36,6 @@ from cptac.cancers.ov import Ov
 from cptac.cancers.pdac import Pdac
 from cptac.cancers.ucec import Ucec
 
-# auth import
-from cptac.tools.auth_tools.box_auth import BoxAuth
-box_auth = BoxAuth()
 
 #### This code generates the __OPTIONS__ dataframe which shows all possible cancer, source, datatype combinations
 def _load_options():

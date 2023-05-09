@@ -18,6 +18,7 @@ DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data")
 INDEX_FILE_NAME = 'all_index.txt'
 INDEX_FILE_PATH = os.path.join(DATA_DIR, INDEX_FILE_NAME)
 STATIC_DOI = '10.5281/zenodo.7897498'
+ZENO_TOKEN = 'GijLB8joEFbeVEBQsjtJ8rH1uXMK8p5REgkNTfgHCMSR5LDyisZiZx1BRPQT'
 
 def zeno_download(cancer, source, datatypes):
     """
@@ -27,6 +28,7 @@ def zeno_download(cancer, source, datatypes):
     :param source: The data source (e.g. 'harmonized').
     :param datatype: The datatype of the files to download (e.g. 'clinical')
     """
+
     if not cancer or not source or not datatypes:
         raise ValueError("Cancer, source, and datatypes must be provided.")
     
@@ -46,8 +48,7 @@ def zeno_download(cancer, source, datatypes):
         os.makedirs(output_folder)
 
     # Initialize the Zenodo client
-    zenodo = zenodopy.Client()
-    record = zenodo.get_urls_from_doi(STATIC_DOI)
+    zenodo = zenodopy.Client(token = ZENO_TOKEN)
 
     # Download each file in file_names
     for file_name in file_names:
