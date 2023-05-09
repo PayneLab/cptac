@@ -38,6 +38,7 @@ def zeno_download(cancer, source, datatypes):
 
     # Get the file names matching the cancer, source, and datatypes
     file_names = get_file_names(cancer, source, datatypes, index_path)
+    file_name = file_names[0]
 
     if not file_names:
         raise FileNotFoundError(
@@ -50,22 +51,21 @@ def zeno_download(cancer, source, datatypes):
     record = zenodo.get_urls_from_doi(STATIC_DOI)
 
     # Download each file in file_names
-    for file_name in file_names:
-        url_file_name = urllib.parse.quote(file_name)
-        for url in record:
-            if url.endswith(url_file_name):
-                destination_path = os.path.join(output_folder, file_name)
-                try:
-                    response = requests.get(url, headers=HEADERS, allow_redirects=True)
-                    response.raise_for_status()
-                    with open(destination_path, "wb") as f:
-                        f.write(response.content)
-                except requests.exceptions.HTTPError as e:
-                    if e.response.status_code == 404:
-                        print(f"File not found on server: {file_name}")
-                    else:
-                        raise
-                break
+    url_file_name = urllib.parse.quote(file_name)
+    for url in record:
+        if url.endswith(url_file_name):
+            destination_path = os.path.join(output_folder, file_name)
+            try:
+                response = requests.get(url, headers=HEADERS, allow_redirects=True)
+                response.raise_for_status()
+                with open(destination_path, "wb") as f:
+                    f.write(response.content)
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 404:
+                    print(f"File not found on server: {file_name}")
+                else:
+                    raise
+            break
 
     return True
 
@@ -171,3 +171,5 @@ def parse_tsv_dict(path):
         data_dict[key] = value
 
     return data_dict
+
+zeno_download("ov", "umich", "proteomics")
