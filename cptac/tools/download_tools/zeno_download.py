@@ -53,7 +53,7 @@ def zeno_download(cancer, source, datatypes):
     # Download each file in file_names
     for file_name in file_names:
         destination_path = os.path.join(output_folder, file_name)
-        zenodo.download_file(zenodo, file_name, destination_path)
+        zenodo.download_file(file_name, destination_path)
         break
 
     return True
