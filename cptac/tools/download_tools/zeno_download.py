@@ -2,11 +2,10 @@ import getpass
 import glob
 import os
 import packaging.version
-import requests
+#import requests
 import warnings
-import zenodopy
-import wget
-import requests
+#import zenodopy
+#import wget
 import urllib.parse
 
 import cptac
@@ -16,6 +15,7 @@ from cptac.exceptions import *
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
 HEADERS = {'User-Agent': USER_AGENT}
 DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data")
+print(cptac.CPTAC_BASE_DIR)
 INDEX_FILE_NAME = 'all_index.txt'
 INDEX_FILE_PATH = os.path.join(DATA_DIR, INDEX_FILE_NAME)
 STATIC_DOI = '10.5281/zenodo.7897498'
@@ -171,5 +171,3 @@ def parse_tsv_dict(path):
         data_dict[key] = value
 
     return data_dict
-
-zeno_download("ov", "umich", "proteomics")
