@@ -193,10 +193,4 @@ def download_text(url):
 #         value = line_list[1]
 #         data_dict[key] = value
 
-<<<<<<< HEAD
-    return data_dict
-=======
-#     return data_dict
-
-# zeno_download("ov", "umich", "proteomics")
->>>>>>> 4c3e2d7ef3fd359a44d9c6fff7b7695d93f0e874
+    #return data_dict
