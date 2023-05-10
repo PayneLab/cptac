@@ -2,7 +2,7 @@ import getpass
 import glob
 import os
 import packaging.version
-#import requests
+import requests
 import warnings
 #import zenodopy
 #import wget
