@@ -37,60 +37,57 @@ def zeno_download(cancer:str, source:str, datatypes:str) -> bool:
 
     # FIXME: Change datatypes from list of strings to single string
     dtype = datatypes[0]
-    print('>>DEBUG<<')
 
     try:
         bucket = get_bucket()
-        print("bucket =", bucket)
         # Get file name from index file
         if not os.path.exists(INDEX_FILE_PATH):
-            with open(INDEX_FILE_PATH, 'w') as index:
-                index.write(requests.get(f"{bucket}/{INDEX_FILE_NAME}", headers=AUTH_HEADER).text)
+                get_data(f"{bucket}/{INDEX_FILE_NAME}", INDEX_FILE_NAME)
         with open(INDEX_FILE_PATH) as index:
             files = dict([line.split('\t') for line in index])
-        file_name = files[f"{source}_{cancer}_{dtype}"]
-        print("file_name =", file_name)
+        file_name = files[f"{source}_{cancer}_{dtype}"].strip('\n')
 
         #Download requested dataframe
-        output_dir = DATA_DIR + f"/data_{source}_{cancer}/{source}_{cancer}_v1.0" # FIXME: Version number will not be hard-coded in
+        output_dir = DATA_DIR + f"/data_{source}_{cancer}" # FIXME: Requires version number
         os.makedirs(output_dir, exist_ok=True)
         output_file = file_name[len(f"{source}_{cancer}_"):]
-        file_url = urllib.parse.quote(f"{bucket}/{file_name})")
-        print("outputting to", f"{output_dir}/{output_file}")
-        print("downloading", file_url)
         with open(f"{output_dir}/{output_file}", 'w') as output_file:
-            output_file.write(requests.get(f"{bucket}/{file_url}", headers=AUTH_HEADER).text)
+            output_file.write(requests.get(f"{bucket}/{file_name}", headers=AUTH_HEADER).text)
+
         return True
+
     except Exception as e:
-        print('>>END DEBUG<<\n\n'+'-'*60+'\n')
-        # raise HttpResponseError(f"Failed to download data file for {source} {cancer} {dtype}") from e
-        raise e
+        raise HttpResponseError(f"Failed to download data file for {source} {cancer} {dtype}") from e
 
 
 def get_bucket() -> str:
     'Gets the bucket in zenodo that houses all data files.'
-    print("In get_bucket")
     projects = requests.get("https://zenodo.org/api/deposit/depositions", headers=AUTH_HEADER).json()
     for project in projects:
-        print(project.keys())
-        print()
         if project['conceptrecid'] == RECORD_ID:
             return project['links']['bucket']
     raise CptacDevError("Failed to get bucket. Perhaps check that the token is correct?")
 
-def get_file_from_index(cancer:str, source:str, dtype:str) -> str:
+def get_data(url: str, subfolder: str = '') -> str:
     """
-    Gets the correct file name from the index file.
-
-    :param cancer: The cancer type (e.g. 'brca').
-    :param source: The data source (e.g. 'harmonized').
-    :param datatype: The datatype of the files to download (e.g. 'clinical').
-
-    :return: The name of the file associated with the given cancer, source, and datatype.
+    Downloads the data to a specific subfolder within CPTAC_BASE_DIR/data. 
+    If the subfolder does not exist, it gets created.
+    Simple wrapper for requests.get().
+    
+    :params url: The url from which to download the data.
+    :params subfolder: The location in which to store the data.
+    
+    :return: The path to the new file; identical to `subfolder`.
     """
-
-
-
+    if not os.path.exists(os.path.split(subfolder)[0]):
+        os.makedirs(os.path.split(subfolder[0]), exist_ok=True)
+    response = requests.get(url, headers=AUTH_HEADER)
+    if not response.status_code == 200:
+        raise HttpResponseError(f"Failed to download file {url}")
+    with open(os.path.join(DATA_DIR, subfolder), 'w') as data_file: 
+        data_file.write(response.text)
+    return subfolder
+    
 
 # def download_index_file_if_needed():
 #     """
