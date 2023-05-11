@@ -6,6 +6,7 @@ import requests
 import warnings
 import zenodopy
 import wget
+import requests
 import urllib.parse
 import pandas as pd
 
@@ -41,16 +42,10 @@ def zeno_download(cancer:str, source:str, datatypes:str) -> bool:
         bucket = get_bucket()
         # Get file name from index file
         if not os.path.exists(INDEX_FILE_PATH):
-                get_data(f"{bucket}/{INDEX_FILE_NAME}", INDEX_FILE_NAME)
+            get_data(f"{bucket}/{INDEX_FILE_NAME}", INDEX_FILE_NAME)
         with open(INDEX_FILE_PATH) as index:
-<<<<<<< HEAD
             files = dict([line.split('\t') for line in index])
         file_name = files[f"{source}_{cancer}_{dtype}"].strip('\n')
-=======
-            files = dict([line.rstrip().split('\t') for line in index])
-        file_name = files[f"{source}_{cancer}_{dtype}"]
-        print("file_name =", file_name)
->>>>>>> refs/remotes/origin/develop
 
         #Download requested dataframe
         output_dir = DATA_DIR + f"/data_{source}_{cancer}" # FIXME: Requires version number
@@ -195,4 +190,6 @@ def download_text(url):
 #         value = line_list[1]
 #         data_dict[key] = value
 
-    #return data_dict
+#     return data_dict
+
+# zeno_download("ov", "umich", "proteomics")
