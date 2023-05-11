@@ -51,13 +51,16 @@ def zeno_download(cancer:str, source:str, datatypes:str) -> bool:
         output_dir = DATA_DIR + f"/data_{source}_{cancer}" # FIXME: Requires version number
         os.makedirs(output_dir, exist_ok=True)
         output_file = file_name[len(f"{source}_{cancer}_"):]
-        with open(f"{output_dir}/{output_file}", 'w') as output_file:
-            output_file.write(requests.get(f"{bucket}/{file_name}", headers=AUTH_HEADER).text)
+        print("Downloading", file_name)
+        print("(We'll have a download bar soon lol)")
+        # with open(f"{output_dir}/{output_file}", 'w') as output_file:
+            # output_file.write(requests.get(f"{bucket}/{file_name}", headers=AUTH_HEADER).text)
+        get_data(f"{bucket}/{file_name}", f"{output_dir}/{output_file}")
 
         return True
 
     except Exception as e:
-        raise HttpResponseError(f"Failed to download data file for {source} {cancer} {dtype}") from e
+        raise HttpResponseError(f"Failed to download data file for {source} {cancer} {dtype} with error:\n{e}") from e
 
 
 def get_bucket() -> str:
@@ -82,7 +85,6 @@ def get_data(url: str, subfolder: str = '') -> str:
     if not os.path.exists(os.path.split(subfolder)[0]):
         os.makedirs(os.path.split(subfolder[0]), exist_ok=True)
     response = requests.get(url, headers=AUTH_HEADER)
-    print(response.status_code)
     if not response.status_code == 200:
         raise HttpResponseError(f"Failed to download file {url}")
     with open(os.path.join(DATA_DIR, subfolder), 'w') as data_file: 

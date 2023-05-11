@@ -158,9 +158,8 @@ class UmichBrca(Source):
             file_path = self.locate_files(df_type)
 
             df = pd.read_csv(file_path, sep = "\t") 
-            print(df)
-            df['Database_ID'] = df.index.apply(lambda x: x.split('|')[0]) # get protein identifier 
-            df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # get protein name 
+            df['Database_ID'] = df["Index"].str.split('|').str[0] # get protein identifier 
+            df['Name'] = df["Index"].str.split('|').str[6] # get protein name 
             df = df.set_index(['Name', 'Database_ID']) # set multiindex
             df = df.drop(columns = ['Index', 'MaxPepProb', 'NumberPSM', 'Gene']) # drop unnecessary  columns
             df = df.transpose()
