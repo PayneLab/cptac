@@ -9,6 +9,7 @@ import wget
 import requests
 import urllib.parse
 import pandas as pd
+from tqdm import tqdm
 
 import cptac
 from cptac.exceptions import *
@@ -51,10 +52,6 @@ def zeno_download(cancer:str, source:str, datatypes:str) -> bool:
         output_dir = DATA_DIR + f"/data_{source}_{cancer}" # FIXME: Requires version number
         os.makedirs(output_dir, exist_ok=True)
         output_file = file_name[len(f"{source}_{cancer}_"):]
-        print("Downloading", file_name)
-        print("(We'll have a download bar soon lol)")
-        # with open(f"{output_dir}/{output_file}", 'w') as output_file:
-            # output_file.write(requests.get(f"{bucket}/{file_name}", headers=AUTH_HEADER).text)
         get_data(f"{bucket}/{file_name}", f"{output_dir}/{output_file}")
 
         return True
@@ -84,12 +81,24 @@ def get_data(url: str, subfolder: str = '') -> str:
     """
     if not os.path.exists(os.path.split(subfolder)[0]):
         os.makedirs(os.path.split(subfolder[0]), exist_ok=True)
-    response = requests.get(url, headers=AUTH_HEADER)
-    if not response.status_code == 200:
-        raise HttpResponseError(f"Failed to download file {url}")
-    with open(os.path.join(DATA_DIR, subfolder), 'w') as data_file: 
-        data_file.write(response.text)
-    return subfolder
+    try:
+        response = requests.get(url, headers=AUTH_HEADER, stream=True)
+        response.raise_for_status()
+        file_size = int(response.headers['content-length'])
+        with open(os.path.join(DATA_DIR, subfolder), 'wb') as data_file: 
+            for chunk in tqdm(
+                response.iter_content(),
+                desc=f"Downloading {os.path.split(subfolder)[1]}",
+                total = file_size,
+                unit='B',
+                unit_scale=True,
+                unit_divisor=1024,
+            ):
+                if chunk:
+                    data_file.write(chunk)
+        return subfolder
+    except: # Yes, even keyboard interrupts
+        os.remove(subfolder)
     
 
 # def download_index_file_if_needed():
