@@ -82,6 +82,7 @@ def get_data(url: str, subfolder: str = '') -> str:
     if not os.path.exists(os.path.split(subfolder)[0]):
         os.makedirs(os.path.split(subfolder[0]), exist_ok=True)
     response = requests.get(url, headers=AUTH_HEADER)
+    print(response.status_code)
     if not response.status_code == 200:
         raise HttpResponseError(f"Failed to download file {url}")
     with open(os.path.join(DATA_DIR, subfolder), 'w') as data_file: 
