@@ -49,10 +49,14 @@ def zeno_download(cancer: str, source: str, datatypes: str) -> bool:
             get_data(f"{bucket}/{INDEX_FILE_NAME}", INDEX_FILE_NAME)
         with open(INDEX_FILE_PATH) as index:
             files = dict([line.split('\t') for line in index])
-        file_name = files[f"{source}_{cancer}_{dtype}"].strip('\n')
 
         # Download requested dataframe
-        output_dir = DATA_DIR + f"/data_{source}_{cancer}"  # FIXME: Requires version number
+        if source in ['harmonized', 'mssm']:
+            output_dir = DATA_DIR + f"/data_{source}"
+            file_name = files[f"{source}_{dtype}"].strip('\n')
+        else:
+            output_dir = DATA_DIR + f"/data_{source}_{cancer}"  # FIXME: Requires version number
+            file_name = files[f"{source}_{cancer}_{dtype}"].strip('\n')
         os.makedirs(output_dir, exist_ok=True)
         output_file = file_name[len(f"{source}_{cancer}_"):]
         get_data(f"{bucket}/{file_name}", f"{output_dir}/{output_file}")
