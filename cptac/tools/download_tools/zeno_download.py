@@ -10,6 +10,8 @@ import requests
 import urllib.parse
 import pandas as pd
 from tqdm import tqdm
+import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
 
 import cptac
 from cptac.exceptions import *
@@ -25,7 +27,8 @@ RECORD_ID = STATIC_DOI.split('.')[-1]
 ZENO_TOKEN = 'GijLB8joEFbeVEBQsjtJ8rH1uXMK8p5REgkNTfgHCMSR5LDyisZiZx1BRPQT'
 AUTH_HEADER = {'Authorization': 'Bearer ' + ZENO_TOKEN}
 
-def zeno_download(cancer:str, source:str, datatypes:str) -> bool:
+
+def zeno_download(cancer: str, source: str, datatypes: str) -> bool:
     """
     Downloads data files for a specific cancer, source, and datatype from Zenodo
 
@@ -48,8 +51,8 @@ def zeno_download(cancer:str, source:str, datatypes:str) -> bool:
             files = dict([line.split('\t') for line in index])
         file_name = files[f"{source}_{cancer}_{dtype}"].strip('\n')
 
-        #Download requested dataframe
-        output_dir = DATA_DIR + f"/data_{source}_{cancer}" # FIXME: Requires version number
+        # Download requested dataframe
+        output_dir = DATA_DIR + f"/data_{source}_{cancer}"  # FIXME: Requires version number
         os.makedirs(output_dir, exist_ok=True)
         output_file = file_name[len(f"{source}_{cancer}_"):]
         get_data(f"{bucket}/{file_name}", f"{output_dir}/{output_file}")
@@ -68,43 +71,55 @@ def get_bucket() -> str:
             return project['links']['bucket']
     raise CptacDevError("Failed to get bucket. Perhaps check that the token is correct?")
 
-def get_data(url: str, subfolder: str = '') -> str:
-    """
-    Downloads the data to a specific subfolder within CPTAC_BASE_DIR/data. 
-    If the subfolder does not exist, it gets created.
-    Simple wrapper for requests.get().
-    
-    :params url: The url from which to download the data.
-    :params subfolder: The location in which to store the data.
-    
-    :return: The path to the new file; identical to `subfolder`.
-    """
+def download_chunk(url, start, end, file_path):
+    headers = {'Range': f'bytes={start}-{end}'}
+    headers.update(AUTH_HEADER)
+    response = requests.get(url, headers=headers, stream=True)
+    response.raise_for_status()
+
+    with open(file_path, 'rb+') as data_file:
+        data_file.seek(start)
+        data_file.write(response.content)
+
+def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
     if not os.path.exists(os.path.split(subfolder)[0]):
-        os.makedirs(os.path.split(subfolder[0]), exist_ok=True)
+        os.makedirs(os.path.split(subfolder)[0], exist_ok=True)
+    response = requests.head(url, headers=AUTH_HEADER)
+    response.raise_for_status()
+
+    file_size = int(response.headers['content-length'])
+    chunk_size = file_size // num_threads
+
+    # Create an empty file with the same size as the file to be downloaded
+    with open(os.path.join(DATA_DIR, subfolder), 'wb') as data_file:
+        data_file.truncate(file_size)
+
     try:
-        response = requests.get(url, headers=AUTH_HEADER, stream=True)
-        response.raise_for_status()
-        file_size = int(response.headers['content-length'])
-        with open(os.path.join(DATA_DIR, subfolder), 'wb') as data_file: 
-            for chunk in tqdm(
-                response.iter_content(),
-                desc=f"Downloading {os.path.split(subfolder)[1]}",
-                total = file_size,
-                unit='B',
-                unit_scale=True,
-                unit_divisor=1024,
-            ):
-                if chunk:
-                    data_file.write(chunk)
+        with ThreadPoolExecutor(max_workers=num_threads) as executor:
+            futures = []
+            for i in range(num_threads):
+                start = i * chunk_size
+                end = start + chunk_size - 1 if i != num_threads - 1 else file_size - 1
+                futures.append(executor.submit(download_chunk, url, start, end, os.path.join(DATA_DIR, subfolder)))
+
+            for future in tqdm(concurrent.futures.as_completed(futures),
+                               desc=f"Downloading {os.path.split(subfolder)[1]}",
+                               total=num_threads,
+                               unit='chunk'):
+                future.result()  # Raise any exception encountered during download
+
         return subfolder
-    except: # Yes, even keyboard interrupts
+
+    except:  # Yes, even keyboard interrupts
         os.remove(subfolder)
-    
+        raise
+
+
 
 # def download_index_file_if_needed():
 #     """
 #     Downloads the index file if it does not already exist in the data directory
-    
+
 #     :return: The path to the index file
 #     """
 #     index_path = os.path.join(DATA_DIR, INDEX_FILE_NAME)
@@ -168,12 +183,12 @@ def download_text(url):
     Returns:
     str: The downloaded text.
     """
-    
+
     try:
         response = requests.get(url, headers=HEADERS, allow_redirects=True)
-        response.raise_for_status() # Raises a requests HTTPError if the response code was unsuccessful
-    except requests.RequestException: # Parent class for all exceptions in the requests module
-        raise NoInternetError("Insufficient internet. Check your internet connection.") from None 
+        response.raise_for_status()  # Raises a requests HTTPError if the response code was unsuccessful
+    except requests.RequestException:  # Parent class for all exceptions in the requests module
+        raise NoInternetError("Insufficient internet. Check your internet connection.") from None
 
     text = response.text.strip()
     return text
@@ -187,14 +202,14 @@ def download_text(url):
 #     Returns:
 #     dict: The tsv file read into a dictionary.
 #     """
-#     if not os.path.isfile(path): 
+#     if not os.path.isfile(path):
 #         raise MissingFileError(f"Missing file {path}. Please update the cptac package to restore.")
 
 #     with open(path, 'r') as data_file:
 #         lines = data_file.readlines()
 
 #     data_dict = {}
-#     for line in lines:                         
+#     for line in lines:
 #         if len(line.strip()) == 0:
 #             continue
 #         line_list = line.strip().split("\t")
@@ -203,5 +218,3 @@ def download_text(url):
 #         data_dict[key] = value
 
 #     return data_dict
-
-# zeno_download("ov", "umich", "proteomics")
