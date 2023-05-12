@@ -54,11 +54,12 @@ def zeno_download(cancer: str, source: str, datatypes: str) -> bool:
         if source in ['harmonized', 'mssm']:
             output_dir = DATA_DIR + f"/data_{source}"
             file_name = files[f"{source}_{dtype}"].strip('\n')
+            output_file = file_name[len(f"{source}_"):]
         else:
             output_dir = DATA_DIR + f"/data_{source}_{cancer}"  # FIXME: Requires version number
             file_name = files[f"{source}_{cancer}_{dtype}"].strip('\n')
+            output_file = file_name[len(f"{source}_{cancer}_"):]
         os.makedirs(output_dir, exist_ok=True)
-        output_file = file_name[len(f"{source}_{cancer}_"):]
         get_data(f"{bucket}/{file_name}", f"{output_dir}/{output_file}")
 
         return True
