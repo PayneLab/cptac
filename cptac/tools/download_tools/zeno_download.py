@@ -8,6 +8,7 @@ import cptac
 from cptac.exceptions import *
 
 # Some websites don't like requests from sources without a user agent. Let's preempt that issue.
+# This variable sets a user agent to be included in the request headers.
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
 HEADERS = {'User-Agent': USER_AGENT}
 DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data")
@@ -30,8 +31,7 @@ def zeno_download(cancer: str, source: str, datatypes: str) -> bool:
     if not cancer or not source or not datatypes:
         raise InvalidParameterError("Cancer, source, and datatypes must be provided.")
 
-    # FIXME: Change datatypes from list of strings to single string
-    dtype = datatypes[0]
+    dtype = datatypes[0] # FIXME: Change datatypes from list of strings to single string
 
     try:
         bucket = get_bucket()
@@ -60,14 +60,27 @@ def zeno_download(cancer: str, source: str, datatypes: str) -> bool:
 
 
 def get_bucket() -> str:
-    'Gets the bucket in zenodo that houses all data files.'
+    """
+    Gets the bucket in Zenodo that houses all data files.
+
+    :return: The URL of the Zenodo bucket containing the data files.
+    """
     projects = requests.get("https://zenodo.org/api/deposit/depositions", headers=AUTH_HEADER).json()
     for project in projects:
         if project['conceptrecid'] == RECORD_ID:
             return project['links']['bucket']
     raise CptacDevError("Failed to get bucket. Perhaps check that the token is correct?")
 
+
 def download_chunk(url, start, end, file_path):
+    """
+    Downloads a chunk of a file and writes it to the specified file path.
+    
+    :param url: THE URL of the file to download.
+    :param start: The start byte of the chunk to download.
+    :param end: The end byte of the chunk to download.
+    :param file_path: The path to the file where the downloaded chunk should be written
+    """
     headers = {'Range': f'bytes={start}-{end}'}
     headers.update(AUTH_HEADER)
     response = requests.get(url, headers=headers, stream=True)
@@ -77,7 +90,16 @@ def download_chunk(url, start, end, file_path):
         data_file.seek(start)
         data_file.write(response.content)
 
+
 def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
+    """
+    Downloads a file using multithreading and saves it to the specified subfolder.
+
+    :param url: The URL of the file to download.
+    :param subfolder: The subfolder where the downloaded file should be saved.
+    :param num_threads: The number of threads to use for downloading the file (default is 4).
+    :return: The path of the downloaded file.
+    """
     if not os.path.exists(os.path.split(subfolder)[0]):
         os.makedirs(os.path.split(subfolder)[0], exist_ok=True)
     response = requests.head(url, headers=AUTH_HEADER)
@@ -112,13 +134,11 @@ def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
 
 
 def download_text(url):
-    """Download text from a direct download url for a text file.
+    """
+    Download text from a direct download url for a text file.
 
-    Parameters:
-    url (str): The direct download url for the text.
-
-    Returns:
-    str: The downloaded text.
+    :param url: The direct download url for the text.
+    :return: The downloaded text
     """
 
     try:
