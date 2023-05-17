@@ -72,7 +72,7 @@ def get_bucket() -> str:
     raise CptacDevError("Failed to get bucket. Perhaps check that the token is correct?")
 
 
-def download_chunk(url, start, end, file_path):
+def download_chunk(url, start, end, file_path, pbar=None):
     """
     Downloads a chunk of a file and writes it to the specified file path.
     
@@ -85,10 +85,14 @@ def download_chunk(url, start, end, file_path):
     headers.update(AUTH_HEADER)
     response = requests.get(url, headers=headers, stream=True)
     response.raise_for_status()
+    block_size = 1024 # We can adjust this value as needed
 
     with open(file_path, 'rb+') as data_file:
         data_file.seek(start)
-        data_file.write(response.content)
+        for data in response.iter_content(block_size):
+            data_file.write(data)
+            if pbar is not None:
+                pbar.update(len(data)) # Update the progress bar based on the size of the data block
 
 
 def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
@@ -113,17 +117,14 @@ def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
         data_file.truncate(file_size)
 
     try:
-        with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        with ThreadPoolExecutor(max_workers=num_threads) as executor, tqdm(total=file_size, unit='B', unit_scale=True, desc=f"Downloading {os.path.split(subfolder)[1]}") as pbar:
             futures = []
             for i in range(num_threads):
                 start = i * chunk_size
                 end = start + chunk_size - 1 if i != num_threads - 1 else file_size - 1
-                futures.append(executor.submit(download_chunk, url, start, end, os.path.join(DATA_DIR, subfolder)))
+                futures.append(executor.submit(download_chunk, url, start, end, os.path.join(DATA_DIR, subfolder), pbar))
 
-            for future in tqdm(concurrent.futures.as_completed(futures),
-                               desc=f"Downloading {os.path.split(subfolder)[1]}",
-                               total=num_threads,
-                               unit='chunk'):
+            for future in concurrent.futures.as_completed(futures):
                 future.result()  # Raise any exception encountered during download
 
         return subfolder
