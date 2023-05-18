@@ -517,95 +517,95 @@ class Cancer:
 
         return self.multi_join({df1_name:metadata_cols, df2_name:mutations_genes}, how=how, tissue_type=tissue_type, mutations_filter=mutations_filter, flatten=True)
 
-    def multi_join(self, join_dict: dict, mutations_filter: list =None, flatten: bool=False, levels_to_drop: list=[], how: str="outer", tissue_type: str="both"
-                   ) -> pd.DataFrame:
-        """Takes a dictionary where keys include a source and datatype (either in a ('source', 'datatype') tuple or as a space separated string "source datatype"),
-        and values are columns from those dataframes. Joins all the columns into one dataframe. If the value is an empty list it will join the entire dataframe
+
+    def _get_columns(self, datatype, source, data_key, tissue_type, mutations_filter=None):
+        """
+        Helper function to get the relevant columns for the join operation.
 
         Parameters:
-        join_dict (dict): A dictionary with the dataframe and columns to join. Keys are the names of the dataframes and the value is a list of string with the name of the columns corresponding to each dataframe. Example: {('bcm', 'phosphoproteomics'):['A2M', 'AAAS'],'bcm proteomics':['AAAS', 'ZZZ3'], 'bcm somatic_mutation':['AHCTF1', 'ZFHX3']}.
-
-            Valid dataframes are: acetylproteomics, CNV, phosphoproteomics, phosphoproteomics_gene, proteomics,
-            somatic_mutation_binary, somatic_mutation, transcriptomics, clinical, derived_molecular and experimental_design.
-
-            For somatic_mutation_binary it joins all columns that match a gene. Example {'bcm somatic_mutation_binary' : ['A1CF', 'ZYG11B']} It returns a dataframe with all columns that contain those genes.
-
+        datatype (str): Type of data to be joined. This can be one of several types, including 'omics' data and metadata.
+        source (str): Source of the data. For example, this could be 'bcm', 'phosphoproteomics', etc.
+        data_key (list): List of keys from the join_dict dictionary.
+        tissue_type (str): The type of tissue data to be retrieved. Can be "tumor","normal", or "both" if we're still doing that lol
         mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority.
             If none of the multiple mutations in a sample are included in mutations_filter, the function will automatically prioritize
-                truncation over missense mutations, and then mutations earlier in the sequence over later mutations.
+            truncation over missense mutations, and then mutations earlier in the sequence over later mutations.
             Passing an empty list will cause this default hierarchy to be applied to all samples.
             Default parameter of None will cause no filtering to be done, and all mutation data will be included, in a list.
-
-        flatten (bool, optional): Defaults to False and will flatten the multiindexes if set to True.
-
-        levels_to_drop (list, optional): Defaults to empty list. Takes a list of strings. Strings are levels to be dropped. If empty it will not drop any.
-
-        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type for the dataframe. Defaults to "both"
-
-        Returns: pandas.DataFrame
+            
+        Returns:
+        pandas.DataFrame: A DataFrame that contains the relevant columns to be joined.
         """
-        column_names = []
-        to_join=[]
+        # If key belongs to omics
+        if datatype in self._valid_omics_dfs:
+            # If key is somatic_mutation_binary it will join all columns that match a gene
+            if datatype == "somatic_mutation_binary":
+                binary_data = "\n".join(list(self.get_somatic_mutation_binary(source).columns))
+                found_genes = [re.findall((gene + ".+\n"), binary_data) for gene in data_key] if data_key else []
+                found_genes = list(map(lambda x: x.strip("\n"), found_genes))
+                columns = self._get_omics_cols(datatype, source, found_genes or None, tissue_type=tissue_type)
+            else:
+                columns = self._get_omics_cols(datatype, source, data_key or None, tissue_type=tissue_type)
+        # If key belongs to metadata
+        elif datatype in self._valid_metadata_dfs:
+            columns = self._get_metadata_cols(datatype, source, data_key or None, tissue_type=tissue_type)
+        # If key is somatic_mutation
+        elif datatype == "somatic_mutation":
+            columns = self._get_genes_mutations(source, data_key, mutations_filter=mutations_filter)
+        else:
+            raise ValueError(f"Invalid datatype: {datatype}")
+        return columns
 
-        # a flag for if mutations data is included, for formatting later
+
+    def multi_join(self, join_dict: dict, mutations_filter: list = None, flatten: bool = False,
+                   levels_to_drop: list = [], how: str = "outer", tissue_type: str = "both") -> pd.DataFrame:
+        """
+        Joins multiple dataframes into a single dataframe based on the join_dict.
+
+        Parameters:
+        join_dict (dict): A dictionary with the dataframe and columns to join. Keys are the names of the dataframes and the value is a list of string with the name of the columns corresponding to each dataframe.
+        mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority.
+        flatten (bool, optional): If set to True, the multiindexes will be flattened. Defaults to False.
+        levels_to_drop (list, optional): List of level names to drop from the dataframe. If empty it will not drop any. Defaults to an empty list.
+        how (str, optional): Method of join. Can be one of 'outer', 'inner', 'left', 'right'. Defaults to 'outer'.
+        ?tissue_type (str): The type of tissue data to be retrieved. Can be "tumor","normal", or "both".
+        
+        Returns:
+        pandas.DataFrame: The resulting DataFrame after performing all the joins.
+        """
+        # TODO: See if we need to keep the database_ID row. I'd like to get rid of it if possible when joining
+
+        column_names = set()
+        to_join = []
         format_mutations = False
 
-        for source_data_key in join_dict.keys():
-            if isinstance(source_data_key, tuple):
-                source, datatype = source_data_key
-            else:
-                # TODO: remind user to input "source datatype" for dictionary keys in error
-                source, datatype = source_data_key.split()
+        for source_data_key, data_key in join_dict.items():
+            # Split key into source and datatype
+            source, datatype = source_data_key if isinstance(source_data_key, tuple) else source_data_key.split()
 
-            # Make sure all requested data exists and is valid
+            # Raise error if datatype is invalid
             if datatype not in self._sources[source].load_functions:
-                raise DataFrameNotIncludedError(f"{source} {datatype} is not a valid dataframe in the {self.get_cancer_type()} dataset.")
+                raise DataFrameNotIncludedError(
+                    f"{source} {datatype} is not a valid dataframe in the {self.get_cancer_type()} dataset.")
 
-            ## If key belongs to omics
-            if datatype in self._valid_omics_dfs:
-                # If key is somatic_mutation_binary it will join all columns that match a gene
-                if datatype == "somatic_mutation_binary":
-                    binary_data = self.get_somatic_mutation_binary(source)
-                    binary_data = "\n".join(list(binary_data.columns))
-                    found_genes = []
-                    if len(join_dict[source_data_key]) != 0:
-                        for gene in join_dict[source_data_key]:
-                            found_genes += (re.findall((gene+".+\n"), binary_data))
-                        found_genes = list(map(lambda x: x.strip("\n"), found_genes))#returns a list of columns that match the given gene
-                        columns = self._get_omics_cols(datatype, source, found_genes, tissue_type= tissue_type)
-                    else:
-                        columns = self._get_omics_cols(datatype, source, None, tissue_type= tissue_type)
-                else:
-                    if len(join_dict[source_data_key]) != 0:# If there are values to join it will get the columns
-                        columns = self._get_omics_cols(datatype, source, join_dict[source_data_key], tissue_type = tissue_type)
-                    else:# Else join all the dataframe
-                        columns = self._get_omics_cols(datatype, source, None, tissue_type = tissue_type)
-            ## If key belongs to metadata
-            elif datatype in self._valid_metadata_dfs:
-                if len(join_dict[source_data_key]) != 0:# If there are values to join it will get the columns
-                    columns = self._get_metadata_cols(datatype, source, join_dict[source_data_key], tissue_type = tissue_type)
-                else:# Else join all the dataframe
-                    columns = self._get_metadata_cols(datatype, source, None, tissue_type = tissue_type)
-            ## If key is somatic_mutation
-            elif datatype == "somatic_mutation":
-                columns = self._get_genes_mutations(source, join_dict[source_data_key], mutations_filter = mutations_filter)
-                # Set flag that mutations data in join_dict
+            # Get the relevant columns
+            columns = self._get_columns(datatype, source, data_key, tissue_type, mutations_filter)
+
+            # Set flag that mutations data in join_dict
+            if datatype == "somatic_mutation":
                 format_mutations = True
 
-            ### Checks if there are columns with the same name and adds the name of the
-            for i in columns.columns:
-                if isinstance(i, tuple):
-                    i = reduce(lambda  x, y: str(x)+str(y), i)#returns a flattened column name
-                if i in column_names:
-                    columns = columns.rename(columns={i: str(i)+'_'+source+'_'+datatype})
-                column_names.append(i)
-            ###
+            # Checks if there are columns with the same name and renames them
+            for column in columns:
+                if column in column_names:
+                    columns = columns.rename(columns={column: str(column) + '_' + source + '_' + datatype})
+                column_names.add(column)
 
             to_join.append(columns)
 
         joined, how = reduce(self._join_dataframe, to_join, how)
 
-        if flatten == True and isinstance(joined.columns, pd.MultiIndex):
+        if flatten and isinstance(joined.columns, pd.MultiIndex):
             joined.columns = joined.columns.droplevel('Database_ID')
 
         # Format any included mutations data
@@ -613,18 +613,21 @@ class Cancer:
             mutations_were_filtered = mutations_filter is not None
             joined = self._format_mutations_data(joined, mutations_were_filtered, how=how, tissue_type=tissue_type)
 
-        if len(levels_to_drop) != 0:
+        if levels_to_drop:
             joined = ut.reduce_multiindex(joined, levels_to_drop=levels_to_drop)
 
         # Sort the dataframe for good measure (based off sample status (tumor or normal), then alphabetically)
         joined = joined.sort_index()
-        #'.N' for normal, '.C' for cored normals (in HNSCC)
-        normal = joined.loc[joined.index.str.contains(r'\.[NC]$', regex = True, na = False)]
+
+        # Tempted to get rid of this since it seems outdated, but I'll keep it in for now
+        # '.N' for normal, '.C' for cored normals (in HNSCC)
+        normal = joined[joined.index.str.contains(r'\.[NC]$', regex=True, na=False)]
         # Tumor samples don't have any special endings for now
-        tumor = joined.loc[~ joined.index.str.contains(r'\.[NC]$', regex = True, na = False)]
+        tumor = joined[~joined.index.str.contains(r'\.[NC]$', regex=True, na=False)]
         joined = pd.concat([tumor, normal])
 
         return joined
+
 
     # Help functions
     def get_cancer_type(self) -> str:

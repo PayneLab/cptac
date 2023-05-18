@@ -9,13 +9,25 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import sys
 import pytest
-import pandas
+import pandas as pd
 import cptac
 from cptac.exceptions import DataFrameNotIncludedError, InvalidParameterError
 
 class PancanTestGet:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        # Setup code here.
+        pass
 
-    def test_valid_getters():
+    @pytest.mark.parametrize("valid_input", ["Input1", "Input2", "Input3"]) # Add valid inputs here
+    def test_valid_getters(self, valid_input):
+        """
+        Test case for valid getters. Implement actual test here.
+        """
+        # Call the method we want to test with the valid_input
+        # Assert that the result is what we expect
+        # Like:
+        # result = some_method(valid_input)
+        # assert result == expected result
         pass

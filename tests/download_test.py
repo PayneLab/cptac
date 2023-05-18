@@ -17,12 +17,13 @@ from cptac.exceptions import InvalidParameterError
 
 from .conftest import get_cancer_inputs
 
+logging.basicConfig(level=logging.INFO)
 
 # I would include other attributes to each test. Ex, checking file location, 
 #   negative test for getting data before downloading, etc.
 @pytest.mark.parametrize("cancer, source, datatype", get_cancer_inputs())
 def test_redownload(cancer, source, datatype):
-    print(f"{cancer}, {source}, {datatype}")
+    logging.info(f"{cancer}, {source}, {datatype}")
     time.sleep(1)
     assert cptac.download(sources={source: datatype}, cancers=cancer, redownload=True)
 
