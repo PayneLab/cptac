@@ -108,6 +108,7 @@ def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
         os.makedirs(os.path.split(subfolder)[0], exist_ok=True)
     response = requests.head(url, headers=AUTH_HEADER)
     response.raise_for_status()
+    print(response)
 
     file_size = int(response.headers['content-length'])
     chunk_size = file_size // num_threads
