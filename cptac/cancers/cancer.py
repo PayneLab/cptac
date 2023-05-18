@@ -70,20 +70,6 @@ class Cancer:
         logger = logging.getLogger()
         logger.setLevel(logging.CRITICAL)
 
-    def get_source_version(self, source: str) -> str:
-        """Return the version of a particular dataset, as a string."""
-        return self._sources[source].get_version()
-
-    def set_source_version(self, source: str, version: str):
-        """Set the data version you wish to use for a single source
-
-        Parameters:
-        source (string): the desired source (e.g. 'broad' or 'washu')
-        version (string): the desired version (e.g. '3.1' or 'latest')
-        """
-        self._sources[source].set_version(version)
-        print(f"{self._cancer_type} cancer data from source {source} now using data freeze {self._sources[source].get_version()}")
-
     def delete_df(self, df_type: str, source: str='all'):
         '''This function enables users to delete dataframes they no longer need to free up RAM
 
@@ -1225,9 +1211,9 @@ class Cancer:
         if self._cancer_type == 'colon':
             truncations = ['frameshift deletion', 'frameshift insertion', 'frameshift substitution', 'stopgain', 'stoploss']
             missenses = ['nonframeshift deletion', 'nonframeshift insertion', 'nonframeshift substitution', 'nonsynonymous SNV']
-        elif self._cancer_type == 'hnscc' and self.version() == "0.1":
-            truncations =["stopgain", "stoploss"]
-            missenses = ["nonframeshift insertion", "nonframeshift deletion"]
+        # elif self._cancer_type == 'hnscc' and self.version() == "0.1":
+        #     truncations =["stopgain", "stoploss"]
+        #     missenses = ["nonframeshift insertion", "nonframeshift deletion"]
         else:
             truncations = ['Frame_Shift_Del', 'Frame_Shift_Ins', 'Nonsense_Mutation', 'Nonstop_Mutation', 'Splice_Site']
             missenses = ['In_Frame_Del', 'In_Frame_Ins', 'Missense_Mutation']

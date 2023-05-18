@@ -22,7 +22,7 @@ CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
 # Function imports
 from cptac.tools.download_tools.download import download
 from cptac.tools.download_tools.zeno_download import download_text as _download_text
-from cptac.exceptions import CptacError, CptacWarning, InvalidParameterError, NoInternetError, OldPackageVersionWarning
+from cptac.exceptions import CptacError, CptacWarning, NoInternetError
 
 # Dataset imports
 from cptac.cancers.brca import Brca
@@ -150,18 +150,3 @@ def _warning_displayer(message, category, filename, lineno, file=None, line=None
 sys.excepthook = _exception_handler # Set our custom exception hook
 warnings.showwarning = _warning_displayer # And our custom warning displayer
 warnings.simplefilter("always", category=CptacWarning) # Edit the warnings filter to show multiple occurences of cptac-generated warnings
-
-def check_version():
-    """Check in background whether the package is up-to-date"""
-    version_url = "https://byu.box.com/shared/static/kbwivmqnrdnn5im2gu6khoybk5a3rfl0.txt"
-    try:
-        remote_version = _download_text(version_url)
-    except NoInternetError:
-        pass
-    else:
-        local_version = version()
-        if remote_version != local_version:
-            warnings.warn(f"Your version of cptac ({local_version}) is out-of-date. Latest is {remote_version}. Please run 'pip install --upgrade cptac' to update it.", OldPackageVersionWarning, stacklevel=2)
-
-version_check_thread = threading.Thread(target=check_version)
-version_check_thread.start() # We don't join because we want this to just finish in the background and not block the main thread

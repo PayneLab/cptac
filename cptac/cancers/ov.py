@@ -26,9 +26,9 @@ class Ov(Cancer):
 
         super().__init__(cancer_type="ov")
         
-        self._sources["bcm"] = BcmOv(version="latest", no_internet=no_internet)
-        self._sources["broad"] = BroadOv(version="latest", no_internet=no_internet)
-        self._sources["mssm"] = Mssm(filter_type='ov', version="latest", no_internet=no_internet)
-        self._sources["umich"] = UmichOv(version="latest", no_internet=no_internet)
-        self._sources["washu"] = WashuOv(version="latest", no_internet=no_internet)
-        self._sources["harmonized"] = Harmonized(filter_type='ov', version="latest", no_internet=no_internet)
+        self._sources["bcm"] = BcmOv(no_internet=no_internet)
+        self._sources["broad"] = BroadOv(no_internet=no_internet)
+        self._sources["mssm"] = Mssm(filter_type='ov', no_internet=no_internet)
+        self._sources["umich"] = UmichOv(no_internet=no_internet)
+        self._sources["washu"] = WashuOv(no_internet=no_internet)
+        self._sources["harmonized"] = Harmonized(filter_type='ov', no_internet=no_internet)

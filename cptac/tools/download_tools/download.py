@@ -14,14 +14,13 @@ from cptac.tools.download_tools.zeno_download import zeno_download
 from cptac.exceptions import DataSourceNotFoundError, InvalidParameterError
 
 
-def download(sources, cancers='all', version="latest", redownload=False):
-    """Download data files for the specified cancers, sources, and datatypes. Defaults to downloading latest version on server.
+def download(sources, cancers='all', redownload=False):
+    """Download data files for the specified cancers, sources, and datatypes.
 
     Parameters:
     sources (dict): Keys are source names (str), values are the datatypes (list of str)
     cancers (list of str): The cancers for which the sources/datatypes will be downloaded
-    version (str, optional): Which version of the data files to download. Defaults to latest on server.
-    redownload (bool, optional): Whether to redownload the data files, even if that version of the data is already downloaded. Default False.
+    redownload (bool, optional): Whether to redownload the data files, even if the data is already downloaded. Default False.
 
     Returns:
     bool: Indicates whether download was successful.

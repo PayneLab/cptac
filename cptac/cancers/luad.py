@@ -26,9 +26,9 @@ class Luad(Cancer):
 
         super().__init__(cancer_type="luad")
         
-        self._sources["bcm"] = BcmLuad(version="latest", no_internet=no_internet)
-        self._sources["broad"] = BroadLuad(version="latest", no_internet=no_internet)
-        self._sources["mssm"] = Mssm(filter_type='luad', version="latest", no_internet=no_internet)
-        self._sources["umich"] = UmichLuad(version="latest", no_internet=no_internet)
-        self._sources["washu"] = WashuLuad(version="latest", no_internet=no_internet)
-        self._sources["harmonized"] = Harmonized(filter_type='luad', version="latest", no_internet=no_internet)
+        self._sources["bcm"] = BcmLuad(no_internet=no_internet)
+        self._sources["broad"] = BroadLuad(no_internet=no_internet)
+        self._sources["mssm"] = Mssm(filter_type='luad', no_internet=no_internet)
+        self._sources["umich"] = UmichLuad(no_internet=no_internet)
+        self._sources["washu"] = WashuLuad(no_internet=no_internet)
+        self._sources["harmonized"] = Harmonized(filter_type='luad', no_internet=no_internet)

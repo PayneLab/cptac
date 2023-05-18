@@ -13,26 +13,20 @@ import pandas as pd
 from cptac.cancers.source import Source
 
 class BcmPdac(Source):
-    def __init__(self, version="latest", no_internet=False):
+    def __init__(self, no_internet=False):
         """Define which bcmpdac dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
         Parameters:
-        version (str, optional): The version number to load, or the string "latest" to just load the latest datafreeze. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
-        # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        self.valid_versions = ["1.0"]
-
         self.data_files = {
-            "1.0": {
-                "transcriptomics" : "PDAC-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt",
-                "mapping" : "gencode.v34.basic.annotation-mapping.txt",
-                "circular_RNA" : "PDAC-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt",
-                # "not_used" : "CPTAC_GBM_discovery_CNV_gene_level_log2ratio.tsv.gz"
-            }
+            "transcriptomics" : "PDAC-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt",
+            "mapping" : "gencode.v34.basic.annotation-mapping.txt",
+            "circular_RNA" : "PDAC-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt",
+            # "not_used" : "CPTAC_GBM_discovery_CNV_gene_level_log2ratio.tsv.gz"
         }
         
         self.load_functions = {
@@ -40,11 +34,8 @@ class BcmPdac(Source):
             'transcriptomics' : self.load_transcriptomics,
         }
         
-        if version == "latest":
-            version = sorted(self.valid_versions)[-1]
-
         # Call the parent class __init__ function
-        super().__init__(cancer_type="pdac", source='bcm', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
+        super().__init__(cancer_type="pdac", source='bcm', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_circular_RNA(self):
         df_type = 'circular_RNA'

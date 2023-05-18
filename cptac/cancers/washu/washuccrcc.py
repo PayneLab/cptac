@@ -17,31 +17,25 @@ from cptac.cancers.source import Source
 from cptac.cancers.mssm.mssm import Mssm
 
 class WashuCcrcc(Source):
-    def __init__(self, version="latest", no_internet=False):
+    def __init__(self, no_internet=False):
         """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
         Parameters:
-        version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
-        # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        self.valid_versions = ["1.0"]
-
         self.data_files = {
-            "1.0": {
-                "cibersort"         : "CIBERSORT.Output_Abs_ccRCC.txt",
-                "CNV"               : "ccRCC.gene_level.from_seg.filtered.tsv",
-                "mapping"           : "gencode.v22.annotation.gtf.gz",
-                "miRNA"             : ["ccRCC_precursor_miRNA_combined.tsv", "ccRCC_mature_miRNA_combined.tsv", "ccRCC_total_miRNA_combined.tsv"],
-                "readme"            : ["README_miRNA", "README_CIBERSORT", "README_xCell", "README_somatic_mutation_WXS", "README_gene_expression", "README.boxnote", "README_ESTIMATE_WashU"],
-                "somatic_mutation"  : "ccRCC_discovery.dnp.annotated.exonic.maf.gz",
-                "transcriptomics"   : ["ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz", "ccRCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
-                "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
-                "xcell"             : "ccRCC_xCell.txt",
-            }
+            "cibersort"         : "CIBERSORT.Output_Abs_ccRCC.txt",
+            "CNV"               : "ccRCC.gene_level.from_seg.filtered.tsv",
+            "mapping"           : "gencode.v22.annotation.gtf.gz",
+            "miRNA"             : ["ccRCC_precursor_miRNA_combined.tsv", "ccRCC_mature_miRNA_combined.tsv", "ccRCC_total_miRNA_combined.tsv"],
+            "readme"            : ["README_miRNA", "README_CIBERSORT", "README_xCell", "README_somatic_mutation_WXS", "README_gene_expression", "README.boxnote", "README_ESTIMATE_WashU"],
+            "somatic_mutation"  : "ccRCC_discovery.dnp.annotated.exonic.maf.gz",
+            "transcriptomics"   : ["ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz", "ccRCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
+            "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
+            "xcell"             : "ccRCC_xCell.txt",
         }
 
         # self._readme_files = {}
@@ -57,11 +51,8 @@ class WashuCcrcc(Source):
             #'readme'            : self.load_readme,
         }
 
-        if version == "latest":
-            version = sorted(self.valid_versions)[-1]
-
         # Call the parent class __init__ function
-        super().__init__(cancer_type="ccrcc", source="washu", version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
+        super().__init__(cancer_type="ccrcc", source="washu", data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
@@ -251,7 +242,7 @@ class WashuCcrcc(Source):
             df.index.name = 'Patient_ID'
 
             # get clinical df (used to slice out cancer specific patient_IDs in tumor_purity file)
-            mssmclin = Mssm(filter_type='ccrcc', version=self.version, no_internet=self.no_internet) #_get_version - pancandataset
+            mssmclin = Mssm(filter_type='ccrcc', no_internet=self.no_internet)
             clinical_df = mssmclin.get_df('clinical')              
             patient_ids = clinical_df.index.to_list()
             df = df.loc[df.index.isin(patient_ids)]     

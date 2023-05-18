@@ -47,7 +47,7 @@ def zeno_download(cancer: str, source: str, datatypes: str) -> bool:
             file_name = files[f"{source}_{dtype}"].strip('\n')
             output_file = file_name[len(f"{source}_"):]
         else:
-            output_dir = DATA_DIR + f"/data_{source}_{cancer}"  # FIXME: Requires version number
+            output_dir = DATA_DIR + f"/data_{source}_{cancer}"
             file_name = files[f"{source}_{cancer}_{dtype}"].strip('\n')
             output_file = file_name[len(f"{source}_{cancer}_"):]
         os.makedirs(output_dir, exist_ok=True)
@@ -114,8 +114,6 @@ def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
     chunk_size = file_size // num_threads
 
     # Create an empty file with the same size as the file to be downloaded
-    temp = os.path.join(DATA_DIR, subfolder)
-    temp_r = requests.get(url, headers=AUTH_HEADER)
     with open(os.path.join(DATA_DIR, subfolder), 'wb') as data_file:
         data_file.truncate(file_size)
 

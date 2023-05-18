@@ -26,28 +26,12 @@ class InvalidParameterError(CptacError):
     """Invalid parameter."""
     pass
 
-class AmbiguousLatestError(InvalidParameterError):
-    """They pass "latest" for a version parameter, but index latest does not match latest version locally installed."""
-    pass
-
 class FileError(CptacError):
     """Base class for data-related errors."""
     pass
 
 class DatasetNotInstalledError(FileError):
     """They requested a dataset they haven't installed."""
-    pass
-
-class DataVersionNotInstalledError(FileError):
-    """They requested a version they haven't installed of a dataset."""
-    pass
-
-class InvalidDataVersionError(CptacError):
-    """They requested an invalid version of a dataset for a given source."""
-    pass
-
-class PackageCannotHandleDataVersionError(CptacError):
-    """They tried to load a new version of the data, but they have an old version of the package that doesn't have the code for the new data, so they need to update the package."""
     pass
 
 class MissingFileError(FileError):
@@ -126,20 +110,8 @@ class ParameterWarning(CptacWarning):
     """We should warn them about a parameter for some reason."""
     pass
 
-class OldDataVersionWarning(CptacWarning):
-    """They're using an old data version."""
-    pass
-
-class OldPackageVersionWarning(CptacWarning):
-    """They're using an old version of the package."""
-    pass
-
 class PublicationEmbargoWarning(CptacWarning):
     """There is a publication embargo on the dataset."""
-    pass
-
-class DownloadingNewLatestWarning(CptacWarning):
-    """Downloading a new latest data version. If they want to use an old version, they'll have to manually specify it."""
     pass
 
 class FileNotUpdatedWarning(CptacWarning):

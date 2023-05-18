@@ -13,39 +13,30 @@ import pandas as pd
 from cptac.cancers.source import Source
 
 class Mssm(Source):
-    def __init__(self, filter_type, version="latest", no_internet=False):
+    def __init__(self, filter_type, no_internet=False):
         """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
         Parameters:
-        version (str, optional): The version number to load, or the string "latest" to just load the latest datafreeze. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         filter_type (str): The cancer type for which you want information. Mssm keeps all data in a single table, so to get data on a single cancer type all other types are filtered out.
         """
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
-        # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        self.valid_versions = ["1.0"]
-
         self.data_files = {
-            "1.0": {
-                "clinical" : "clinical_Pan-cancer.Dec2020.tsv"
-            }
+            "clinical" : "clinical_Pan-cancer.Dec2020.tsv"
         }
 
         self.load_functions = {
             'clinical' : self.load_clinical,
         }
 
-        if version == "latest":
-            version = sorted(self.valid_versions)[-1]
-
         # Mssm is special in that it keeps information for all cancer types in a single table
         # We can still make this look like the other sources, but it works a little different under the hood
         # Essentially Mssm always loads the entire clinical table, then filters it based on filter_type
 
         # Call the parent class __init__ function, cancer_type is dynamic and based on whatever cancer is being filtered for
-        super().__init__(cancer_type=filter_type, source='mssm', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
+        super().__init__(cancer_type=filter_type, source='mssm', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     # This is all clinical data, but mssm will have other load functions to get only a subset of this data
     def load_clinical(self):
