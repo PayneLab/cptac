@@ -1,4 +1,7 @@
 import cptac
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 def get_cancer_inputs():
     """
@@ -16,11 +19,16 @@ def get_cancer_inputs():
 #
 ## Setting autouse=True here makes it so that this method always runs before any tests
 #@pytest.fixture(scope="session", autouse=True)
-#def get_datasets_lists():
-#    '''
-#    Returns: a dict of dataset lists
-#        keys = ["public", "private"]
-#    '''
+
+def get_datasets_lists():
+    '''
+    Returns: a dict of dataset lists
+        keys = ["public", "private"]
+    '''
+    logging.info("Getting datset lists (public and private)...")
+    data = cptac.list_datasets()["Data reuse status"]
+    public_datasets = []
+    restricted_datasets = []
 #    #curses.wrapper
 #    print(f"Getting dataset lists (public and private)...", end='\r')
 #    # TODO list_datasets() no longer works as it used to.
@@ -29,30 +37,32 @@ def get_cancer_inputs():
 #    data = cptac.list_datasets()["Data reuse status"]
 #    public_datasets = []
 #    restricted_datasets = []
-#    for i in data.index:
-#        if data[i] == "no restrictions":
-#            public_datasets.append(i)
-#        else:
-#            restricted_datasets.append(i)
+    for i in data.index:
+        if data[i] == "no restrictions":
+            public_datasets.append(i)
+        else:
+            restricted_datasets.append(i)
 #            dataset_lists = {}
-#    dataset_lists["public"] = public_datasets
+    dataset_lists = {"public": public_datasets, "restricted": restricted_datasets}
 #    dataset_lists["restricted"] = restricted_datasets
 #
-#    return dataset_lists
+    return dataset_lists
 #
 #### Download all datasets
 ## Must have autouse=True or else this never gets called
 #@pytest.fixture(scope="session", autouse=True)
-#def download_datasets(get_datasets_lists):
-#    # Download public datasets
-#    for cancer in get_datasets_lists["public"]:
-#        try:
+def download_datasets(get_datasets_lists):
+     # Download public datasets
+    for cancer in get_datasets_lists["public"]:
+        try:
+            logging.info(f"Downloading {cancer}...")
+            cptac.download(cancer, redownload=False)
 #            print(f"Downloading {cancer}...", end='\r')
 #            cptac.download(cancer, redownload=True)
-#        except:
-#            pytest.fail(f"Unable to download data for {cancer} dataset.")
+        except Exception as e:
+            logging.error(f"Unable to download data for {cancer} dataset. Error: {e}")
 #
 #    # TODO: Download restricted datasets
 #
-#    return True
+    return True
 #
