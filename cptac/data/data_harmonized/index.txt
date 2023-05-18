@@ -1,3 +1,0 @@
-#1.0
-PanCan_Union_Maf_Broad_WashU.maf	d1da6061a434e8be7ddb0103368d0af2	791845953393	somatic_mutation
-

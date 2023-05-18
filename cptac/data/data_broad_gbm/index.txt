@@ -1,5 +1,0 @@
-#1.0
-sample_descriptions.tsv	79d50025dbe71d4ebbb395ef6e8763cf	716376529379	mapping
-gencode.v34.GRCh38.genes.collapsed_only.gtf	27c6455bd1560edf7811b4e4df55edf3	779732605116	mapping
-GBM.rsem_transcripts_tpm.txt.gz	9129c0ae7593c6584d6ab7fffbb612b7	716379087087	transcriptomics
-

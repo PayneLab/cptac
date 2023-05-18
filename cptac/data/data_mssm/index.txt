@@ -1,3 +1,0 @@
-#1.0
-clinical_Pan-cancer.Dec2020.tsv	08914be46609687dcbe258d155f55464	753853282049	clinical
-
