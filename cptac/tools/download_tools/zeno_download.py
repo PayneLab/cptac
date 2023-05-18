@@ -12,7 +12,7 @@ from cptac.exceptions import *
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
 HEADERS = {'User-Agent': USER_AGENT}
 DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data")
-INDEX_FILE_NAME = 'all_index.txt'
+INDEX_FILE_NAME = 'index.tsv'
 INDEX_FILE_PATH = os.path.join(DATA_DIR, INDEX_FILE_NAME)
 STATIC_DOI = '10.5281/zenodo.7897498'
 RECORD_ID = STATIC_DOI.split('.')[-1]
@@ -104,16 +104,18 @@ def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
     :param num_threads: The number of threads to use for downloading the file (default is 4).
     :return: The path of the downloaded file.
     """
-    if not os.path.exists(os.path.split(subfolder)[0]):
-        os.makedirs(os.path.split(subfolder)[0], exist_ok=True)
+    parent_folder = os.path.split(subfolder)[0]
+    if parent_folder and not os.path.exists(parent_folder):
+        os.makedirs(parent_folder, exist_ok=True)
     response = requests.head(url, headers=AUTH_HEADER)
     response.raise_for_status()
-    print(response)
 
     file_size = int(response.headers['content-length'])
     chunk_size = file_size // num_threads
 
     # Create an empty file with the same size as the file to be downloaded
+    temp = os.path.join(DATA_DIR, subfolder)
+    temp_r = requests.get(url, headers=AUTH_HEADER)
     with open(os.path.join(DATA_DIR, subfolder), 'wb') as data_file:
         data_file.truncate(file_size)
 

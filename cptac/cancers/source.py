@@ -19,7 +19,6 @@ from cptac.exceptions import DataTypeNotInSourceError, InvalidDataVersionError, 
 from cptac.tools.dataframe_tools import standardize_axes_names
 
 class Source:
-
     def __init__(self, cancer_type, source, version, valid_versions, data_files, load_functions, no_internet):
         self.no_internet = no_internet
         self.source = source

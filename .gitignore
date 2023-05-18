@@ -8,6 +8,7 @@ build/
 .python-version
 *.icloud
 options.numbers
-
+temp*
+.vscode
 # Exclude data files, since they're stored remotely
 cptac/data/*
