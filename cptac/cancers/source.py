@@ -88,7 +88,7 @@ class Source:
         else:
             dataset = self.source + "_" + self.cancer_type
 
-        file_path = path.join(CPTAC_BASE_DIR, f"data/data_{dataset}/{data_file}")
+        file_path = path.join(CPTAC_BASE_DIR, f"data/{dataset}/{data_file}")
 
         if path.isfile(file_path):
             return file_path
