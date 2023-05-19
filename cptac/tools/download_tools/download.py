@@ -10,7 +10,7 @@
 #   limitations under the License.
 
 import cptac
-from cptac.tools.download_tools.zeno_download import zeno_download
+import cptac.tools.download_tools.zeno_download as zd
 from cptac.exceptions import DataSourceNotFoundError, InvalidParameterError
 
 
@@ -40,14 +40,14 @@ def download(sources, cancers='all', redownload=False):
     for case in special_cases:
         source = case
         datatypes = sources[case]
-        if not zeno_download(cancer='brca', source=source, datatypes=datatypes):
+        if not zd.zeno_download(cancer='brca', source=source, datatypes=datatypes):
             success = False
         del sources[case]
 
     # iterate through cancers and sources and download corresonding data files
     for cancer in cancers:
         for source, datatypes in sources.items():
-            if not zeno_download(cancer, source, datatypes):
+            if not zd.zeno_download(cancer, source, datatypes):
                 success = False
 
     return success
@@ -81,3 +81,8 @@ def _validate_cancers(cancers):
             return cancers
     else: # handle case where cancers is an invalid string
         raise InvalidParameterError(f"{cancers} is not a valid cancer. Run cptac.Run cptac.list_datasets() to see valid cancer types.")
+
+
+def init_files() -> None:
+    "Initializes several files that are essential for cptac to run, such as the file index."
+    return zd.init_files()

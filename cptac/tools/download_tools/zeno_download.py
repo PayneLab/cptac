@@ -3,22 +3,54 @@ import requests
 from tqdm import tqdm
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
+from hashlib import md5
 
 import cptac
 from cptac.exceptions import *
 
 # Some websites don't like requests from sources without a user agent. Let's preempt that issue.
 # This variable sets a user agent to be included in the request headers.
-USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
-HEADERS = {'User-Agent': USER_AGENT}
+# USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
+# HEADERS = {'User-Agent': USER_AGENT}
 DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data")
-INDEX_FILE_NAME = 'index.tsv'
-INDEX_FILE_PATH = os.path.join(DATA_DIR, INDEX_FILE_NAME)
 STATIC_DOI = '10.5281/zenodo.7897498'
 RECORD_ID = STATIC_DOI.split('.')[-1]
 ZENO_TOKEN = 'GijLB8joEFbeVEBQsjtJ8rH1uXMK8p5REgkNTfgHCMSR5LDyisZiZx1BRPQT'
 AUTH_HEADER = {'Authorization': 'Bearer ' + ZENO_TOKEN}
+BUCKET=None
 
+
+def fetch_repo_data() -> dict:
+    "Fetches the repo data from Zenodo, including metadata and file links."
+    repo_link = f"https://zenodo.org/api/records/{RECORD_ID}"
+    response = requests.get(repo_link, headers=AUTH_HEADER)
+    response.raise_for_status()
+    return response.json()
+
+
+def init_files() -> None:
+    "Initializes several files that are essential for cptac to run, such as the file index."
+    os.makedirs(DATA_DIR, exist_ok=True)
+    try:
+        repo_data = fetch_repo_data()
+        global BUCKET
+        BUCKET = repo_data['links']['bucket']
+        index_data = []
+        index_data.append(f"description\tfilename\tchecksum")
+        for data_file in repo_data['files']:
+            filename_list = data_file['key'].split('_')
+            description = filename_list[:2] if filename_list[0] in ['harmonized', 'mssm'] else filename_list[:3]
+            description = '_'.join(description)
+            index_data.append(f"{description}\t{'_'.join(filename_list)}\t{data_file['checksum']}")
+        with open(os.path.join(DATA_DIR, "index.tsv"), 'w') as index_file:
+            index_file.write('\n'.join(index_data))
+    except requests.ConnectionError:
+        raise NoInternetError("Cannot initialize data files: No internet connection.")
+    except requests.RequestException as e:
+        raise HttpResponseError(f"Requesting data failed with the following error: {e}")
+    except Exception as e:
+        raise CptacError(f"ERROR: {e}")
+            
 
 def zeno_download(cancer: str, source: str, datatypes: str) -> bool:
     """
@@ -33,43 +65,40 @@ def zeno_download(cancer: str, source: str, datatypes: str) -> bool:
 
     dtype = datatypes[0] # FIXME: Change datatypes from list of strings to single string
 
+    # Prepare for data download
+    description = f"{source}_{dtype}" if source in ['harmonized', 'mssm'] else f"{source}_{cancer}_{dtype}"
+    output_dir = '_'.join(description.split('_')[:2])
+    os.makedirs(os.path.join(DATA_DIR, output_dir), exist_ok=True)
+
+    index = cptac.__INDEX__
+    # Download requested dataframe
+    file_name = cptac.__INDEX__.loc[description]["filename"]
+    output_file = f"{output_dir}/{file_name[len(description)+1:]}"
     try:
-        bucket = get_bucket()
-        # Get file name from index file
-        if not os.path.exists(INDEX_FILE_PATH):
-            get_data(f"{bucket}/{INDEX_FILE_NAME}", INDEX_FILE_NAME)
-        with open(INDEX_FILE_PATH) as index:
-            files = dict([line.split('\t') for line in index])
+        get_data(f"{get_bucket()}/{file_name}", output_file)
 
-        # Download requested dataframe
-        if source in ['harmonized', 'mssm']:
-            output_dir = DATA_DIR + f"/data_{source}"
-            file_name = files[f"{source}_{dtype}"].strip('\n')
-            output_file = file_name[len(f"{source}_"):]
-        else:
-            output_dir = DATA_DIR + f"/data_{source}_{cancer}"
-            file_name = files[f"{source}_{cancer}_{dtype}"].strip('\n')
-            output_file = file_name[len(f"{source}_{cancer}_"):]
-        os.makedirs(output_dir, exist_ok=True)
-        get_data(f"{bucket}/{file_name}", f"{output_dir}/{output_file}")
-
+        # Verify checksum
+        with open(os.path.join(DATA_DIR, output_file), 'rb') as data_file:
+            local_hash = md5(data_file.read()).hexdigest()
+        if "md5:"+local_hash != cptac.__INDEX__.loc[description]['checksum']:
+            os.remove(os.path.join(DATA_DIR, output_file))
+            raise DownloadFailedError("Download failed: local an remote files do not match. Please try again.")
         return True
-
+    except DownloadFailedError as e:
+        raise e
+    except requests.RequestException as e:
+        raise HttpResponseError(f"Requesting data failed with the following error: {e}")
     except Exception as e:
-        raise HttpResponseError(f"Failed to download data file for {source} {cancer} {dtype} with error:\n{e}") from e
-
+        raise DownloadFailedError(f"Failed to download data file for {source} {cancer} {dtype} with error:\n{e}") from e
 
 def get_bucket() -> str:
     """
     Gets the bucket in Zenodo that houses all data files.
-
     :return: The URL of the Zenodo bucket containing the data files.
     """
-    projects = requests.get("https://zenodo.org/api/deposit/depositions", headers=AUTH_HEADER).json()
-    for project in projects:
-        if project['conceptrecid'] == RECORD_ID:
-            return project['links']['bucket']
-    raise CptacDevError("Failed to get bucket. Perhaps check that the token is correct?")
+    if BUCKET is None:
+        init_files()
+    return BUCKET
 
 
 def download_chunk(url, start, end, file_path, pbar=None):
@@ -134,20 +163,3 @@ def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
         os.remove(subfolder)
         raise
 
-
-def download_text(url):
-    """
-    Download text from a direct download url for a text file.
-
-    :param url: The direct download url for the text.
-    :return: The downloaded text
-    """
-
-    try:
-        response = requests.get(url, headers=HEADERS, allow_redirects=True)
-        response.raise_for_status()  # Raises a requests HTTPError if the response code was unsuccessful
-    except requests.RequestException:  # Parent class for all exceptions in the requests module
-        raise NoInternetError("Insufficient internet. Check your internet connection.") from None
-
-    text = response.text.strip()
-    return text

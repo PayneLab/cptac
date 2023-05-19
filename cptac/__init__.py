@@ -19,9 +19,9 @@ import pandas as pd
 CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
 
 # Function imports
-from cptac.tools.download_tools.download import download
+from cptac.tools.download_tools.download import download, init_files
 from cptac.exceptions import CptacError, CptacWarning, NoInternetError
-from utils.other_utils import df_to_tree
+from cptac.utils.other_utils import df_to_tree
 
 # Dataset imports
 from cptac.cancers.brca import Brca
@@ -35,6 +35,10 @@ from cptac.cancers.ov import Ov
 from cptac.cancers.pdac import Pdac
 from cptac.cancers.ucec import Ucec
 
+
+#### Create the index for the data files (file lookup table)
+init_files()
+__INDEX__ = pd.read_csv(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv'), sep='\t', index_col=0)
 
 #### This code generates the __OPTIONS__ dataframe which shows all possible cancer, source, datatype combinations
 def _load_options():
@@ -88,24 +92,21 @@ def how_to_cite():
     print('\n')
     print("For instructions on how to cite a specific dataset, please call its how_to_cite method, e.g. cptac.Endometrial().how_to_cite()")
 
-#### Helper functions for handling exceptions and warnings
-
-# Because Python binds default arguments when the function is defined,
-# default_hook's default will always refer to the original sys.excepthook
+#### Create custom exception and warning hooks to simplify error messages for new users
 def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): 
     """Catch cptac-generated exceptions, and make them prettier."""
     if issubclass(type(exception), CptacError):
-        print(f"cptac error: {str(exception)} ({traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno})", file=sys.stderr) # We still send to stderr
+        print(f"cptac error: {str(exception)} ({traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno})", file=sys.stderr)
     else:
-        default_hook(exception_type, exception, traceback) # This way, exceptions from other packages will still be treated the same way
+        default_hook(exception_type, exception, traceback)
 
-def _warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning): # Python binds default arguments when the function is defined, so default_displayer's default will always refer to the original warnings.showwarning
+def _warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning):
     """Catch cptac-generated warnings and make them prettier."""
     if issubclass(category, CptacWarning):
-        print(f"cptac warning: {str(message)} ({filename}, line {lineno})", file=sys.stderr) # We still send to stderr
+        print(f"cptac warning: {str(message)} ({filename}, line {lineno})", file=sys.stderr)
     else:
-        default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
+        default_displayer(message, category, filename, lineno, file, line)
 
-sys.excepthook = _exception_handler # Set our custom exception hook
-warnings.showwarning = _warning_displayer # And our custom warning displayer
-warnings.simplefilter("always", category=CptacWarning) # Edit the warnings filter to show multiple occurences of cptac-generated warnings
+sys.excepthook = _exception_handler
+warnings.showwarning = _warning_displayer
+warnings.simplefilter("always", category=CptacWarning)
