@@ -11,7 +11,6 @@
 
 import os.path as path
 import sys
-import threading
 import warnings
 import webbrowser
 import pandas as pd
@@ -21,8 +20,8 @@ CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
 
 # Function imports
 from cptac.tools.download_tools.download import download
-from cptac.tools.download_tools.zeno_download import download_text as _download_text
 from cptac.exceptions import CptacError, CptacWarning, NoInternetError
+from utils.other_utils import df_to_tree
 
 # Dataset imports
 from cptac.cancers.brca import Brca
@@ -62,50 +61,10 @@ def list_datasets(print_tree=False):
     df = __OPTIONS__.\
     copy().\
     drop("Loadable datatypes", axis=1)
-    if not print_tree:
-        return df
-
-    df = df.\
-    assign(Datatypes=df["Datatypes"].str.split("\ *,\ *", expand=False, regex=True)).\
-    explode("Datatypes").\
-    reset_index(drop=True)
-    # Print our dataframe as a pretty tree structure
-    info = {}
-    for row in df.set_index(["Cancers", "Sources", "Datatypes"]).index.values:
-        if row[0] not in info.keys():
-            info[row[0]] = {}
-        if row[1] not in info[row[0]].keys():
-            info[row[0]][row[1]] = []
-        info[row[0]][row[1]].append(row[2])
-
-    df_tree = _tree(info)
-    print(df_tree)
-
-def _tree(nest, prepend=""):
-    """Recursively build a formatted string to represent a dictionary"""
-    tree_str = ""
-    if isinstance(nest, dict):
-        for i, (k, v) in enumerate(nest.items()):
-            if i == len(nest.keys()) - 1:
-                branch = "└"
-                newprepend = prepend + "    "
-            else:
-                branch = "├"
-                newprepend = prepend + "│   "
-            tree_str += f"{prepend}{branch}── {k}\n"
-            tree_str += _tree(nest=v, prepend=newprepend)
-    elif isinstance(nest, list):
-        for i, v in enumerate(nest):
-            if i == len(nest) - 1:
-                branch = "└"
-            else:
-                branch = "├"
-            tree_str += f"{prepend}{branch}── {v}\n"
+    if print_tree:
+        print(df_to_tree)
     else:
-        raise ValueError(f"Unexpected type '{type(nest)}'")
-
-    return tree_str
-
+        return df
 #### End __OPTIONS__ code
 
 def embargo():

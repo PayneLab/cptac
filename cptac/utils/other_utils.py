@@ -18,6 +18,50 @@ import warnings
 
 from cptac.exceptions import DropFromSingleIndexError, InvalidParameterError, MissingFileError, DuplicateColumnHeaderWarning, FileNotUpdatedWarning, FlattenSingleIndexWarning
 
+def df_to_tree(df):
+    df = df.\
+    assign(Datatypes=df["Datatypes"].str.split("\ *,\ *", expand=False, regex=True)).\
+    explode("Datatypes").\
+    reset_index(drop=True)
+    # Print our dataframe as a pretty tree structure
+    info = {}
+    for row in df.set_index(["Cancers", "Sources", "Datatypes"]).index.values:
+        if row[0] not in info.keys():
+            info[row[0]] = {}
+        if row[1] not in info[row[0]].keys():
+            info[row[0]][row[1]] = []
+        info[row[0]][row[1]].append(row[2])
+
+    df_tree = _tree(info)
+    return df_tree
+
+def _tree(nest, prepend=""):
+    """Recursively build a formatted string to represent a dictionary"""
+    tree_str = ""
+    if isinstance(nest, dict):
+        for i, (k, v) in enumerate(nest.items()):
+            if i == len(nest.keys()) - 1:
+                branch = "└"
+                newprepend = prepend + "    "
+            else:
+                branch = "├"
+                newprepend = prepend + "│   "
+            tree_str += f"{prepend}{branch}── {k}\n"
+            tree_str += _tree(nest=v, prepend=newprepend)
+    elif isinstance(nest, list):
+        for i, v in enumerate(nest):
+            if i == len(nest) - 1:
+                branch = "└"
+            else:
+                branch = "├"
+            tree_str += f"{prepend}{branch}── {v}\n"
+    else:
+        raise ValueError(f"Unexpected type '{type(nest)}'")
+
+    return tree_str
+
+
+
 def get_corum_protein_lists(update=True):
     """Reads file from CORUM and returns a dictionary where the keys are protein complex names, and the values are lists of proteins that are members of those complexes. Data is downloaded from the CORUM website (https://mips.helmholtz-muenchen.de/corum/#). We also provide get_hgnc_protein_lists to get similar data from HGNC. The CORUM data has more specific subgroups than the HGNC data, but the HGNC data is more comprehensive than the CORUM data--it contains proteins that aren't included in the CORUM data.
     Parameters:
