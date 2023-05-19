@@ -557,7 +557,7 @@ class Cancer:
         return columns
 
 
-    def multi_join(self, join_dict: dict, mutations_filter: list = None, flatten: bool = False,
+    def multi_join(self, join_dict: dict, mutations_filter: list = None, flatten: bool = True,
                    levels_to_drop: list = [], how: str = "outer", tissue_type: str = "both") -> pd.DataFrame:
         """
         Joins multiple dataframes into a single dataframe based on the join_dict.
@@ -565,7 +565,7 @@ class Cancer:
         Parameters:
         join_dict (dict): A dictionary with the dataframe and columns to join. Keys are the names of the dataframes and the value is a list of string with the name of the columns corresponding to each dataframe.
         mutations_filter (list, optional): List of mutations to prioritize when filtering out multiple mutations, in order of priority.
-        flatten (bool, optional): If set to True, the multiindexes will be flattened. Defaults to False.
+        flatten (bool, optional): If set to True, the multiindexes will be flattened. Defaults to True.
         levels_to_drop (list, optional): List of level names to drop from the dataframe. If empty it will not drop any. Defaults to an empty list.
         how (str, optional): Method of join. Can be one of 'outer', 'inner', 'left', 'right'. Defaults to 'outer'.
         ?tissue_type (str): The type of tissue data to be retrieved. Can be "tumor","normal", or "both".
@@ -573,7 +573,6 @@ class Cancer:
         Returns:
         pandas.DataFrame: The resulting DataFrame after performing all the joins.
         """
-        # TODO: See if we need to keep the database_ID row. I'd like to get rid of it if possible when joining
 
         column_names = set()
         to_join = []
