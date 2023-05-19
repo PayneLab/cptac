@@ -26,9 +26,9 @@ class Ccrcc(Cancer):
 
         super().__init__(cancer_type="ccrcc")
         
-        self._sources["bcm"] = BcmCcrcc(version="latest", no_internet=no_internet)
-        self._sources["broad"] = BroadCcrcc(version="latest", no_internet=no_internet)
-        self._sources["mssm"] = Mssm(filter_type='ccrcc', version="latest", no_internet=no_internet)
-        self._sources["umich"] = UmichCcrcc(version="latest", no_internet=no_internet)
-        self._sources["washu"] = WashuCcrcc(version="latest", no_internet=no_internet)
-        self._sources["harmonized"] = Harmonized(filter_type='ccrcc', version="latest", no_internet=no_internet)
+        self._sources["bcm"] = BcmCcrcc(no_internet=no_internet)
+        self._sources["broad"] = BroadCcrcc(no_internet=no_internet)
+        self._sources["mssm"] = Mssm(filter_type='ccrcc', no_internet=no_internet)
+        self._sources["umich"] = UmichCcrcc(no_internet=no_internet)
+        self._sources["washu"] = WashuCcrcc(no_internet=no_internet)
+        self._sources["harmonized"] = Harmonized(filter_type='ccrcc', no_internet=no_internet)

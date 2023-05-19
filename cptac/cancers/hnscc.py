@@ -26,9 +26,9 @@ class Hnscc(Cancer):
 
         super().__init__(cancer_type="hnscc")
         
-        self._sources["bcm"] = BcmHnscc(version="latest", no_internet=no_internet)
-        self._sources["broad"] = BroadHnscc(version="latest", no_internet=no_internet)
-        self._sources["mssm"] = Mssm(filter_type='hnscc', version="latest", no_internet=no_internet)
-        self._sources["umich"] = UmichHnscc(version="latest", no_internet=no_internet)
-        self._sources["washu"] = WashuHnscc(version="latest", no_internet=no_internet)
-        self._sources["harmonized"] = Harmonized(filter_type='hnscc', version="latest", no_internet=no_internet)
+        self._sources["bcm"] = BcmHnscc(no_internet=no_internet)
+        self._sources["broad"] = BroadHnscc(no_internet=no_internet)
+        self._sources["mssm"] = Mssm(filter_type='hnscc', no_internet=no_internet)
+        self._sources["umich"] = UmichHnscc(no_internet=no_internet)
+        self._sources["washu"] = WashuHnscc(no_internet=no_internet)
+        self._sources["harmonized"] = Harmonized(filter_type='hnscc', no_internet=no_internet)

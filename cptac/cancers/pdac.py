@@ -26,9 +26,9 @@ class Pdac(Cancer):
 
         super().__init__(cancer_type="pdac")
 
-        self._sources["bcm"] = BcmPdac(version="latest", no_internet=no_internet)
-        self._sources["broad"] = BroadPdac(version="latest", no_internet=no_internet)
-        self._sources["mssm"] = Mssm(filter_type='pdac', version="latest", no_internet=no_internet)
-        self._sources["umich"] = UmichPdac(version="latest", no_internet=no_internet)
-        self._sources["washu"] = WashuPdac(version="latest", no_internet=no_internet)
-        self._sources["harmonized"] = Harmonized(filter_type='pdac', version="latest", no_internet=no_internet)
+        self._sources["bcm"] = BcmPdac(no_internet=no_internet)
+        self._sources["broad"] = BroadPdac(no_internet=no_internet)
+        self._sources["mssm"] = Mssm(filter_type='pdac', no_internet=no_internet)
+        self._sources["umich"] = UmichPdac(no_internet=no_internet)
+        self._sources["washu"] = WashuPdac(no_internet=no_internet)
+        self._sources["harmonized"] = Harmonized(filter_type='pdac', no_internet=no_internet)

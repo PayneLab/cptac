@@ -26,9 +26,9 @@ class Lscc(Cancer):
 
         super().__init__(cancer_type="lscc")
         
-        self._sources["bcm"] = BcmLscc(version="latest", no_internet=no_internet)
-        self._sources["broad"] = BroadLscc(version="latest", no_internet=no_internet)
-        self._sources["mssm"] = Mssm(filter_type='lscc', version="latest", no_internet=no_internet)
-        self._sources["umich"] = UmichLscc(version="latest", no_internet=no_internet)
-        self._sources["washu"] = WashuLscc(version="latest", no_internet=no_internet)
-        self._sources["harmonized"] = Harmonized(filter_type='lscc', version="latest", no_internet=no_internet)
+        self._sources["bcm"] = BcmLscc(no_internet=no_internet)
+        self._sources["broad"] = BroadLscc(no_internet=no_internet)
+        self._sources["mssm"] = Mssm(filter_type='lscc', no_internet=no_internet)
+        self._sources["umich"] = UmichLscc(no_internet=no_internet)
+        self._sources["washu"] = WashuLscc(no_internet=no_internet)
+        self._sources["harmonized"] = Harmonized(filter_type='lscc', no_internet=no_internet)

@@ -11,7 +11,6 @@
 
 import os.path as path
 import sys
-import threading
 import warnings
 import webbrowser
 import pandas as pd
@@ -20,9 +19,9 @@ import pandas as pd
 CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
 
 # Function imports
-from cptac.tools.download_tools.download import download
-from cptac.tools.download_tools.zeno_download import download_text as _download_text
-from cptac.exceptions import CptacError, CptacWarning, InvalidParameterError, NoInternetError, OldPackageVersionWarning
+from cptac.tools.download_tools.download import download, init_files
+from cptac.exceptions import CptacError, CptacWarning, NoInternetError
+from cptac.utils.other_utils import df_to_tree
 
 # Dataset imports
 from cptac.cancers.brca import Brca
@@ -36,6 +35,10 @@ from cptac.cancers.ov import Ov
 from cptac.cancers.pdac import Pdac
 from cptac.cancers.ucec import Ucec
 
+
+#### Create the index for the data files (file lookup table)
+init_files()
+__INDEX__ = pd.read_csv(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv'), sep='\t', index_col=0)
 
 #### This code generates the __OPTIONS__ dataframe which shows all possible cancer, source, datatype combinations
 def _load_options():
@@ -62,50 +65,10 @@ def list_datasets(print_tree=False):
     df = __OPTIONS__.\
     copy().\
     drop("Loadable datatypes", axis=1)
-    if not print_tree:
-        return df
-
-    df = df.\
-    assign(Datatypes=df["Datatypes"].str.split("\ *,\ *", expand=False, regex=True)).\
-    explode("Datatypes").\
-    reset_index(drop=True)
-    # Print our dataframe as a pretty tree structure
-    info = {}
-    for row in df.set_index(["Cancers", "Sources", "Datatypes"]).index.values:
-        if row[0] not in info.keys():
-            info[row[0]] = {}
-        if row[1] not in info[row[0]].keys():
-            info[row[0]][row[1]] = []
-        info[row[0]][row[1]].append(row[2])
-
-    df_tree = _tree(info)
-    print(df_tree)
-
-def _tree(nest, prepend=""):
-    """Recursively build a formatted string to represent a dictionary"""
-    tree_str = ""
-    if isinstance(nest, dict):
-        for i, (k, v) in enumerate(nest.items()):
-            if i == len(nest.keys()) - 1:
-                branch = "└"
-                newprepend = prepend + "    "
-            else:
-                branch = "├"
-                newprepend = prepend + "│   "
-            tree_str += f"{prepend}{branch}── {k}\n"
-            tree_str += _tree(nest=v, prepend=newprepend)
-    elif isinstance(nest, list):
-        for i, v in enumerate(nest):
-            if i == len(nest) - 1:
-                branch = "└"
-            else:
-                branch = "├"
-            tree_str += f"{prepend}{branch}── {v}\n"
+    if print_tree:
+        print(df_to_tree)
     else:
-        raise ValueError(f"Unexpected type '{type(nest)}'")
-
-    return tree_str
-
+        return df
 #### End __OPTIONS__ code
 
 def embargo():
@@ -129,39 +92,21 @@ def how_to_cite():
     print('\n')
     print("For instructions on how to cite a specific dataset, please call its how_to_cite method, e.g. cptac.Endometrial().how_to_cite()")
 
-#### Helper functions for handling exceptions and warnings
-
-# Because Python binds default arguments when the function is defined,
-# default_hook's default will always refer to the original sys.excepthook
+#### Create custom exception and warning hooks to simplify error messages for new users
 def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): 
     """Catch cptac-generated exceptions, and make them prettier."""
     if issubclass(type(exception), CptacError):
-        print(f"cptac error: {str(exception)} ({traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno})", file=sys.stderr) # We still send to stderr
+        print(f"cptac error: {str(exception)} ({traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno})", file=sys.stderr)
     else:
-        default_hook(exception_type, exception, traceback) # This way, exceptions from other packages will still be treated the same way
+        default_hook(exception_type, exception, traceback)
 
-def _warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning): # Python binds default arguments when the function is defined, so default_displayer's default will always refer to the original warnings.showwarning
+def _warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning):
     """Catch cptac-generated warnings and make them prettier."""
     if issubclass(category, CptacWarning):
-        print(f"cptac warning: {str(message)} ({filename}, line {lineno})", file=sys.stderr) # We still send to stderr
+        print(f"cptac warning: {str(message)} ({filename}, line {lineno})", file=sys.stderr)
     else:
-        default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
+        default_displayer(message, category, filename, lineno, file, line)
 
-sys.excepthook = _exception_handler # Set our custom exception hook
-warnings.showwarning = _warning_displayer # And our custom warning displayer
-warnings.simplefilter("always", category=CptacWarning) # Edit the warnings filter to show multiple occurences of cptac-generated warnings
-
-def check_version():
-    """Check in background whether the package is up-to-date"""
-    version_url = "https://byu.box.com/shared/static/kbwivmqnrdnn5im2gu6khoybk5a3rfl0.txt"
-    try:
-        remote_version = _download_text(version_url)
-    except NoInternetError:
-        pass
-    else:
-        local_version = version()
-        if remote_version != local_version:
-            warnings.warn(f"Your version of cptac ({local_version}) is out-of-date. Latest is {remote_version}. Please run 'pip install --upgrade cptac' to update it.", OldPackageVersionWarning, stacklevel=2)
-
-version_check_thread = threading.Thread(target=check_version)
-version_check_thread.start() # We don't join because we want this to just finish in the background and not block the main thread
+sys.excepthook = _exception_handler
+warnings.showwarning = _warning_displayer
+warnings.simplefilter("always", category=CptacWarning)

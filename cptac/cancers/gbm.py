@@ -26,9 +26,9 @@ class Gbm(Cancer):
 
         super().__init__(cancer_type="gbm")
 
-        self._sources["bcm"] = BcmGbm(version="latest", no_internet=no_internet)
-        self._sources["broad"] = BroadGbm(version="latest", no_internet=no_internet)
-        self._sources["mssm"] = Mssm(filter_type='gbm', version="latest", no_internet=no_internet)
-        self._sources["umich"] = UmichGbm(version="latest", no_internet=no_internet)
-        self._sources["washu"] = WashuGbm(version="latest", no_internet=no_internet)
-        self._sources["harmonized"] = Harmonized(filter_type='gbm', version="latest", no_internet=no_internet)
+        self._sources["bcm"] = BcmGbm(no_internet=no_internet)
+        self._sources["broad"] = BroadGbm(no_internet=no_internet)
+        self._sources["mssm"] = Mssm(filter_type='gbm', no_internet=no_internet)
+        self._sources["umich"] = UmichGbm(no_internet=no_internet)
+        self._sources["washu"] = WashuGbm(no_internet=no_internet)
+        self._sources["harmonized"] = Harmonized(filter_type='gbm', no_internet=no_internet)

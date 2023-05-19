@@ -14,29 +14,23 @@ from cptac.cancers.source import Source
 import cptac.tools.dataframe_tools as df_tools
 
 class UmichHnscc(Source):
-    def __init__(self, version="latest", no_internet=False):
+    def __init__(self, no_internet=False):
         """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
         Parameters:
-        version (str, optional): The version number to load, or the string "latest" to just load the latest datafreeze. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
-        # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        self.valid_versions = ["1.0"]
-
         self.data_files = {
-            "1.0": {
-                "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
-                "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
-                # "README_v3.boxnote" is proteomics
-                # "README.boxnote" is phosphoproteomics 
-                "readme" : ["README_v3.boxnote", "README.boxnote"],
-                #"not_used": "S039_BCprospective_observed_0920.tsv.gz",
-                #"not_used": "S039_BCprospective_imputed_0920.tsv.gz"
-            }
+            "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
+            "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
+            # "README_v3.boxnote" is proteomics
+            # "README.boxnote" is phosphoproteomics 
+            "readme" : ["README_v3.boxnote", "README.boxnote"],
+            #"not_used": "S039_BCprospective_observed_0920.tsv.gz",
+            #"not_used": "S039_BCprospective_imputed_0920.tsv.gz"
         }
         
         self.load_functions = {
@@ -44,11 +38,8 @@ class UmichHnscc(Source):
             'proteomics' : self.load_proteomics,
         }
         
-        if version == "latest":
-            version = sorted(self.valid_versions)[-1]
-
         # Call the parent class __init__ function
-        super().__init__(cancer_type="hnscc", source="umich", version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
+        super().__init__(cancer_type="hnscc", source="umich", data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_phosphoproteomics(self):
         df_type = 'phosphoproteomics'

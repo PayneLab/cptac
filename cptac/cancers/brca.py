@@ -26,9 +26,9 @@ class Brca(Cancer):
 
         super().__init__(cancer_type="brca")
 
-        self._sources["bcm"] = BcmBrca(version="latest", no_internet=no_internet)
-        self._sources["broad"] = BroadBrca(version="latest", no_internet=no_internet)
-        self._sources["mssm"] = Mssm(filter_type='brca', version="latest", no_internet=no_internet)
-        self._sources["umich"] = UmichBrca(version="latest", no_internet=no_internet)
-        self._sources["washu"] = WashuBrca(version="latest", no_internet=no_internet)
-        self._sources["harmonized"] = Harmonized(filter_type='brca', version="latest", no_internet=no_internet)
+        self._sources["bcm"] = BcmBrca(no_internet=no_internet)
+        self._sources["broad"] = BroadBrca(no_internet=no_internet)
+        self._sources["mssm"] = Mssm(filter_type='brca', no_internet=no_internet)
+        self._sources["umich"] = UmichBrca(no_internet=no_internet)
+        self._sources["washu"] = WashuBrca(no_internet=no_internet)
+        self._sources["harmonized"] = Harmonized(filter_type='brca', no_internet=no_internet)

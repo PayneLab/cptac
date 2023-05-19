@@ -10,18 +10,17 @@
 #   limitations under the License.
 
 import cptac
-from cptac.tools.download_tools.zeno_download import zeno_download
+import cptac.tools.download_tools.zeno_download as zd
 from cptac.exceptions import DataSourceNotFoundError, InvalidParameterError
 
 
-def download(sources, cancers='all', version="latest", redownload=False):
-    """Download data files for the specified cancers, sources, and datatypes. Defaults to downloading latest version on server.
+def download(sources, cancers='all', redownload=False):
+    """Download data files for the specified cancers, sources, and datatypes.
 
     Parameters:
     sources (dict): Keys are source names (str), values are the datatypes (list of str)
     cancers (list of str): The cancers for which the sources/datatypes will be downloaded
-    version (str, optional): Which version of the data files to download. Defaults to latest on server.
-    redownload (bool, optional): Whether to redownload the data files, even if that version of the data is already downloaded. Default False.
+    redownload (bool, optional): Whether to redownload the data files, even if the data is already downloaded. Default False.
 
     Returns:
     bool: Indicates whether download was successful.
@@ -41,14 +40,14 @@ def download(sources, cancers='all', version="latest", redownload=False):
     for case in special_cases:
         source = case
         datatypes = sources[case]
-        if not zeno_download(cancer='brca', source=source, datatypes=datatypes):
+        if not zd.zeno_download(cancer='brca', source=source, datatypes=datatypes):
             success = False
         del sources[case]
 
     # iterate through cancers and sources and download corresonding data files
     for cancer in cancers:
         for source, datatypes in sources.items():
-            if not zeno_download(cancer, source, datatypes):
+            if not zd.zeno_download(cancer, source, datatypes):
                 success = False
 
     return success
@@ -82,3 +81,8 @@ def _validate_cancers(cancers):
             return cancers
     else: # handle case where cancers is an invalid string
         raise InvalidParameterError(f"{cancers} is not a valid cancer. Run cptac.Run cptac.list_datasets() to see valid cancer types.")
+
+
+def init_files() -> None:
+    "Initializes several files that are essential for cptac to run, such as the file index."
+    return zd.init_files()

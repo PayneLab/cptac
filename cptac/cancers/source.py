@@ -15,11 +15,12 @@ import cptac
 import pandas as pd
 
 from cptac import CPTAC_BASE_DIR
-from cptac.exceptions import DataTypeNotInSourceError, InvalidDataVersionError, MissingFileError
+from cptac.exceptions import DataTypeNotInSourceError, MissingFileError
 from cptac.tools.dataframe_tools import standardize_axes_names
 
 class Source:
-    def __init__(self, cancer_type, source, version, valid_versions, data_files, load_functions, no_internet):
+
+    def __init__(self, cancer_type, source, data_files, load_functions, no_internet):
         self.no_internet = no_internet
         self.source = source
         self.cancer_type = cancer_type
@@ -27,8 +28,6 @@ class Source:
         self._helper_tables = {}
         self.data_files = data_files
         self.load_functions = load_functions
-        self.set_version(version)
-        self.valid_versions = valid_versions
 
     def get_df(self, df_type):
         """Get the dataframe of the specified data type
@@ -39,7 +38,6 @@ class Source:
         Returns:
         pandas.DataFrame: The dataframe of the desired datatype.
         """
-
         # if that df hasn't been loaded yet, load it
         if df_type not in self._data:
 
@@ -48,7 +46,7 @@ class Source:
                 raise DataTypeNotInSourceError(f"The {self.source} source does not have {df_type} data for {self.cancer_type} cancer.")
             else:
                 # print loading message
-                loading_msg = f"Loading {df_type} dataframe for {self.source} {self.cancer_type} (v{self.get_version()})"
+                loading_msg = f"Loading {df_type} dataframe for {self.source} {self.cancer_type}"
                 #print(loading_msg, end='\r')
 
                 # call the load function for that df type
@@ -58,7 +56,6 @@ class Source:
                 print(' ' * len(loading_msg), end='\r')
 
         return self._data[df_type]
-
 
     def save_df(self, df_type, df):
         """Perform final formatting so all cptac data is consistent, and save the dataframe in the self._data dictionary with df_type as the key"""
@@ -76,21 +73,6 @@ class Source:
 
         self._data[df_type] = df
 
-
-    def set_version(self, version):
-        # check if version is valid
-        if version == "latest":
-            version = sorted(self.valid_versions)[-1]
-        if version not in self.valid_versions:
-            raise InvalidDataVersionError(f"{version} is not a valid version. These are the valid versions: {self.valid_versions}")
-        else:
-            self.version = version
-
-
-    def get_version(self):
-        return self.version
-
-
     def get_file_path(self, data_file):
         """Return the path to a specific data file
 
@@ -98,7 +80,7 @@ class Source:
         data_file (str): The file name to get a filepath for
 
         Returns:
-        string: The path to the given data file for the currently set version of the source.
+        string: The path to the given data file
         """
         # Get our dataset path and index
         if self.source in ["harmonized", "mssm"]:
@@ -106,7 +88,7 @@ class Source:
         else:
             dataset = self.source + "_" + self.cancer_type
 
-        file_path = path.join(CPTAC_BASE_DIR, f"data/data_{dataset}/{data_file}")
+        file_path = path.join(CPTAC_BASE_DIR, f"data/{dataset}/{data_file}")
 
         if path.isfile(file_path):
             return file_path
@@ -120,7 +102,7 @@ class Source:
 
 
     def locate_files(self, datatype):
-        """Checks if the datatype is valid for the source's set version. 
+        """Checks if the datatype is valid
         If the datatype is valid, it finds the file path, downloading the files if necessary
 
         Parameters:
@@ -129,12 +111,8 @@ class Source:
         Returns:
             A single file path or a list of file paths to all files of the given datatype
         """
-        # check if datatype is valid for the set version
-        if self.version not in self.data_files:
-            raise InvalidDataVersionError(f"{datatype} is not available in the data freeze for version v_{self.version} of {self.source} {self.cancer_type} data.")
-
         # pull the file name or list of file names from the self.data_files dict
-        f = self.data_files[self.version][datatype]
+        f = self.data_files[datatype]
 
         # get the file path(s)
         if type(f) == list:
@@ -143,7 +121,7 @@ class Source:
                 path = self.get_file_path(file_name)
                  # if the file hasn't been downloaded and they have internet, download it
                 if path == "not downloaded":
-                    cptac.download(sources={self.source : [datatype]}, cancers=self.cancer_type, version=self.version)
+                    cptac.download(sources={self.source : [datatype]}, cancers=self.cancer_type)
                     path = self.get_file_path(file_name)
                 # append path to file paths
                 file_paths.append(path)
@@ -153,7 +131,7 @@ class Source:
         else:
             file_path = self.get_file_path(f)
             if file_path == "not downloaded":
-                cptac.download(sources={self.source : [datatype]}, cancers=self.cancer_type, version=self.version)
+                cptac.download(sources={self.source : [datatype]}, cancers=self.cancer_type)
                 file_path = self.get_file_path(f)
 
             return file_path

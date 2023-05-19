@@ -26,9 +26,9 @@ class Coad(Cancer):
 
         super().__init__(cancer_type="coad")
 
-        self._sources["bcm"] = BcmCoad(version="latest", no_internet=no_internet)
-        self._sources["broad"] = BroadCoad(version="latest", no_internet=no_internet)
-        self._sources["mssm"] = Mssm(filter_type='coad', version="latest", no_internet=no_internet)
-        self._sources["umich"] = UmichCoad(version="latest", no_internet=no_internet)
-        self._sources["washu"] = WashuCoad(version="latest", no_internet=no_internet)
-        self._sources["harmonized"] = Harmonized(filter_type='coad', version="latest", no_internet=no_internet)
+        self._sources["bcm"] = BcmCoad(no_internet=no_internet)
+        self._sources["broad"] = BroadCoad(no_internet=no_internet)
+        self._sources["mssm"] = Mssm(filter_type='coad', no_internet=no_internet)
+        self._sources["umich"] = UmichCoad(no_internet=no_internet)
+        self._sources["washu"] = WashuCoad(no_internet=no_internet)
+        self._sources["harmonized"] = Harmonized(filter_type='coad', no_internet=no_internet)
