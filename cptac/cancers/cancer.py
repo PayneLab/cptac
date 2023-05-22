@@ -699,9 +699,11 @@ class Cancer:
         data_sources.columns=["Data type", "Available sources"]
 
         return data_sources
+    
 
     def get_dataframe(self, name: str, source: str=None, tissue_type: str="both", imputed: bool=False) -> pd.DataFrame:
-        """Check that a given dataframe from a given source exists, and return a copy if it does.
+        """
+        Check that a given dataframe from a given source exists, and return a copy if it does.
 
         Parameters:
         name (str): The datatype for which you want the dataframe.
@@ -713,37 +715,36 @@ class Cancer:
         """
 
         if imputed:
-            name = name + "_imputed"
+            name += "_imputed"
 
-        # If no source specified, tell user what sources are available for that datatype
         if source is None:
-            sources_for_data = []
-            for src in self._sources.keys():
-                if name in self._sources[src].load_functions.keys():
-                    sources_for_data.append(src)
-            if len(sources_for_data) == 0:
-                # Desired datatype does not exist
-                raise DataFrameNotIncludedError(f"{name} datatype not included in the {self._cancer_type} dataset. Use <cancer object>.list_data_sources() to see which data are available.")
-            elif len(sources_for_data) == 1:
-                # Warn the user that a default value is being used
+            sources_for_data = [src for src in self._sources.keys() if name in self._sources[src].load_functions.keys()]
+
+            if not sources_for_data:
+                raise DataFrameNotIncludedError(
+                    f"{name} datatype not included in the {self._cancer_type} dataset. Use <cancer object>.list_data_sources() to see which data are available.")
+
+            if len(sources_for_data) == 1:
                 source = sources_for_data[0]
-                warnings.warn(f"Using source {source} for {name} data as no other sources provide this data. To remove this warning, pass {source} as the source parameter.", ParameterWarning, stacklevel=3)
+                warnings.warn(
+                    f"Using source {source} for {name} data as no other sources provide this data. To remove this warning, pass {source} as the source parameter.",
+                    ParameterWarning, stacklevel=3)
             else:
-                # Raise error and let user know what sources are available
-                raise DataSourceNotFoundError(f"No source selected. Available sources for {self._cancer_type} {name} data are: {sources_for_data}.")
+                raise DataSourceNotFoundError(
+                    f"No source selected. Available sources for {self._cancer_type} {name} data are: {sources_for_data}.")
 
-        if source in self._sources.keys():
-            df = self._sources[source].get_df(name)
-
-            # Handle tissue type and filter df as specified
-            if tissue_type == "normal":
-                df = self._normal_only(df)
-            elif tissue_type == "tumor":
-                df = self._tumor_only(df)
-
-            return df
-        else:
+        if source not in self._sources.keys():
             raise DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
+
+        df = self._sources[source].get_df(name)
+
+        if tissue_type == "normal":
+            df = self._normal_only(df)
+        elif tissue_type == "tumor":
+            df = self._tumor_only(df)
+
+        return df
+    
 
     # "Private" methods
     def _check_df_valid(self, df_name: str, source: str, df_type: str):
