@@ -619,15 +619,16 @@ class Cancer:
         """Return the cancer type for this dataset, as a string."""
         return self._cancer_type
 
-    def get_data_list(self) -> dict:
-        """Return a dictionary of all data currently loaded into memory"""
-        return {
-            source: {
-                name: {'rows': df.shape[0], 'columns': df.shape[1]}
-                for name, df in sorted(self._sources[source]._data.items(), key=lambda item: str.lower(item[0]))
-            }
-            for source in self._sources.keys()
-        }
+    def get_data_list(self) -> list:
+        """Return a list of all data currently loaded into memory"""
+        complete_list = {}
+        for source in self._sources.keys():
+            data_list = {}
+            for name in sorted(self._sources[source]._data.keys(), key=str.lower):
+                df = self._sources[source]._data[name]
+                data_list[name] = {'rows': df.shape[0], 'columns': df.shape[1]}
+            complete_list[source] = data_list
+        return complete_list
 
     def how_to_cite(self, cancer_type: str='', pmid: str = '', unpublished: bool=False):
         """Print instructions for citing the data."""
@@ -649,48 +650,55 @@ class Cancer:
             # no additional message will be printed if we have not passed in parameters
             pass
 
-    def list_data_sources(self, source_filter: Union[str, list[str]]="all"):
-        """
-        Returns a dataframe showing which sources provide each data type
+    def list_data_sources(self, source_filter: str or list[str]="all"):
+        """Print which sources provide each data type.
 
         Parameters:
-        source_filter (Union[str, list[str]]): filter which sources are shown in the table, default "all" returns all sources and datatypes.
-        If a source is specified, only datatypes with data from that source will be shown.
-
-        Returns:
-        pandas.Dataframe: Dataframe with sources for each datatype.
+        source_filter (str or list[str], optional): filter which sources are shown in the table, default "all" returns all sources and datatypes.
+            If a source is specified, only datatypes with data from that source will be shown.
         """
-
-        if source_filter == "all":
-            source_filter = list(self._sources.keys())
-        elif isinstance(source_filter, str):
-            source_filter = [source_filter]
-
-        invalid_sources = set(source_filter) - set(self._sources.keys())
-        if invalid_sources:
-            raise InvalidParameterError(f"{invalid_sources} are not valid sources for the {self._cancer_type} dataset. Valid sources are: {list(self._sources.keys())}")
 
         # This dict will be keyed by data type, and the values will be each source that provides that data type
         data_sources = {}
-        datatypes_to_keep = set()
+        datatypes_to_keep = []
 
+        # handle sources filter parameter
+        if source_filter == "all":
+            source_filter = self._sources.keys()
+        elif isinstance(source_filter, str): # If it's a single source, make it a list so we can treat everything the same
+            source_filter = [source_filter]
+        for src in source_filter:
+            if src not in self._sources.keys():
+                raise InvalidParameterError(f"{src} is not a valid source for the {self._cancer_type} datatset. Valid sources are: {list(self._sources.keys())}")
+
+
+        # Get each datatype and its sources
         for source in sorted(self._sources.keys()):
-            if source in source_filter:
-                for df_name in sorted(self._sources[source].load_functions.keys()):
-                    if df_name in ["cibersort", "xcell"]:
-                        df_name = f"deconvolution_{df_name}" # For clarity
+            for df_name in sorted(self._sources[source].load_functions.keys()):
+                if df_name in ["cibersort", "xcell"]:
+                    df_name = f"deconvolution_{df_name}" # For clarity
 
-                    datatypes_to_keep.add(df_name)
+                if source in source_filter:
+                    datatypes_to_keep.append(df_name)
 
-                    data_sources[df_name] = data_sources.get(df_name, [])
-                    data_sources[df_name].append(source)
+                if df_name in data_sources.keys():
+                    data_sources[df_name][0] += f", {source}"
+                else:
+                    data_sources[df_name] = [source]
 
-        data_sources = {k: ", ".join(v) for k, v in data_sources.items() if k in datatypes_to_keep}
+        # Filter based on user parameter
+        kept_data = {k: data_sources[k] for k in datatypes_to_keep}
+        data_sources = kept_data
 
-        data_sources = pd.DataFrame(list(data_sources.items()), columns=["Data type", "Available sources"]).sort_values(by="Data type").reset_index(drop=True)
+        data_sources = pd.\
+        DataFrame(data_sources).\
+        transpose().\
+        sort_index().\
+        reset_index()
+
+        data_sources.columns=["Data type", "Available sources"]
 
         return data_sources
-    
 
     def get_dataframe(self, name: str, source: str=None, tissue_type: str="both", imputed: bool=False) -> pd.DataFrame:
         """Check that a given dataframe from a given source exists, and return a copy if it does.
