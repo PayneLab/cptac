@@ -27,6 +27,7 @@ import cProfile
 ### /DEBUG
 
 class Cancer:
+    NORMAL_ENDINGS = ('.N', '.C') # HNSCC data has cored normal samples marked .C
     """Note that all cancer datasets are class objects that inherit 
         from cptac.cancer.
     Therefore the same function calls exist for cptac.Brca, cptac.Gbm, etc.
@@ -748,7 +749,9 @@ class Cancer:
 
     # "Private" methods
     def _check_df_valid(self, df_name: str, source: str, df_type: str):
-        """Checks whether a dataframe with this name is valid for use as an omics or metadata dataframe in one of the utilties functions. Throws an InvalidParameterError if it isn't.
+        """
+        Checks whether a dataframe with this name is valid for use as an omics or metadata dataframe in one of the utilties functions.
+        Throws an InvalidParameterError if it isn't.
 
         Parameters:
         df_name (str): The dataframe name to check.
@@ -760,32 +763,29 @@ class Cancer:
         if not isinstance(df_name, str): # Check that they passed a str, since utilities functions used to directly accept dataframes
             raise InvalidParameterError(f"Please pass a str for dataframe name parameter. You passed {df_name}, which is a {type(df_name)}")
 
-        if df_type == "omics":
-            valid_dfs = self._valid_omics_dfs
-        elif df_type == "metadata":
-            valid_dfs = self._valid_metadata_dfs
-        else:
+        valid_df_types = {"omics": self._valid_omics_dfs, "metadata": self._valid_metadata_dfs}
+
+        try:
+            valid_dfs = valid_df_types[df_type]
+        except KeyError:
             raise CptacDevError(f"Invalid df_type of {df_type} passed to cptac.Dataset._check_df_valid.")
 
         if df_name not in self._sources[source].load_functions:
             raise DataFrameNotIncludedError(f"{source} {df_name} dataframe not included in the {self.get_cancer_type()} dataset.")
-        elif df_name not in valid_dfs:
-            error_msg = f"{df_name} is not a valid {df_type} dataframe for this function in this dataset. Valid options:"
-            for valid_name in valid_dfs:
-                if valid_name in self._sources[source].load_functions: # Only print it if it's included in this dataset
-                    error_msg = error_msg + '\n\t' + valid_name
+
+        if df_name not in valid_dfs:
+            valid_options = '\n\t'.join([valid_name for valid_name in valid_dfs if valid_name in self._sources[source].load_functions])
+            error_msg = f"{df_name} is not a valid {df_type} dataframe for this function in the dataset. Valid options: \n\t{valid_options}"
             raise InvalidParameterError(error_msg)
 
     def _tumor_only(self, df: pd.DataFrame):
         """For a given dataframe, keep only the tumor samples."""
-        normal_endings = ('.N', '.C') # HNSCC data has cored normal samples marked .C
-        tumor_df = df[~df.index.str.endswith(normal_endings)]
+        tumor_df = df[~df.index.str.endswith(self.NORMAL_ENDINGS)]
         return tumor_df
 
     def _normal_only(self, df: pd.DataFrame):
         """For a given dataframe, keep only the normal samples."""
-        normal_endings = ('.N', '.C') # HNSCC data has cored normal samples marked .C
-        normal_df = df[df.index.str.endswith(normal_endings)]
+        normal_df = df[df.index.str.endswith(self.NORMAL_ENDINGS)]
         return normal_df
 
     def _get_omics_cols(self, omics_df_name: str, source: str, genes: str or list[str], tissue_type: str="both") -> pd.DataFrame:
