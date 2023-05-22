@@ -619,16 +619,15 @@ class Cancer:
         """Return the cancer type for this dataset, as a string."""
         return self._cancer_type
 
-    def get_data_list(self) -> list:
-        """Return a list of all data currently loaded into memory"""
-        complete_list = {}
-        for source in self._sources.keys():
-            data_list = {}
-            for name in sorted(self._sources[source]._data.keys(), key=str.lower):
-                df = self._sources[source]._data[name]
-                data_list[name] = {'rows': df.shape[0], 'columns': df.shape[1]}
-            complete_list[source] = data_list
-        return complete_list
+    def get_data_list(self) -> dict:
+        """Return a dictionary of all data currently loaded into memory"""
+        return {
+            source: {
+                name: {'rows': df.shape[0], 'columns': df.shape[1]}
+                for name, df in sorted(self._sources[source]._data.items(), key=lambda item: str.lower(item[0]))
+            }
+            for source in self._sources.keys()
+        }
 
     def how_to_cite(self, cancer_type: str='', pmid: str = '', unpublished: bool=False):
         """Print instructions for citing the data."""
