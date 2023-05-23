@@ -68,6 +68,7 @@ class BcmOv(Source):
             transcript = transcript.sort_index() #alphabetize
             transcript = transcript.T
             transcript.index.name = "Patient_ID"
+            df = transcript
 
             # save df in self._data
             self.save_df(df_type, df)
