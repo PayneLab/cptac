@@ -65,10 +65,14 @@ def download(cancer: str, source: str, dtype: str, data_file: str=None) -> bool:
     """
     if not cancer or not source or not dtype:
         raise InvalidParameterError("Cancer, source, and datatypes must be provided.")
-
+    
     # Prepare for data download
-    description = f"{source}_{dtype}" if source in ['harmonized', 'mssm'] else f"{source}_{cancer}_{dtype}"
-    output_dir = '_'.join(description.split('_')[:-1])
+    if source == 'mssm':
+        description = source
+        output_dir = source
+    else:
+        description = f"{source}_{dtype}" if source in ['harmonized'] else f"{source}_{cancer}_{dtype}"
+        output_dir = '_'.join(description.split('_')[:-1])
     os.makedirs(os.path.join(DATA_DIR, output_dir), exist_ok=True)
 
     # Download requested dataframe
