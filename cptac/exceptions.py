@@ -118,6 +118,10 @@ class FileNotUpdatedWarning(CptacWarning):
     """A file they wanted to update wasn't updated."""
     pass
 
+class FailedChecksumWarning(CptacWarning):
+    """A datafile failed a checksum test."""
+    pass
+
 class DatasetAlreadyInstalledWarning(CptacWarning):
     """The dataset was already installed, and they didn't want to redownload it."""
     pass

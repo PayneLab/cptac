@@ -20,7 +20,7 @@ CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
 
 # Function imports
 from cptac.tools.download_tools.download import download, init_files
-from cptac.exceptions import CptacError, CptacWarning, NoInternetError
+from cptac.exceptions import CptacError, CptacWarning
 from cptac.utils.other_utils import df_to_tree
 
 # Dataset imports
@@ -38,33 +38,32 @@ from cptac.cancers.ucec import Ucec
 
 #### Create the index for the data files (file lookup table)
 init_files()
-__INDEX__ = pd.read_csv(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv'), sep='\t', index_col=0)
+INDEX = pd.read_csv(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv'), sep='\t')
 
 #### This code generates the __OPTIONS__ dataframe which shows all possible cancer, source, datatype combinations
 def _load_options():
     """Load the tsv file with all the possible cancer, source, datatype combinations"""
-    options_file = path.join(CPTAC_BASE_DIR, "options.tsv")
-    df = pd.read_csv(options_file, sep="\t")
-    return df
+    options_df = INDEX['description'].str.split('_')
+    options_df = pd.DataFrame(options_df.tolist())
+
+    return options_df
 
 __OPTIONS__ = _load_options()
 
-def get_options():
-    return __OPTIONS__.copy()
+# def get_options():
+#     return __OPTIONS__.copy()
 
-def get_cancer_options():
-    df = __OPTIONS__.copy()
-    return list(df["Cancers"].unique())
+# def get_cancer_options():
+#     df = __OPTIONS__.copy()
+#     return list(df["Cancers"].unique())
 
-def get_source_options():
-    df = __OPTIONS__.copy()
-    return list(df["Sources"].unique())
+# def get_source_options():
+#     df = __OPTIONS__.copy()
+#     return list(df["Sources"].unique())
 
 def list_datasets(print_tree=False):
     """List all available datasets."""
-    df = __OPTIONS__.\
-    copy().\
-    drop("Loadable datatypes", axis=1)
+    df = __OPTIONS__.copy()
     if print_tree:
         print(df_to_tree)
     else:

@@ -1,88 +1,161 @@
-#   Copyright 2018 Samuel Payne sam_payne@byu.edu
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#       http://www.apache.org/licenses/LICENSE-2.0
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
+import os
+import requests
+from tqdm import tqdm
+import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
+from hashlib import md5
 
 import cptac
-import cptac.tools.download_tools.zeno_download as zd
-from cptac.exceptions import DataSourceNotFoundError, InvalidParameterError
+from cptac.exceptions import *
+
+# Some websites don't like requests from sources without a user agent. Let's preempt that issue.
+# This variable sets a user agent to be included in the request headers.
+# USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
+# HEADERS = {'User-Agent': USER_AGENT}
+DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data")
+STATIC_DOI = '10.5281/zenodo.7897498'
+RECORD_ID = STATIC_DOI.split('.')[-1]
+ZENO_TOKEN = 'GijLB8joEFbeVEBQsjtJ8rH1uXMK8p5REgkNTfgHCMSR5LDyisZiZx1BRPQT'
+AUTH_HEADER = {'Authorization': 'Bearer ' + ZENO_TOKEN}
+BUCKET=None
 
 
-def download(sources, cancers='all', redownload=False):
-    """Download data files for the specified cancers, sources, and datatypes.
-
-    Parameters:
-    sources (dict): Keys are source names (str), values are the datatypes (list of str)
-    cancers (list of str): The cancers for which the sources/datatypes will be downloaded
-    redownload (bool, optional): Whether to redownload the data files, even if the data is already downloaded. Default False.
-
-    Returns:
-    bool: Indicates whether download was successful.
-    """
-
-    # check if sources parameter is valid
-    sources = _validate_sources(sources)
-    
-    # check if cancers parameter is valid
-    cancers = _validate_cancers(cancers)
-
-    # variable for tracking download success
-    success = True
-
-    # handle special harmonized and mssm cases
-    special_cases = set(['harmonized', 'mssm']).intersection(set(sources.keys()))
-    for case in special_cases:
-        source = case
-        datatypes = sources[case]
-        if not zd.zeno_download(cancer='brca', source=source, datatypes=datatypes):
-            success = False
-        del sources[case]
-
-    # iterate through cancers and sources and download corresonding data files
-    for cancer in cancers:
-        for source, datatypes in sources.items():
-            if not zd.zeno_download(cancer, source, datatypes):
-                success = False
-
-    return success
-
-def _validate_sources(sources):
-    all_sources = cptac.get_source_options()
-    if type(sources) is not dict:
-        raise InvalidParameterError("Sources must be a dict of form {'source':['datatypes']}. ")
-    else:
-        for s, datatypes in sources.items():
-            if s not in all_sources:
-                raise DataSourceNotFoundError(f"{s} is not a valid source! Call cptac.list_datasets() for valid options.")
-            if type(datatypes) is str:
-                sources[s] = list([datatypes])
-        return sources
-
-def _validate_cancers(cancers):
-    all_cancers = cptac.get_cancer_options()
-    if cancers in ['all', ['all']]:
-        return all_cancers
-    elif type(cancers) is str and cancers in all_cancers:
-        return list([cancers])
-    elif type(cancers) is list:
-        invalid_cancers = list()
-        for c in cancers:
-            if c not in all_cancers:
-                invalid_cancers.append(c)
-        if len(invalid_cancers) > 0:
-            raise InvalidParameterError(f"{invalid_cancers} are not a valid cancers. Run cptac.list_datasets() to see valid cancer types.")
-        else:
-            return cancers
-    else: # handle case where cancers is an invalid string
-        raise InvalidParameterError(f"{cancers} is not a valid cancer. Run cptac.Run cptac.list_datasets() to see valid cancer types.")
+def fetch_repo_data() -> dict:
+    "Fetches the repo data from Zenodo, including metadata and file links."
+    repo_link = f"https://zenodo.org/api/records/{RECORD_ID}"
+    response = requests.get(repo_link, headers=AUTH_HEADER)
+    response.raise_for_status()
+    return response.json()
 
 
 def init_files() -> None:
     "Initializes several files that are essential for cptac to run, such as the file index."
-    return zd.init_files()
+    os.makedirs(DATA_DIR, exist_ok=True)
+    try:
+        repo_data = fetch_repo_data()
+        global BUCKET
+        BUCKET = repo_data['links']['bucket']
+        index_data = []
+        index_data.append(f"description\tfilename\tchecksum")
+        for data_file in repo_data['files']:
+            filename_list = data_file['key'].split('_')
+            description = filename_list[:2] if filename_list[0] in ['harmonized', 'mssm'] else filename_list[:3]
+            description = '_'.join(description)
+            index_data.append(f"{description}\t{'_'.join(filename_list)}\t{data_file['checksum']}")
+        with open(os.path.join(DATA_DIR, "index.tsv"), 'w') as index_file:
+            index_file.write('\n'.join(index_data))
+    except requests.ConnectionError:
+        raise NoInternetError("Cannot initialize data files: No internet connection.")
+    except requests.RequestException as e:
+        raise HttpResponseError(f"Requesting data failed with the following error: {e}")
+    except Exception as e:
+        raise CptacError(f"ERROR: {e}")
+            
+
+def download(cancer: str, source: str, dtype: str, data_file: str=None) -> bool:
+    """
+    Downloads data files for a specific cancer, source, datatype, and file name from Zenodo
+
+    :param cancer: The cancer type (e.g. 'brca').
+    :param source: The data source (e.g. 'harmonized').
+    :param dtype: The datatype of the files to download (e.g. 'clinical')
+    :param data_file: The file name to download (look at index.tsv for examples).
+
+    :return: True if data has successfully downloaded; raises error otherwise.
+    """
+    if not cancer or not source or not dtype:
+        raise InvalidParameterError("Cancer, source, and datatypes must be provided.")
+
+    # Prepare for data download
+    description = f"{source}_{dtype}" if source in ['harmonized', 'mssm'] else f"{source}_{cancer}_{dtype}"
+    output_dir = '_'.join(description.split('_')[:-1])
+    os.makedirs(os.path.join(DATA_DIR, output_dir), exist_ok=True)
+
+    # Download requested dataframe
+    file_name = f"{description}_{data_file}"
+    output_file = os.path.join(output_dir, data_file)
+    try:
+        get_data(f"{get_bucket()}/{file_name}", output_file)
+
+        # Verify checksum
+        with open(os.path.join(DATA_DIR, output_file), 'rb') as data_file:
+            local_hash = md5(data_file.read()).hexdigest()
+        if "md5:"+local_hash != cptac.INDEX.query("filename == @file_name")['checksum'].item():
+            os.remove(os.path.join(DATA_DIR, output_file))
+            raise DownloadFailedError("Download failed: local an remote files do not match. Please try again.")
+        return True
+    except DownloadFailedError as e:
+        raise e
+    except requests.RequestException as e:
+        raise HttpResponseError(f"Requesting data failed with the following error: {e}")
+    except Exception as e:
+        raise DownloadFailedError(f"Failed to download data file for {source} {cancer} {dtype} with error:\n{e}") from e
+
+
+def get_bucket() -> str:
+    """
+    Gets the bucket in Zenodo that houses all data files.
+    :return: The URL of the Zenodo bucket containing the data files.
+    """
+    if BUCKET is None:
+        init_files()
+    return BUCKET
+
+
+def download_chunk(url, start, end, file_path, pbar=None):
+    """
+    Downloads a chunk of a file and writes it to the specified file path.
+    
+    :param url: THE URL of the file to download.
+    :param start: The start byte of the chunk to download.
+    :param end: The end byte of the chunk to download.
+    :param file_path: The path to the file where the downloaded chunk should be written
+    """
+    headers = {'Range': f'bytes={start}-{end}'}
+    headers.update(AUTH_HEADER)
+    response = requests.get(url, headers=headers, stream=True)
+    response.raise_for_status()
+    block_size = 1024 # We can adjust this value as needed
+
+    with open(file_path, 'rb+') as data_file:
+        data_file.seek(start)
+        for data in response.iter_content(block_size):
+            data_file.write(data)
+            if pbar is not None:
+                pbar.update(len(data)) # Update the progress bar based on the size of the data block
+
+
+def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
+    """
+    Downloads a file using multithreading and saves it to the specified subfolder.
+
+    :param url: The URL of the file to download.
+    :param subfolder: The subfolder where the downloaded file should be saved.
+    :param num_threads: The number of threads to use for downloading the file (default is 4).
+    :return: The path of the downloaded file.
+    """
+    parent_folder = os.path.split(subfolder)[0]
+    if parent_folder and not os.path.exists(parent_folder):
+        os.makedirs(parent_folder, exist_ok=True)
+    response = requests.head(url, headers=AUTH_HEADER)
+    response.raise_for_status()
+
+    file_size = int(response.headers['content-length'])
+    chunk_size = file_size // num_threads
+
+    # Create an empty file with the same size as the file to be downloaded
+    with open(os.path.join(DATA_DIR, subfolder), 'wb') as data_file:
+        data_file.truncate(file_size)
+
+    with ThreadPoolExecutor(max_workers=num_threads) as executor, tqdm(total=file_size, unit='B', unit_scale=True, desc=f"Downloading {os.path.split(subfolder)[1]}") as pbar:
+        futures = []
+        for i in range(num_threads):
+            start = i * chunk_size
+            end = start + chunk_size - 1 if i != num_threads - 1 else file_size - 1
+            futures.append(executor.submit(download_chunk, url, start, end, os.path.join(DATA_DIR, subfolder), pbar))
+
+        for future in concurrent.futures.as_completed(futures):
+            future.result()  # Raise any exception encountered during download
+
+    return subfolder
+

@@ -9,13 +9,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from os import path
+import os
 
 import cptac
 import pandas as pd
+from hashlib import md5
+from warnings import warn
 
 from cptac import CPTAC_BASE_DIR
-from cptac.exceptions import DataTypeNotInSourceError, MissingFileError
+from cptac.exceptions import DataTypeNotInSourceError, MissingFileError, FailedChecksumWarning
 from cptac.tools.dataframe_tools import standardize_axes_names
 
 class Source:
@@ -40,21 +42,17 @@ class Source:
         """
         # if that df hasn't been loaded yet, load it
         if df_type not in self._data:
-
             # check to see if the df type requested is availabe from this source
             if df_type not in self.load_functions:
                 raise DataTypeNotInSourceError(f"The {self.source} source does not have {df_type} data for {self.cancer_type} cancer.")
             else:
                 # print loading message
-                loading_msg = f"Loading {df_type} dataframe for {self.source} {self.cancer_type}"
+                # loading_msg = f"Loading {df_type} dataframe for {self.source} {self.cancer_type}"
                 #print(loading_msg, end='\r')
-
                 # call the load function for that df type
                 self.load_functions[df_type]()
-
                 # Erase the loading message
-                print(' ' * len(loading_msg), end='\r')
-
+                # print(' ' * len(loading_msg), end='\r')
         return self._data[df_type]
 
     def save_df(self, df_type, df):
@@ -73,33 +71,6 @@ class Source:
 
         self._data[df_type] = df
 
-    def get_file_path(self, data_file):
-        """Return the path to a specific data file
-
-        Parameters:
-        data_file (str): The file name to get a filepath for
-
-        Returns:
-        string: The path to the given data file
-        """
-        # Get our dataset path and index
-        if self.source in ["harmonized", "mssm"]:
-            dataset = self.source
-        else:
-            dataset = self.source + "_" + self.cancer_type
-
-        file_path = path.join(CPTAC_BASE_DIR, f"data/{dataset}/{data_file}")
-
-        if path.isfile(file_path):
-            return file_path
-
-        elif not path.isdir(file_path) and not self.no_internet:
-            return "not downloaded"
-
-        # Raise error if file is not installed and they don't have an internet connection
-        if not path.isdir(file_path) and self.no_internet:
-            raise MissingFileError(f"The {self.source} {data_file} file for the {self.cancer_type} is not downloaded and you are running cptac in no_internet mode.")
-
 
     def locate_files(self, datatype):
         """Checks if the datatype is valid
@@ -112,26 +83,62 @@ class Source:
             A single file path or a list of file paths to all files of the given datatype
         """
         # pull the file name or list of file names from the self.data_files dict
-        f = self.data_files[datatype]
+        data_files = self.data_files[datatype]
+        # self.data_files can either contain a single string or a list of strings. Let's work with all as a list for now.
+        if type(data_files) != list:
+            data_files = [data_files]
+        file_paths = []
+        
+        # Locate and download each data_file
+        for data_file in data_files:
+            dataset = self.source if self.source in ['harmonized', 'mssm'] else f"{self.source}_{self.cancer_type}"
+            file_path = os.path.join(CPTAC_BASE_DIR, f"data/{dataset}/{data_file}")
+            prefixed_file = f"{dataset}_{datatype}_{data_file}"
+            # Ensure data is not corrupted, download files if needed
+            if os.path.isfile(file_path) and not self.no_internet: # It's pointless to check the checksum if we can't redownload it
+                with open(file_path, 'rb') as in_file:
+                    local_hash = f"md5:{md5(in_file.read()).hexdigest()}"
+                if local_hash != cptac.INDEX.loc[cptac.INDEX['filename']==prefixed_file, 'checksum'].item():
+                    warn(FailedChecksumWarning("Local file and online file have different checksums; redownloading data"))
+                    os.remove(file_path)
+                
+            if not os.path.isfile(file_path) and not self.no_internet:
+                cptac.download(self.cancer_type, self.source, datatype, data_file)
+            elif not os.path.isfile(file_path) and self.no_internet:
+                raise MissingFileError(f"The {self.source} {data_file} file for the {self.cancer_type} is not downloaded and you are running cptac in no_internet mode.")
 
-        # get the file path(s)
-        if type(f) == list:
-            file_paths = list()
-            for file_name in f:
-                path = self.get_file_path(file_name)
-                 # if the file hasn't been downloaded and they have internet, download it
-                if path == "not downloaded":
-                    cptac.download(sources={self.source : [datatype]}, cancers=self.cancer_type)
-                    path = self.get_file_path(file_name)
-                # append path to file paths
-                file_paths.append(path)
+            file_paths.append(file_path)
+        
+        return file_paths if len(file_paths) > 2 else file_paths[0]
 
-            return file_paths
+    # def get_file_path(self, data_file, datatype):
+    #     """Return the path to a specific data file, or "not downloaded" if file does not exist or is corrupted.
 
-        else:
-            file_path = self.get_file_path(f)
-            if file_path == "not downloaded":
-                cptac.download(sources={self.source : [datatype]}, cancers=self.cancer_type)
-                file_path = self.get_file_path(f)
+    #     Parameters:
+    #     data_file (str): The file name to get a filepath for
 
-            return file_path
+    #     Returns:
+    #     string: The path to the given data file, or "not downloaded"
+    #     """
+    #     # Get our dataset path and index
+    #     if self.source in ["harmonized", "mssm"]:
+    #         dataset = self.source
+    #     else:
+    #         dataset = self.source + "_" + self.cancer_type
+
+    #     file_path = os.path.join(CPTAC_BASE_DIR, f"data/{dataset}/{data_file}")
+    #     prefixed_file = f"{dataset}_{datatype}_{data_file}"
+
+    #     if os.path.isfile(file_path):
+    #         with open(file_path) as data_file:
+    #             if "md5:" + md5(data_file.read()).hexdigest() == cptac.__INDEX__.query('filename == @prefixed_file')['checksum']:
+    #                 return file_path
+    #         return "not downloaded"
+
+    #     elif not os.path.isdir(file_path) and not self.no_internet:
+    #         return "not downloaded"
+
+    #     # Raise error if file is not installed and they don't have an internet connection
+    #     if not os.path.isdir(file_path) and self.no_internet:
+    #         raise MissingFileError(f"The {self.source} {data_file} file for the {self.cancer_type} is not downloaded and you are running cptac in no_internet mode.")
+
