@@ -91,6 +91,10 @@ class Source:
         
         # Locate and download each data_file
         for data_file in data_files:
+            if self.source == 'mssm':
+                split_string = data_file.split("_")
+                result = "_".join(split_string[1:])
+                data_file = result            
             dataset = self.source if self.source in ['harmonized', 'mssm'] else f"{self.source}_{self.cancer_type}"
             file_path = os.path.join(CPTAC_BASE_DIR, f"data/{dataset}/{data_file}")
             prefixed_file = f"{dataset}_{datatype}_{data_file}"
