@@ -38,10 +38,9 @@ def init_files() -> None:
         index_data = []
         index_data.append(f"description\tfilename\tchecksum")
         for data_file in repo_data['files']:
-            filename_list = data_file['key'].split('_')
-            description = filename_list[:2] if filename_list[0] in ['harmonized', 'mssm'] else filename_list[:3]
-            description = '_'.join(description)
-            index_data.append(f"{description}\t{'_'.join(filename_list)}\t{data_file['checksum']}")
+            filename_list = data_file['key'].split('-')
+            description = '-'.join(filename_list[:3])
+            index_data.append(f"{description}\t{'-'.join(filename_list)}\t{data_file['checksum']}")
         with open(os.path.join(DATA_DIR, "index.tsv"), 'w') as index_file:
             index_file.write('\n'.join(index_data))
     except requests.ConnectionError:
@@ -52,7 +51,7 @@ def init_files() -> None:
         raise CptacError(f"ERROR: {e}")
             
 
-def download(cancer: str, source: str, dtype: str, data_file: str=None) -> bool:
+def download(cancer: str, source: str, dtype: str, data_file: str) -> bool:
     """
     Downloads data files for a specific cancer, source, datatype, and file name from Zenodo
 
@@ -67,7 +66,8 @@ def download(cancer: str, source: str, dtype: str, data_file: str=None) -> bool:
         raise InvalidParameterError("Cancer, source, and datatypes must be provided.")
     
     # Prepare for data download
-    description = f"{source}_{dtype}" if source in ['harmonized', 'mssm'] else f"{source}_{cancer}_{dtype}"
+    # description = f"{source}_{dtype}" if source in ['harmonized', 'mssm'] else f"{source}_{cancer}_{dtype}"
+    description = f"{source}_{cancer}_{dtype}"
     output_dir = '_'.join(description.split('_')[:-1])
     os.makedirs(os.path.join(DATA_DIR, output_dir), exist_ok=True)
 

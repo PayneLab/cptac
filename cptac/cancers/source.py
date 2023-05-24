@@ -91,13 +91,13 @@ class Source:
         
         # Locate and download each data_file
         for data_file in data_files:
-            if self.source == 'mssm':
-                split_string = data_file.split("_")
-                result = "_".join(split_string[1:])
-                data_file = result            
-            dataset = self.source if self.source in ['harmonized', 'mssm'] else f"{self.source}_{self.cancer_type}"
+            # dataset = self.source if self.source in ['harmonized', 'mssm'] else f"{self.source}_{self.cancer_type}"
+            # This should eventually be handled within the respective sources, but this will do for now
+            cancer_type = "all_cancers" if self.source in ['mssm', 'harmonized'] else self.cancer_type
+                
+            dataset = f"{self.source}_{cancer_type}"
             file_path = os.path.join(CPTAC_BASE_DIR, f"data/{dataset}/{data_file}")
-            prefixed_file = f"{dataset}_{datatype}_{data_file}"
+            prefixed_file = f"{self.source}-{cancer_type}-{datatype}-{data_file}"
             # Ensure data is not corrupted, download files if needed
             if os.path.isfile(file_path) and not self.no_internet: # It's pointless to check the checksum if we can't redownload it
                 with open(file_path, 'rb') as in_file:
