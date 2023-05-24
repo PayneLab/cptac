@@ -53,9 +53,15 @@ __OPTIONS__ = _load_options()
 # def get_options():
 #     return __OPTIONS__.copy()
 
-# def get_cancer_options():
-#     df = __OPTIONS__.copy()
-#     return list(df["Cancers"].unique())
+def get_cancer_options():
+    df = __OPTIONS__.copy()
+    data_list = list(df[0].unique())
+    cancer_types = set()
+    for item in data_list:
+        split_item = item.split('-')
+        if len(split_item) > 1:
+            cancer_types.add(split_item[1])
+    return list(cancer_types)
 
 # def get_source_options():
 #     df = __OPTIONS__.copy()
