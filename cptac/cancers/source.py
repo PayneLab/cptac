@@ -95,7 +95,7 @@ class Source:
             # This should eventually be handled within the respective sources, but this will do for now
             cancer_type = "all_cancers" if self.source in ['mssm', 'harmonized'] else self.cancer_type
                 
-            dataset = f"{self.source}_{cancer_type}"
+            dataset = f"{self.source}-{cancer_type}"
             file_path = os.path.join(CPTAC_BASE_DIR, f"data/{dataset}/{data_file}")
             prefixed_file = f"{self.source}-{cancer_type}-{datatype}-{data_file}"
             # Ensure data is not corrupted, download files if needed
