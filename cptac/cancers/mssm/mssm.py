@@ -24,7 +24,7 @@ class Mssm(Source):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         self.data_files = {
-            "clinical" : "clinical_Pan-cancer.May2022.tsv",
+            "clinical" : "clinical_Pan-cancer.May2022.tsv.gz",
         }
 
         self.load_functions = {

@@ -24,25 +24,19 @@ class UmichOv(Source):
 
         self.data_files = {
             # TODO: Old version, remove when certain that this data is no longer used
-            # "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
-            # "mapping" : "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv",
-            # "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
-            # # "README_v3.boxnote" is proteomics
-            # # "README.boxnote" is phosphoproteomics 
-            # "readme" : ["README_v3.boxnote", "README.boxnote"],
             # #"not_used": "S039_BCprospective_observed_0920.tsv.gz",
             # #"not_used": "S039_BCprospective_imputed_0920.tsv.gz"
             # /TODO
-            "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",                    
-            "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv", 
-            "mapping" : "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv",
+            "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz",                    
+            # "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz", 
+            "mapping" : "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv.gz",
             # "README_v3.boxnote" is proteomics
             # "README.boxnote" is phosphoproteomics 
-            "readme" : ["README_v3.boxnote", "README.boxnote"],
+            # "readme" : ["README_v3.boxnote", "README.boxnote"],
         }
         
         self.load_functions = {
-            'phosphoproteomics' : self.load_phosphoproteomics,
+            # 'phosphoproteomics' : self.load_phosphoproteomics,
             'proteomics' : self.load_proteomics,
         }
 

@@ -26,7 +26,7 @@ class BroadLuad(Source):
 
         self.data_files = {
             "transcriptomics" : "LUAD.rsem_transcripts_tpm.txt.gz",
-            "mapping" : ["sample_descriptions.tsv", "gencode.v34.GRCh38.genes.collapsed_only.gtf", "aliquot_to_patient_ID.tsv"]
+            "mapping" : ["sample_descriptions.tsv.gz", "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz", "aliquot_to_patient_ID.tsv.gz"]
         }
         
         self.load_functions = {

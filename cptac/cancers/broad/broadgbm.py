@@ -26,7 +26,7 @@ class BroadGbm(Source):
 
         self.data_files = {
             "transcriptomics" : "GBM.rsem_transcripts_tpm.txt.gz",
-            "mapping" : ["sample_descriptions.tsv", "gencode.v34.GRCh38.genes.collapsed_only.gtf"]
+            "mapping" : ["sample_descriptions.tsv.gz", "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz"]
         }
         
         self.load_functions = {

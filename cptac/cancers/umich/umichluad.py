@@ -24,16 +24,16 @@ class UmichLuad(Source):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         self.data_files = {
-            "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",                    
-            "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
-            "mapping" : "aliquot_to_patient_ID.tsv",
+            "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz",                    
+            # "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
+            "mapping" : "aliquot_to_patient_ID.tsv.gz",
             # "README_v3.boxnote" is proteomics
             # "README.boxnote" is phosphoproteomics 
-            "readme" : ["README_v3.boxnote", "README.boxnote"],            
+            # "readme" : ["README_v3.boxnote", "README.boxnote"],            
         }
 
         self.load_functions = {
-            'phosphoproteomics' : self.load_phosphoproteomics,
+            # 'phosphoproteomics' : self.load_phosphoproteomics,
             'proteomics' : self.load_proteomics,
         }
 

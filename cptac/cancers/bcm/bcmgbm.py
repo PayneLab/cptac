@@ -23,14 +23,14 @@ class BcmGbm(Source):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         self.data_files = {
-            "transcriptomics" : "GBM-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt",
-            "mapping" : "gencode.v34.basic.annotation-mapping.txt",
-            "circular_RNA" : "GBM-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt",
+            "transcriptomics" : "GBM-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
+            "mapping" : "gencode.v34.basic.annotation-mapping.txt.gz",
+            # "circular_RNA" : "GBM-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
             # "not_used" : "CPTAC_GBM_discovery_CNV_gene_level_log2ratio.tsv.gz"
         }
         
         self.load_functions = {
-            'circular_RNA' : self.load_circular_RNA,
+            # 'circular_RNA' : self.load_circular_RNA,
             'transcriptomics' : self.load_transcriptomics,
         }
         

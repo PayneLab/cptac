@@ -26,7 +26,7 @@ class BroadBrca(Source):
 
         self.data_files = {
             "transcriptomics" : "BRCA.rsem_transcripts_tpm.txt.gz",
-            "mapping" : ["sample_descriptions.tsv", "gencode.v34.GRCh38.genes.collapsed_only.gtf"]
+            "mapping" : ["sample_descriptions.tsv.gz", "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz"]
         }
         
         # If we end up needing to declare all this stuff, this is how and where we would do it

@@ -19,7 +19,7 @@ import pandas as pd
 CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
 
 # Function imports
-from cptac.tools.download_tools.download import download, init_files
+from cptac.tools.download_tools import download, init_files
 from cptac.exceptions import CptacError, CptacWarning
 from cptac.utils.other_utils import df_to_tree
 
@@ -43,8 +43,7 @@ INDEX = pd.read_csv(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv'), sep='\t')
 #### This code generates the __OPTIONS__ dataframe which shows all possible cancer, source, datatype combinations
 def _load_options():
     """Load the tsv file with all the possible cancer, source, datatype combinations"""
-    options_df = INDEX['description'].str.split('_')
-    options_df = pd.DataFrame(options_df.tolist())
+    options_df = pd.DataFrame(INDEX['description'].str.split('-').tolist())
 
     return options_df
 

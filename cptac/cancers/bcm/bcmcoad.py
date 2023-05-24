@@ -23,8 +23,8 @@ class BcmCoad(Source):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         self.data_files = {
-            "transcriptomics" : "CRC-gene_RSEM_tumor_normal_UQ_log2(x+1)_BCM.txt", 
-            "mapping" : "gencode.v34.basic.annotation-mapping.txt" # This kinda goes along with the transcriptomics, but when you figure out brca it will solve this too
+            "transcriptomics" : "CRC-gene_RSEM_tumor_normal_UQ_log2(x+1)_BCM.txt.gz", 
+            "mapping" : "gencode.v34.basic.annotation-mapping.txt.gz" # This kinda goes along with the transcriptomics, but when you figure out brca it will solve this too
         }
         
         self.load_functions = {

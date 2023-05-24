@@ -24,7 +24,7 @@ class Harmonized(Source):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         self.data_files = {
-            "somatic_mutation" : "PanCan_Union_Maf_Broad_WashU.maf"
+            "somatic_mutation" : "PanCan_Union_Maf_Broad_WashU.maf.gz"
         }
 
         self.load_functions = {
