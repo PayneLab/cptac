@@ -19,7 +19,7 @@ import pandas as pd
 CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
 
 # Function imports
-from cptac.tools.download_tools.download import download, init_files
+from cptac.tools.download_tools import download, init_files
 from cptac.exceptions import CptacError, CptacWarning
 from cptac.utils.other_utils import df_to_tree
 
