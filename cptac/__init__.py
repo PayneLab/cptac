@@ -40,47 +40,49 @@ from cptac.cancers.ucec import Ucec
 init_files()
 INDEX = pd.read_csv(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv'), sep='\t')
 
-#### This code generates the __OPTIONS__ dataframe which shows all possible cancer, source, datatype combinations
+#### Generates the OPTIONS dataframe which shows all possible cancer, source, datatype combinations
 def _load_options():
     """Load the tsv file with all the possible cancer, source, datatype combinations"""
     options_df = pd.DataFrame(INDEX['description'].str.split('-').tolist())
-
+    options_df.columns = ['Source', 'Cancer', 'Datatype']
+    options_df = options_df[['Cancer', 'Source', 'Datatype']]
     return options_df
 
-__OPTIONS__ = _load_options()
+OPTIONS = _load_options()
 
-# def get_options():
-#     return __OPTIONS__.copy()
+def list_datasets(*, condense_on = None, column_order = None, print_tree=False):
+    """
+    List all available datasets.
+    
+    :param condense_on (list): A list of column names. Values in selected columns will be aggregated into a list.
+    :param print_tree (bool): If True, returns the database split in a pretty tree.
+    """
+    df = OPTIONS.copy()
+    df = df[df['Datatype'] != 'mapping'].reset_index(drop=True)
+    if column_order is None:
+        column_order = df.columns
+    if type(condense_on) == list:
+        group_on_cols = [col for col in column_order if col not in condense_on]
+        df = df.groupby(group_on_cols).agg({col: lambda x: list(set(x)) for col in condense_on})
+    else:
+        df = df[column_order]
+
+    return df if not print_tree else df_to_tree(df)
 
 def get_cancer_options():
-    df = __OPTIONS__.copy()
-    data_list = list(df[0].unique())
-    cancer_types = set()
-    for item in data_list:
-        split_item = item.split('-')
-        if len(split_item) > 1:
-            cancer_types.add(split_item[1])
-    return list(cancer_types)
+    return list_datasets(condense_on=['Datatype'])
 
-# def get_source_options():
-#     df = __OPTIONS__.copy()
-#     return list(df["Sources"].unique())
-
-def list_datasets(print_tree=False):
-    """List all available datasets."""
-    df = __OPTIONS__.copy()
-    if print_tree:
-        print(df_to_tree)
-    else:
-        return df
+def get_source_options():
+    return list_datasets(condense_on=['Cancer'], column_order=['Source', 'Datatype', 'Cancer'])
 #### End __OPTIONS__ code
 
-def embargo():
-    """Open CPTAC embargo details in web browser."""
-    message = "Opening embargo details in web browser..."
-    print(message, end = '\r')
-    webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
-    print(" " * len(message), end='\r') # Erase the message
+# This website no longer works
+# def embargo():
+#     """Open CPTAC embargo details in web browser."""
+#     message = "Opening embargo details in web browser..."
+#     print(message, end = '\r')
+#     webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
+#     print(" " * len(message), end='\r') # Erase the message
 
 def version():
     """Return version number of cptac package."""

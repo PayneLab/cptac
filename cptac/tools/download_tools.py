@@ -134,9 +134,6 @@ def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
     :param num_threads: The number of threads to use for downloading the file (default is 4).
     :return: The path of the downloaded file.
     """
-    parent_folder = os.path.split(subfolder)[0]
-    if parent_folder and not os.path.exists(parent_folder):
-        os.makedirs(parent_folder, exist_ok=True)
     response = requests.head(url, headers=AUTH_HEADER)
     response.raise_for_status()
 
