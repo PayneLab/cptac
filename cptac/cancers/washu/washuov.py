@@ -44,7 +44,7 @@ class WashuOv(Source):
             'somatic_mutation'  : self.load_somatic_mutation,
             #'miRNA'             : self.load_miRNA,
             # 'xcell'             : self.load_xcell,
-            'cibersort'         : self.load_cibersort,
+            #'cibersort'         : self.load_cibersort,
             # 'CNV'               : self.load_CNV,
             # 'tumor_purity'      : self.load_tumor_purity,
             #'readme'            : self.load_readme,
