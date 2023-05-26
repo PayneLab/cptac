@@ -67,10 +67,12 @@ def download(cancer: str, source: str, dtype: str, data_file: str) -> bool:
     
     # Prepare for data download
     # description = f"{source}_{dtype}" if source in ['harmonized', 'mssm'] else f"{source}_{cancer}_{dtype}"
-    description = f"{source}-{cancer}-{dtype}"
+    if source in ['harmonized', 'mssm']:
+        description = f"{source}-all_cancers-{dtype}"
+    else:
+        description = f"{source}-{cancer}-{dtype}"
     output_dir = '-'.join(description.split('-')[:-1])
     os.makedirs(os.path.join(DATA_DIR, output_dir), exist_ok=True)
-
     # Download requested dataframe
     file_name = f"{description}-{data_file}"
     output_file = os.path.join(output_dir, data_file)
