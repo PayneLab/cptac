@@ -36,7 +36,7 @@ Currently (August 2022), the package contains 10 datasets:
 *   Ovarian cancer (OV)
 *   Pancreatic ductal adenocarcinoma (PDAC)
 
-This list will continue to grow as the consortium generates more datasets. All of these data files would be too much for a user to download all at once when they install the package; additionally, PyPI limits the size of our package to 60 MB. So, instead of storing the data files as part of the package, we store them remotely, and provide a function in cptac, cptac.download, for downloading the dataset files that the user wants to work with. Currently, the files are stored on Sam's Box drive.
+This list will continue to grow as the consortium generates more datasets. All of these data files would be too much for a user to download all at once when they install the package; additionally, PyPI limits the size of our package to 60 MB. So, instead of storing the data files as part of the package, we store them remotely, and provide a function in cptac, cptac.download, for downloading the dataset files that the user wants to work with. The files are stored on [Zenodo.org] (https://zenodo.org/record/7897498).
 
 Once a user has downloaded the data source files for their desired dataset, they can use cptac to access and work with that data in a Python interpreter or script. We chose to have users interface with each dataset through a Python class representing that dataset. Each dataset class reads and parses the dataset's files into dataframes when it's initialized, stores the dataframes in a private dictionary, and provides "get" methods to allow the user to access the dataframes. It also provides functions that handle complex joining between different dataframes.
 
@@ -51,63 +51,11 @@ In this section, we'll go through how we implemented the package.
 
 ### Data storage and versioning
 
-The data for each dataset are currently stored on Dr. Payne's Box drive. Here is a sketch of the file structure we use on Box for storing the data:
+The data for each dataset are currently stored on [Zenodo.org] (https://zenodo.org/record/7897498). Zenodo provides a REST API to interact with the datafiles, which we access via the python `requests` package. As Zenodo does not support a filesystem (that is--without zipping all the data into one file), each file has a prefix specifying the source, cancer, and datatype it is associated with. For instance, the file that stores the Breast cancer protemic data from the University of Michigan is called `Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz`. Accordingly, the file is stored on Zenodo as `umich-brca-proteomics-Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz`. When the data is downloaded via the `cptac` package, that prefix is removed and used to build out the path to the file. For instance, the above file would be saved with the path `~/data/umich-brca/Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz`, where `~` is the base directory for cptac.
 
-```
-cptac/
-    version.txt
-    data_brca/
-    data_ccrcc/
-        index.txt
-        index_hash.txt
-        ccrcc_v0.0/
-            ccrccMethylGeneLevelByMean.txt.gz
-            ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz
-            Clinical Table S1.xlsx
-            cptac-metadata.xls.gz
-            kirc_wgs_cnv_gene.csv.gz
-            ...
-    data_colon/
-    data_endometrial/
-    ...
-```
+As you can see, we refer to each dataset by an acronym or short name. BRCA is for breast cancer, CCRCC is for clear cell renal cell carcinoma, UCEC is for uterine corpus endometrial carcinoma (endometrial cancer), and so on. Some files contain data for multiple cancer types at once. These files have been given the short name ALL_CANCERS. For instance, the file containing the clinical metadata, `clinical_Pan-cancer.May2022.tsv.gz` is stored on Zenodo as `mssm-all_cancers-clinical-clinical_Pan-cancer.May2022.tsv.gz`.
 
-As you can see, we refer to each dataset by an acronym or short name. BRCA is for breast cancer, CCRCC is for clear cell renal cell carcinoma, endometrial is short for uterine corpus endometrial carcinoma (UCEC), and so on. 
-
-Each dataset has its own folder on the Box drive. Within that folder, there is an index that keeps a record of all data files for all versions of the dataset. There is also a hash of that index. Finally, within the dataset folder, there is also a sub-folder for each version of the dataset. In the example above, you can see the CCRCC only has one data version (0.0), so there is only one sub-folder. This folder contains all the data files for that version of the dataset.
-
-As I mentioned above, the index file keeps track of all files for all versions of the dataset. Here is what an index file looks like (this example is the CCRCC index):
-
-![ccrcc_index](imgs/ccrcc_index.png)
-
-
-The first line, "#0.0", identifies the data version that the following lines will contain information for. Then, each following line has first the name of a file (including the .gz extension if it is gzipped), then a tab character, then the md5 checksum for the file, then another tab character, and then the direct download URL for the file. Thus, the index is a tsv file, except for the lines beginning with '#' characters.
-
-The index_hash.txt file contains the md5 checksum of the current version of the index.txt file. It literally contains just that hash and nothing else--not even any whitespace.
-
-Several datasets have more than one data version. The index contains the information for all data versions of the dataset. Each data version has its own section, marked by a line starting with at '#' character and followed by the data version for the following lines. For example, if the endometrial dataset had multiple data versions, this is what the index file would look like. Note that there are some differences between the versions in how many files exist, and in the checksums for the files.
-
-
-![endometrial_multi_version_index](imgs/endo_multi_version_index.png)
-
-
-This is what the structure of the data_endometrial folder would look like with multiple versions of the endometrial dataset:
-
-```
-data_endometrial/
-    index.txt
-    index_hash.txt
-    endometrial_v2.0/
-        clinical.txt
-        CNA.cct.gz
-        definitions.txt
-        ...
-    endometrial_v2.1/
-        acetylproteomics.cct.gz
-        clinical.txt
-        CNA.cct.gz
-        ...
-```
+Previous cptac users may recall that the cptac package employed extensive data versioning logic. This is because in earlier releases of this package were developed while data was still being processed and updated. However, at the time of this release, each data file is fully finished and will no longer be modified. Though new datasets may (and will hopefully) continue to be added, any file that is currently accessible will not be changed. As a result, there is no reason to not keep users updated with the most recent version. The package updates now use Zenodo's simpler versioning system, and always stay up-to-date with the most recent data available.
 
 
 ### Downloading the data
@@ -118,99 +66,32 @@ When a user installs the cptac package, it is installed to a package installatio
 
 `~/anaconda3/envs/[ENVIRONMENT NAME]/lib/python3.7/site-packages/cptac` if they've installed it to a different environment.
 
- Within the package installation directory, they get a file structure that looks like this:
+ Within the package installation directory after the package is first installed, the file structure for the home directory looks like this:
 
 ```
 cptac/
+    cancers/
+    tools/
+    utils/
     __init__.py
-    brca.py
-    ccrcc.py
-    colon.py
-    dataframe_tools.py
-    dataset.py
-    endometrial.py
-    ...
-    data_brca/
-        index_urls.tsv
-    data_ccrcc/
-        index_urls.tsv
-    data_colon/
-        index_urls.tsv
-    data_endometrial/
-        index_urls.tsv
-    ...
+    exception.py
+    version.py
 ```
-
-The various .py files contain the code for running the package. We will discuss those in a moment. The folders with the "data" prefix are the folders for storing the data files for each dataset. For every dataset folder on Box, there is a corresponding data folder within the package. However, as you can see, when a user first downloads the package, these data folders don't contain any data files, because the user hasn't downloaded any yet.
-
-What each data folder does contain is an `index_urls.tsv` file for that dataset. This tsv file contains the direct download URLs for the index for that dataset, and the index hash for that dataset, both of which you saw in the Box drive. This is what the file looks like for CCRCC:
-
-
-![ccrcc_index_urls](imgs/ccrcc_index_urls.png)
-
-
-As you can see, it's a small, simple file. It has the same format for every dataset. The first line has the name of the index file, then a tab character, then the direct download URL for the index; the second line has the name of the index hash file, then a tab character, then the direct download URL for the index checksum.
-
-When a user runs the cptac.download function, located in the `cptac/file_download.py` file, the function uses the URLs from index_urls.tsv to download index.txt from Box, and then to download index_hash.txt and check against the slim chance of the index being corrupted on download. It saves index.txt in the data folder, and then creates a subdirectory in the data directory, for the data version the user has requested to download. It then uses the URLs from the index file to download the data files and save them to the version subdirectory. After each download, it hashes the file and checks it against the hash provided in the index, to make sure nothing went wrong during the download.
-
-After downloading a couple datasets, the file structure in the installation directory on the user's machine will look something like this:
-
-```
-cptac/
-    __init__.py
-    brca.py
-    ccrcc.py
-    colon.py
-    dataframe_tools.py
-    dataset.py
-    endometrial.py
-    ...
-    data_brca/
-        index_urls.tsv
-    data_ccrcc/
-        index.txt
-        index_urls.tsv
-        ccrcc_v0.0/
-            ccrccMethylGeneLevelByMean.txt.gz
-            ccrcc.somatic.consensus.gdc.umichigan.wu.112918.maf.gz
-            Clinical Table S1.xlsx
-            cptac-metadata.xls.gz
-            kirc_wgs_cnv_gene.csv.gz
-            ...
-    data_colon/
-        index_urls.tsv
-    data_endometrial/
-        index.txt
-        index_urls.tsv
-        endometrial_v2.1/
-            acetylproteomics.cct.gz
-            clinical.txt
-            CNA.cct.gz
-            definitions.txt
-            miRNA.cct.gz
-        ...
-    ...
-```
-
-In the example above, the user has downloaded version 0.0 of the CCRCC data, and version 2.1 of the endometrial data.
-
-
-### Downloading password-protected datasets
-
-Some datasets are not yet publicly released. Box allows you to require a password to download a file from a shared URL, so we used this functionality, and set the password to be the same for all files within a particular dataset. We prompt the user to type in the password through the command line when they request to download a password-protected dataset, and then behind the scenes we pass the password to the Box webpage using the Python requests package.
 
 
 ### Loading and accessing datasets
+(FIXME: This whole process has now been changed. How much needs to get updated?)
 
 Once a user has downloaded a dataset, they can access it in their Python interpreter, or in a script. Here, we will provide a step-by-step explanation of what happens as the user executes basic commands for accessing and working with a dataset.
 
-
-
 *   `import cptac`
-    *   This imports the package into the current namespace, and runs everything in `cptac/__init__.py`, which defines some helper functions (cptac.list_datasets, cptac.how_to_cite, etc.), sets up error and warning handling for cptac-generated errors and warnings (more on that later), and checks that the package is up-to-date.
-*   `en = cptac.Endometrial()`
-    *   This creates an instance of the Endometrial class, which is defined in `cptac/endometrial.py`, and calls the class's `__init__` function. 
-    *   The Endometrial `__init__` function first calls the `__init__` function of its parent class, DataSet, located in `cptac/dataset.py`. This initializes several private variables self._data, which is the dictionary for holding the dataset's dataframes.
+    *   This imports the package into the current namespace and runs everything in `cptac/__init__.py`, which does the following:
+        - Defines some helper functions (cptac.list_datasets, cptac.how_to_cite, etc.)
+        - Sets up error and warning handling for cptac-generated errors and warnings (more on that later)
+        - Checks that the package is up-to-date and re-creates the index file (`data/index.tsv`, more on that later)
+*   `en = cptac.Ucec()`
+    *   This creates an instance of the Endometrial class, which is defined in `cptac/cancers/ucec.py`, and calls the class's `__init__` function. 
+    *   The Endometrial `__init__` function first calls the `__init__` function of its parent class, Cancer, located in `cptac/cancers/cancer.py`. This initializes several private variables self._data, which is the dictionary for holding the dataset's dataframes.
     *   The Endometrial `__init__` then calls the update_index function, located in `cptac/file_download.py`, to check that the index is downloaded and up to date. If there's no internet, this check fails silently, and the user can still use the dataset.
     *   The `__init__` function then calls the validate_version function, located in `cptac/file_tools.py`, to parse the version parameter passed in the class instantiation.
     *   Then, the `__init__` gets a list of the paths to all the data files for the dataset (assuming they're downloaded), and reads them in one by one, using a series of elif statements to read in each file as it needs to be, and then saving each dataframe as a value in the self._data dictionary, with the name of the dataframe as the key.
@@ -285,7 +166,7 @@ These functions handle numerous details that would normally make joining tables 
 
 ### Package checks if it's up-to-date
 
-As noted earlier, cptac automatically checks that it's up-to-date, every time a user imports it. This is done in the `cptac/__init__.py` file. The package version is checked by using the hardcoded download URL to download the version.txt file on Box and read it into a string, and then comparing that string with the return value of cptac.version(). If the two values do not match, a warning that the package is out-of-date is printed to stderr.
+As noted earlier, cptac automatically checks that it's up-to-date every time a user imports it. This is done in the `~/__init__.py` file, using the function `init_files()`. This function requests the record from Zenodo that is specified by the hard-coded concept-doi, which automatically points to the most upd-to-date version of the data. Zenodo's response is used to generate a new index file on-the-fly, using the most-up-to-date data.
 
 
 ### Exceptions and warnings

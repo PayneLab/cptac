@@ -12,7 +12,6 @@
 import os.path as path
 import sys
 import warnings
-import webbrowser
 import pandas as pd
 
 # cptac base path
