@@ -48,7 +48,7 @@ class BroadLuad(Source):
                 file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
                 
                 #Converts the broad IDs to GDC_id aka the aliquot id 
-                if file_name == "sample_descriptions.tsv":
+                if file_name == "sample_descriptions.tsv.gz":
                     broad_key = pd.read_csv(file_path, sep="\t")
                     broad_key = broad_key.loc[broad_key['cohort'] == "LUAD"] #get only LUAD keys
                     broad_key = broad_key[["sample_id","GDC_id","tissue_type"]]
@@ -65,8 +65,8 @@ class BroadLuad(Source):
                     self._helper_tables["broad_key"] = broad_dict
                     
                 #has gene names for each database ID      
-                elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf":
-                    broad_gene_names = read_gtf(file_path)
+                elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz":
+                    broad_gene_names = read_gtf(filepath_or_buffer = file_path, result_type = 'pandas')
                     broad_gene_names = broad_gene_names[["gene_name","gene_id"]]
                     broad_gene_names = broad_gene_names.rename(columns= {"gene_name":"Name"}) #change name to merge 
                     broad_gene_names = broad_gene_names.set_index("gene_id")
@@ -74,7 +74,7 @@ class BroadLuad(Source):
                     self._helper_tables["broad_gene_names"] = broad_gene_names
                     
                 # converts aliquot id to patient id     
-                elif file_name == "aliquot_to_patient_ID.tsv":
+                elif file_name == "aliquot_to_patient_ID.tsv.gz":
                     df = pd.read_csv(file_path, sep = "\t", index_col = 0)
                     self._helper_tables["map_ids"] = df
 
