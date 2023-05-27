@@ -88,13 +88,12 @@ class Source:
         if type(data_files) != list:
             data_files = [data_files]
         file_paths = []
-        
         # Locate and download each data_file
         for data_file in data_files:
             # dataset = self.source if self.source in ['harmonized', 'mssm'] else f"{self.source}_{self.cancer_type}"
             # This should eventually be handled within the respective sources, but this will do for now
             cancer_type = "all_cancers" if self.source in ['mssm', 'harmonized'] else self.cancer_type
-                
+
             dataset = f"{self.source}-{cancer_type}"
             file_path = os.path.join(CPTAC_BASE_DIR, f"data/{dataset}/{data_file}")
             prefixed_file = f"{self.source}-{cancer_type}-{datatype}-{data_file}"
@@ -113,7 +112,7 @@ class Source:
 
             file_paths.append(file_path)
         
-        return file_paths if len(file_paths) > 2 else file_paths[0]
+        return file_paths if len(file_paths) >= 2 else file_paths[0]
 
     # def get_file_path(self, data_file, datatype):
     #     """Return the path to a specific data file, or "not downloaded" if file does not exist or is corrupted.

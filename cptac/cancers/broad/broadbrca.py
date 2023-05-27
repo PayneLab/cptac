@@ -13,6 +13,7 @@ import pandas as pd
 import os
 from gtfparse import read_gtf
 from cptac.cancers.source import Source
+import pyarrow
 
 class BroadBrca(Source):
     def __init__(self, no_internet=False):
@@ -51,8 +52,7 @@ class BroadBrca(Source):
             for file_path in file_path_list:
                 path_elements = file_path.split(os.sep) # Get a list of the levels of the path
                 file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
-                
-                if file_name == "sample_descriptions.tsv":
+                if file_name == "sample_descriptions.tsv.gz":
                     broad_key = pd.read_csv(file_path, sep="\t")
                     broad_key = broad_key.loc[broad_key['cohort'] == "BRCA"] # get only BRCA keys
                     broad_key = broad_key[["sample_id","GDC_id","tissue_type"]]
@@ -66,10 +66,11 @@ class BroadBrca(Source):
                     broad_dict = broad_key.to_dict()["Patient_ID"]
                     self._helper_tables["broad_key"] = broad_dict
                     
-                elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf":
+                elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz":
                     broad_gene_names = read_gtf(file_path)
+                    broad_gene_names = broad_gene_names.to_pandas()
                     broad_gene_names = broad_gene_names[["gene_name","gene_id"]]
-                    broad_gene_names = broad_gene_names.rename(columns= {"gene_name":"Name"}) #change name to merge 
+                    broad_gene_names = broad_gene_names.rename(columns = {"gene_name":"Name"}) #change name to merge 
                     broad_gene_names = broad_gene_names.set_index("gene_id")
                     broad_gene_names = broad_gene_names.drop_duplicates()                
                     self._helper_tables["broad_gene_names"] = broad_gene_names
