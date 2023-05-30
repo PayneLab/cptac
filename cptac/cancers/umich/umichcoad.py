@@ -24,7 +24,7 @@ class UmichCoad(Source):
 
         self.data_files = {
             "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz",
-            # "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
+            "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz",
             "mapping" : "CRC_Prospective sample info.xlsx",
             # "README_v3.boxnote" is proteomics
             # "README.boxnote" is phosphoproteomics 
@@ -34,7 +34,7 @@ class UmichCoad(Source):
         }
         
         self.load_functions = {
-            # 'phosphoproteomics' : self.load_phosphoproteomics,
+            'phosphoproteomics' : self.load_phosphoproteomics,
             'proteomics' : self.load_proteomics,
         }
         

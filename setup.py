@@ -51,4 +51,4 @@ setup(name='cptac',
 	project_urls={
 	   'Documentation': 'https://paynelab.github.io/cptac/'
 	},
-	)
+)

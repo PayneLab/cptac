@@ -23,7 +23,7 @@ class BcmHnscc(Source):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         self.data_files = {
-            # "circular_RNA" : "HNSCC-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
+            "circular_RNA" : "HNSCC-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
             "mapping" : "gencode.v34.basic.annotation-mapping.txt.gz",
             "transcriptomics" : "HNSCC-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt.gz"
         }

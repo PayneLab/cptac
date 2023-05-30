@@ -28,15 +28,15 @@ class WashuHnscc(Source):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         self.data_files = {
-            # "cibersort"         : "CIBERSORT.Output_Abs_HNSCC.txt",
-            # "CNV"               : "HNSCC.gene_level.from_seg.filtered.tsv",
+            "cibersort"         : "CIBERSORT.Output_Abs_HNSCC.txt.gz",
+            "CNV"               : "HNSCC.gene_level.from_seg.filtered.tsv.gz",
             "mapping"           : "gencode.v22.annotation.gtf.gz",
-            # "miRNA"             : ["HNSCC_mature_miRNA_combined.tsv","HNSCC_precursor_miRNA_combined.tsv","HNSCC_total_miRNA_combined.tsv"],
+            "miRNA"             : ["HNSCC_mature_miRNA_combined.tsv.gz","HNSCC_precursor_miRNA_combined.tsv.gz","HNSCC_total_miRNA_combined.tsv.gz"],
             # "readme"            : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"],
             "somatic_mutation"  : "HNSCC_discovery.dnp.annotated.exonic.maf.gz",
             # "transcriptomics"   : ["HNSCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz","HNSCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
-            # "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
-            # "xcell"             : "HNSCC_xCell.txt",
+            "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
+            "xcell"             : "HNSCC_xCell.txt.gz",
         }
 
         #self._readme_files = {}
@@ -44,11 +44,11 @@ class WashuHnscc(Source):
         self.load_functions = {
             # 'transcriptomics'   : self.load_transcriptomics,
             'somatic_mutation'  : self.load_somatic_mutation,
-            # 'miRNA'             : self.load_miRNA,
-            # 'xcell'             : self.load_xcell,
-            # 'cibersort'         : self.load_cibersort,
-            # 'CNV'               : self.load_CNV,
-            # 'tumor_purity'      : self.load_tumor_purity,
+            'miRNA'             : self.load_miRNA,
+            'xcell'             : self.load_xcell,
+            'cibersort'         : self.load_cibersort,
+            'CNV'               : self.load_CNV,
+            'tumor_purity'      : self.load_tumor_purity,
             #'readme'            : self.load_readme,
         }
 

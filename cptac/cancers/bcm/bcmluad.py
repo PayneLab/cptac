@@ -23,13 +23,13 @@ class BcmLuad(Source):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         self.data_files = {
-            # "circular_RNA" : "LUAD-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
+            "circular_RNA" : "LUAD-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
             "mapping" : "gencode.v34.basic.annotation-mapping.txt.gz",
             "transcriptomics" : "LUAD-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt.gz"
         }
         
         self.load_functions = {
-            # 'circular_RNA' : self.load_circular_RNA,
+            'circular_RNA' : self.load_circular_RNA,
             'transcriptomics' : self.load_transcriptomics,
         }
         

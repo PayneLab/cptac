@@ -25,12 +25,12 @@ class BcmPdac(Source):
         self.data_files = {
             "transcriptomics" : "PDAC-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
             "mapping" : "gencode.v34.basic.annotation-mapping.txt.gz",
-            # "circular_RNA" : "PDAC-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
+            "circular_RNA" : "PDAC-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
             # "not_used" : "CPTAC_GBM_discovery_CNV_gene_level_log2ratio.tsv.gz"
         }
         
         self.load_functions = {
-            # 'circular_RNA' : self.load_circular_RNA,
+            'circular_RNA' : self.load_circular_RNA,
             'transcriptomics' : self.load_transcriptomics,
         }
         

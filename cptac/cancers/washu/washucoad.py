@@ -26,17 +26,17 @@ class WashuCoad(Source):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         self.data_files = {
-            # "cibersort"         : "CIBERSORT.Output_Abs_CO.txt",
-            # "CNV"               : "CO.gene_level.from_seg.filtered.tsv",
+            "cibersort"         : "CIBERSORT.Output_Abs_CO.txt.gz",
+            "CNV"               : "CO.gene_level.from_seg.filtered.tsv.gz",
             "mapping"           : "gencode.v22.annotation.gtf.gz",
             # "readme"            : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"],
             "somatic_mutation"  : "CO_prospective.dnp.annotated.exonic.addrecovercases.maf.gz",
             # "transcriptomics"   : "CO_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
-            # "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
-            # "xcell"             : "CO_xCell.txt",
-            #"not_used"         : #"CO_precursor_miRNA_combined.tsv", # waiting for data
-            #"not_used"         : #"CO_mature_miRNA_combined.tsv",                
-            #"not_used"         : #"CO_total_miRNA_combined.tsv",
+            "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
+            "xcell"             : "CO_xCell.txt.gz",
+            #"not_used"         : #"CO_precursor_miRNA_combined.tsv.gz", # waiting for data
+            #"not_used"         : #"CO_mature_miRNA_combined.tsv.gz",                
+            #"not_used"         : #"CO_total_miRNA_combined.tsv.gz",
         }
 
         #self._readme_files = {}
@@ -44,10 +44,10 @@ class WashuCoad(Source):
         self.load_functions = {
             # 'transcriptomics'   : self.load_transcriptomics,
             'somatic_mutation'  : self.load_somatic_mutation,
-            # 'xcell'             : self.load_xcell,
-            # 'cibersort'         : self.load_cibersort,
-            # 'CNV'               : self.load_CNV,
-            # 'tumor_purity'      : self.load_tumor_purity,
+            'xcell'             : self.load_xcell,
+            'cibersort'         : self.load_cibersort,
+            'CNV'               : self.load_CNV,
+            'tumor_purity'      : self.load_tumor_purity,
             #'readme'            : self.load_readme,
         }
 

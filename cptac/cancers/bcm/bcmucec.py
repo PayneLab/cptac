@@ -24,12 +24,12 @@ class BcmUcec(Source):
 
         self.data_files = {
             "mapping" : "gencode.v34.basic.annotation-mapping.txt.gz",
-            # "circular_RNA" : "UCEC-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
+            "circular_RNA" : "UCEC-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
             "transcriptomics" : "UCEC-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt.gz"
         }
         
         self.load_functions = {
-            # 'circular_RNA' : self.load_circular_RNA,
+            'circular_RNA' : self.load_circular_RNA,
             'transcriptomics' : self.load_transcriptomics,
         }
         

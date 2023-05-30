@@ -25,7 +25,7 @@ class UmichBrca(Source):
 
         self.data_files = {
             "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz",
-            # "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv",
+            "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz",
             # prosp-brca-all-samples.txt shows which patient IDs have normal samples and which have replicates 
             # This file can be found on Box under CPTAC/cptac/pancan/helper_files
             "mapping" : "prosp-brca-all-samples.txt.gz",
@@ -35,7 +35,7 @@ class UmichBrca(Source):
         }
         
         self.load_functions = {
-            # 'phosphoproteomics' : self.load_phosphoproteomics,
+            'phosphoproteomics' : self.load_phosphoproteomics,
             'proteomics' : self.load_proteomics,
         }
         

@@ -22,10 +22,6 @@ import cptac.utils as ut
 from cptac.exceptions import *
 from cptac.tools.dataframe_tools import add_index_levels, join_col_to_dataframe
 
-### TEMP DEBUG
-import cProfile
-### /DEBUG
-
 class Cancer:
     NORMAL_ENDINGS = ('.N', '.C') # HNSCC data has cored normal samples marked .C
     """Note that all cancer datasets are class objects that inherit 
