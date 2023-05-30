@@ -99,7 +99,9 @@ class Cancer:
     # Clinical table getters
     def get_clinical(self, source: str= None, tissue_type: str="both", imputed: bool=False) -> pd.DataFrame:
         """Get the clinical dataframe from the specified data source."""
-        return self.get_dataframe("clinical", source, tissue_type, imputed=imputed)
+        df = self.get_dataframe("clinical", source, tissue_type, imputed=imputed)
+        df.columns = df.columns.str.split('/').str[-1] # Keep only the part after the slash
+        return df
 
     # def get_demographic(self, source=None, tissue_type="both", imputed=False):
         # """Get the demographic dataframe from the specified data source."""
