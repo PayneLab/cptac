@@ -31,7 +31,7 @@ class WashuBrca(Source):
             "mapping"           : "gencode.v22.annotation.gtf.gz",
             # "readme"            : ["README_miRNA", "README_CIBERSORT", "README_xCell", "README_somatic_mutation_WXS", "README_gene_expression", "README.boxnote", "README_ESTIMATE_WashU"],
             "somatic_mutation"  : "BR_prospective.dnp.annotated.exonic.addrecovercases.maf.gz",
-            # "transcriptomics"   : "BR_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
+            "transcriptomics"   : "BR_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
             # "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
             # "xcell"             : "BR_xCell.txt",
             #"not_used"         : #"BR_total_miRNA_combined.tsv",  no file on box yet

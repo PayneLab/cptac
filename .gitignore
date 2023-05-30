@@ -10,5 +10,6 @@ build/
 options.numbers
 temp*
 .vscode
+Tests.ipynb
 # Exclude data files, since they're stored remotely
 cptac/data/*
