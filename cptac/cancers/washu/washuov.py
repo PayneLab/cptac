@@ -169,6 +169,20 @@ class WashuOv(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
+    def load_miRNA(self):
+        df_type = 'miRNA'
+        if df_type not in self._data:
+            file_paths = self.locate_files(df_type)
+
+            # This is just an example; the actual loading will depend on your data
+            df = pd.concat([pd.read_csv(file_path, sep='\t') for file_path in file_paths])
+            df = df.rename(columns={"YourColumnName": "NewColumnName"})
+            df = df.set_index("NewColumnName")
+
+            # Further processing here, if necessary
+
+            self.save_df(df_type, df)
+                
     # def load_readme(self):
     #     df_type = 'readme'
     #     if not self._readme_files:

@@ -103,37 +103,17 @@ class Cancer:
         df.columns = df.columns.str.split('/').str[-1] # Keep only the part after the slash
         return df
 
-    # def get_demographic(self, source=None, tissue_type="both", imputed=False):
-        # """Get the demographic dataframe from the specified data source."""
-        # return self.get_dataframe("demographic", source, tissue_type, imputed=imputed)
+    def get_medical_history(self, source=None, tissue_type="both"):
+        """Get the medical_history dataframe."""
+        df = self.get_dataframe("medical_history", source, tissue_type)
+        df.columns = df.columns.str.split('/').str[-1]  # Keep only the part after the slash
+        return df
 
-    # def get_derived_molecular(self, source=None, tissue_type="both"):
-        # """Get the derived_molecular dataframe."""
-        # return self.get_dataframe("derived_molecular", source, tissue_type)
-
-    # def get_experimental_design(self, source=None, tissue_type="both"):
-        # """Get the experimental_design dataframe."""
-        # return self.get_dataframe("experimental_design", source, tissue_type)
-        
-    # def get_medical_conditions(self, source=None, tissue_type="both", imputed=False):
-        # """Get the medical_conditions dataframe from the specified data source."""
-        # return self.get_dataframe("medical_conditions", source, tissue_type, imputed=imputed)
-
-    # def get_medical_history(self, source=None, tissue_type="both"):
-        # """Get the medical_history dataframe."""
-        # return self.get_dataframe("medical_history", source, tissue_type)
-
-    # def get_previous_cancer(self, source=None, tissue_type="both", imputed=False):
-        # """Get the previous_cancer dataframe from the specified data source."""
-        # return self.get_dataframe("previous_cancer", source, tissue_type, imputed=imputed)
-
-    # def get_cancer_diagnosis(self, source=None, tissue_type="both", imputed=False):
-        # """Get the cancer_diagnosis dataframe from the specified data source."""
-        # return self.get_dataframe("cancer_diagnosis", source, tissue_type, imputed=imputed)
-
-    # def get_followup(self, source=None, tissue_type="both", imputed=False):
-        # """Get the followup dataframe from the specified data source."""
-        # return self.get_dataframe("followup", source, tissue_type, imputed=imputed)
+    def get_followup(self, source=None, tissue_type="both", imputed=False):
+        """Get the followup dataframe from the specified data source."""
+        df = self.get_dataframe("follow-up", source, tissue_type)
+        df.columns = df.columns.str.split('/').str[-1]  # Keep only the part after the slash
+        return df
 
 
     # Quantitative table getters
