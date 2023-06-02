@@ -90,11 +90,12 @@ def download_cancer(cancer: str) -> bool:
             curr_filename_elements = curr_filename.split('-')
             if len(curr_filename_elements) >= 1:
                 if cancer in curr_filename_elements:
-                    filename = curr_filename
                     source = curr_filename_elements[0]
                     dtype = curr_filename_elements[2]
+                    prefix = source + "_" + cancer + '_' + dtype + '-'
+                    filename = curr_filename[len(prefix):]
                     download(cancer, source, dtype, filename)
-    
+    return True
 
 def version():
     """Return version number of cptac package."""
