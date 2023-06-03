@@ -68,7 +68,6 @@ def download(cancer: str, source: str, dtype: str, data_file: str) -> bool:
         raise InvalidParameterError("Cancer, source, and datatypes must be provided.")
     
     # Prepare for data download
-    # description = f"{source}_{dtype}" if source in ['harmonized', 'mssm'] else f"{source}_{cancer}_{dtype}"
     if source in ['harmonized', 'mssm']:
         description = f"{source}-all_cancers-{dtype}"
     else:
@@ -159,4 +158,3 @@ def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
             future.result()  # Raise any exception encountered during download
 
     return subfolder
-
