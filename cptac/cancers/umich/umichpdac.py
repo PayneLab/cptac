@@ -23,7 +23,7 @@ class UmichPdac(Source):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         self.data_files = {
-            "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv",
+            "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz",
             "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz",
             "mapping" : "aliquot_to_patient_ID.tsv",
             # "README_v3.boxnote" is proteomics

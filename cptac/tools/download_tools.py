@@ -38,6 +38,8 @@ def init_files() -> None:
         index_data = []
         index_data.append(f"description\tfilename\tchecksum")
         for data_file in repo_data['files']:
+            if data_file['key'].startswith('.'):
+                continue # ignore hidden files
             filename_list = data_file['key'].split('-')
             description = '-'.join(filename_list[:3])
             index_data.append(f"{description}\t{'-'.join(filename_list)}\t{data_file['checksum']}")
