@@ -11,7 +11,7 @@
 
 import pandas as pd
 import os
-from gtfparse import read_gtf
+from pyranges import read_gtf
 from cptac.cancers.source import Source
 
 class BroadCoad(Source):
@@ -62,7 +62,8 @@ class BroadCoad(Source):
                     self._helper_tables["broad_key"] = broad_dict
                     
                 elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz":
-                    broad_gene_names = read_gtf(filepath_or_buffer = file_path, result_type = 'pandas')
+                    broad_gene_names = read_gtf(file_path)
+                    broad_gene_names = broad_gene_names.as_df()
                     broad_gene_names = broad_gene_names[["gene_name","gene_id"]]
                     broad_gene_names = broad_gene_names.rename(columns= {"gene_name":"Name"}) #change name to merge 
                     broad_gene_names = broad_gene_names.set_index("gene_id")

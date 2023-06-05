@@ -11,7 +11,7 @@
 
 import pandas as pd
 import os
-from gtfparse import read_gtf
+from pyranges import read_gtf
 
 from cptac.cancers.source import Source
 from cptac.cancers.mssm.mssm import Mssm
@@ -204,7 +204,8 @@ class WashuCcrcc(Source):
         if "CNV_gene_ids" not in self._helper_tables:
             file_path = self.locate_files(df_type)
 
-            df = read_gtf(filepath_or_buffer = file_path, result_type = 'pandas')
+            df = read_gtf(file_path)
+            df = df.as_df()
             df = df[["gene_name","gene_id"]]
             df = df.drop_duplicates()
             df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
