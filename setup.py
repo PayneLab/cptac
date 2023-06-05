@@ -37,7 +37,7 @@ setup(name='cptac',
 		'scipy>=1.2.1',
 		'openpyxl>=2.6.0',
 		'statsmodels>=0.10.0',
-		'gtfparse>=1.2.1',
+		'pyranges>=0.0.111',
 	],
 	classifiers=[
         'Development Status :: 5 - Production/Stable',
