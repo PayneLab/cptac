@@ -291,8 +291,8 @@ class Cancer:
         Parameters:
         df1_name (str): Name of first omics dataframe to select columns from.
         df2_name (str): Name of second omics dataframe to select columns from.
-        df1_source (str, optional): Name of source for the first omics dataframe.
-        df2_source (str, optional): Name of source for the second omics dataframe.
+        df1_source (str): Name of source for the first omics dataframe.
+        df2_source (str): Name of source for the second omics dataframe.
         genes1 (str, or list or array-like of str, optional): Gene(s) for column(s) to select from df1_name. str if one key, list or array-like of str if multiple.
             Default of None will select entire dataframe.
         genes2 (str, or list or array-like of str, optional): Gene(s) for Column(s) to select from df2_name. str if one key, list or array-like of str if multiple.
@@ -350,7 +350,7 @@ class Cancer:
         show_location (bool, optional): Whether to include the Location column from the mutation dataframe. Defaults to True.
         how (str, optional): How to perform the join, acceptable values are from ['outer', 'inner', 'left', 'right']. Defaults to 'outer'.
         quiet (bool, optional): Whether to warn when inserting NaNs. Defaults to False.
-        tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type for the dataframe. Defaults to "both".
+        tissue_type (str, optional): Acceptable values in ["tumor","normal","both"]. Specifies the desired tissue type for the dataframe. Defaults to "both".
 
         Returns:
         pandas.DataFrame: The mutations for the specified gene, joined to all or part of the omics dataframe. Each location or mutation cell contains a list, which contains the one or more location or mutation values corresponding to that sample for that gene, or a value indicating that the sample didn't have a mutation in that gene.
