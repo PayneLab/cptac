@@ -34,7 +34,7 @@ class WashuHnscc(Source):
             "miRNA"             : ["HNSCC_mature_miRNA_combined.tsv.gz","HNSCC_precursor_miRNA_combined.tsv.gz","HNSCC_total_miRNA_combined.tsv.gz"],
             # "readme"            : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"],
             "somatic_mutation"  : "HNSCC_discovery.dnp.annotated.exonic.maf.gz",
-            # "transcriptomics"   : ["HNSCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz","HNSCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
+            "transcriptomics"   : ["HNSCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz","HNSCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
             "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
             "xcell"             : "HNSCC_xCell.txt.gz",
         }
@@ -42,7 +42,7 @@ class WashuHnscc(Source):
         #self._readme_files = {}
 
         self.load_functions = {
-            # 'transcriptomics'   : self.load_transcriptomics,
+            'transcriptomics'   : self.load_transcriptomics,
             'somatic_mutation'  : self.load_somatic_mutation,
             'miRNA'             : self.load_miRNA,
             'xcell'             : self.load_xcell,
