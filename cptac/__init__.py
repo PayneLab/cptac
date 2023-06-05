@@ -69,6 +69,9 @@ def list_datasets(*, condense_on = None, column_order = None, print_tree=False):
     return df if not print_tree else df_to_tree(df)
 
 def get_cancer_options():
+    return list_datasets(condense_on=['Datatype'])
+
+def get_cancer_info():
     cancer_abbreviations = {
         "brca": "Breast invasive carcinoma",
         "ccrcc": "Clear cell renal cell carcinoma",
@@ -83,26 +86,8 @@ def get_cancer_options():
         "ucec": "Uterine Corpus Endometrial Carcinoma",
         # Add more if needed
     }
-
-    cancer_options = list_datasets(condense_on=['Datatype'])
-
-    # Get the unique cancer types from the 'Cancer' level of the MultiIndex
-    cancer_types = cancer_options.index.get_level_values('Cancer').unique()
-
-    # For each unique cancer type
-    for cancer_type in cancer_types:
-        # Get the full name from the dictionary, or use the abbreviation if not found
-        full_name = cancer_abbreviations.get(cancer_type, cancer_type)
-
-        # Print the full name and abbreviation
-        print(f"{cancer_type} ({full_name}):")
-
-        # Print the options for this cancer type
-        print(cancer_options.loc[cancer_type])
-
-        # Print a blank line for readability
-        print()
-
+    return cancer_abbreviations
+    
 def get_source_options():
     return list_datasets(condense_on=['Cancer'], column_order=['Source', 'Datatype', 'Cancer'])
 #### End __OPTIONS__ code
