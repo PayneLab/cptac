@@ -4,6 +4,7 @@ from tqdm import tqdm
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 from hashlib import md5
+from warnings import warn
 
 import cptac
 from cptac.exceptions import *
@@ -31,6 +32,7 @@ def fetch_repo_data() -> dict:
 def init_files() -> None:
     "Initializes several files that are essential for cptac to run, such as the file index."
     os.makedirs(DATA_DIR, exist_ok=True)
+    index_path = os.path.join(DATA_DIR, 'index.tsv')
     try:
         repo_data = fetch_repo_data()
         global BUCKET
@@ -43,7 +45,7 @@ def init_files() -> None:
             filename_list = data_file['key'].split('-')
             description = '-'.join(filename_list[:3])
             index_data.append(f"{description}\t{'-'.join(filename_list)}\t{data_file['checksum']}")
-        with open(os.path.join(DATA_DIR, "index.tsv"), 'w') as index_file:
+        with open(index_path, 'w') as index_file:
             index_file.write('\n'.join(index_data))
     except requests.ConnectionError:
         raise NoInternetError("Cannot initialize data files: No internet connection.")
@@ -87,6 +89,8 @@ def download(cancer: str, source: str, dtype: str, data_file: str) -> bool:
             os.remove(os.path.join(DATA_DIR, output_file))
             raise DownloadFailedError("Download failed: local an remote files do not match. Please try again.")
         return True
+    except NoInternetError as e:
+        raise NoInternetError("Download failed -- No internet connection.")
     except DownloadFailedError as e:
         raise e
     except requests.RequestException as e:

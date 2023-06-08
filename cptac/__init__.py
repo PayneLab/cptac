@@ -19,7 +19,7 @@ CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
 
 # Function imports
 from cptac.tools.download_tools import download, init_files
-from cptac.exceptions import CptacError, CptacWarning
+from cptac.exceptions import CptacError, CptacWarning, NoInternetError
 from cptac.utils.other_utils import df_to_tree
 
 # Dataset imports
@@ -35,8 +35,33 @@ from cptac.cancers.pdac import Pdac
 from cptac.cancers.ucec import Ucec
 
 
+#### Create custom exception and warning hooks to simplify error messages for new users
+def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): 
+    """Catch cptac-generated exceptions, and make them prettier."""
+    if issubclass(type(exception), CptacError):
+        print(f"cptac error: {str(exception)} ({traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno})", file=sys.stderr)
+    else:
+        default_hook(exception_type, exception, traceback)
+
+def _warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning):
+    """Catch cptac-generated warnings and make them prettier."""
+    if issubclass(category, CptacWarning):
+        print(f"cptac warning: {str(message)} ({filename}, line {lineno})", file=sys.stderr)
+    else:
+        default_displayer(message, category, filename, lineno, file, line)
+
+sys.excepthook = _exception_handler
+warnings.showwarning = _warning_displayer
+warnings.simplefilter("always", category=CptacWarning)
+
 #### Create the index for the data files (file lookup table)
-init_files()
+try:
+    init_files()
+except NoInternetError:
+    if path.exists(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv')):
+        pass
+    else:
+        raise NoInternetError("Unable to initialize cptac without index file. Please run the package at least once with an internet connection.")
 INDEX = pd.read_csv(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv'), sep='\t')
 
 #### Generates the OPTIONS dataframe which shows all possible cancer, source, datatype combinations
@@ -129,22 +154,3 @@ def how_to_cite():
     print("If you use the API to generate results, please cite our manuscript describing the API - Lindgren et al. 2021, PMID:33560848, https://pubs.acs.org/doi/10.1021/acs.jproteome.0c00919")
     print('\n')
     print("For instructions on how to cite a specific dataset, please call its how_to_cite method, e.g. cptac.Endometrial().how_to_cite()")
-
-#### Create custom exception and warning hooks to simplify error messages for new users
-def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): 
-    """Catch cptac-generated exceptions, and make them prettier."""
-    if issubclass(type(exception), CptacError):
-        print(f"cptac error: {str(exception)} ({traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno})", file=sys.stderr)
-    else:
-        default_hook(exception_type, exception, traceback)
-
-def _warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning):
-    """Catch cptac-generated warnings and make them prettier."""
-    if issubclass(category, CptacWarning):
-        print(f"cptac warning: {str(message)} ({filename}, line {lineno})", file=sys.stderr)
-    else:
-        default_displayer(message, category, filename, lineno, file, line)
-
-sys.excepthook = _exception_handler
-warnings.showwarning = _warning_displayer
-warnings.simplefilter("always", category=CptacWarning)
