@@ -118,16 +118,16 @@ class UmichBrca(Source):
             df = df.subtract(ref_intensities, axis="columns") # Subtract ref intensities from all the values, to get ratios
             df = df.iloc[1:,:] # drop ReferenceIntensity row 
             # drop ending of CPT retrospective samples to match cptac
-            df = df.rename(index={'CPT0008140004':'CPT000814', 'CPT0018460005': 'CPT001846'})
+            df = df.rename(index={'CPT000814-0004':'CPT000814', 'CPT001846-0005': 'CPT001846'})
             #Previous; removed with pdc references
             #df = df.rename(index={'CPT0008140004':'CPT000814', 'CPT0018460005': 'CPT001846', 
             #                     '604':'CPT000814'}) # 604 mapped to CPT000814 in pdc index
 
-            drop_cols = ['RetroIR','RetroIR.1','RefInt_Pool01-1','RefInt_Pool02-1',
-                         'RefInt_Pool03-1','RefInt_Pool04-1','RefInt_Pool05-1','RefInt_Pool06-1',
-                         'RefInt_Pool07-1','RefInt_Pool08-1','RefInt_Pool09-1','RefInt_Pool10-1',
-                         'RefInt_Pool11-1','RefInt_Pool12-1','RefInt_Pool13-1','RefInt_Pool14-1',
-                         'RefInt_Pool15-1','RefInt_Pool16-1','RefInt_Pool17-1']
+            drop_cols = ['RetroIR-07','RetroIR-13','RefInt_Pool01','RefInt_Pool02',
+                         'RefInt_Pool03','RefInt_Pool04','RefInt_Pool05','RefInt_Pool06',
+                         'RefInt_Pool07','RefInt_Pool08','RefInt_Pool09','RefInt_Pool10',
+                         'RefInt_Pool11','RefInt_Pool12','RefInt_Pool13','RefInt_Pool14',
+                         'RefInt_Pool15','RefInt_Pool16','RefInt_Pool17']
             # Drop quality control and ref intensity cols
             df = df.drop(drop_cols, axis = 'index')
             

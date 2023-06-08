@@ -25,7 +25,7 @@ class UmichPdac(Source):
         self.data_files = {
             "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz",
             "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz",
-            "mapping" : "aliquot_to_patient_ID.tsv",
+            "mapping" : "aliquot_to_patient_ID.tsv.gz",
             # "README_v3.boxnote" is proteomics
             # "README.boxnote" is phosphoproteomics 
             # "readme" : ["README_v3.boxnote", "README.boxnote"],

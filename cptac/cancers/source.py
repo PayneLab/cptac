@@ -45,14 +45,7 @@ class Source:
             # check to see if the df type requested is availabe from this source
             if df_type not in self.load_functions:
                 raise DataTypeNotInSourceError(f"The {self.source} source does not have {df_type} data for {self.cancer_type} cancer.")
-            else:
-                # print loading message
-                # loading_msg = f"Loading {df_type} dataframe for {self.source} {self.cancer_type}"
-                #print(loading_msg, end='\r')
-                # call the load function for that df type
-                self.load_functions[df_type]()
-                # Erase the loading message
-                # print(' ' * len(loading_msg), end='\r')
+            self.load_functions[df_type]()
         return self._data[df_type]
 
     def save_df(self, df_type, df):
@@ -113,35 +106,3 @@ class Source:
             file_paths.append(file_path)
         
         return file_paths if len(file_paths) >= 2 else file_paths[0]
-
-    # def get_file_path(self, data_file, datatype):
-    #     """Return the path to a specific data file, or "not downloaded" if file does not exist or is corrupted.
-
-    #     Parameters:
-    #     data_file (str): The file name to get a filepath for
-
-    #     Returns:
-    #     string: The path to the given data file, or "not downloaded"
-    #     """
-    #     # Get our dataset path and index
-    #     if self.source in ["harmonized", "mssm"]:
-    #         dataset = self.source
-    #     else:
-    #         dataset = self.source + "_" + self.cancer_type
-
-    #     file_path = os.path.join(CPTAC_BASE_DIR, f"data/{dataset}/{data_file}")
-    #     prefixed_file = f"{dataset}_{datatype}_{data_file}"
-
-    #     if os.path.isfile(file_path):
-    #         with open(file_path) as data_file:
-    #             if "md5:" + md5(data_file.read()).hexdigest() == cptac.__INDEX__.query('filename == @prefixed_file')['checksum']:
-    #                 return file_path
-    #         return "not downloaded"
-
-    #     elif not os.path.isdir(file_path) and not self.no_internet:
-    #         return "not downloaded"
-
-    #     # Raise error if file is not installed and they don't have an internet connection
-    #     if not os.path.isdir(file_path) and self.no_internet:
-    #         raise MissingFileError(f"The {self.source} {data_file} file for the {self.cancer_type} is not downloaded and you are running cptac in no_internet mode.")
-

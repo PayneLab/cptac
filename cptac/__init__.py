@@ -45,6 +45,8 @@ def _load_options():
     options_df = pd.DataFrame(INDEX['description'].str.split('-').tolist())
     options_df.columns = ['Source', 'Cancer', 'Datatype']
     options_df = options_df[['Cancer', 'Source', 'Datatype']]
+    # options_df.loc[options_df.iloc[:2].str.contains('miRNA')] = 'miRNA' # condense all forms of micro RNA
+    # options_df = options_df.unique().reset_index(drop=True)
     return options_df
 
 OPTIONS = _load_options()
