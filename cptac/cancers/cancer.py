@@ -53,8 +53,8 @@ class Cancer:
             'somatic_mutation_binary',
             'transcriptomics',
             'CNV_log2ratio',
-            'CNV_gistic'
-             ]
+            'CNV_gistic',
+        ]
 
         self._valid_metadata_dfs = [
             "clinical",
@@ -680,12 +680,12 @@ class Cancer:
         return data_sources
     
 
-    def get_dataframe(self, name: str, source: str=None, tissue_type: str="both", imputed: bool=False) -> pd.DataFrame:
+    def get_dataframe(self, dtype: str, source: str=None, tissue_type: str="both", imputed: bool=False) -> pd.DataFrame:
         """
         Check that a given dataframe from a given source exists, and return a copy if it does.
 
         Parameters:
-        name (str): The datatype for which you want the dataframe.
+        dtype (str): The datatype for which you want the dataframe.
         source (str): The source of the dataframe.
         tissue_type (str, optional): Acceptable values in ["tumor","normal","both"]. Specifies the tissue type desired in the dataframe. Defaults to "both".
         imputed (bool, optional): whether the data is imputed. Defaults to False.
@@ -694,28 +694,28 @@ class Cancer:
         """
 
         if imputed:
-            name += "_imputed"
+            dtype += "_imputed"
 
         if source is None:
-            sources_for_data = [src for src in self._sources.keys() if name in self._sources[src].load_functions.keys()]
+            sources_for_data = [src for src in self._sources.keys() if dtype in self._sources[src].load_functions.keys()]
 
             if not sources_for_data:
                 raise DataFrameNotIncludedError(
-                    f"{name} datatype not included in the {self._cancer_type} dataset. Use <cancer object>.list_data_sources() to see which data are available.")
+                    f"{dtype} datatype not included in the {self._cancer_type} dataset. Use <cancer object>.list_data_sources() to see which data are available.")
 
             if len(sources_for_data) == 1:
                 source = sources_for_data[0]
                 warnings.warn(
-                    f"Using source {source} for {name} data as no other sources provide this data. To remove this warning, pass {source} as the source parameter.",
+                    f"Using source {source} for {dtype} data as no other sources provide this data. To remove this warning, pass {source} as the source parameter.",
                     ParameterWarning, stacklevel=3)
             else:
                 raise DataSourceNotFoundError(
-                    f"No source selected. Available sources for {self._cancer_type} {name} data are: {sources_for_data}.")
+                    f"No source selected. Available sources for {self._cancer_type} {dtype} data are: {sources_for_data}.")
 
         if source not in self._sources.keys():
             raise DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
 
-        df = self._sources[source].get_df(name)
+        df = self._sources[source].get_df(dtype)
 
         if tissue_type == "normal":
             df = self._normal_only(df)
@@ -1408,12 +1408,10 @@ class Cancer:
             }
             mutations_filter.update(hotspot_filter)
 
-        # Although seemingly complex, the following four lines do the following:
-        # 1. For each row, link (zip) the items in the 
-        #       ["mutations_list"] and ["locations_list"] columns together
-        # 2. Sort the ["mutations_list"] column based on its position in mutations_filter, 
-        #       including its respective location
-        # 3. Unlink the lists using list comprehension (last 3 lines)
+        # Although seemingly complex, the following five lines do the following:
+        # 1. For each row, link (zip) the items in the ["mutations_list"] and ["locations_list"] columns together
+        # 2. Sort the ["mutations_list"] column based on its position in mutations_filter, including its respective location
+        # 3. Unlink the lists using list comprehension (last 4 lines)
         sorted_mut_loc = combined.apply(lambda row: 
                 sorted(
                     zip(row["mutations_list"], row["locations_list"]), 
