@@ -39,28 +39,37 @@ class Cancer:
         self._cancer_type = cancer_type
         self._sources = {} # Child class __init__ needs to fill this
 
+        # We don't currently have the dataframes that are commented out
         self._valid_omics_dfs = [
-            'acetylproteomics',
+            # 'acetylproteomics',
             'circular_RNA',
             'CNV',
-            'lincRNA',
-            'lipidomics',
-            'metabolomics',
+            # 'lincRNA',
+            # 'lipidomics',
+            # 'metabolomics',
             'miRNA',
             'phosphoproteomics',
-            'phosphoproteomics_gene',
+            # 'phosphoproteomics_gene',
             'proteomics',
             'somatic_mutation_binary',
             'transcriptomics',
-            'CNV_log2ratio',
-            'CNV_gistic'
+            'deconvolution_cibersort',
+            'deconvolution_xcell',
+            'deconvolution',
+            'somatic_mutation',
+            'targeted_phosphoproteomcis',
+            'targeted_proteomics',
+            'tumor_purity',
+            # 'CNV_log2ratio',
+            # 'CNV_gistic'
              ]
 
         self._valid_metadata_dfs = [
             "clinical",
-            "derived_molecular",
-            "experimental_design",
-            #"followup", # Right now there are duplicate rows, so don't include follow up tables for joins.
+            "medical_history",
+           # "derived_molecular",
+           # "experimental_design",
+            "followup",
             ] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in Ccrcc, because they both have multiple rows for each sample.
 
         #ignore logging messages
