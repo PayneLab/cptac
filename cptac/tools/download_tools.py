@@ -72,6 +72,8 @@ def download(cancer: str, source: str, dtype: str, data_file: str) -> bool:
     # Prepare for data download
     if source in ['harmonized', 'mssm']:
         description = f"{source}-all_cancers-{dtype}"
+    if source in ['washu'] and dtype == 'tumor_purity':
+        description = f"{source}-all_cancers-{dtype}"
     else:
         description = f"{source}-{cancer}-{dtype}"
     output_dir = '-'.join(description.split('-')[:-1])

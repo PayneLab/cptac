@@ -85,7 +85,7 @@ class Source:
         for data_file in data_files:
             # dataset = self.source if self.source in ['harmonized', 'mssm'] else f"{self.source}_{self.cancer_type}"
             # This should eventually be handled within the respective sources, but this will do for now
-            cancer_type = "all_cancers" if self.source in ['mssm', 'harmonized'] else self.cancer_type
+            cancer_type = "all_cancers" if self.source in ['mssm', 'harmonized'] or self.source in['washu'] and datatype == 'tumor_purity' else self.cancer_type
 
             dataset = f"{self.source}-{cancer_type}"
             file_path = os.path.join(CPTAC_BASE_DIR, f"data/{dataset}/{data_file}")
