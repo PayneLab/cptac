@@ -1,4 +1,4 @@
-# How to add code to `cptac`
+# How to Add Code to `cptac`
 
 This document establishes the proper workflow for adding new code to the cptac package. This could be a use case, a new utils function, a new dataset, or anything else. In order to avoid merge conflicts, **no one should ever directly edit the master branch**. Instead, follow this workflow, which will have you make edits on the dev branch, and then merge the dev branch to master.
 

@@ -1,54 +1,33 @@
-# How to add a new dataset
+# How to Add a New Dataset
 
-## Adding the data files for a new dataset
+## Adding the Data Files for a New Dataset
 
 1. Download the data files onto your machine.
 2. gzip the files (unless they're Excel files--then just leave them uncompressed).
-3. Use md5sum to hash all the files, and send the output to a file called `index.txt`.
-4. Reformat this index.txt that you just created:
-    1. On each line, have the file name and hash for one file. This is the format of the md5sum output, but you need to edit it so the filenames are first, followed by a tab and no other whitespace, followed by the file hash, followed by no other whitespace.
-    2. At the top of the file, add a line that has the version number preceded by a crunch, e.g. "#3.1" for version 3.1
-5. Create a folder on the Box drive for the new dataset, inside the `CPTAC/cptac` directory (not `CPTAC/cptac_raw` or `CPTAC/cptac_old`), with the format `data_[dataset]`, e.g. `data_endometrial`. Within that folder, create another folder with a name formatted as `[dataset]_v[version]`, e.g. `endometrial_v2.1`. Upload all the compressed data files to this second folder.
-    1. To be clear, for the endometrial dataset, you'd create `data_endometrial` and `data_endometrial/endometrial_v2.1`, and upload the data files to `data_endometrial/endometrial_v2.1`
-6. Create a shared direct download link for each file, and store it in index.txt:
-    1. Click on the file
-    2. Click on the "Share" button for the file
-    3. In the box that pops up, click the switch to "Enable shared link"
-    4. Change the access level from "Invited people only" to "People with the link", leaving the access level on "Can view and download"
-    5. Click on the "Link settings" button, and at the bottom of the new box that pops up, you'll find the link to directly download the file, under the header "Direct Link". This is the link we need to put in our index; the link in the previous popup box was just for viewing the file.
-        1. Optional: If you need to password protect the file, check the "Require password" box under the "Password Protect" header and enter the desired password. It must be the same password for all files within one dataset.
-    6. Copy the direct download link, and paste it into index.txt. Put it on the same line as the file it corresponds to, after the hash, separated from the hash by a tab and no other whitespace, and followed by no other whitespace.
-7. Now that you've finished the index file, use md5sum to create a checksum for the index file, and store the hash in a file called `index_hash.txt`. md5sum will automatically output both the hash and file name, but you just want the hash, so delete the file name. Also make sure there is no whitespace before or after the hash.
-8. Upload index.txt and index_hash.txt to the parent directory you created for the dataset--for example, with the endometrial dataset, you'd upload them to the `data_endometrial/` folder, not to `data_endometrial/endometrial_v2.1/`. 
-9. Create shared direct download links for the index.txt and index_hash.txt files, following the same steps as for creating shared direct download links for the data files. Even if this is a password protected dataset, you do not need to password protect these files.
-10. Within the cptac/cptac directory in the copy of the git repository on your local machine, create a directory for the dataset, with the format `data_[dataset]`, e.g. `data_endometrial`.
-11. Within that directory, create a file called `index_urls.tsv`. The first line of this file should have the name of the index file (`index.txt`), followed by a tab, followed by the direct download link for the index file. The second line of this file should have the name of the index hash file (`index_hash.txt`), followed by a tab, followed by the direct download link for the index hash file. There must be no extra whitespace on either line.
-12. Add index urls file to the MANIFEST.in file, which is in the same directory as setup.py
-13. Add dataset's data folder to the .gitignore, which is in the same directory as setup.py, but use an exclamation point to include the index_urls.tsv file (see existing entries in the .gitignore for examples)
+3. Rename the files to include the prefix in the following format: `{source}-{cancer type}-{datatype}-{original filename}`.
+4. Create a new version on the Zenodo repository, upload the data, and publish.
+<br><br><br>
 
+## Adding the Code for a New dataset
 
+For a new dataset to function, each dataframe must contain its own load function. This is stored in the class given by `~/cancers/{source}/{source}{cancer}.py`, where **{source}** is the lowercase abbreviation for your source and **{cancer}** is the lowercase abbreviation for your cancer. This structure is given in [00_why_we_did_what_we_done](00_why_we_did_what_we_done#structure-of-cancers). To add this code, do the following:<br>
+1.  If the above file does not exist, copy [child_source_template.py](child_source_template.py) into the appropriate folder and give it the name `{source}{cancer}`. Then, open the file and rename the class `NameOrAcronym` to `{Source}{Cancer}`, where `{Source}` is the acronym for the source with the first letter capitalized, and `{Cancer}` is the acronym for the cancer with the first letter capitalized.
+2.  Add the entry `{datatype}: {name-of-data-file}` to the private `self.data_files`.
+3.  Add the entry `{datatype}: load_{datatype}` to the private `self.load_functions`.
+4.  Inside the class, define your loading function. Use the template as a guide.
+5.  If you had to follow step 1, open the file containing the cancer object, which is `~/cancers/{cancer_type}.py`. You will need to add two lines of code:
+    *   Underneath the other imports, add the line `from cptac.cancers.{source}.{source}{cancer} import {Source}{Cancer}`
+    *   In the `__init__` function, add the line `self._sources["{source}"] = {Source}{Cancer}(no_internet=no_internet)`
 
-## Adding the code for a new dataset
+**Important:** Whenever you're testing changes to your code, make sure to locally install the package using `pip`, using the following instructions. These instructions will take the local copy of the package that you've been editing and install it in your Anaconda environment's package installation directory. This will make it so that when you've opened a Python prompt or a Jupyter Notebook from that Anaconda environment and then import the package, you'll be importing your edited version of the package. This allows you to test the edits you've made, without having to push them to PyPI. So, to install your locally edited version of the package:
+1.  Open your Anaconda prompt or terminal
+2.  Activate your development environment (`conda activate MyEnvironment`, subbing in the name of your environment)
+3.  Navigate to the cptac directory that contains the `setup.py` file (which is the upper cptac directory, not the lower one). `pip` reads this file to know how to install the package.
+4.  In that directory, run this command: `pip install .` (don't forget the dot--it's a reference to your current directory, telling pip to build the package based on the `setup.py` file it finds in the current directory)
+5.  Alternatively, if you're in a different directory, you could run `pip install /path/to/cptac/directory/with/setup/py/file`, subbing in the proper path to the cptac `setup.py` file, and replacing / with \ if you're on Windows. `pip` will follow that path, find the `setup.py` file, and then install the package based off of it.
 
-1. **Important:** Whenever you're testing changes to your code, make sure to locally install the package using `pip`, using the following instructions. These instructions will take the local copy of the package that you've been editing and install it in your Anaconda environment's package installation directory. This will make it so that when you've opened a Python prompt or a Jupyter Notebook from that Anaconda environment and then import the package, you'll be importing your edited version of the package. This allows you to test the edits you've made, without having to push them to PyPI. So, to install your locally edited version of the package:
-    1. Open your Anaconda prompt or terminal
-    2. Activate your development environment (`conda activate MyEnvironment`, subbing in the name of your environment)
-    3. Navigate to the cptac directory that contains the `setup.py` file (which is the upper cptac directory, not the lower one). `pip` reads this file to know how to install the package.
-    4. In that directory, run this command: `pip install .` (don't forget the dot--it's a reference to your current directory, telling pip to build the package based on the `setup.py` file it finds in the current directory)
-    5. Alternatively, if you're in a different directory, you could run `pip install /path/to/cptac/directory/with/setup/py/file`, subbing in the proper path to the cptac `setup.py` file, and replacing / with \ if you're on Windows. `pip` will follow that path, find the `setup.py` file, and then install the package based off of it.
-2. Copy the child_dataset_template.py file to create a new class for the new dataset, inheriting from the abstract `Dataset` class. When you copy the template to a new file,store the new file in the cptac/cptac/ directory, and set its name as the dataset's name or acronym, all lowercase, with .py as the extension. For example, the loader for the endometrial dataset is called `endometrial.py`; for the ccRCC dataset, it's called `ccrcc.py`.
-    1. The name of the class for the new dataset should be the dataset's name or acronym in UpperCamelCase. For example, the endometrial dataset's class is `Endometrial`; the BRCA dataset's class is `Brca`; and the ccRCC dataset's class is `Ccrcc`.
-    2. See child_dataset_template.py for more info.
-3. At the top of `cptac/__init__.py`, add a line to import the dataset class from its file, using the lowercase file name and the UpperCamelCase dataset name (e.g. `from .ccrcc import Ccrcc`)
-4. Update metadata:
-    1. In the cptac/file_download.py file, add the lowercase acronym for the dataset to the list of all datasets, which list is named `datasets`, at the beginning of the `download` function.
-    2. On Box, update the metadata table located at CPTAC/cptac/datasets.tsv with the info for the new dataset.
-5. Make sure all dfs in `self._valid_metatdata_dfs` and `self._valid_omics_dfs` in dataset.py are valid as metadata or omics dfs, respectively, for the utilities functions. If not, override those lists for the dataset class.
-6. Add the new dataset name to the list of all datasets at the very beginning of the `download` function in `cptac/file_download.py` (located within the `if` statement that handles the case where the user passes `"all"` for the `dataset` parameter).
-7. If the dataset is password protected, add it to the `password_protected_datasets` list in the `download` function in the `cptac/file_download.py` file. Also make sure it has a password access only warning at the end of its `__init__` function.
-8. At the point marked in the child dataset template, write code to format the dataframes according to the specifications below.
-
-**General dataframe formatting requirements**
+<br><br><br>
+## General Dataframe Formatting Requirements
 
 First, I'll give you two pictures showing the general format that you want to parse all the data tables to conform to:
 
@@ -122,9 +101,7 @@ These tables conform to these requirements:
     *   Don't worry about marking "normal" samples in the clinical table. We treat all samples in the clinical table as tumor samples; I'll explain why. First note that each normal sample comes from a person who also donated a tumor sample. The data in the clinical data pertain to the actual person, not to the individual samples that came from them. Therefore we classify all the rows in the clinical table as "tumor" samples, because if we had data for each normal sample as well, we would just be duplicating the data for whatever tumor sample came from the same person. We do create rows in the clinical table for the normal samples, but every column except for the Sample_Tumor_Normal column is NaN (null) for those rows. Note that adding these NaN rows to the clinical dataframe is already built into the dataset template file--it occurs when we reindex the clinical dataframe with the master index (line 127 in the cptac/devdocs/child_dataset_template.py file). The master index is a list of every sample ID that occurs in any table in the dataset, which we have to create by explicitly going through all the tables, because not all samples are in all tables due to data quality issues--if a sample had some problem for a particular data type, it was dropped from the table for that data type. Creating the master index is done by the "unionize_indices" function on line 123 of the template file. This gets the normal samples from the tables where they appear; then when we reindex the clinical table with the master index, it inserts rows of NaNs for any samples IDs that weren't originally in the clinical table, including the normal sample IDs.
     *   In some datasets, such as HNSCC, there are also cored normal samples. You should mark the patient IDs for these samples with a '.C' at the end in all tables, instead of a '.N'. You also need to give them the value "Normal" in the Sample_Tumor_Normal column, and the value True in a column called Cored_Sample that you need to create in the clinical dataframe. All tumor and non-cored normal samples will have the value False in the Cored_Sample column.
 
-### Tips for writing the parser/loader:
-
-
+### Tips for Writing the Parser/Loader:
 
 *   If any dataframes are split between two files--such as one file for the tumor sample proteomics, and one file for the normal sample proteomics--they'll have been read into separate dataframes, and you need to merge those into one dataframe.
     *   Make sure that samples coming from the normal file have '.N' appended to their Patient_ID numbers, to keep a record of which ones are normal samples. You may need to do that manually.
