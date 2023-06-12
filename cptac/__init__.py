@@ -126,20 +126,6 @@ def get_source_options():
 #     print(message, end = '\r')
 #     webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
 #     print(" " * len(message), end='\r') # Erase the message
-def download_cancer(cancer: str) -> bool:
-    index_path = path.join(CPTAC_BASE_DIR, "data/index.tsv")
-    with open(index_path) as index:
-        for line in index:
-            curr_filename = line.split('\t')[1]
-            curr_filename_elements = curr_filename.split('-')
-            if len(curr_filename_elements) >= 1:
-                if cancer in curr_filename_elements:
-                    source = curr_filename_elements[0]
-                    dtype = curr_filename_elements[2]
-                    prefix = source + "_" + cancer + '_' + dtype + '-'
-                    filename = curr_filename[len(prefix):]
-                    download(cancer, source, dtype, filename)
-    return True
 
 def version():
     """Return version number of cptac package."""
