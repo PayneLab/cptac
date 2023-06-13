@@ -58,7 +58,7 @@ def test_all_datasets():
         cancer_instance = cancer_class()
         try:
             data = cancer_instance.get_dataframe(row['Datatype'], row['Source'])
-            # Perform your checks here. For example, check that data is not empty:
+            # Check that data is not empty:
             assert not data.empty, f"Data for {row['Cancer']} - {row['Source']} - {row['Datatype']} is empty."
         except cptac.exceptions.DataFrameNotIncludedError:
             # The dataset does not include this data. This is expected for some combinations, so we just pass.
