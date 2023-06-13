@@ -27,6 +27,7 @@ class UmichUcec(Source):
         self.data_files = {
             "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz",                    
             "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz",
+            "acetylproteomics" : "abundance_single-site_MD.numbers.tsv.gz",
             "mapping" : "aliquot_to_patient_ID.tsv.gz",
             # "README_v3.boxnote" is proteomics
             # "README.boxnote" is phosphoproteomics 
@@ -36,6 +37,7 @@ class UmichUcec(Source):
         self.load_functions = {
             'phosphoproteomics' : self.load_phosphoproteomics,
             'proteomics' : self.load_proteomics,
+            'acetylproteomics' : self.load_acetylproteomics,
         }
 
         # Call the parent class __init__ function
@@ -166,6 +168,8 @@ class UmichUcec(Source):
             # save df in self._data
             self.save_df(df_type, df)
         
+    def load_acetylproteomics(self):
+        pass
         
 #############################################
 
