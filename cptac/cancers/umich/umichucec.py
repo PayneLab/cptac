@@ -27,7 +27,7 @@ class UmichUcec(Source):
         self.data_files = {
             "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz",                    
             "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz",
-            "acetylproteomics" : "abundance_single-site_MD.numbers.tsv.gz",
+            "acetylproteomics" : "abundance_protein_MD.tsv.gz",
             "mapping" : "aliquot_to_patient_ID.tsv.gz",
             # "README_v3.boxnote" is proteomics
             # "README.boxnote" is phosphoproteomics 
@@ -119,6 +119,7 @@ class UmichUcec(Source):
             self.save_df(df_type, df)
 
     def load_proteomics(self):
+        #TODO EDIT THINGS THAT MAY NOT BE THE SAME BETWEEN THIS AND LOAD_PROTEOMICS()
         df_type = 'proteomics'
 
         if df_type not in self._data:
@@ -169,7 +170,54 @@ class UmichUcec(Source):
             self.save_df(df_type, df)
         
     def load_acetylproteomics(self):
-        pass
+        df_type = 'acetylproteomics'
+
+        if df_type not in self._data:
+            # perform initial checks and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+            
+            df = pd.read_csv(file_path, sep = "\t") 
+            df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
+            df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # get protein name 
+            df = df.set_index(['Name', 'Database_ID']) # set multiindex
+            df = df.drop(columns = ['Index', 'MaxPepProb', 'NumberPSM', 'Gene']) # drop unnecessary  columns
+            df = df.transpose()
+            ref_intensities = df.loc["ReferenceIntensity"] # get reference intensities to use to calculate ratios 
+            df = df.subtract(ref_intensities, axis="columns") # subtract reference intensities from all the values
+            df = df.iloc[1:,:] # drop ReferenceIntensity row 
+            df.index.name = 'Patient_ID'
+            
+            # There was 1 duplicate ID (C3N-01825) in the proteomic and phosphoproteomic data. 
+            # I used the Payne lab mapping file "aliquot_to_patient_ID.tsv" to determine the tissue type 
+            # for these duplicates, and they were both tumor samples. Next, I ran a pearson correlation 
+            # to check how well the values from each duplicate correlated to its tumor flagship sample. 
+            # The first occurrence in the file had a higher correlation with the flagship sample 
+            # than the second occurrence. I also created scatterplots comparing each duplicate to its flagship sample.  
+            # We dropped the second occurrence of the duplicate because it didn't correlate very well to its flagship sample.
+            # A file containing the correlations can be downloaded at: 
+            # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
+
+            # Drop quality control and ref intensity cols
+            drop_cols = ['RefInt_pool01', 'RefInt_pool02', 'RefInt_pool03', 'RefInt_pool04',
+                       'RefInt_pool05', 'RefInt_pool06', 'RefInt_pool07', 'RefInt_pool08',
+                       'RefInt_pool09', 'RefInt_pool10', 'RefInt_pool11', 'RefInt_pool12',
+                       'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15', 'RefInt_pool16',
+                       'RefInt_pool17']
+            df = df.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
+            df = df.reset_index()
+            
+            # Get dictionary with aliquots as keys and patient IDs as values
+            self.load_mapping()
+            mapping_dict = self._helper_tables["map_ids"]
+            
+            df['Patient_ID'] = df['Patient_ID'].replace(mapping_dict) # replace aliquots with patient IDs
+            df['Patient_ID'] = df['Patient_ID'].apply(lambda x: x+'.N' if 'NX' in x else x) # 'NX' are enriched normals 
+            df = df.set_index('Patient_ID')
+            df = df_tools.rename_duplicate_labels(df, 'index') # add ".1" to the second ocurrence of the ID with a duplicate
+            df = df.drop('C3N-01825.1', axis = 'index') # drop the duplicate that didn't correlate well with flagship
+            
+            # save df in self._data
+            self.save_df(df_type, df)
         
 #############################################
 

@@ -175,6 +175,10 @@ class Cancer:
     def get_proteomics(self, source: str=None, tissue_type: str="both", imputed: bool=False) -> pd.DataFrame:
         """Get the proteomics dataframe from the specified data source."""
         return self.get_dataframe("proteomics", source, tissue_type, imputed=imputed)
+    
+    def get_acetylproteomics(self, source: str=None, tissue_type: str="both", imputed: bool=False) -> pd.DataFrame:
+        """Get the acetylproteomics dataframe from the specified data source."""
+        return self.get_dataframe("acetylproteomics", source, tissue_type, imputed=imputed)
 
     def get_somatic_mutation(self, source: str=None, tissue_type: str="both", imputed: bool=False) -> pd.DataFrame:
         """Get the somatic mutation dataframe from the specified data source."""
