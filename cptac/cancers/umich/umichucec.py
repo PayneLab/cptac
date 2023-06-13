@@ -170,6 +170,7 @@ class UmichUcec(Source):
             self.save_df(df_type, df)
         
     def load_acetylproteomics(self):
+        #TODO EDIT THINGS THAT MAY NOT BE THE SAME BETWEEN THIS AND LOAD_PROTEOMICS()
         df_type = 'acetylproteomics'
 
         if df_type not in self._data:
@@ -178,8 +179,8 @@ class UmichUcec(Source):
             
             df = pd.read_csv(file_path, sep = "\t") 
             df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
-            df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # get protein name 
-            df = df.set_index(['Name', 'Database_ID']) # set multiindex
+            #df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # get protein name 
+            df = df.set_index(['Database_ID']) # set multiindex
             df = df.drop(columns = ['Index', 'MaxPepProb', 'NumberPSM', 'Gene']) # drop unnecessary  columns
             df = df.transpose()
             ref_intensities = df.loc["ReferenceIntensity"] # get reference intensities to use to calculate ratios 
@@ -198,12 +199,8 @@ class UmichUcec(Source):
             # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
 
             # Drop quality control and ref intensity cols
-            drop_cols = ['RefInt_pool01', 'RefInt_pool02', 'RefInt_pool03', 'RefInt_pool04',
-                       'RefInt_pool05', 'RefInt_pool06', 'RefInt_pool07', 'RefInt_pool08',
-                       'RefInt_pool09', 'RefInt_pool10', 'RefInt_pool11', 'RefInt_pool12',
-                       'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15', 'RefInt_pool16',
-                       'RefInt_pool17']
-            df = df.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
+           
+            #df = df.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
             df = df.reset_index()
             
             # Get dictionary with aliquots as keys and patient IDs as values

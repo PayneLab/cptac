@@ -41,7 +41,7 @@ class Cancer:
 
         # We don't currently have the dataframes that are commented out
         self._valid_omics_dfs = [
-            # 'acetylproteomics',
+            'acetylproteomics',
             'circular_RNA',
             'CNV',
             # 'lincRNA',
