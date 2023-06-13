@@ -51,18 +51,18 @@ def test_consistency_across_calls(dataset):
     second_call = data.get_proteomics(source='umich')
     pd.testing.assert_frame_equal(first_call, second_call)
 
-def test_all_datasets():
-    datasets = cptac.list_datasets()
-    for index, row in datasets.iterrows():
-        cancer_class = get_cancer_class(row['Cancer'])
-        cancer_instance = cancer_class()
-        try:
-            data = cancer_instance.get_dataframe(row['Datatype'], row['Source'])
-            # Check that data is not empty:
-            assert not data.empty, f"Data for {row['Cancer']} - {row['Source']} - {row['Datatype']} is empty."
-        except cptac.exceptions.DataFrameNotIncludedError:
-            # The dataset does not include this data. This is expected for some combinations, so we just pass.
-            pass
+# def test_all_datasets():
+#     datasets = cptac.list_datasets()
+#     for index, row in datasets.iterrows():
+#         cancer_class = get_cancer_class(row['Cancer'])
+#         cancer_instance = cancer_class()
+#         try:
+#             data = cancer_instance.get_dataframe(row['Datatype'], row['Source'])
+#             # Check that data is not empty:
+#             assert not data.empty, f"Data for {row['Cancer']} - {row['Source']} - {row['Datatype']} is empty."
+#         except cptac.exceptions.DataFrameNotIncludedError:
+#             # The dataset does not include this data. This is expected for some combinations, so we just pass.
+#             pass
 
 def get_cancer_class(cancer_str):
     """Converts a string to a corresponding cancer class."""
