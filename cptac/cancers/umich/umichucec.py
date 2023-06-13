@@ -27,7 +27,7 @@ class UmichUcec(Source):
         self.data_files = {
             "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz",                    
             "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz",
-            "acetylproteomics" : "abundance_single-site_MD.numbers.tsv.gz",
+            "acetylproteomics" : "abundance_protein_MD.tsv.gz",
             "mapping" : "aliquot_to_patient_ID.tsv.gz",
             # "README_v3.boxnote" is proteomics
             # "README.boxnote" is phosphoproteomics 
@@ -119,6 +119,7 @@ class UmichUcec(Source):
             self.save_df(df_type, df)
 
     def load_proteomics(self):
+        #TODO EDIT THINGS THAT MAY NOT BE THE SAME BETWEEN THIS AND LOAD_PROTEOMICS()
         df_type = 'proteomics'
 
         if df_type not in self._data:
