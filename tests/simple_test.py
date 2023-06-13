@@ -23,6 +23,7 @@ def test_multiple_datasets(dataset):
         data = getattr(cptac, dataset)()
     except Exception as e:
         pytest.fail(f"Could not instantiate {dataset} dataset: {e}")
+
 def test_dataset_format():
     """Test the dataset format"""
     brca = cptac.Brca()
@@ -50,22 +51,33 @@ def test_consistency_across_calls(dataset):
     second_call = data.get_proteomics(source='umich')
     pd.testing.assert_frame_equal(first_call, second_call)
 
-# @pytest.mark.parametrize("cancer", cptac.list_cancers())
-# def test_all_cancers(cancer):
-#     """Test that all cancers can be instantiated"""
-#     try:
-#         data = getattr(cptac, cancer)()
-#     except Exception as e:
-#         pytest.fail(f"Could not instantiate {cancer} dataset: {e}")
+def test_all_datasets():
+    datasets = cptac.list_datasets()
+    for index, row in datasets.iterrows():
+        cancer_class = get_cancer_class(row['Cancer'])
+        cancer_instance = cancer_class()
+        try:
+            data = cancer_instance.get_dataframe(row['Datatype'], row['Source'])
+            # Perform your checks here. For example, check that data is not empty:
+            assert not data.empty, f"Data for {row['Cancer']} - {row['Source']} - {row['Datatype']} is empty."
+        except cptac.exceptions.DataFrameNotIncludedError:
+            # The dataset does not include this data. This is expected for some combinations, so we just pass.
+            pass
 
-# @pytest.mark.parametrize("cancer", cptac.list_cancers())
-# @pytest.mark.parametrize("source", cptac.list_sources())
-# @pytest.mark.parametrize("datatype", cptac.list_datatypes())
-# def test_all_sources_and_datatypes(cancer, source, datatype):
-#     """Test that all sources and datatypes can be accessed for all cancers"""
-#     try:
-#         data = getattr(cptac, cancer)()
-#         result = data.get_dataframe(datatype, source)
-#         assert isinstance(result, pd.DataFrame)
-#     except Exception as e:
-#         pytest.fail(f"Could not get {datatype} data from source {source} for {cancer} dataset: {e}")
+def get_cancer_class(cancer_str):
+    """Converts a string to a corresponding cancer class."""
+    # This dictionary should be updated as necessary
+    mapping = {
+        "brca": cptac.Brca,
+        "ccrcc": cptac.Ccrcc,
+        "coad": cptac.Coad,
+        "gbm": cptac.Gbm,
+        "hnscc": cptac.Hnscc,
+        "lscc": cptac.Lscc,
+        "luad": cptac.Luad,
+        "ov": cptac.Ov,
+        "pdac": cptac.Pdac,
+        "ucec": cptac.Ucec,
+        "all_cancers" : cptac.Ucec
+    }
+    return mapping[cancer_str]
