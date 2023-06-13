@@ -9,25 +9,30 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import pytest
-import pandas as pd
-import cptac
-from cptac.exceptions import DataFrameNotIncludedError, InvalidParameterError
+# import pytest
+# import pandas as pd
+# import cptac
+# from cptac.exceptions import DataFrameNotIncludedError, InvalidParameterError
 
-class PancanTestGet:
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        # Setup code here.
-        pass
+# class TestPancanGet:
 
-    @pytest.mark.parametrize("valid_input", ["Input1", "Input2", "Input3"]) # Add valid inputs here
-    def test_valid_getters(self, valid_input):
-        """
-        Test case for valid getters. Implement actual test here.
-        """
-        # Call the method we want to test with the valid_input
-        # Assert that the result is what we expect
-        # Like:
-        # result = some_method(valid_input)
-        # assert result == expected result
-        pass
+#     @pytest.fixture(autouse=True)
+#     def setup(self):
+#         self.cancer = cptac.Cancer() # Cancer class
+#         pass
+
+#     @pytest.mark.parametrize("valid_input,expected_result", [("Input1", "Expected1"), ("Input2", "Expected2")])
+#     def test_valid_getters(self, valid_input, expected_result):
+#         """
+#         Test case for valid getters.
+#         """
+#         result = self.cancer.get(valid_input)
+#         assert result == expected_result, f"For input: {valid_input}, expected{expected_result}, but got: {result}"
+
+#     @pytest.mark.parametrize("invalid_input", ["Invalid1", "Invalid2"])
+#     def test_invalid_getters(self, invalid_input):
+#         """
+#         Test for invalid getters.
+#         """
+#         with pytest.raises((DataFrameNotIncludedError, InvalidParameterError)):
+#             self.cancer.get(invalid_input)
