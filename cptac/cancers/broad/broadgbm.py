@@ -44,7 +44,7 @@ class BroadGbm(Source):
         if not self._helper_tables:
             file_path_list = self.locate_files(df_type)
             for file_path in file_path_list:
-                path_elements = file_path.split(os.sep) # Get a list of the levels of the path
+                path_elements = file_path.split('/') # Get a list of the levels of the path
                 file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
                 
                 if file_name == "sample_descriptions.tsv.gz":
