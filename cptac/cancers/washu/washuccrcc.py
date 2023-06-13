@@ -86,6 +86,13 @@ class WashuCcrcc(Source):
             # Combine the two transcriptomics dataframes
             rna_tumor = self._helper_tables.get("transcriptomics_tumor")
             rna_normal = self._helper_tables.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
+            if rna_tumor is None or rna_normal is None:
+                print("rna_tumor or rna_normal is None")
+                return
+            if not isinstance(rna_tumor, pd.DataFrame) or not isinstance(rna_normal, pd.DataFrame):
+                print("rna_tumor or rna_normal is not a DataFrame")
+                return
+       
             rna_combined = pd.concat([rna_tumor, rna_normal])
 
             # save df in self._data
