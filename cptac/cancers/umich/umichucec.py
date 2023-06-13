@@ -202,6 +202,7 @@ class UmichUcec(Source):
            
             #df = df.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
             df = df.reset_index()
+            #TODO comment out above line and try
             
             # Get dictionary with aliquots as keys and patient IDs as values
             self.load_mapping()
