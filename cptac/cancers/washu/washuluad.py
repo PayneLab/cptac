@@ -61,7 +61,7 @@ class WashuLuad(Source):
             # loop over list of file paths
             for file_path in file_path_list:
                 path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-                file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
+                file_name = os.path.basename(file_path)
 
                 if file_name == "LUAD_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
                     df = pd.read_csv(file_path, sep="\t")
@@ -86,7 +86,15 @@ class WashuLuad(Source):
             # Combine the two transcriptomics dataframes
             rna_tumor = self._helper_tables.get("transcriptomics_tumor")
             rna_normal = self._helper_tables.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
+            if rna_tumor is None or rna_normal is None:
+                print("rna_tumor or rna_normal is None")
+                return
+            if not isinstance(rna_tumor, pd.DataFrame) or not isinstance(rna_normal, pd.DataFrame):
+                print("rna_tumor or rna_normal is not a DataFrame")
+                return
+       
             rna_combined = pd.concat([rna_tumor, rna_normal])
+
             # save df in self._data
             self.save_df(df_type, rna_combined)
     
