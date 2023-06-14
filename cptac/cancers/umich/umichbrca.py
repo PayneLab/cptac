@@ -29,6 +29,7 @@ class UmichBrca(Source):
             # prosp-brca-all-samples.txt shows which patient IDs have normal samples and which have replicates 
             # This file can be found on Box under CPTAC/cptac/pancan/helper_files
             "mapping" : "prosp-brca-all-samples.txt.gz",
+            "acetylproteomics" : "abundance_protein_MD.tsv.gz",
             # "README_v3.boxnote" is proteomics
             # "README.boxnote" is phosphoproteomics 
             # "readme" : ["README_v3.boxnote", "README.boxnote"],
@@ -37,6 +38,7 @@ class UmichBrca(Source):
         self.load_functions = {
             'phosphoproteomics' : self.load_phosphoproteomics,
             'proteomics' : self.load_proteomics,
+            'acetylproteomics' : self.load_acetylproteomics,
         }
         
         # Call the parent class __init__ function
