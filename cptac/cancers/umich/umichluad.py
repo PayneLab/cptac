@@ -218,7 +218,7 @@ class UmichLuad(Source):
             df['Patient_ID'] = df['Patient_ID'].apply(lambda x: x+'.N' if 'NX' in x else x) # 'NX' are enriched normals 
             df = df.set_index('Patient_ID')
             df = df_tools.rename_duplicate_labels(df, 'index') # add ".1" to the second ocurrence of the ID with a duplicate
-            df = df.drop('C3N-01825.1', axis = 'index') # drop the duplicate that didn't correlate well with flagship
+            #df = df.drop('C3N-01825.1', axis = 'index') # drop the duplicate that didn't correlate well with flagship
             
             # save df in self._data
             self.save_df(df_type, df)
