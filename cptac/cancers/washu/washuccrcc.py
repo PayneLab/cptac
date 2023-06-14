@@ -33,7 +33,7 @@ class WashuCcrcc(Source):
             "miRNA"             : ["ccRCC_precursor_miRNA_combined.tsv.gz", "ccRCC_mature_miRNA_combined.tsv.gz", "ccRCC_total_miRNA_combined.tsv.gz"],
             # "readme"            : ["README_miRNA", "README_CIBERSORT", "README_xCell", "README_somatic_mutation_WXS", "README_gene_expression", "README.boxnote", "README_ESTIMATE_WashU"],
             "somatic_mutation"  : "ccRCC_discovery.dnp.annotated.exonic.maf.gz",
-            "transcriptomics"   : ["ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz", "ccRCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
+            "transcriptomics"   : ["ccRCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz", "ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
             "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
             "xcell"             : "ccRCC_xCell.txt.gz",
         }
@@ -61,7 +61,7 @@ class WashuCcrcc(Source):
             # loop over list of file paths
             for file_path in file_path_list:
                 path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-                file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
+                file_name = os.path.basename(file_path)
 
                 if file_name == "ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
                     df = pd.read_csv(file_path, sep="\t")
