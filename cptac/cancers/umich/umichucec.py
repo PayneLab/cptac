@@ -178,9 +178,10 @@ class UmichUcec(Source):
             file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep = "\t") 
-            df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
-            #df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # get protein name 
-            df = df.set_index(['Database_ID']) # set multiindex
+            df['Database_ID'] = df.Index.apply(lambda x: x) # get protein identifier 
+            df['Name'] = df.Index.apply(lambda x: x) # put protein name as identifier
+            df = df.set_index(['Name','Database_ID']) # set multiindex
+            df.rename(index={0:'Database_ID'}, inplace=True)
             df = df.drop(columns = ['Index', 'MaxPepProb', 'NumberPSM', 'Gene']) # drop unnecessary  columns
             df = df.transpose()
             ref_intensities = df.loc["ReferenceIntensity"] # get reference intensities to use to calculate ratios 
@@ -197,12 +198,8 @@ class UmichUcec(Source):
             # We dropped the second occurrence of the duplicate because it didn't correlate very well to its flagship sample.
             # A file containing the correlations can be downloaded at: 
             # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
-
-            # Drop quality control and ref intensity cols
-           
-            #df = df.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
+            
             df = df.reset_index()
-            #TODO comment out above line and try
             
             # Get dictionary with aliquots as keys and patient IDs as values
             self.load_mapping()
