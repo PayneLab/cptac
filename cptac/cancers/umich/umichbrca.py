@@ -189,7 +189,6 @@ class UmichBrca(Source):
 
 
     def load_acetylproteomics(self):
-        #TODO EDIT THINGS THAT MAY NOT BE THE SAME BETWEEN THIS AND LOAD_PROTEOMICS()
         df_type = 'acetylproteomics'
 
         if df_type not in self._data:

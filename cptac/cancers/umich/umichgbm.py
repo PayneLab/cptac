@@ -145,7 +145,6 @@ class UmichGbm(Source):
             self.save_df(df_type, df)
 
     def load_acetylproteomics(self):
-        #TODO EDIT THINGS THAT MAY NOT BE THE SAME BETWEEN THIS AND LOAD_PROTEOMICS()
         df_type = 'acetylproteomics'
 
         if df_type not in self._data:
@@ -162,13 +161,7 @@ class UmichGbm(Source):
             df = df.subtract(ref_intensities, axis="columns") # subtract reference intensities from all the values
             df = df.iloc[1:,:] # drop ReferenceIntensity row
             df.index.name = 'Patient_ID'
-            
-            # drop quality control and ref intensity cols
-            #drop_cols = ['RefInt_01Pool','RefInt_02Pool', 'RefInt_03Pool', 'RefInt_04Pool', 
-            #         'RefInt_05Pool','RefInt_06Pool', 'RefInt_07Pool', 'RefInt_08Pool',
-            #         'RefInt_09Pool','RefInt_10Pool','RefInt_11Pool']
-            #df = df.drop(drop_cols, axis = 'index')
-            
+
             # map aliquot to patient IDs
             self.load_mapping()
             mapping_dict = self._helper_tables["map_ids"]
