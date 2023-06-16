@@ -157,7 +157,7 @@ class UmichGbm(Source):
             df = df[df['Site'].notna()] # only keep columns with phospho site 
             df = df.set_index(['Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns
             df = df.T # transpose
-            df = df.iloc[1:,:] # drop ReferenceIntensity row
+            #df = df.iloc[1:,:] # drop ReferenceIntensity row
             df = df.drop(['ReferenceIntensity', 'ProteinID'])
             
             # Get dictionary with aliquots as keys and patient IDs as values
