@@ -169,9 +169,7 @@ class UmichLscc(Source):
             df[['Database_ID', "Site"]] = df.Index.str.split("_",expand=True) #TODO ADD IN NAME LATER
             df = df[df['Site'].notna()] # only keep columns with phospho site 
             df = df.set_index(['Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns
-            df = df.T # transpose 
-            ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
-            df = df.iloc[1:,:] # drop ReferenceIntensity row
+            df = df.T # transpose
             
             # Get dictionary with aliquots as keys and patient IDs as values
             self.load_mapping()

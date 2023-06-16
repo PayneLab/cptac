@@ -200,9 +200,7 @@ class UmichBrca(Source):
             df[['Database_ID', "Site"]] = df.Index.str.split("_",expand=True) #TODO ADD IN NAME LATER
             df = df[df['Site'].notna()] # only keep columns with phospho site 
             df = df.set_index(['Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns
-            df = df.T # transpose 
-            ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
-            df = df.iloc[1:,:] # drop ReferenceIntensity row
+            df = df.T # transpose
             
             # There was 1 duplicate ID (C3N-01825) in the proteomic and phosphoproteomic data. 
             # I used the Payne lab mapping file "aliquot_to_patient_ID.tsv" to determine the tissue type 
@@ -211,8 +209,6 @@ class UmichBrca(Source):
             # The first occurrence in the file had a higher correlation with the flagship sample 
             # than the second occurrence. I also created scatterplots comparing each duplicate to its flagship sample.  
             # We dropped the second occurrence of the duplicate because it didn't correlate very well to its flagship sample.
-            # A file containing the correlations can be downloaded at: 
-            # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
             
             # FIXME: The following code was inside the if block. It should work fine without it.
             self.load_mapping()
