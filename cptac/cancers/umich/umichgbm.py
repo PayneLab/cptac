@@ -27,7 +27,7 @@ class UmichGbm(Source):
             "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz",
             "mapping" : "aliquot_to_patient_ID.tsv.gz",
             "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz",
-            "acetylproteomics" : "abundance_protein_MD.tsv.gz",
+            "acetylproteomics" : "abundance_single-site_MD.tsv.gz",
             # "README_v3.boxnote" is proteomics
             # "README.boxnote" is phosphoproteomics 
             # "readme" : ["README_v3.boxnote", "README.boxnote"],                  
