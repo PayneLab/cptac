@@ -117,6 +117,10 @@ def get_cancer_info():
     
 def get_source_options():
     return list_datasets(condense_on=['Cancer'], column_order=['Source', 'Datatype', 'Cancer'])
+
+def get_datatype_options():
+    return list_datasets(condense_on=['Cancer'], column_order=['Datatype', 'Source', 'Cancer'])
+
 #### End __OPTIONS__ code
 
 # This website no longer works
