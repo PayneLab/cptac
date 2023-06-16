@@ -728,6 +728,9 @@ class Cancer:
         elif tissue_type == "tumor":
             df = self._tumor_only(df)
 
+        if dtype == 'clinical':
+            df.columns = df.columns.str.split('/').str[-1] # Keep only the part after the slash
+
         return df
     
 
