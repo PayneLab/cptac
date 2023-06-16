@@ -177,24 +177,11 @@ class UmichUcec(Source):
             
             df = pd.read_csv(file_path, sep = "\t") 
             # Parse a few columns out of the "Index" column that we'll need for our multiindex
-            df[['Database_ID','Transcript_ID',"Gene_ID","Havana_gene","Havana_transcript","Transcript","Name","Site"]] = df.Index.str.split("\\|",expand=True)
-            df[['num1','start',"end","detected_phos","localized_phos","Site"]] = df.Site.str.split("_",expand=True) 
-
-            # Some rows have at least one localized phosphorylation site, but also have other 
-            # phosphorylations that aren't localized. We'll drop those rows, if their localized sites 
-            # are duplicated in another row, to avoid creating duplicates, because we only preserve information 
-            # about the localized sites in a given row. However, if the localized sites aren't duplicated in 
-            # another row, we'll keep the row.
-            unlocalized_to_drop = df.index[~df["detected_phos"].eq(df["localized_phos"]) & df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)]# dectected_phos of the split "Index" column is number of phosphorylations detected, and localized_phos is number of phosphorylations localized, so if the two values aren't equal, the row has at least one unlocalized site
-            df = df.drop(index=unlocalized_to_drop)
+            df[['Database_ID', "Site"]] = df.Index.str.split("_",expand=True) #TODO ADD IN NAME LATER
             df = df[df['Site'].notna()] # only keep columns with phospho site 
-            df = df.set_index(['Name', 'Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns
-            #drop columns not needed in df 
-            df.drop(["Gene", "Index", "num1", "start", "end", "detected_phos", "localized_phos", "Havana_gene", 
-                     "Havana_transcript", "MaxPepProb", "Gene_ID", "Transcript_ID", "Transcript"], axis=1, inplace=True)
+            df = df.set_index(['Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns
             df = df.T # transpose 
             ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
-            df = df.subtract(ref_intensities, axis="columns") # Subtract ref intensities from all the values, to get ratios
             df = df.iloc[1:,:] # drop ReferenceIntensity row
             
             # There was 1 duplicate ID (C3N-01825) in the proteomic and phosphoproteomic data. 
@@ -206,14 +193,6 @@ class UmichUcec(Source):
             # We dropped the second occurrence of the duplicate because it didn't correlate very well to its flagship sample.
             # A file containing the correlations can be downloaded at: 
             # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
-
-            # Drop quality control and ref intensity cols
-            drop_cols = ['RefInt_pool01', 'RefInt_pool02', 'RefInt_pool03', 'RefInt_pool04',
-                       'RefInt_pool05', 'RefInt_pool06', 'RefInt_pool07', 'RefInt_pool08',
-                       'RefInt_pool09', 'RefInt_pool10', 'RefInt_pool11', 'RefInt_pool12',
-                       'RefInt_pool13', 'RefInt_pool14', 'RefInt_pool15', 'RefInt_pool16',
-                       'RefInt_pool17']
-            df = df.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
             
             # Get dictionary with aliquots as keys and patient IDs as values
             self.load_mapping()

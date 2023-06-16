@@ -165,22 +165,25 @@ class UmichLscc(Source):
             file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep = "\t") 
-            df['Database_ID'] = df.Index.apply(lambda x: x) # get protein identifier 
-            df['Name'] = df.Index.apply(lambda x: x) # get protein name 
-            df = df.set_index(['Name', 'Database_ID']) # set multiindex
-            df = df.drop(columns = ['Index', 'MaxPepProb', 'NumberPSM', 'Gene']) # drop unnecessary columns
-            df = df.transpose()
-            ref_intensities = df.loc["ReferenceIntensity"] # get reference intensities to use to calculate ratios 
-            df = df.subtract(ref_intensities, axis="columns") # subtract reference intensities from all the values
-            df = df.iloc[1:,:] # drop ReferenceIntensity row 
-            df.index.name = 'Patient_ID'
+            # Parse a few columns out of the "Index" column that we'll need for our multiindex
+            df[['Database_ID', "Site"]] = df.Index.str.split("_",expand=True) #TODO ADD IN NAME LATER
+            df = df[df['Site'].notna()] # only keep columns with phospho site 
+            df = df.set_index(['Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns
+            df = df.T # transpose 
+            ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
+            df = df.iloc[1:,:] # drop ReferenceIntensity row
             
-            # Get dictionary to map aliquot to patient IDs
+            # Get dictionary with aliquots as keys and patient IDs as values
             self.load_mapping()
             mapping_dict = self._helper_tables["map_ids"]
-            #df = df.drop(drop_cols, axis = 'index') # drop quality control and ref intensity cols
-            df = df.rename(index = mapping_dict) # replace aliquot_IDs with Patient_IDs (normal samples have .N appended)
-            
+            df = df.rename(index = mapping_dict) # replace aliquots with patient IDs (normal samples have .N appended)
+            # Add '.N' to enriched normal samples ('NX')
+            df.index.name = 'Patient_ID'
+            df = df.reset_index()
+            df['Patient_ID'] = df['Patient_ID'].apply(lambda x: x+'.N' if 'NX' in x else x) # 'NX' are enriched normals
+            df = df.set_index('Patient_ID')         
+            df = df_tools.rename_duplicate_labels(df, 'index') # add ".1" to the second ocurrence of the ID with a duplicate
+
             # save df in self._data
             self.save_df(df_type, df)
 

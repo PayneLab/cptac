@@ -194,24 +194,26 @@ class UmichBrca(Source):
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
-
+            
             df = pd.read_csv(file_path, sep = "\t") 
-            df['Database_ID'] = df.Index.apply(lambda x: x) # get protein identifier 
-            df['Name'] = df.Index.apply(lambda x: x) # put protein name as identifier 
-            df = df.set_index(['Name', 'Database_ID']) # set multiindex
-            df = df.drop(columns = ['Index', 'MaxPepProb', 'NumberPSM', 'Gene']) # drop unnecessary  columns
-            df = df.transpose()
-            ref_intensities = df.loc["ReferenceIntensity"] # get reference intensities to use to calculate ratios 
-            df = df.subtract(ref_intensities, axis="columns") # subtract reference intensities from all the values
-            df = df.iloc[1:,:] # drop ReferenceIntensity row 
-            df.index.name = 'Patient_ID'
-
-            # drop ending of CPT retrospective samples to match cptac 
-            df = df.rename(index={'CPT0008140004':'CPT000814', 'CPT0018460005': 'CPT001846', 
-                                  '604':'CPT000814'}) # 604 mapped to CPT000814 in the proteomics file from the PDC pipeline 
+            # Parse a few columns out of the "Index" column that we'll need for our multiindex
+            df[['Database_ID', "Site"]] = df.Index.str.split("_",expand=True) #TODO ADD IN NAME LATER
+            df = df[df['Site'].notna()] # only keep columns with phospho site 
+            df = df.set_index(['Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns
+            df = df.T # transpose 
+            ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios 
+            df = df.iloc[1:,:] # drop ReferenceIntensity row
             
+            # There was 1 duplicate ID (C3N-01825) in the proteomic and phosphoproteomic data. 
+            # I used the Payne lab mapping file "aliquot_to_patient_ID.tsv" to determine the tissue type 
+            # for these duplicates, and they were both tumor samples. Next, I ran a pearson correlation 
+            # to check how well the values from each duplicate correlated to its tumor flagship sample. 
+            # The first occurrence in the file had a higher correlation with the flagship sample 
+            # than the second occurrence. I also created scatterplots comparing each duplicate to its flagship sample.  
+            # We dropped the second occurrence of the duplicate because it didn't correlate very well to its flagship sample.
+            # A file containing the correlations can be downloaded at: 
+            # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
             
-            # if self.version == "1.0":
             # FIXME: The following code was inside the if block. It should work fine without it.
             self.load_mapping()
             not_tumor = self._helper_tables["not_tumor"]
@@ -221,8 +223,7 @@ class UmichBrca(Source):
             # /FIXME
 
             # save df in self._data
-            self.save_df(df_type, df)       
-
+            self.save_df(df_type, df)
 #############################################
 
     # TODO: Readmes
