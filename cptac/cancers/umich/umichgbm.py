@@ -150,16 +150,33 @@ class UmichGbm(Source):
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
-            
-            df = pd.read_csv(file_path, sep = "\t") 
+
+            df = pd.read_csv(file_path, sep = "\t")
             # Parse a few columns out of the "Index" column that we'll need for our multiindex
-            df[['Database_ID', "Site"]] = df.Index.str.split("_",expand=True) #TODO ADD IN NAME LATER
-            df = df[df['Site'].notna()] # only keep columns with phospho site 
-            df = df.set_index(['Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns
+            df[['Database_ID', "Site"]] = df.Index.str.split("_",expand=True)
+            df = df[df['Site'].notna()] # only keep columns with phospho site
+
+            # Load the gene names and merge them with the current dataframe based on 'Database_ID'
+            df_gene_names = pd.read_csv('cptac_genes.csv')
+            df_gene_names = df_gene_names.rename(columns={'Gene_Name': 'Name'}) # Renaming 'Gene_Name' to 'Name'
+            df = pd.merge(df, df_gene_names, on='Database_ID', how='left')
+
+            # Move 'Name' into the multiindex
+            df = df.set_index(['Name', 'Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns
             df = df.T # transpose
-            #df = df.iloc[1:,:] # drop ReferenceIntensity row
-            df = df.drop(['ReferenceIntensity', 'ProteinID'])
-            
+            ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios
+            df = df.iloc[1:,:] # drop ReferenceIntensity row
+
+            # There was 1 duplicate ID (C3N-01825) in the proteomic and phosphoproteomic data.
+            # I used the Payne lab mapping file "aliquot_to_patient_ID.tsv" to determine the tissue type
+            # for these duplicates, and they were both tumor samples. Next, I ran a pearson correlation
+            # to check how well the values from each duplicate correlated to its tumor flagship sample.
+            # The first occurrence in the file had a higher correlation with the flagship sample
+            # than the second occurrence. I also created scatterplots comparing each duplicate to its flagship sample.
+            # We dropped the second occurrence of the duplicate because it didn't correlate very well to its flagship sample.
+            # A file containing the correlations can be downloaded at:
+            # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
+
             # Get dictionary with aliquots as keys and patient IDs as values
             self.load_mapping()
             mapping_dict = self._helper_tables["map_ids"]
@@ -168,8 +185,9 @@ class UmichGbm(Source):
             df.index.name = 'Patient_ID'
             df = df.reset_index()
             df['Patient_ID'] = df['Patient_ID'].apply(lambda x: x+'.N' if 'NX' in x else x) # 'NX' are enriched normals
-            df = df.set_index('Patient_ID')         
+            df = df.set_index('Patient_ID')
             df = df_tools.rename_duplicate_labels(df, 'index') # add ".1" to the second ocurrence of the ID with a duplicate
+            df = df.drop('C3N-01825.1', axis = 'index') # drop the duplicate that didn't correlate well with flagship
 
             # save df in self._data
             self.save_df(df_type, df)
