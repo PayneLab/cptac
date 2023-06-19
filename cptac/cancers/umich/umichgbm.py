@@ -12,6 +12,7 @@
 import pandas as pd
 from cptac.cancers.source import Source
 import cptac.tools.dataframe_tools as df_tools
+from cptac import CPTAC_BASE_DIR
 
 class UmichGbm(Source):
     def __init__(self, no_internet=False):
@@ -157,7 +158,7 @@ class UmichGbm(Source):
             df = df[df['Site'].notna()] # only keep columns with phospho site
 
             # Load the gene names and merge them with the current dataframe based on 'Database_ID'
-            df_gene_names = pd.read_csv('cptac_genes.csv')
+            df_gene_names = pd.read_csv(f"{CPTAC_BASE_DIR}/cptac_genes.csv")
             df_gene_names = df_gene_names.rename(columns={'Gene_Name': 'Name'}) # Renaming 'Gene_Name' to 'Name'
             df = pd.merge(df, df_gene_names, on='Database_ID', how='left')
 
@@ -187,7 +188,8 @@ class UmichGbm(Source):
             df['Patient_ID'] = df['Patient_ID'].apply(lambda x: x+'.N' if 'NX' in x else x) # 'NX' are enriched normals
             df = df.set_index('Patient_ID')
             df = df_tools.rename_duplicate_labels(df, 'index') # add ".1" to the second ocurrence of the ID with a duplicate
-            df = df.drop('C3N-01825.1', axis = 'index') # drop the duplicate that didn't correlate well with flagship
+            if 'C3N-01825.1' in df.index:
+                df = df.drop('C3N-01825.1', axis = 'index') # drop the duplicate that didn't correlate well with flagship
 
             # save df in self._data
             self.save_df(df_type, df)

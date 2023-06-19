@@ -12,6 +12,7 @@
 import pandas as pd
 from cptac.cancers.source import Source
 import cptac.tools.dataframe_tools as df_tools
+from cptac import CPTAC_BASE_DIR
 
 class UmichBrca(Source):
     def __init__(self, no_internet=False):
@@ -201,7 +202,7 @@ class UmichBrca(Source):
             df = df[df['Site'].notna()] # only keep columns with phospho site
 
             # Load the gene names and merge them with the current dataframe based on 'Database_ID'
-            df_gene_names = pd.read_csv('cptac_genes.csv')
+            df_gene_names = pd.read_csv(f"{CPTAC_BASE_DIR}/cptac_genes.csv")
             df_gene_names = df_gene_names.rename(columns={'Gene_Name': 'Name'}) # Renaming 'Gene_Name' to 'Name'
             df = pd.merge(df, df_gene_names, on='Database_ID', how='left')
 
