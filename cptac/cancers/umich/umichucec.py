@@ -178,8 +178,8 @@ class UmichUcec(Source):
 
             df = pd.read_csv(file_path, sep = "\t")
             # Parse a few columns out of the "Index" column that we'll need for our multiindex
-            df[['Database_ID', "Site"]] = df.Index.str.split("_",expand=True)
-            df = df[df['Site'].notna()] # only keep columns with phospho site
+            df[['Database_ID', 'Site']] = df.Index.str.split("_",expand=True)
+            df = df[df['Site'].notna()] # only keep columns with acetyl site
 
             # Load the gene names and merge them with the current dataframe based on 'Database_ID'
             df_gene_names = pd.read_csv(f"{CPTAC_BASE_DIR}/cptac_genes.csv")
