@@ -68,9 +68,6 @@ class UmichBrca(Source):
             # (prosp-brca-all-samples.txt). The same method was used to check that these correlated well with their respective
             # flagship cptac tumor values. Replicates were averaged (consistent with the handling of other replicates in the pancan module).
             # note:  21BR010.1 had a correlation of 0.275 (so dropped), and 21BR010.2 had correlation of 0.848 (so averaged)
-            # A file containing the correlations can be downloaded at:
-            # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
-
             # Get patient IDs with normal samples or replicates (from mapping file)
             # 7 IDs with replicates: '11BR031', '11BR053', '11BR036', '11BR060', '14BR005', '11BR011', '21BR010'
             # 18 IDs with normals: '11BR074', '11BR073', '20BR007', '21BR010', '11BR017', '05BR029', '18BR003', '11BR030',
@@ -198,7 +195,7 @@ class UmichBrca(Source):
 
             df = pd.read_csv(file_path, sep = "\t")
             # Parse a few columns out of the "Index" column that we'll need for our multiindex
-            df[['Database_ID', "Site"]] = df.Index.str.split("_",expand=True)
+            df[['Database_ID','Site1',"Site2","Int1","Int2", "Site"]] = df.Index.str.split("_",expand=True)
             df = df[df['Site'].notna()] # only keep columns with phospho site
 
             # Load the gene names and merge them with the current dataframe based on 'Database_ID'
@@ -219,20 +216,18 @@ class UmichBrca(Source):
             # The first occurrence in the file had a higher correlation with the flagship sample
             # than the second occurrence. I also created scatterplots comparing each duplicate to its flagship sample.
             # We dropped the second occurrence of the duplicate because it didn't correlate very well to its flagship sample.
-            # A file containing the correlations can be downloaded at:
-            # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
 
             # Get dictionary with aliquots as keys and patient IDs as values
             self.load_mapping()
             mapping_dict = self._helper_tables["map_ids"]
-            df = df.rename(index = mapping_dict) # replace aliquots with patient IDs (normal samples have .N appended)
+            #df = df.rename(index = mapping_dict) # replace aliquots with patient IDs (normal samples have .N appended)
             # Add '.N' to enriched normal samples ('NX')
             df.index.name = 'Patient_ID'
             df = df.reset_index()
             df['Patient_ID'] = df['Patient_ID'].apply(lambda x: x+'.N' if 'NX' in x else x) # 'NX' are enriched normals
             df = df.set_index('Patient_ID')
             df = df_tools.rename_duplicate_labels(df, 'index') # add ".1" to the second ocurrence of the ID with a duplicate
-            df = df.drop('C3N-01825.1', axis = 'index') # drop the duplicate that didn't correlate well with flagship
+            #df = df.drop('C3N-01825.1', axis = 'index') # drop the duplicate that didn't correlate well with flagship
 
             # save df in self._data
             self.save_df(df_type, df)
