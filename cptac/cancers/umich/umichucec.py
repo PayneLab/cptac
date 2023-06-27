@@ -174,7 +174,7 @@ class UmichUcec(Source):
 
             df = pd.read_csv(file_path, sep = "\t")
             # Parse a few columns out of the "Index" column that we'll need for our multiindex
-            df[['Database_ID', 'Site']] = df.Index.str.split("_",expand=True)
+            df[['Database_ID','Site1',"Site2","Int1","Int2", "Site"]] = df.Index.str.split("_",expand=True)
             df = df[df['Site'].notna()] # only keep columns with acetyl site
 
             # Load the gene names and merge them with the current dataframe based on 'Database_ID'
