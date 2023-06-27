@@ -51,7 +51,6 @@ class UmichOv(Source):
             file_path = self.locate_files(df_type)
             
             # This file maps Ov aliquots to patient IDs (case ID with tissue type)
-            # It can be found on Box under CPTAC/cptac/pancan/helper_files
             ov_map = pd.read_csv(file_path, sep = ",", usecols = ['specimen', 'sample'])
             ov_map = ov_map.loc[~ ov_map['sample'].str.contains('JHU', regex = True)] # drop quality control rows
             ov_map = ov_map.set_index('specimen')
@@ -166,8 +165,6 @@ class UmichOv(Source):
             # The first occurrence in the file had a higher correlation with the flagship sample
             # than the second occurrence. I also created scatterplots comparing each duplicate to its flagship sample.
             # We dropped the second occurrence of the duplicate because it didn't correlate very well to its flagship sample.
-            # A file containing the correlations can be downloaded at:
-            # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
 
             # Get dictionary with aliquots as keys and patient IDs as values
             self.load_mapping()

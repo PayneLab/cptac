@@ -53,7 +53,6 @@ class UmichLscc(Source):
             
             # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
             # so there is no need to slice out cancer specific aliquots
-            # This file can be found on Box under CPTAC/cptac/pancan/helper_files
             df = pd.read_csv(file_path, sep = "\t", index_col = 'aliquot_ID', usecols = ['aliquot_ID', 'patient_ID'])
             map_dict = df.to_dict()['patient_ID'] # create dictionary with aliquots as keys and patient IDs as values
             self._helper_tables["map_ids"] = map_dict

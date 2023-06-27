@@ -81,9 +81,7 @@ class UmichHnscc(Source):
             # respective case IDs. C3L-02617-N-duplicate2 did not correlate well with the other C3L-02617 duplicates, 
             # so we dropped it and averaged the other two. I also created a scatterplot to compare each duplicate to 
             # the first occurence of its case ID. The linear scatterplots indicated similarity between the aliquots. 
-            # We averaged the duplicates that correlated well together and were the same tissue type.        
-            # A file containing the correlations can be downloaded at: 
-            # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
+            # We averaged the duplicates that correlated well together and were the same tissue type.
             drop_cols = ['128C', 'QC2', 'QC3', 'QC4', '129N', 'LungTumor1', 'Pooled-sample14',
                        'LungTumor2', 'QC6', 'LungTumor3', 'Pooled-sample17', 'QC7',
                        'Pooled-sample19', 'QC9', 'RefInt_pool01', 'RefInt_pool02',
@@ -129,9 +127,7 @@ class UmichHnscc(Source):
             # respective case IDs. C3L-02617-N-duplicate2 did not correlate well with the other C3L-02617 duplicates, 
             # so we dropped it and averaged the other two. I also created a scatterplot to compare each duplicate to 
             # the first occurence of its case ID. The linear scatterplots indicated similarity between the aliquots. 
-            # We averaged the duplicates that correlated well together and were the same tissue type.        
-            # A file containing the correlations can be downloaded at: 
-            # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
+            # We averaged the duplicates that correlated well together and were the same tissue type.
             drop_cols = ['128C', 'QC2', 'QC3', 'QC4', '129N', 'LungTumor1', 'Pooled-sample14',
                        'LungTumor2', 'QC6', 'LungTumor3', 'Pooled-sample17', 'QC7',
                        'Pooled-sample19', 'QC9', 'RefInt_pool01', 'RefInt_pool02',
