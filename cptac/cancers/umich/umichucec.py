@@ -93,8 +93,6 @@ class UmichUcec(Source):
             # The first occurrence in the file had a higher correlation with the flagship sample 
             # than the second occurrence. I also created scatterplots comparing each duplicate to its flagship sample.  
             # We dropped the second occurrence of the duplicate because it didn't correlate very well to its flagship sample.
-            # A file containing the correlations can be downloaded at: 
-            # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
 
             # Drop quality control and ref intensity cols
             drop_cols = ['RefInt_pool01', 'RefInt_pool02', 'RefInt_pool03', 'RefInt_pool04',
@@ -199,8 +197,6 @@ class UmichUcec(Source):
             # The first occurrence in the file had a higher correlation with the flagship sample
             # than the second occurrence. I also created scatterplots comparing each duplicate to its flagship sample.
             # We dropped the second occurrence of the duplicate because it didn't correlate very well to its flagship sample.
-            # A file containing the correlations can be downloaded at:
-            # https://byu.box.com/shared/static/jzsq69bd079oq0zbicw4w616hyicd5ev.xlsx
 
             # Get dictionary with aliquots as keys and patient IDs as values
             self.load_mapping()
