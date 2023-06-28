@@ -27,8 +27,7 @@ class UmichBrca(Source):
         self.data_files = {
             "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz",
             "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz",
-            # prosp-brca-all-samples.txt shows which patient IDs have normal samples and which have replicates 
-            # This file can be found on Box under CPTAC/cptac/pancan/helper_files
+            # prosp-brca-all-samples.txt shows which patient IDs have normal samples and which have replicates
             "mapping" : "prosp-brca-all-samples.txt.gz",
             "acetylproteomics" : "abundance_multi-site_MD.tsv.gz",
             # "README_v3.boxnote" is proteomics

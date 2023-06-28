@@ -196,6 +196,7 @@ class UmichUcec(Source):
             # We dropped the second occurrence of the duplicate because it didn't correlate very well to its flagship sample.
 
             # Get dictionary with aliquots as keys and patient IDs as values
+            
             self.load_mapping()
             mapping_dict = self._helper_tables["map_ids"]
             df = df.rename(index = mapping_dict) # replace aliquots with patient IDs (normal samples have .N appended)
