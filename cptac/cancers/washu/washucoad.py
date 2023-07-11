@@ -37,6 +37,7 @@ class WashuCoad(Source):
             #"not_used"         : #"CO_precursor_miRNA_combined.tsv.gz", # waiting for data
             #"not_used"         : #"CO_mature_miRNA_combined.tsv.gz",                
             #"not_used"         : #"CO_total_miRNA_combined.tsv.gz",
+            "hla_typing": "hla.sample.ct.10152021.sort.tsv.gz"
         }
 
         #self._readme_files = {}
@@ -49,6 +50,7 @@ class WashuCoad(Source):
             'CNV'               : self.load_CNV,
             'tumor_purity'      : self.load_tumor_purity,
             #'readme'            : self.load_readme,
+            "hla_typing": self.load_hla_typing
         }
 
         # Call the parent class __init__ function
@@ -171,6 +173,28 @@ class WashuCoad(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
+    def load_hla_typing(self):
+        df_type = 'hla_typing'
+
+        if df_type not in self._data:
+            # perform initial checks and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            # which cancer_type goes with which cancer in the mssm table
+            tumor_codes = {'brca':'BR', 'ccrcc':'CCRCC',
+                           'ucec':'UCEC', 'gbm':'GBM', 'hnscc':'HNSCC',
+                           'lscc':'LSCC', 'luad':'LUAD', 'pdac':'PDA',
+                           'hcc':'HCC', 'coad':'CO', 'ov':'OV'}
+
+            df = pd.read_csv(file_path, sep='\t')
+            df = df.loc[df['Cancer'] == tumor_codes[self.cancer_type]]
+            df = df.set_index("Sample")
+            df.index.name = 'Patient_ID'
+            df = df.sort_values(by=["Patient_ID"])
+
+            self.save_df(df_type, df)
+
+        return self._data[df_type]
     # def load_readme(self):
     #     df_type = 'readme'
     #     if not self._readme_files: # if self._readme_files is empty

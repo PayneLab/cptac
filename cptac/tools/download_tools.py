@@ -72,7 +72,7 @@ def download(cancer: str, source: str, dtype: str, data_file: str) -> bool:
     # Prepare for data download
     if source in ['harmonized', 'mssm']:
         description = f"{source}-all_cancers-{dtype}"
-    elif source in ['washu'] and dtype == 'tumor_purity':
+    elif source in ['washu'] and dtype in ['tumor_purity', 'hla_typing']:
         description = f"{source}-all_cancers-{dtype}"
     else:
         description = f"{source}-{cancer}-{dtype}"
@@ -164,3 +164,4 @@ def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
             future.result()  # Raise any exception encountered during download
 
     return subfolder
+

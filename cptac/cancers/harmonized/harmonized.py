@@ -24,11 +24,13 @@ class Harmonized(Source):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         self.data_files = {
-            "somatic_mutation" : "Union_Maf_Broad_WashU.maf.gz"
+            "somatic_mutation" : "Union_Maf_Broad_WashU.maf.gz",
+            "ancestry_prediction" : "washu_mssm_consensus_ancestries.tsv.gz"
         }
 
         self.load_functions = {
             'somatic_mutation' : self.load_somatic_mutation,
+            'ancestry_prediction': self.load_ancestry_prediction
         }
 
         # Call the parent class __init__ function, cancer_type is dynamic and based on whatever cancer is being filtered for
@@ -72,3 +74,26 @@ class Harmonized(Source):
             mut_df = mut_df.loc[mut_df.index[~ mut_df.index.str.contains('NX', regex = True)]] # Drop quality control 
             self._data["somatic_mutation"] = mut_df
         '''
+
+    def load_ancestry_prediction(self):
+        df_type = 'ancestry_prediction'
+
+        if df_type not in self._data:
+            # perform initial checks and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            # which cancer_type goes with which cancer in the mssm table
+            tumor_codes = {'brca':'BR', 'ccrcc':'CCRCC',
+                           'ucec':'UCEC', 'gbm':'GBM', 'hnscc':'HNSCC',
+                           'lscc':'LSCC', 'luad':'LUAD', 'pdac':'PDA',
+                           'hcc':'HCC', 'coad':'CO', 'ov':'OV'}
+
+            df = pd.read_csv(file_path, sep='\t')
+            df = df.loc[df['cancer_type'] == tumor_codes[self.cancer_type]]
+            df = df.set_index('case_id')
+            df.index.name = 'Patient_ID'
+            df = df.sort_values(by=["Patient_ID"])
+            df = df.drop(columns='cptac_cohort')  # drop unnecessary column
+            self.save_df(df_type, df)
+
+        return self._data[df_type]
