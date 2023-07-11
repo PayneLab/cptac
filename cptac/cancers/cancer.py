@@ -118,7 +118,7 @@ class Cancer:
         return df
 
     def get_derived_molecular(self, type, source=None, tissue_type="both", imputed=False):
-        """Get type of derived_molecular dataframe. Valid types are cibersort, xcell, ..."""
+        """Get type of derived_molecular dataframe. Valid types are cibersort, xcell, hla_typing, and ancestry_prediction"""
         df = self.get_dataframe(type, source, tissue_type)
         return df
 
