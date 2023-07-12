@@ -9,7 +9,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from cptac.cancers import Cancer, BcmBrca, BroadBrca, Mssm, UmichBrca, WashuBrca, Harmonized
+from cptac.cancers.cancer import Cancer
+
+from cptac.cancers.bcm.bcmbrca import BcmBrca
+from cptac.cancers.broad.broadbrca import BroadBrca
+from cptac.cancers.umich.umichbrca import UmichBrca
+from cptac.cancers.washu.washubrca import WashuBrca
+from cptac.cancers.mssm.mssm import Mssm
+from cptac.cancers.harmonized.harmonized import Harmonized
 
 class Brca(Cancer):
     """Class to manage BRCA data from various sources.
