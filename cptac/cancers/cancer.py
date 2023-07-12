@@ -1044,8 +1044,12 @@ class Cancer:
 
         return df
 
-    def _format_mutations_data(self, mutations: pd.DataFrame, mutations_were_filtered: bool, show_location: bool=True, how: str="outer", quiet: bool=False, tissue_type: str="both") -> pd.DataFrame:
+    def _format_mutations_data(self, mutations: pd.DataFrame, mutations_were_filtered: bool, show_location: bool=True, how: str="outer", quiet: bool=False, tissue_type: str="both", mutation_cols: list[str] or str=["Mutation","Location"]
+                               ) -> pd.DataFrame:
         """Format mutations data. Add a Sample_Status column, fill in NaNs with Wildtype_Normal or Wildtype_Tumor.
+        Note: This is mostly so that the multi_join function can behave the same way as the old join functions.
+        join_other_to_mutations does this same formatting, and should probably be refactored to use this.
+        Or, since none of those old functions work currently anyway, they could be removed. Or become helper functions that call multi_join
 
         Parameters:
         mutations (pandas.DataFrame): The selected mutations data to format.
@@ -1055,42 +1059,79 @@ class Cancer:
         quiet (bool): Whether to show warning when filling in rows with no mutation data with "Wildtype_Tumor" or "Wildtype_Normal"
 
         Returns:
-        pandas.DataFrame: The formatted dataframe with a Sample_Status column added and NaNs filled.
+        pandas.DataFrame: The joined dataframe, with a Sample_Status column added and NaNs filled.
         """
 
-        # Define constants
-        SAMPLE_STATUS = "Sample_Status"
-        NORMAL = "Normal"
-        TUMOR = "Tumor"
-        WILDTYPE_NORMAL = "Wildtype_Normal"
-        WILDTYPE_TUMOR = "Wildtype_Tumor"
-        NO_MUTATION = "No_mutation"
+        # Add Sample_Status column
+        mutations["Sample_Status"] = "Tumor"
+        mutations.loc[mutations.index.str.endswith('.N'), "Sample_Status"] = "Normal"
+        sample_status_map = mutations["Sample_Status"]
 
-        mutations[SAMPLE_STATUS] = TUMOR
-        mutations.loc[mutations.index.str.endswith('.N'), SAMPLE_STATUS] = NORMAL
+        if tissue_type == "normal":
+            mutations = mutations.iloc[0:0] #If tissue type is normal, we drop all of the mutations rows and join only with the columns.
 
-        if tissue_type == NORMAL:
-            mutations = mutations.iloc[0:0] 
+        # Set our fill values
+        wildtype_normal_fill = "Wildtype_Normal"
+        wildtype_tumor_fill = "Wildtype_Tumor"
+        no_mutation_fill = "No_mutation"
 
-        mutation_cols = mutations.columns[mutations.columns.str.contains('_Mutation$')]
-        location_cols = mutations.columns[mutations.columns.str.contains('_Location$')]
-        mutation_status_cols = mutations.columns[mutations.columns.str.contains('_Mutation_Status$')]
+        # Fill in Wildtype_Normal or Wildtype_Tumor for NaN values (i.e., no mutation data for that sample) in mutations dataframe mutation columns
+        mutation_regex = r'^.*_Mutation$' # Construct regex to find all mutation columns
+        mutation_cols = mutations.columns[mutations.columns.get_level_values("Name").str.match(mutation_regex)] # Get a list of all mutation columns
 
-        for df_cols, fill_values in zip([mutation_cols, location_cols, mutation_status_cols], 
-                                        [[WILDTYPE_NORMAL, WILDTYPE_TUMOR], NO_MUTATION, [WILDTYPE_NORMAL, WILDTYPE_TUMOR]]):
-            for col in df_cols:
-                for sample_status, fill_value in zip([NORMAL, TUMOR], fill_values):
-                    condition = (mutations[SAMPLE_STATUS] == sample_status) & mutations[col].isnull()
-                    mutations.loc[condition, col] = fill_value if mutations_were_filtered else [fill_value]
-                    
-                if not quiet and condition.sum() > 0:
-                    gene = col.split("_")[0]
-                    warnings.warn(f"{condition.sum()} samples for the {gene} gene were filled with {fill_value}.", FilledMutationDataWarning, stacklevel=3)
+        fill_log = [] # We're going to keep track of value filling, and let the user know we did it.
+        for mutation_col in mutation_cols:
 
-        if not show_location:
-            mutations.drop(columns=location_cols, inplace=True)
+            # See how many values we'll fill by using sum to get number of "True" in array
+            num_filled = (((sample_status_map == "Normal") | (sample_status_map == "Tumor")) & (pd.isnull(mutations[mutation_col]))).sum()
+            if num_filled > 0:
+                if isinstance(mutation_col, tuple):
+                    gene = mutation_col[0].rsplit("_", maxsplit=1)[0]
+                else:
+                    gene = mutation_col.rsplit("_", maxsplit=1)[0]
+                # Log how many values we're going to fill for this gene
+                fill_log.append(f"{num_filled} samples for the {gene} gene")
+
+            # Impute values
+            # Change all NaN mutation values for Normal samples to Wildtype_Normal.
+            mutations.loc[(sample_status_map == "Normal") & (pd.isnull(mutations[mutation_col])), mutation_col] = wildtype_normal_fill
+            # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
+            mutations.loc[(sample_status_map == "Tumor") & (pd.isnull(mutations[mutation_col])), mutation_col] = wildtype_tumor_fill
+
+            # If we didn't filter mutations, encapsulate the fill values in lists, to match the other values in the column
+            if not mutations_were_filtered:
+                mutations[mutation_col] = mutations[mutation_col].apply(lambda x: x if isinstance(x, list) else [x])
+
+        if len(fill_log) > 0 and not quiet:
+            warnings.warn(f"In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: {', '.join(fill_log)}", FilledMutationDataWarning, stacklevel=3)
+
+        # Depending on show_location, either fill NaN values in the mutations dataframe location columns with "No_mutation", or just drop the location columns altogether
+        location_regex = r'^.*_Location$' # Construct regex to find all location columns
+        location_cols = mutations.columns[mutations.columns.get_level_values("Name").str.match(location_regex)] # Get a list of all location columns
+        for location_col in location_cols:
+            if show_location: # If we're including the location column, fill NaN with "No_mutation", since that's what it means, so things are clearer to the user.
+
+                # Make sure Sample Status is not NaN, though--if it is, we have no mutation data at all for that sample, so we can't say "No_mutation".
+                # It must have been a sample that was in the other dataframe, but not the mutations.
+                mutations.loc[(pd.isnull(mutations[location_col])) & (pd.notnull(sample_status_map)), location_col] = no_mutation_fill
+
+                # If we didn't filter mutations, encapsulate the fill values in lists, to match the other values in the column
+                if not mutations_were_filtered:
+                    mutations[location_col] = mutations[location_col].apply(lambda x: x if isinstance(x, list) else [x])
+            else:
+                mutations = mutations.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
+
+        # Fill NaN values in Mutation_Status column with either Wildtype_Tumor or Wildtype_Normal
+        mutation_status_regex = r"^.*_Mutation_Status$" # Construct a regex to find all Mutation_Status columns
+        mutation_status_cols = mutations.columns[mutations.columns.get_level_values("Name").str.match(mutation_status_regex)] # Get a list of all Mutation_Status columns
+        for mutation_status_col in mutation_status_cols:
+            # Change all NaN mutation status values for Normal samples to Wildtype_Normal
+            mutations.loc[(sample_status_map == "Normal") & (pd.isnull(mutations[mutation_status_col])), mutation_status_col] = wildtype_normal_fill
+            # Change all NaN mutation status values for Tumor samples to Wildtype_Tumor
+            mutations.loc[(sample_status_map == "Tumor") & (pd.isnull(mutations[mutation_status_col])), mutation_status_col] = wildtype_tumor_fill
 
         return mutations
+
 
     def _join_other_to_mutations(self, other: pd.DataFrame, mutations: pd.DataFrame, mutations_were_filtered: bool, show_location: bool, how: str, quiet: bool) -> pd.DataFrame:
         """Join selected mutations data to selected other omics or metadata, add a Sample_Status column, fill in NaNs with Wildtype_Normal or Wildtype_Tumor, and name the dataframe.
