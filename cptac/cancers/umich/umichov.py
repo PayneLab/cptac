@@ -24,10 +24,6 @@ class UmichOv(Source):
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         self.data_files = {
-            # TODO: Old version, remove when certain that this data is no longer used
-            # #"not_used": "S039_BCprospective_observed_0920.tsv.gz",
-            # #"not_used": "S039_BCprospective_imputed_0920.tsv.gz"
-            # /TODO
             "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz",                    
             "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz", 
             "mapping" : "OV_sample_TMT_annotation_UMich_GENCODE34_0315.csv.gz",
@@ -121,8 +117,6 @@ class UmichOv(Source):
             df.index.name = 'Patient_ID'
             df = df.loc[df.index[~ df.index.str.contains('JHU', regex = True)]] # drop ref intensity and quality control
             
-            # if self.version == "1.1":
-            # FIXME: The following code was inside the if block. It should work fine without it.
             # Get dictionary with aliquots as keys and patient IDs as values
             self.load_mapping()
             mapping_dict = self._helper_tables["map_ids"]
@@ -130,7 +124,6 @@ class UmichOv(Source):
             df = df.rename(index = mapping_dict) # replace aliquot with patient IDs (normals have -N appended)       
             df.index = df.index.str.replace('-T$','', regex = True)
             df.index = df.index.str.replace('-N$','.N', regex = True)
-            # /FIXME
                         
             # save df in self._data
             self.save_df(df_type, df)

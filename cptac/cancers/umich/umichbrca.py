@@ -128,9 +128,6 @@ class UmichBrca(Source):
             df = df.iloc[1:, :]  # drop ReferenceIntensity row
             # drop ending of CPT retrospective samples to match cptac
             df = df.rename(index={'CPT000814-0004': 'CPT000814', 'CPT001846-0005': 'CPT001846'})
-            # Previous; removed with pdc references
-            # df = df.rename(index={'CPT0008140004':'CPT000814', 'CPT0018460005': 'CPT001846',
-            #                     '604':'CPT000814'}) # 604 mapped to CPT000814 in pdc index
 
             drop_cols = ['RetroIR-07', 'RetroIR-13', 'RefInt_Pool01', 'RefInt_Pool02',
                          'RefInt_Pool03', 'RefInt_Pool04', 'RefInt_Pool05', 'RefInt_Pool06',
@@ -140,8 +137,6 @@ class UmichBrca(Source):
             # Drop quality control and ref intensity cols
             df = df.drop(drop_cols, axis='index')
 
-            # if self.version == "1.0":
-            # FIXME: The following code was inside the if block. It should work fine without it.
             self.load_mapping()
             not_tumor = self._helper_tables["not_tumor"]
             replicate_list = self._helper_tables["replicate_list"]
@@ -156,8 +151,6 @@ class UmichBrca(Source):
             df['Patient_ID'] = df['Patient_ID'].apply(
                 lambda x: x + '.N' if 'NX' in x else x)  # 'NX' are enriched normals
             df = df.set_index('Patient_ID')
-            # df['Patient_ID'] = df['Patient_ID'].apply(lambda x: patient_dict.get(x, x))
-            # /FIXME
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -191,14 +184,11 @@ class UmichBrca(Source):
                          'RefInt_Pool17']
             df = df.drop(drop_cols, axis='index')  # drop quality control and ref intensity cols
 
-            # if self.version == "1.0":
-            # FIXME: The following code was inside the if block. It should work fine without it.
             self.load_mapping()
             not_tumor = self._helper_tables["not_tumor"]
             replicate_list = self._helper_tables["replicate_list"]
             df = df.loc[~ df.index.isin(not_tumor)]  # drop rows that don't correlate well with respective cptac tumor
             df = df_tools.average_replicates(df, replicate_list)  # average 7 IDs with replicates
-            # /FIXME
 
             # save df in self._data
             self.save_df(df_type, df)
@@ -231,14 +221,6 @@ class UmichBrca(Source):
             ref_intensities = df.loc["ReferenceIntensity"]  # Get reference intensities to use to calculate ratios
             df = df.iloc[1:, :]  # drop ReferenceIntensity row
 
-            # There was 1 duplicate ID (C3N-01825) in the proteomic and phosphoproteomic data.
-            # I used the Payne lab mapping file "aliquot_to_patient_ID.tsv" to determine the tissue type
-            # for these duplicates, and they were both tumor samples. Next, I ran a pearson correlation
-            # to check how well the values from each duplicate correlated to its tumor flagship sample.
-            # The first occurrence in the file had a higher correlation with the flagship sample
-            # than the second occurrence. I also created scatterplots comparing each duplicate to its flagship sample.
-            # We dropped the second occurrence of the duplicate because it didn't correlate very well to its flagship sample.
-
             # Get dictionary with aliquots as keys and patient IDs as values
             self.load_mapping()
             mapping_dict = self._helper_tables["map_ids"]
@@ -254,8 +236,6 @@ class UmichBrca(Source):
             df = df.set_index('Patient_ID')
             df = df_tools.rename_duplicate_labels(df,
                                                   'index')  # add ".1" to the second ocurrence of the ID with a duplicate
-            # df = df.drop('C3N-01825.1', axis = 'index') # drop the duplicate that didn't correlate well with flagship
-
             # save df in self._data
             self.save_df(df_type, df)
 #############################################
