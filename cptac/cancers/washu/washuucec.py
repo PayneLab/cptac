@@ -9,6 +9,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+# Import necessary libraries
 import pandas as pd
 import os
 from pyranges import read_gtf
@@ -25,14 +26,13 @@ class WashuUcec(Source):
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
 
-        # Set some needed variables, and pass them to the parent Dataset class __init__ function
-
+        # Define the file names and load functions to be used
         self.data_files = {
             "cibersort"         : "CIBERSORT.Output_Abs_EC.txt.gz",
             "CNV"               : "UCEC.gene_level.from_seg.filtered.tsv.gz",
             "mapping"           : "gencode.v22.annotation.gtf.gz",
             "miRNA"             : ["EC_precursor_miRNA_combined.tsv.gz","EC_mature_miRNA_combined.tsv.gz","EC_total_miRNA_combined.tsv.gz"],
-            # "readme"            : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"],
+            # "readme"          : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"],
             "somatic_mutation"  : "EC_discovery.dnp.annotated.exonic.maf.gz",
             "transcriptomics"   : ["EC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz","EC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
             "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
@@ -57,6 +57,8 @@ class WashuUcec(Source):
         # Call the parent class __init__ function
         super().__init__(cancer_type="ucec", source='washu', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
+    # Follows are loading methods for each dataframe
+    # Load Transcriptomics dataframe
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
         if df_type not in self._data:
@@ -101,6 +103,7 @@ class WashuUcec(Source):
             # save df in self._data
             self.save_df(df_type, rna_combined)
 
+    # Load Somatic Mutation dataframe
     def load_somatic_mutation(self):
         df_type = 'somatic_mutation'
         if df_type not in self._data:
@@ -120,6 +123,7 @@ class WashuUcec(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
+    # Load miRNA dataframe
     def load_miRNA(self):
         self.load_precursor_miRNA()
         self.load_mature_miRNA()
@@ -167,6 +171,7 @@ class WashuUcec(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
+    # Load xCell dataframe
     def load_xcell(self):
         df_type = 'xcell'
         if df_type not in self._data:
@@ -181,6 +186,7 @@ class WashuUcec(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
+    # Load CIBERSORT dataframe
     def load_cibersort(self):
         df_type = 'cibersort'
         if df_type not in self._data:
@@ -194,6 +200,7 @@ class WashuUcec(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
+    # Load Mapping dataframe
     def load_mapping(self):
         df_type = 'mapping'
         if "CNV_gene_ids" not in self._helper_tables:
@@ -207,6 +214,7 @@ class WashuUcec(Source):
             df = df.set_index("Name")
             self._helper_tables["CNV_gene_ids"] = df
 
+    # Load CNV dataframe
     def load_CNV(self):
         df_type = 'CNV'
         if df_type not in self._data:
@@ -227,6 +235,7 @@ class WashuUcec(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
+    # Load Tumor Purity dataframe
     def load_tumor_purity(self):
         df_type = 'tumor_purity'
         if df_type not in self._data:
@@ -246,6 +255,7 @@ class WashuUcec(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
+    # Load HLA Typing dataframe
     def load_hla_typing(self):
         df_type = 'hla_typing'
 

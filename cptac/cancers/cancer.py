@@ -39,25 +39,18 @@ class Cancer:
         self._cancer_type = cancer_type
         self._sources = {} # Child class __init__ needs to fill this
 
-        # We don't currently have the dataframes that are commented out
-        self._valid_omics_dfs = [
+        self._valid_omics_dfs = {
             'acetylproteomics',
             'circular_RNA',
             'CNV',
-            # 'lincRNA',
-            # 'lipidomics',
-            # 'metabolomics',
             'miRNA',
             'phosphoproteomics',
-            # 'phosphoproteomics_gene',
             'proteomics',
             'somatic_mutation_binary',
             'transcriptomics',
-            # 'CNV_log2ratio',
-            # 'CNV_gistic'
-             ]
+            }   
 
-        self._valid_metadata_dfs = [
+        self._valid_metadata_dfs = {
             "clinical",
             "medical_history",
             "derived_molecular",
@@ -65,9 +58,8 @@ class Cancer:
             "xcell",
             "ancestry_prediction",
             "hla_typing",
-           # "experimental_design",
             "followup",
-            ] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in Ccrcc, because they both have multiple rows for each sample.
+            } 
 
         #ignore logging messages
         logger = logging.getLogger()
@@ -254,48 +246,69 @@ class Cancer:
             raise NoDefinitionsError("No definitions provided for this dataset.")
 
     # Join functions
-    def quick_join(self, df1_name: str, df2_name: str, df1_source: str=None, df2_source: str=None, genes1: str=None, genes2: str=None, how: str='outer', flatten: bool=True) -> pd.DataFrame:
-        """A joins two specified cptac dataframes; optimized for speed.
+    def quick_join(self, left_df_name: str, right_df_name: str, left_df_source: str=None, right_df_source: str=None, genes1: str=None, genes2: str=None, how: str='outer') -> pd.DataFrame:
+        """
+        Quickly join two specified cptac dataframes; optimized for speed.
 
         Parameters:
-        df_name (str): Name of first dataframe. Must be in the form 'source name' if df_source is not provided. (ex. 'washu proteomics')
-        df_source (str): Name of source for the first dataframe. If df_name was in the form 'source name', this parameter is ignored
-        genes (str, or list or array-like of str, optional): Gene(s) for column(s) to select from df_name. str if one key, list or array-like of str if multiple.
+        left_df_name : str
+            Name of first dataframe. Must be in the form 'source name' if left_df_source is not provided. (ex. 'washu proteomics')
+        right_df_name : str
+            Name of the second dataframe. Must be in the form 'source name' if right_df_source is not provided.
+        left_df_source : str, optional
+            Name of source for the first dataframe. If left_df_name was in the form 'source name', this parameter is ignored.
+        right_df_source : str, optional
+            Name of source for the second dataframe. If right_df_name was in the form 'source name', this parameter is ignored.
+        genes1 : str or list of str, optional
+            Gene(s) for column(s) to select from the first dataframe. str if one key, list or array-like of str if multiple.
             Default of None will select entire dataframe.
-        how (str, optional): How to perform the join; see Pandas.DataFrame.join.
-        flatten (bool): Whether to flatten any multiindex encountered, ignoring the irrelevant ones (need better explanation lol).
+        genes2 : str or list of str, optional
+            Gene(s) for column(s) to select from the second dataframe. str if one key, list or array-like of str if multiple.
+            Default of None will select entire dataframe.
+        how : str, optional
+            How to perform the join; see Pandas.DataFrame.join. Default is 'outer'.
 
         Returns:
-        pandas.DataFrame: The selected columns from the two dataframes, joined into one dataframe.
+        pandas.DataFrame
+            The selected columns from the two dataframes, joined into one dataframe.
         """
 
-        if ' ' in df1_name:
-            df1_source, df1_name = df1_name.split(' ')
-        if ' ' in df2_name:
-            df2_source, df2_name = df2_name.split(' ')
+        if ' ' in left_df_name:
+            left_df_source, left_df_name = left_df_name.split(' ')
+        if ' ' in right_df_name:
+            right_df_source, right_df_name = right_df_name.split(' ')
 
         if isinstance(genes1, str):
             genes1 = [genes1]
         if isinstance(genes2, str):
             genes2 = [genes2]
 
-        df1 = self.get_dataframe(df1_name, df1_source)
-        print('got df1')
-        df2 = self.get_dataframe(df2_name, df2_source)
-        print('got df2')
+        try:
+            left_df = self.get_dataframe(left_df_name, left_df_source)
+            logging.info('Got first dataframe.')
+            right_df = self.get_dataframe(right_df_name, right_df_source)
+            logging.info('Got second dataframe.')
+        except Exception as e:
+            logging.error(f"Error occurred while fetching dataframes: {str(e)}")
+            raise e
 
-        if isinstance(df1.columns, pd.MultiIndex):
-            df1.columns = df1.columns.droplevel('Database_ID')
-        if isinstance(df2.columns, pd.MultiIndex):
-            df2.columns = df2.columns.droplevel('Database_ID')
+        if isinstance(left_df.columns, pd.MultiIndex):
+            left_df.columns = left_df.columns.droplevel('Database_ID')
+        if isinstance(right_df.columns, pd.MultiIndex):
+            right_df.columns = right_df.columns.droplevel('Database_ID')
 
-        df1 = df1.add_prefix(df1_name.title()+'_')
-        df2 = df2.add_prefix(df2_name.title()+'_')
+        left_df = left_df.add_prefix(left_df_name.title()+'_')
+        right_df = right_df.add_prefix(right_df_name.title()+'_')
 
-        result = df1.merge(df2, left_index=True, right_index=True)
+        try:
+            result = left_df.merge(right_df, left_index=True, right_index=True, how=how)
+            logging.info('Dataframes successfully merged.')
+        except Exception as e:
+            logging.error(f"Error occurred while merging dataframes: {str(e)}")
+            raise e
+
         return result
-
-
+    
 
     # Note: These are now helper functions that call multi_join
     def join_omics_to_omics(self, df1_name: str, df2_name: str, df1_source: str=None, df2_source: str=None, genes1: str=None, genes2: str=None, how: str="outer", quiet:bool=False, tissue_type: str="both"
@@ -692,52 +705,60 @@ class Cancer:
         return data_sources
     
 
-    def get_dataframe(self, dtype: str, source: str=None, tissue_type: str="both", imputed: bool=False) -> pd.DataFrame:
+    def get_dataframe(
+        self,
+        data_type: str,
+        source: str = None,
+        tissue_type: str = "both",
+        imputed: bool = False
+    ) -> pd.DataFrame:
         """
-        Check that a given dataframe from a given source exists, and return a copy if it does.
+        Check if a given dataframe from a specific source exists and return a copy if it does.
 
         Parameters:
-        dtype (str): The datatype for which you want the dataframe.
-        source (str): The source of the dataframe.
-        tissue_type (str, optional): Acceptable values in ["tumor","normal","both"]. Specifies the tissue type desired in the dataframe. Defaults to "both".
-        imputed (bool, optional): whether the data is imputed. Defaults to False.
+        data_type (str): The data type of the desired dataframe.
+        source (str, optional): The source of the dataframe. Defaults to None.
+        tissue_type (str, optional): Desired tissue type in the dataframe. Acceptable values are ["tumor", "normal", "both"]. Defaults to "both".
+        imputed (bool, optional): Specifies whether the data is imputed. Defaults to False.
 
-        Returns: pandas.DataFrame
+        Returns:
+        pandas.DataFrame: A dataframe containing the requested data.
         """
 
         if imputed:
-            dtype += "_imputed"
+            data_type += "_imputed"
 
         if source is None:
-            sources_for_data = [src for src in self._sources.keys() if dtype in self._sources[src].load_functions.keys()]
+            sources_for_data = [src for src in self._sources if data_type in self._sources[src].load_functions]
 
             if not sources_for_data:
                 raise DataFrameNotIncludedError(
-                    f"{dtype} datatype not included in the {self._cancer_type} dataset. Use <cancer object>.list_data_sources() to see which data are available.")
+                    f"{data_type} datatype is not included in the {self._cancer_type} dataset. Use <cancer object>.list_data_sources() to see which data are available.")
 
             if len(sources_for_data) == 1:
                 source = sources_for_data[0]
                 warnings.warn(
-                    f"Using source {source} for {dtype} data as no other sources provide this data. To remove this warning, pass {source} as the source parameter.",
+                    f"Using source {source} for {data_type} data as no other sources provide this data. To remove this warning, pass {source} as the source parameter.",
                     ParameterWarning, stacklevel=3)
             else:
                 raise DataSourceNotFoundError(
-                    f"No source selected. Available sources for {self._cancer_type} {dtype} data are: {sources_for_data}.")
+                    f"No source selected. Available sources for {self._cancer_type} {data_type} data are: {sources_for_data}.")
 
-        if source not in self._sources.keys():
+        if source not in self._sources:
             raise DataSourceNotFoundError(f"Data source {source} not found for the {self._cancer_type} dataset.")
 
-        df = self._sources[source].get_df(dtype)
+        df = self._sources[source].get_df(data_type)
 
         if tissue_type == "normal":
             df = self._normal_only(df)
         elif tissue_type == "tumor":
             df = self._tumor_only(df)
 
-        if dtype == 'clinical':
-            df.columns = df.columns.str.split('/').str[-1] # Keep only the part after the slash
+        if data_type == 'clinical':
+            df.columns = df.columns.str.split('/').str[-1]  # Keep only the part after the slash
 
         return df
+
     
 
     # "Private" methods
@@ -781,18 +802,20 @@ class Cancer:
         normal_df = df[df.index.str.endswith(self.NORMAL_ENDINGS)]
         return normal_df
 
-    def _get_omics_cols(self, omics_df_name: str, source: str, genes: str or list[str], tissue_type: str="both") -> pd.DataFrame:
-        """Based on a single gene, or a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
+    def _get_omics_cols(self, omics_df_name, source, genes, tissue_type="both"):
+        """
+        Based on a single gene, or a list or array-like of genes, select multiple columns from an omics dataframe, and return the selected columns as one dataframe.
 
         Parameters:
         omics_df_name (str): Name of omics dataframe to select column(s) from.
         source (str): Source for data to select column(s) from.
-        genes (str, or list or array-like of str): Gene(s) to use to select columns from omics_df. str if one gene, list or array-like if multiple. Passing None will select the entire omics dataframe.
+        genes (str or list or array-like of str): Gene(s) to use to select columns from omics_df. str if one gene, list or array-like if multiple. Passing None will select the entire omics dataframe.
         tissue_type (str): Acceptable values in ["tumor","normal","both"]. Specifies the tissue type desired in the dataframe. Defaults to "both".
 
         Returns:
         pandas.DataFrame: The selected columns from the dataframe.
         """
+
         # Check that they passed a valid omics df
         self._check_df_valid(omics_df_name, source, "omics")
 
@@ -800,43 +823,40 @@ class Cancer:
         omics_df = self.get_dataframe(omics_df_name, source, tissue_type).copy()
 
         # Process genes parameter
-        if isinstance(genes, str): # If it's a single gene, make it a list so we can treat everything the same
+        if isinstance(genes, str): 
             genes = [genes]
-        elif isinstance(genes, (list, pd.Series, pd.Index)): # If it's already a list or array-like, we're all good
+        elif isinstance(genes, (list, pd.Series, pd.Index)): 
             pass
-        elif genes is None: # If it's the default of None, rename columns and return the entire dataframe
-            # Add the gene name to end beginning of each column header, to preserve info when we join dataframes.
+        elif genes is None: 
             if isinstance(omics_df.columns, pd.MultiIndex):
                 omics_df.columns = omics_df.columns.set_levels(omics_df.columns.levels[0] + '_' + source + '_' + omics_df_name, level=0)
             else:
                 omics_df = omics_df.add_suffix('_' + source + '_' + omics_df_name)
             return omics_df
-        else: # If it's none of those, they done messed up. Tell 'em.
+        else: 
             raise InvalidParameterError("Genes parameter \n{}\nis of invalid type {}. Valid types: str, list or array-like of str, or NoneType.".format(genes, type(genes)))
 
         genes = pd.Index(genes, name="Name")
 
         if isinstance(omics_df.columns, pd.MultiIndex):
-            contained = genes.intersection(omics_df.columns.get_level_values("Name")).drop_duplicates() # Get the genes that actually exist in the dataframe's columns
+            contained = genes.intersection(omics_df.columns.get_level_values("Name")).drop_duplicates() 
             mi_contained = omics_df.columns[omics_df.columns.get_level_values("Name").isin(genes)]
 
-            not_contained = genes.difference(contained).drop_duplicates() # So we can warn the user later
+            not_contained = genes.difference(contained).drop_duplicates() 
             arrays = [not_contained] + [[np.nan] for i in range(omics_df.columns.nlevels - 1)]
             mi_not_contained = pd.MultiIndex.from_product(arrays, names=omics_df.columns.names)
 
-            genes = mi_contained.union(mi_not_contained) # To use for reindexing the dataframe
+            genes = mi_contained.union(mi_not_contained)
         else:
-            contained = genes.intersection(omics_df.columns).drop_duplicates() # Get the genes that actually exist in the dataframe's columns
-            not_contained = genes.difference(contained).drop_duplicates() # So we can warn the user later
+            contained = genes.intersection(omics_df.columns).drop_duplicates() 
+            not_contained = genes.difference(contained).drop_duplicates()
 
         selected = omics_df[contained]
-        selected = selected.reindex(columns=genes) # This will add the columns not included in the dataframe, and fill them with NaN.
+        selected = selected.reindex(columns=genes) 
 
-        # Warn the user about columns filled with NaN
         if len(not_contained) > 0:
             warnings.warn(f"The following columns were not found in the {source} {omics_df_name} dataframe, so they were inserted into joined table, but filled with NaN: {', '.join(not_contained)}", ParameterWarning, stacklevel=3)
 
-        # Append dataframe name to end of each column header, to preserve info when we merge dataframes
         if isinstance(omics_df.columns, pd.MultiIndex):
             selected.columns = selected.columns.set_levels(selected.columns.levels[0] + '_' + source + '_' + omics_df_name, level=0)
         else:
@@ -844,6 +864,7 @@ class Cancer:
 
         selected.columns.name = "Name"
         return selected
+
 
     def _get_metadata_cols(self, df_name: str, source: str, cols: str or list[str], tissue_type: str="both") -> pd.DataFrame:
         """Select a single column or several columns from a metadata dataframe.
@@ -1023,12 +1044,8 @@ class Cancer:
 
         return df
 
-    def _format_mutations_data(self, mutations: pd.DataFrame, mutations_were_filtered: bool, show_location: bool=True, how: str="outer", quiet: bool=False, tissue_type: str="both", mutation_cols: list[str] or str=["Mutation","Location"]
-                               ) -> pd.DataFrame:
+    def _format_mutations_data(self, mutations: pd.DataFrame, mutations_were_filtered: bool, show_location: bool=True, how: str="outer", quiet: bool=False, tissue_type: str="both") -> pd.DataFrame:
         """Format mutations data. Add a Sample_Status column, fill in NaNs with Wildtype_Normal or Wildtype_Tumor.
-        Note: This is mostly so that the multi_join function can behave the same way as the old join functions.
-        join_other_to_mutations does this same formatting, and should probably be refactored to use this.
-        Or, since none of those old functions work currently anyway, they could be removed. Or become helper functions that call multi_join
 
         Parameters:
         mutations (pandas.DataFrame): The selected mutations data to format.
@@ -1038,79 +1055,42 @@ class Cancer:
         quiet (bool): Whether to show warning when filling in rows with no mutation data with "Wildtype_Tumor" or "Wildtype_Normal"
 
         Returns:
-        pandas.DataFrame: The joined dataframe, with a Sample_Status column added and NaNs filled.
+        pandas.DataFrame: The formatted dataframe with a Sample_Status column added and NaNs filled.
         """
 
-        # Add Sample_Status column
-        mutations["Sample_Status"] = "Tumor"
-        mutations.loc[mutations.index.str.endswith('.N'), "Sample_Status"] = "Normal"
-        sample_status_map = mutations["Sample_Status"]
+        # Define constants
+        SAMPLE_STATUS = "Sample_Status"
+        NORMAL = "Normal"
+        TUMOR = "Tumor"
+        WILDTYPE_NORMAL = "Wildtype_Normal"
+        WILDTYPE_TUMOR = "Wildtype_Tumor"
+        NO_MUTATION = "No_mutation"
 
-        if tissue_type == "normal":
-            mutations = mutations.iloc[0:0] #If tissue type is normal, we drop all of the mutations rows and join only with the columns.
+        mutations[SAMPLE_STATUS] = TUMOR
+        mutations.loc[mutations.index.str.endswith('.N'), SAMPLE_STATUS] = NORMAL
 
-        # Set our fill values
-        wildtype_normal_fill = "Wildtype_Normal"
-        wildtype_tumor_fill = "Wildtype_Tumor"
-        no_mutation_fill = "No_mutation"
+        if tissue_type == NORMAL:
+            mutations = mutations.iloc[0:0] 
 
-        # Fill in Wildtype_Normal or Wildtype_Tumor for NaN values (i.e., no mutation data for that sample) in mutations dataframe mutation columns
-        mutation_regex = r'^.*_Mutation$' # Construct regex to find all mutation columns
-        mutation_cols = mutations.columns[mutations.columns.get_level_values("Name").str.match(mutation_regex)] # Get a list of all mutation columns
+        mutation_cols = mutations.columns[mutations.columns.str.contains('_Mutation$')]
+        location_cols = mutations.columns[mutations.columns.str.contains('_Location$')]
+        mutation_status_cols = mutations.columns[mutations.columns.str.contains('_Mutation_Status$')]
 
-        fill_log = [] # We're going to keep track of value filling, and let the user know we did it.
-        for mutation_col in mutation_cols:
+        for df_cols, fill_values in zip([mutation_cols, location_cols, mutation_status_cols], 
+                                        [[WILDTYPE_NORMAL, WILDTYPE_TUMOR], NO_MUTATION, [WILDTYPE_NORMAL, WILDTYPE_TUMOR]]):
+            for col in df_cols:
+                for sample_status, fill_value in zip([NORMAL, TUMOR], fill_values):
+                    condition = (mutations[SAMPLE_STATUS] == sample_status) & mutations[col].isnull()
+                    mutations.loc[condition, col] = fill_value if mutations_were_filtered else [fill_value]
+                    
+                if not quiet and condition.sum() > 0:
+                    gene = col.split("_")[0]
+                    warnings.warn(f"{condition.sum()} samples for the {gene} gene were filled with {fill_value}.", FilledMutationDataWarning, stacklevel=3)
 
-            # See how many values we'll fill by using sum to get number of "True" in array
-            num_filled = (((sample_status_map == "Normal") | (sample_status_map == "Tumor")) & (pd.isnull(mutations[mutation_col]))).sum()
-            if num_filled > 0:
-                if isinstance(mutation_col, tuple):
-                    gene = mutation_col[0].rsplit("_", maxsplit=1)[0]
-                else:
-                    gene = mutation_col.rsplit("_", maxsplit=1)[0]
-                # Log how many values we're going to fill for this gene
-                fill_log.append(f"{num_filled} samples for the {gene} gene")
-
-            # Impute values
-            # Change all NaN mutation values for Normal samples to Wildtype_Normal.
-            mutations.loc[(sample_status_map == "Normal") & (pd.isnull(mutations[mutation_col])), mutation_col] = wildtype_normal_fill
-            # Change all NaN mutation values for Tumor samples to Wildtype_Tumor
-            mutations.loc[(sample_status_map == "Tumor") & (pd.isnull(mutations[mutation_col])), mutation_col] = wildtype_tumor_fill
-
-            # If we didn't filter mutations, encapsulate the fill values in lists, to match the other values in the column
-            if not mutations_were_filtered:
-                mutations[mutation_col] = mutations[mutation_col].apply(lambda x: x if isinstance(x, list) else [x])
-
-        if len(fill_log) > 0 and not quiet:
-            warnings.warn(f"In joining the somatic_mutation table, no mutations were found for the following samples, so they were filled with Wildtype_Tumor or Wildtype_Normal: {', '.join(fill_log)}", FilledMutationDataWarning, stacklevel=3)
-
-        # Depending on show_location, either fill NaN values in the mutations dataframe location columns with "No_mutation", or just drop the location columns altogether
-        location_regex = r'^.*_Location$' # Construct regex to find all location columns
-        location_cols = mutations.columns[mutations.columns.get_level_values("Name").str.match(location_regex)] # Get a list of all location columns
-        for location_col in location_cols:
-            if show_location: # If we're including the location column, fill NaN with "No_mutation", since that's what it means, so things are clearer to the user.
-
-                # Make sure Sample Status is not NaN, though--if it is, we have no mutation data at all for that sample, so we can't say "No_mutation".
-                # It must have been a sample that was in the other dataframe, but not the mutations.
-                mutations.loc[(pd.isnull(mutations[location_col])) & (pd.notnull(sample_status_map)), location_col] = no_mutation_fill
-
-                # If we didn't filter mutations, encapsulate the fill values in lists, to match the other values in the column
-                if not mutations_were_filtered:
-                    mutations[location_col] = mutations[location_col].apply(lambda x: x if isinstance(x, list) else [x])
-            else:
-                mutations = mutations.drop(columns=[location_col]) # Drop the location column, if the caller wanted us to.
-
-        # Fill NaN values in Mutation_Status column with either Wildtype_Tumor or Wildtype_Normal
-        mutation_status_regex = r"^.*_Mutation_Status$" # Construct a regex to find all Mutation_Status columns
-        mutation_status_cols = mutations.columns[mutations.columns.get_level_values("Name").str.match(mutation_status_regex)] # Get a list of all Mutation_Status columns
-        for mutation_status_col in mutation_status_cols:
-            # Change all NaN mutation status values for Normal samples to Wildtype_Normal
-            mutations.loc[(sample_status_map == "Normal") & (pd.isnull(mutations[mutation_status_col])), mutation_status_col] = wildtype_normal_fill
-            # Change all NaN mutation status values for Tumor samples to Wildtype_Tumor
-            mutations.loc[(sample_status_map == "Tumor") & (pd.isnull(mutations[mutation_status_col])), mutation_status_col] = wildtype_tumor_fill
+        if not show_location:
+            mutations.drop(columns=location_cols, inplace=True)
 
         return mutations
-
 
     def _join_other_to_mutations(self, other: pd.DataFrame, mutations: pd.DataFrame, mutations_were_filtered: bool, show_location: bool, how: str, quiet: bool) -> pd.DataFrame:
         """Join selected mutations data to selected other omics or metadata, add a Sample_Status column, fill in NaNs with Wildtype_Normal or Wildtype_Tumor, and name the dataframe.
