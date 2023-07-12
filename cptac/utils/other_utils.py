@@ -193,54 +193,77 @@ def get_boxnote_text(filepath):
     f.close()
     return text
 
-def validate_levels_to_drop(levels_to_drop, column_names):
-    if isinstance(levels_to_drop, (str, int)):
-        levels_to_drop = [levels_to_drop]
+def reduce_multiindex(df, levels_to_drop=None, flatten=False, sep='_', tuples=False, quiet=False):
+    """Drop levels from and/or flatten the column axis of a dataframe with a column multiindex.
 
-    if not isinstance(levels_to_drop, (list, pd.Series, pd.Index)):
-        raise TypeError(f"Parameter 'levels_to_drop' is of invalid type {type(levels_to_drop)}. Valid types: str, int, list or array-like of str or int, or NoneType.")
-    
-    levels_to_drop_set = set(levels_to_drop)
-    if all(isinstance(level, int) for level in levels_to_drop_set):
-        if not levels_to_drop_set.issubset(set(range(len(column_names)))):
-            raise ValueError(f"Some level indices in {levels_to_drop} do not exist in dataframe column index.")
-    elif not levels_to_drop_set.issubset(set(column_names)):
-        raise ValueError(f"Some levels in {levels_to_drop} do not exist in dataframe column index.")
+    Parameters:
+    df (pandas.DataFrame): The dataframe to make the changes to.
+    levels_to_drop (str, int, or list or array-like of str or int, optional): Levels, or indices of levels, to drop from the dataframe's column multiindex. These must match the names or indices of actual levels of the multiindex. Must be either all strings, or all ints. Default of None will drop no levels.
+    flatten (bool, optional): Whether or not to flatten the multiindex. Default of False will not flatten. Cannot be used if tuples=True.
+    sep (str, optional): String to use to separate index levels when flattening. Default is underscore. Only relevant if flatten=True.
+    tuples (bool, optional): Whether to return the multiindex as a single-level index of tuples. Cannot be used if flatten=True. Default False.
+    quiet (bool, optional): Whether to suppress warnings if duplicate column headers being created when column index levels are dropped, or if you tried to flatten or tuple-ify an index with only one level. Default False.
 
-    return levels_to_drop
-
-def drop_levels_from_multiindex(df, levels_to_drop):
-    df.columns = df.columns.droplevel(levels_to_drop)
-    if df.columns.duplicated(keep=False).sum() > 0:
-        warnings("Due to dropping the specified levels, dataframe now has duplicated column headers.", stacklevel=2)
-
-def flatten_multiindex(df, sep='_'):
-    if df.columns.nlevels < 2:
-        warnings("You tried to flatten a column index that didn't have multiple levels, so we didn't actually change anything.", stacklevel=2)
-        return df
-
-    df.columns = df.columns.to_flat_index().map(lambda x: sep.join([item for item in x if pd.notnull(item) and item != ""]))
-    df.columns.name = "Name"
-    return df
-
-def tupleify_multiindex(df):
-    if df.columns.nlevels < 2:
-        warnings("You tried to turn a column index into tuples, but it didn't have multiple levels so we didn't actually change anything.", stacklevel=2)
-        return df
-
-    df.columns = df.columns.to_flat_index()
-    return df
-
-def reduce_multiindex(df, levels_to_drop=None, flatten=False, sep='_', tuples=False):
+    Returns:
+    pandas.DataFrame: The dataframe, with the desired column index changes made.
+    """
+    # Parameter check
     if flatten and tuples:
-        raise ValueError("Either pass 'True' to 'flatten' or to 'tuples', but not both.")
-    
-    df = df.copy(deep=True)
-    if levels_to_drop is not None:
-        levels_to_drop = validate_levels_to_drop(levels_to_drop, df.columns.names)
-        drop_levels_from_multiindex(df, levels_to_drop)
+        raise InvalidParameterError("You passed 'True' for both 'flatten' and 'tuples'. This is an invalid combination of arguments. Either pass 'True' to 'flatten' to combine index levels and make a single-level index of strings, or pass 'True' to 'tuples' to return a single-level index of tuples; but just pick one or the other.")
 
-    return flatten_multiindex(df, sep) if flatten else tupleify_multiindex(df) if tuples else df
+    # Make a copy, so the original dataframe is preserved
+    df = df.copy(deep=True)
+
+    if levels_to_drop is not None:
+        if df.columns.nlevels < 2:
+            raise DropFromSingleIndexError("You attempted to drop level(s) from an index with only one level.")
+
+        if isinstance(levels_to_drop, (str, int)):
+            levels_to_drop = [levels_to_drop]
+        elif not isinstance(levels_to_drop, (list, pd.Series, pd.Index)):
+            raise InvalidParameterError(f"Parameter 'levels_to_drop' is of invalid type {type(levels_to_drop)}. Valid types: str, int, list or array-like of str or int, or NoneType.")
+
+        # Check that they're not trying to drop too many columns
+        existing_len = len(df.columns.names)
+        to_drop_len = len(levels_to_drop)
+        if to_drop_len >= existing_len:
+            raise InvalidParameterError(f"You tried to drop too many levels from the dataframe column index. The most levels you can drop is one less than however many exist. {existing_len} levels exist; you tried to drop {to_drop_len}.")
+
+        # Check that the levels they want to drop all exist
+        to_drop_set = set(levels_to_drop)
+        if all(isinstance(level, int) for level in to_drop_set):
+            existing_set_indices = set(range(len(df.columns.names)))
+            if not to_drop_set <= existing_set_indices:
+                raise InvalidParameterError(f"Some level indices in {levels_to_drop} do not exist in dataframe column index, so they cannot be dropped. Existing column level indices: {list(range(len(df.columns.names)))}")
+        else:
+            existing_set = set(df.columns.names)
+            if not to_drop_set <= existing_set:
+                raise InvalidParameterError(f"Some levels in {levels_to_drop} do not exist in dataframe column index, so they cannot be dropped. Existing column levels: {df.columns.names}")
+
+        df.columns = df.columns.droplevel(levels_to_drop)
+
+        num_dups = df.columns.duplicated(keep=False).sum()
+        if num_dups > 0 and not quiet:
+            warnings.warn(f"Due to dropping the specified levels, dataframe now has {num_dups} duplicated column headers.", DuplicateColumnHeaderWarning, stacklevel=2)
+
+    if flatten:
+        if df.columns.nlevels < 2 and not quiet:
+            warnings.warn("You tried to flatten a column index that didn't have multiple levels, so we didn't actually change anything.", FlattenSingleIndexWarning, stacklevel=2)
+            return df
+
+        tuples = df.columns.to_flat_index() # Converts multiindex to an index of tuples
+        no_nan = tuples.map(lambda x: [item for item in x if pd.notnull(item) and item != ""]) # Cut any NaNs and empty strings out of tuples
+        joined = no_nan.map(lambda x: sep.join(x)) # Join each tuple
+        df.columns = joined
+        df.columns.name = "Name" # For consistency
+    elif tuples:
+        if df.columns.nlevels < 2 and not quiet:
+            warnings.warn("You tried to turn a column index into tuples, but it didn't have multiple levels so we didn't actually change anything.", FlattenSingleIndexWarning, stacklevel=2)
+            return df
+
+        df.columns = df.columns.to_flat_index()
+
+    return df
 
 """
 Takes a cancer object and finds the frequently
@@ -368,88 +391,124 @@ def get_frequently_mutated(cancer_object, cutoff = 0.1):
     return freq_mutated_df
 
 
-def parse_hotspot(cluster_file_path, mutation_df):
+def parse_hotspot(path, mut_df):
     '''
-    Parses the Hotspot3D program output.
+    @Param path:
+        (String) The path to the cluster output file that is on your computer after running the Hotspot analysis
 
-    Parameters
-    ----------
-    cluster_file_path: str
-        Path to the cluster output file generated by Hotspot analysis.
-    mutation_df: pandas.DataFrame
-        Dataframe obtained by performing the .get_somatic_mutation() function of cptac.
+    @Param mut_df:
+        (Dataframe) The dataframe that is obtained by performing the .get_somatic_mutation() function of cptac
 
-    Returns
-    -------
-    Tuple[pandas.DataFrame, pandas.DataFrame, pandas.DataFrame, Dict]
-        Tuple containing the following four items:
-            * vis_hs_df: pandas.DataFrame
-                Small dataframe for quick visualization of the number of cancer patients that contain hotspot mutations.
-            * bin_hs_df: pandas.DataFrame
-                Larger dataframe with boolean values representing each patient and their relationship with the hotspot.
-            * det_hs_df: pandas.DataFrame
-                Larger dataframe with nonbinary values for each patient and their relationship with the hotspot.
-            * mut_dict: Dict
-                A dictionary with the hotspot gene as the key, and a list of mutations that make up that hotspot as the value.
+    @Return:
+        There will be four outputs for this function:
+
+        vis_hs_df:
+            visualize hotspot dataframe
+
+            A small dataframe which will allow quick visualization regarding the number of cancer patients that contain hotspot mutations
+
+        bin_hs_df:
+            binary hotspot dataframe
+
+            A larger dataframe that contains boolean values for each patient and their relationship with the hotspot(True = patient has a hotspot mutation, False = patient does not have a hotspot mutation)
+
+        det_hs_df:
+            detailed hotspot dataframe
+
+            A larger dataframe that contains nonbinary values for each patient and their relationship with the hotspot(No = no mutation, Yes = mutation but not in the hotspot, Yes_HS = mutation in the hotspot)
+
+        mut_dict:
+            mutations dictionary
+
+            A dictionary that contains the hotspot gene as the key, and a list of mutations that make up that hotspot
+
+    This function will take two parameters (cluster file path and mutations dataframe) and use them to parse the Hotspot3D program output. It creates a cluster dataframe from the Hotspot3D output, and identifies the patients who contain hotspot mutations. The outputs of this function can be used to run further statistical analysis and exploration on the cancer datasets.
     '''
+    #Importing the desired cluster file from the specified path on the computer
+    cluster_df = pd.read_csv(path, sep = '\t')
 
-    # Load cluster dataframe
-    cluster_df = pd.read_csv(cluster_file_path, sep='\t')
+    #Creating a list of all the identified hotspot clusters
+    cluster_list_initial = (cluster_df.Cluster.unique()).tolist()
+    cluster_list = list()
 
-    # Identify clusters with 2 or more mutations
-    valid_clusters = cluster_df['Cluster'].value_counts() >= 2
-    if not valid_clusters.any():
+    #Checking each cluster to make sure that only clusters containing 2 or more mutations are looked at ('clusters' with only 1 mutation are technically just frequently mutated)
+    for value in cluster_list_initial:
+        length = len(cluster_df[cluster_df['Cluster'] == value])
+        if length >= 2:
+            cluster_list.append(value)
+
+    #Sorting the list numerically
+    cluster_list.sort()
+
+    #If there are no clusters that have more than one mutation, the function ends and returns the statement below
+    if len(cluster_list) == 0:
         print('There are no hotspot clusters that contain more than one mutation.')
         return None
 
-    valid_cluster_list = valid_clusters[valid_clusters].index.sort_values()
+    #creating the multiple dictionaries that are used to compile hotspots and corresponding mutations
+    gene_dict = {}
+    mut_dict = {}
+    rev_mut_dict = {}
+    hs_count = {}
 
-    # Construct mutation and hotspot dictionaries
-    mutation_to_hotspot = {}
-    hotspot_to_mutations = {}
-    hotspot_counts = {}
-
-    for cluster in valid_cluster_list:
-        gene = cluster_df.loc[cluster_df['Cluster'] == cluster, 'Gene/Drug'].values[0]
-        mutations = cluster_df[cluster_df['Cluster'] == cluster]['Mutation/Gene'].values.tolist()
-
-        if cluster % 10 == 0:
-            hotspot_key = gene
+    #This loop contructs a reverse dictionary to be used to classify patients' mutations as well as the mutation dictionary output
+    for value in cluster_list:
+        gene_dict[value] = cluster_df.loc[cluster_df['Cluster'] == value, 'Gene/Drug'].values[0]
+        mut_list = cluster_df[cluster_df['Cluster'] == value]['Mutation/Gene'].values.tolist()
+        if str(value).endswith('0'):
+            mut_dict[gene_dict[value]] = mut_list
+            hs_count[gene_dict[value]] = 0
         else:
-            hotspot_key = f"{gene}_{cluster % 10}"
+            mut_dict[str(gene_dict[value]) + '_' + str(value)[-1]] = mut_list
+            hs_count[str(gene_dict[value]) + '_' + str(value)[-1]] = 0
 
-        hotspot_to_mutations[hotspot_key] = mutations
-        hotspot_counts[hotspot_key] = 0
+    #This loop finalizes the reverse dictionary
+    for hs in mut_dict.keys():
+        for mutation in mut_dict[hs]:
+            rev_mut_dict[mutation] = hs
 
-        for mutation in mutations:
-            mutation_to_hotspot[mutation] = hotspot_key
+    #The three dataframe outputs are initialized
+    vis_hs_df = pd.DataFrame()
+    vis_hs_df['hotspot_id'] = mut_dict.keys()
 
-    # Initialize output dataframes
-    vis_hs_df = pd.DataFrame(hotspot_to_mutations.keys(), columns=['hotspot_id'])
-    bin_hs_df = pd.DataFrame(mutation_df.index.unique(), columns=['sample_id'])
-    det_hs_df = bin_hs_df.copy()
+    bin_hs_df = pd.DataFrame()
+    bin_hs_df['sample_id'] = mut_df.index.unique()
 
-    for hotspot_key in hotspot_to_mutations.keys():
-        bin_hs_df[hotspot_key] = False
-        det_hs_df[hotspot_key] = 'No'
+    det_hs_df = pd.DataFrame()
+    det_hs_df['sample_id'] = mut_df.index.unique()
 
-    # Update dataframes based on mutation data
-    for row in mutation_df.itertuples():
-        sample_id, gene, location = row.Index, row[1], row[3]
-        location = 'p.' + location if str(location)[0] != 'p' else location
+    #This loop populates default values for each patient and hotspot
+    for hs in mut_dict.keys():
+        bin_hs_df[hs] = False
+        det_hs_df[hs] = 'No'
 
-        if location in mutation_to_hotspot:
-            hotspot = mutation_to_hotspot[location]
-            hotspot_counts[hotspot] += 1
+    #This loop iterates through each individual mutation and then properly identifies the mutation in the different dataframes
+    for row in mut_df.iterrows():
+        info = list(row[1])
+        gene = info[0]
+        location = info[2]
+        if str(location)[0] != 'p':
+            location = 'p.'+str(location)
+        sample_id = row[0]
 
-            bin_hs_df.loc[bin_hs_df['sample_id'] == sample_id, hotspot] = True
-            det_hs_df.loc[det_hs_df['sample_id'] == sample_id, hotspot] = 'Yes_HS'
-        elif gene in hotspot_to_mutations:
-            det_hs_df.loc[det_hs_df['sample_id'] == sample_id, hotspot] = 'Yes'
+        #This statement checks to see if the mutation is one of the hotspot mutations
+        if location in rev_mut_dict.keys():
+            hs = rev_mut_dict[location]
+            hs_count[hs] += 1
 
-    vis_hs_df['patients_within'] = hotspot_counts.values()
+            bin_hs_df.loc[bin_hs_df['sample_id'] == sample_id, hs] = True
+            det_hs_df.loc[det_hs_df['sample_id'] == sample_id, hs] = 'Yes_HS'
 
-    bin_hs_df.set_index('sample_id', inplace=True)
-    det_hs_df.set_index('sample_id', inplace=True)
+        #This statement is used if the mutation is not a hotspot mutation, but if it still on one of the proteins that contains a hotspot
+        elif gene in mut_dict.keys():
+            det_hs_df.loc[det_hs_df['sample_id'] == sample_id, hs] = 'Yes'
 
-    return vis_hs_df, bin_hs_df, det_hs_df, hotspot_to_mutations
+    #This loop adds the patient count for each hotspot to the small visualize hotspot dataframe
+    for hs in hs_count.keys():
+        vis_hs_df.loc[vis_hs_df['hotspot_id'] == hs, 'patients_within'] = hs_count[hs]
+
+    bin_hs_df = bin_hs_df.set_index('sample_id')
+    det_hs_df = det_hs_df.set_index('sample_id')
+
+    #Return of the three dataframes and mutation dictionary
+    return(vis_hs_df, bin_hs_df, det_hs_df, mut_dict)
