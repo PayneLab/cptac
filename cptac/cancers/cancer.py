@@ -61,6 +61,10 @@ class Cancer:
             "clinical",
             "medical_history",
             "derived_molecular",
+            "cibersort",
+            "xcell",
+            "ancestry_prediction",
+            "hla_typing",
            # "experimental_design",
             "followup",
             ] # We don't allow the treatment df, as in Ovarian, or medical_history df, as in Ccrcc, because they both have multiple rows for each sample.
@@ -122,6 +126,27 @@ class Cancer:
         df = self.get_dataframe(type, source, tissue_type)
         return df
 
+    # derived_molecular get functions to use in joining
+    def get_cibersort(self, source=None, tissue_type="both", imputed=False):
+        """Get cibersort data from the specified data source"""
+        df = self.get_dataframe("cibersort", source, tissue_type)
+        return df
+
+    def get_xcell(self, source=None, tissue_type="both", imputed=False):
+        """Get xcell data from the specified data source"""
+        df = self.get_dataframe("xcell", source, tissue_type)
+        return df
+    
+    def get_ancestry_prediction(self, source=None, tissue_type="both", imputed=False):
+        """Get ancestry_prediction data from the specified data source"""
+        df = self.get_dataframe("ancestry_prediction", source, tissue_type)
+        return df
+    
+    def get_hla_typing(self, source=None, tissue_type="both", imputed=False):
+        """Get hla_typing data from the specified data source"""
+        df = self.get_dataframe("hla_typing", source, tissue_type)
+        return df
+    
     # Quantitative table getters
     def get_circular_RNA(self, source: str=None, tissue_type: str="both", imputed: bool=False) -> pd.DataFrame:
         """Get a circular RNA dataframe from the specified data source."""
