@@ -220,4 +220,3 @@ The disadvantage to exceptions and warnings is that their syntax can be confusin
 # Utils sub-Module
 
 cptac includes a sub-module, cptac.utils, which provide various utility functions for various tasks such as performing t-tests, getting interacting proteins, and finding which genes are most frequently mutated in a dataset.
-
