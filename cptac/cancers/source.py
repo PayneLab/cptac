@@ -10,7 +10,6 @@
 #   limitations under the License.
 
 import os
-
 import cptac
 import pandas as pd
 from hashlib import md5
@@ -21,8 +20,37 @@ from cptac.exceptions import DataTypeNotInSourceError, MissingFileError, FailedC
 from cptac.tools.dataframe_tools import standardize_axes_names
 
 class Source:
+    """
+    The Source class is a base class that provides methods to manage and interact with different data sources.
+    
+    Attributes:
+        no_internet (bool): If set to True, the data source objects are initialized
+                            without downloading data. Default is False.
+        source (str): The name of the data source.
+        cancer_type (str): The type of cancer that the data pertains to.
+        _data (dict): Dictionary to hold the loaded dataframes.
+        _helper_tables (dict): Dictionary to hold helper tables that support
+                                certain functions.
+        data_files (dict): Dictionary that holds the data file names for each
+                            data type.
+        load_functions (dict): Dictionary that holds the load function for each
+                                data type.
+    """
 
     def __init__(self, cancer_type, source, data_files, load_functions, no_internet):
+        """
+        The constructor for the Source class.
+
+        Parameters:
+            cancer_type (str): The type of cancer that the data pertains to.
+            source (str): The name of the data source.
+            data_files (dict): Dictionary that holds cthe data file names for each
+                                data type.
+            load_functions (dict): Dictionary that holds the load function for each
+                                    data type.
+            no_internet (bool): If set to True, the data source objects are
+                                initialized without downloading data. Default is False.
+        """
         self.no_internet = no_internet
         self.source = source
         self.cancer_type = cancer_type

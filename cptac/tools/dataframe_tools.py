@@ -195,72 +195,68 @@ def reindex_all_sample_id_to_patient_id(data_dict, reindex_map, additional_to_ke
 def reformat_normal_patient_ids(data_dict, existing_identifier=None, existing_identifier_location=None):
     """Reformat the patient IDs for normal samples to be marked by an appended ".N"
 
+    This function takes a dictionary of dataframes (all indexed by Patient IDs) and 
+    appends ".N" to normal patient IDs. It also optionally removes any existing identifier 
+    from the IDs before appending the new identifier.
+
     Parameters:
     data_dict (dict): The data dictionary for a dataset. All the tables must be indexed by Patient IDs.
-    existing_identifier (str, optional): A normal sample identifier that already exists on the normal samples' patient IDs, which we will remove before adding the new identifier. Default of None will cause nothing to be removed.
-    existing_identifier_location (str, optional): Either "start" or "end": Indicates whether the existing identifier is at the beginning or end of the normal samples' patient IDs, so we know which end to remove it from. Optional if nothing is passed to the existing_identifier parameter.
+    existing_identifier (str, optional): A normal sample identifier that already exists on the normal samples' patient IDs, 
+                                         which we will remove before adding the new identifier. Default is None.
+    existing_identifier_location (str, optional): Either "start" or "end": Indicates whether the existing identifier is at 
+                                                  the beginning or end of the normal samples' patient IDs, so we know which end 
+                                                  to remove it from. Default is None.
 
     Returns:
-    dict: The data dictionary for the dataset, with normal samples' patient IDs reformatted in the specified dataframes.
+    dict: The data dictionary for the dataset, with normal samples' patient IDs reformatted.
+
+    Raises:
+    CptacDevError: If only one of existing_identifier and existing_identifier_location is None.
     """
 
-    # Check parameters
-    if (existing_identifier is None and existing_identifier_location is not None) or (existing_identifier is not None and existing_identifier_location is None):
+    # Check if only one of the optional parameters is None
+    if (existing_identifier is None) != (existing_identifier_location is None):
         raise CptacDevError("Parameters existing_identifier and existing_identifier_location must either both be None, or both not be None.")
 
-    sample_statuses_old_index = data_dict["clinical"]["Sample_Tumor_Normal"] # We'll need this every time, and we need it with the un-reformatted index
+    # Extract the tumor/normal status column for reference
+    sample_statuses_old_index = data_dict["clinical"]["Sample_Tumor_Normal"]
 
-    for name in data_dict.keys(): # Loop over the keys so we can edit the values without any issues
+    for name, df in data_dict.items():
 
-        df = data_dict[name]
-
-        # Add in the tumor/normal statuses for these samples, if they aren't already in the table
-        added_sample_statuses = False # So we can keep track of whether to drop the column when we're done
+        # Add Sample_Tumor_Normal column if not present
         if "Sample_Tumor_Normal" not in df.columns:
             df = join_col_to_dataframe(df, sample_statuses_old_index)
             added_sample_statuses = True
+        else:
+            added_sample_statuses = False
 
-        df.index.name = "Patient_ID" # So we can easily access it when we've made it into a column
-        df = df.reset_index() # This makes the Patient_ID index a column, so we can edit it.
+        # Convert Patient_ID from index to column for editing
+        df.reset_index(level=0, inplace=True)
 
-        if (existing_identifier is not None) and (existing_identifier_location is not None): # There's an existing normal sample identifier to remove
+        # If there is an existing identifier, remove it
+        if existing_identifier is not None:
             existing_length = len(existing_identifier)
+            identifier_location_slice = slice(0, existing_length) if existing_identifier_location == "start" else slice(-existing_length, None)
 
-            if existing_identifier_location == "start":
-                df["Patient_ID"] = df["Patient_ID"].where(
-                    cond=(~((df["Sample_Tumor_Normal"] == "Normal") & (df["Patient_ID"].str[0:existing_length] == existing_identifier))),
-                    other=df["Patient_ID"].str[existing_length:]
-                )
+            # Only modify IDs where the status is 'Normal' and the existing identifier is present
+            condition = (~((df["Sample_Tumor_Normal"] == "Normal") & (df["Patient_ID"].str[identifier_location_slice] == existing_identifier)))
+            df.loc[~condition, "Patient_ID"] = df.loc[~condition, "Patient_ID"].str[identifier_location_slice]
+        
+        # Append ".N" to all normal sample IDs
+        df.loc[df["Sample_Tumor_Normal"] == "Normal", "Patient_ID"] += ".N"
 
-            elif existing_identifier_location == "end":
-                df["Patient_ID"] = df["Patient_ID"].where(
-                    cond=(~((df["Sample_Tumor_Normal"] == "Normal") & (df["Patient_ID"].str[-existing_length:] == existing_identifier))),
-                    other=df["Patient_ID"].str[:-existing_length] # Note that we use the negative of the existing length, since we're working with the end of the string
-                )
-
-            else:
-                raise CptacDevError("existing_identifier_location parameter must be either 'start' or 'end'")
-
-        # Append ".N" to the patient IDs of normal samples
-        df["Patient_ID"] = df["Patient_ID"].where(
-            cond=(~(df["Sample_Tumor_Normal"] == "Normal")),
-            other=df["Patient_ID"] + ".N"
-        )
-
-        # Set the index to the reformatted Patient IDs
-        df = df.set_index("Patient_ID")
+        # Restore Patient_ID as index
+        df.set_index("Patient_ID", inplace=True)
 
         # If we added the Sample_Tumor_Normal column, drop it
         if added_sample_statuses:
-            if isinstance(df.columns, pd.MultiIndex):
-                df = df.drop(columns="Sample_Tumor_Normal", level=0) # level=0 prevents a PerformanceWarning
-            else:
-                df = df.drop(columns="Sample_Tumor_Normal")
+            df.drop(columns="Sample_Tumor_Normal", errors="ignore", inplace=True)
 
-        # Put the dataframe with reformatted patient IDs back into the data dictionary
+        # Save the reformatted dataframe
         data_dict[name] = df
 
     return data_dict
+
 
 def join_col_to_dataframe(df, col):
     """Join a sample status column into a dataframe, automatically accounting for whether the dataframe has a column multiindex or not.

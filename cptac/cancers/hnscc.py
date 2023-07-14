@@ -9,8 +9,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+# Importing the base Cancer class
 from cptac.cancers.cancer import Cancer
 
+# Importing data sources for HNSCC
 from cptac.cancers.bcm.bcmhnscc import BcmHnscc
 from cptac.cancers.broad.broadhnscc import BroadHnscc
 from cptac.cancers.umich.umichhnscc import UmichHnscc
@@ -20,15 +22,30 @@ from cptac.cancers.harmonized.harmonized import Harmonized
 
 
 class Hnscc(Cancer):
+    """
+    The Hnscc class inherits from the Cancer class and provides access to various data sources 
+    for HNSCC (Head and Neck squamous cell carcinoma).
+
+    Attributes:
+        _sources (dict): A dictionary that stores instances of data source objects.
+    """
 
     def __init__(self, no_internet=False):
-        """Load all the data sources with HNSCC data and provide an interface to them."""
+        """
+        The constructor for the Hnscc class. It initializes instances of various data source 
+        classes and adds them to the _sources attribute.
 
+        Parameters:
+            no_internet (bool): If set to True, the data source objects are initialized 
+                                without downloading data. Default is False.
+        """
         super().__init__(cancer_type="hnscc")
-        
+
+        # Initialize data sources and add them to the _sources dictionary
         self._sources["bcm"] = BcmHnscc(no_internet=no_internet)
         self._sources["broad"] = BroadHnscc(no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='hnscc', no_internet=no_internet)
         self._sources["umich"] = UmichHnscc(no_internet=no_internet)
         self._sources["washu"] = WashuHnscc(no_internet=no_internet)
         self._sources["harmonized"] = Harmonized(filter_type='hnscc', no_internet=no_internet)
+

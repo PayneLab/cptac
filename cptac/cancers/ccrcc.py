@@ -9,8 +9,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+# Imports from the cptac.cancers package
 from cptac.cancers.cancer import Cancer
 
+# Imports from the cptac.cancers sub-packages
 from cptac.cancers.bcm.bcmccrcc import BcmCcrcc
 from cptac.cancers.broad.broadccrcc import BroadCcrcc
 from cptac.cancers.umich.umichccrcc import UmichCcrcc
@@ -20,12 +22,27 @@ from cptac.cancers.harmonized.harmonized import Harmonized
 
 
 class Ccrcc(Cancer):
+    """
+    The Ccrcc class is a subclass of the Cancer class and provides an interface to
+    various data sources with ccRCC (clear cell renal cell carcinoma) data.
+
+    Attributes:
+        _sources (dict): A dictionary that holds instances of data source objects.
+    """
 
     def __init__(self, no_internet=False):
-        """Load all the data sources with ccRCC data and provide an interface to them."""
+        """
+        Constructor for the Ccrcc class. It initializes instances of various data source
+        classes and adds them to the _sources attribute.
 
+        Parameters:
+            no_internet (bool): A flag indicating whether to download data or not. If True,
+                                the data source objects are initialized without downloading
+                                data. Defaults to False.
+        """
         super().__init__(cancer_type="ccrcc")
-        
+
+        # Initialize data sources and add them to the _sources dictionary
         self._sources["bcm"] = BcmCcrcc(no_internet=no_internet)
         self._sources["broad"] = BroadCcrcc(no_internet=no_internet)
         self._sources["mssm"] = Mssm(filter_type='ccrcc', no_internet=no_internet)

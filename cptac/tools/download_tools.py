@@ -1,18 +1,13 @@
 import os
 import requests
-from tqdm import tqdm
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 from hashlib import md5
-from warnings import warn
-
+from tqdm import tqdm
 import cptac
 from cptac.exceptions import *
 
-# Some websites don't like requests from sources without a user agent. Let's preempt that issue.
-# This variable sets a user agent to be included in the request headers.
-# USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
-# HEADERS = {'User-Agent': USER_AGENT}
+# Set directory constants
 DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data")
 STATIC_DOI = '10.5281/zenodo.7897498'
 RECORD_ID = STATIC_DOI.split('.')[-1]
@@ -22,7 +17,7 @@ BUCKET=None
 
 
 def fetch_repo_data() -> dict:
-    "Fetches the repo data from Zenodo, including metadata and file links."
+    """Fetches the repo data from Zenodo, including metadata and file links."""
     repo_link = f"https://zenodo.org/api/records/{RECORD_ID}"
     response = requests.get(repo_link, headers=AUTH_HEADER)
     response.raise_for_status()
@@ -30,9 +25,14 @@ def fetch_repo_data() -> dict:
 
 
 def init_files() -> None:
-    "Initializes several files that are essential for cptac to run, such as the file index."
+    """
+    Initializes several files that are essential for cptac to run, such as the file index.
+    Creates directory if it does not exist, fetches data from the repository, and writes
+    index file.
+    """
     os.makedirs(DATA_DIR, exist_ok=True)
     index_path = os.path.join(DATA_DIR, 'index.tsv')
+    # Error handling for different exceptions
     try:
         repo_data = fetch_repo_data()
         global BUCKET
@@ -66,10 +66,12 @@ def download(cancer: str, source: str, dtype: str, data_file: str) -> bool:
 
     :return: True if data has successfully downloaded; raises error otherwise.
     """
+    # Input validation
     if not cancer or not source or not dtype:
         raise InvalidParameterError("Cancer, source, and datatypes must be provided.")
     
     # Prepare for data download
+    # The procedure varies depending on the source and type of data
     if source in ['harmonized', 'mssm']:
         description = f"{source}-all_cancers-{dtype}"
     elif source in ['washu'] and dtype in ['tumor_purity', 'hla_typing']:
@@ -81,9 +83,9 @@ def download(cancer: str, source: str, dtype: str, data_file: str) -> bool:
     # Download requested dataframe
     file_name = f"{description}-{data_file}"
     output_file = os.path.join(output_dir, data_file)
+    # Error handling for different exceptions
     try:
         get_data(f"{get_bucket()}/{file_name}", output_file)
-
         # Verify checksum
         with open(os.path.join(DATA_DIR, output_file), 'rb') as data_file:
             local_hash = md5(data_file.read()).hexdigest()
