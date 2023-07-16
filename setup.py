@@ -38,6 +38,7 @@ setup(name='cptac',
 		'openpyxl>=2.6.0',
 		'statsmodels>=0.10.0',
 		'pyranges>=0.0.111',
+        'tqdm>=4.65.0',
 	],
 	classifiers=[
         'Development Status :: 5 - Production/Stable',
