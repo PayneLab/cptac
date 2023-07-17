@@ -13,3 +13,4 @@ temp*
 Tests.ipynb
 # Exclude data files, since they're stored remotely
 cptac/data/*
+cptac/notebooks/*.*sv
