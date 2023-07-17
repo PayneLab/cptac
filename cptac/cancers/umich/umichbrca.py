@@ -95,7 +95,7 @@ class UmichBrca(Source):
             file_path = self.locate_files(df_type)
             df = pd.read_csv(file_path, sep="\t")
 
-            df_mapping = pd.read_csv(f"{CPTAC_BASE_DIR}/brca_mapping.csv")
+            df_mapping = pd.read_csv(f"{CPTAC_BASE_DIR}/data/brca_mapping.csv")
             patient_dict = dict(zip(df_mapping['Hash'], df_mapping['Patient_ID']))
 
             # Parse a few columns out of the "Index" column that we'll need for our multiindex
@@ -202,7 +202,7 @@ class UmichBrca(Source):
 
             df = pd.read_csv(file_path, sep="\t")
 
-            df_mapping = pd.read_csv(f"{CPTAC_BASE_DIR}/brca_mapping.csv")
+            df_mapping = pd.read_csv(f"{CPTAC_BASE_DIR}/data/brca_mapping.csv")
             patient_dict = dict(zip(df_mapping['Hash'], df_mapping['Patient_ID']))
 
             # Parse a few columns out of the "Index" column that we'll need for our multiindex
@@ -210,7 +210,7 @@ class UmichBrca(Source):
             df = df[df['Site'].notna()]  # only keep columns with phospho site
 
             # Load the gene names and merge them with the current dataframe based on 'Database_ID'
-            df_gene_names = pd.read_csv(f"{CPTAC_BASE_DIR}/cptac_genes.csv")
+            df_gene_names = pd.read_csv(f"{CPTAC_BASE_DIR}/data/cptac_genes.csv")
             df_gene_names = df_gene_names.rename(columns={'Gene_Name': 'Name'})  # Renaming 'Gene_Name' to 'Name'
             df = pd.merge(df, df_gene_names, on='Database_ID', how='left')
 

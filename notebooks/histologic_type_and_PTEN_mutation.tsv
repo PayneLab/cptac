@@ -30,7 +30,7 @@ C3L-00771	86	Female	White	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Missense_Mut
 C3L-00780	69	Female	White	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Missense_Mutation	p.G127V	Multiple_mutation	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Tumor
 C3L-00781	48	Female	White	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Frame_Shift_Del	p.K267fs	Multiple_mutation	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Tumor
 C3L-00905	64	Female	White	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Wildtype_Tumor	No_mutation	Wildtype_Tumor	In_Frame_Del	p.S241del	Single_mutation	Tumor
-C3L-00918	68	Female	White	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Nonsense_Mutation	p.R130*	Multiple_mutation	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Tumor
+C3L-00918	68	Female	White	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Nonsense_Mutation	p.R130*	Multiple_mutation	Missense_Mutation	p.A138V	Single_mutation	Tumor
 C3L-00921	66	Female	White	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Nonsense_Mutation	p.Q171*	Single_mutation	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Tumor
 C3L-00932	67	Female	White	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Tumor
 C3L-00938	53	Female	White	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Tumor
@@ -72,7 +72,7 @@ C3N-00337	67	Female	Unknown	Intron	No_mutation	Single_mutation	Missense_Mutation
 C3N-00339	45	Female	Unknown	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Missense_Mutation	p.R130G	Single_mutation	Missense_Mutation	p.R273H	Single_mutation	Tumor
 C3N-00340	60	Female	Unknown	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Missense_Mutation	p.A159P	Single_mutation	Tumor
 C3N-00377	64	Female	Unknown	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Missense_Mutation	p.R130G	Multiple_mutation	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Tumor
-C3N-00379	41	Female	Unknown	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Missense_Mutation	p.R130G	Multiple_mutation	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Tumor
+C3N-00379	41	Female	Unknown	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Missense_Mutation	p.R130P	Multiple_mutation	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Tumor
 C3N-00383	61	Female	Unknown	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Missense_Mutation	p.R130G	Multiple_mutation	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Tumor
 C3N-00386	44	Female	Unknown	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Missense_Mutation	p.A126D	Multiple_mutation	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Tumor
 C3N-00388	59	Female	Unknown	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Missense_Mutation	p.T78S	Multiple_mutation	Wildtype_Tumor	No_mutation	Wildtype_Tumor	Tumor

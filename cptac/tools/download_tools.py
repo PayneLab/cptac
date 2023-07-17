@@ -32,6 +32,9 @@ def init_files() -> None:
     """
     os.makedirs(DATA_DIR, exist_ok=True)
     index_path = os.path.join(DATA_DIR, 'index.tsv')
+    acetyl_mapping_path = os.path.join(DATA_DIR, 'cptac_genes.csv')
+    brca_mapping_path = os.path.join(DATA_DIR, 'brca_mapping.csv')
+
     # Error handling for different exceptions
     try:
         repo_data = fetch_repo_data()
@@ -47,13 +50,16 @@ def init_files() -> None:
             index_data.append(f"{description}\t{'-'.join(filename_list)}\t{data_file['checksum']}")
         with open(index_path, 'w') as index_file:
             index_file.write('\n'.join(index_data))
+        # Download some other necessart files
+        get_data(f"{BUCKET}/{'cptac_genes.csv'}", acetyl_mapping_path)
+        get_data(f"{BUCKET}/{'brca_mapping.csv'}", brca_mapping_path)
     except requests.ConnectionError:
         raise NoInternetError("Cannot initialize data files: No internet connection.")
     except requests.RequestException as e:
         raise HttpResponseError(f"Requesting data failed with the following error: {e}")
     except Exception as e:
         raise CptacError(f"ERROR: {e}")
-            
+    
 
 def download(cancer: str, source: str, dtype: str, data_file: str) -> bool:
     """
