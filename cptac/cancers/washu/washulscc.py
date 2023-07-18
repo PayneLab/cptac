@@ -11,41 +11,32 @@
 
 import pandas as pd
 import os
-from gtfparse import read_gtf
+from pyranges import read_gtf
 
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
-from cptac.utils import get_boxnote_text
 from cptac.cancers.mssm.mssm import Mssm
 
-
 class WashuLscc(Source):
-
-    def __init__(self, version="latest", no_internet=False):
+    def __init__(self, no_internet=False):
         """Load all of the washulscc dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:
-        version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
         
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
-        # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        self.valid_versions = ["1.0"]
-
         self.data_files = {
-            "1.0": {                
-                "cibersort" : "CIBERSORT.Output_Abs_LSCC.txt",
-                "CNV" : "LSCC.gene_level.from_seg.filtered.tsv",
-                "mapping" : "gencode.v22.annotation.gtf.gz",
-                "miRNA" : ["LSCC_mature_miRNA_combined.tsv","LSCC_precursor_miRNA_combined.tsv","LSCC_total_miRNA_combined.tsv"],
-                "readme" : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"],
-                "somatic_mutation" : "LSCC_discovery.dnp.annotated.exonic.maf.gz",
-                "transcriptomics" : ["LSCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz","LSCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
-                "tumor_purity" : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
-                "xcell" : "LSCC_xCell.txt",
-            }
+            "cibersort" : "CIBERSORT.Output_Abs_LSCC.txt.gz",
+            "CNV" : "LSCC.gene_level.from_seg.filtered.tsv.gz",
+            "mapping" : "gencode.v22.annotation.gtf.gz",
+            "miRNA" : ["LSCC_mature_miRNA_combined.tsv.gz","LSCC_precursor_miRNA_combined.tsv.gz","LSCC_total_miRNA_combined.tsv.gz"],
+            # "readme" : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"],
+            "somatic_mutation" : "LSCC_discovery.dnp.annotated.exonic.maf.gz",
+            "transcriptomics" : ["LSCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz","LSCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
+            "tumor_purity" : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
+            "xcell" : "LSCC_xCell.txt.gz",
+            "hla_typing": "hla.sample.ct.10152021.sort.tsv.gz"
         }
 
         #self._readme_files = {}
@@ -59,13 +50,11 @@ class WashuLscc(Source):
             'CNV'               : self.load_CNV,
             'tumor_purity'      : self.load_tumor_purity,
             #'readme'            : self.load_readme,
+            "hla_typing": self.load_hla_typing
         }
 
-        if version == "latest":
-            version = sorted(self.valid_versions)[-1]
-
         # Call the parent class __init__ function
-        super().__init__(cancer_type="lscc", source='washu', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
+        super().__init__(cancer_type="lscc", source='washu', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
     
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
@@ -74,7 +63,7 @@ class WashuLscc(Source):
             # loop over list of file paths
             for file_path in file_path_list:
                 path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-                file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
+                file_name = os.path.basename(file_path)
 
                 if file_name == "LSCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
                     df = pd.read_csv(file_path, sep="\t")
@@ -96,13 +85,21 @@ class WashuLscc(Source):
                     df.index = df.index.str.replace(r"-A", ".N", regex=True) #remove label for tumor samples
                     self._helper_tables["transcriptomics_normal"] = df
 
-            # combine and create transcriptomic dataframe            
+            # Combine the two transcriptomics dataframes
             rna_tumor = self._helper_tables.get("transcriptomics_tumor")
             rna_normal = self._helper_tables.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
+            if rna_tumor is None or rna_normal is None:
+                print("rna_tumor or rna_normal is None")
+                return
+            if not isinstance(rna_tumor, pd.DataFrame) or not isinstance(rna_normal, pd.DataFrame):
+                print("rna_tumor or rna_normal is not a DataFrame")
+                return
+       
             rna_combined = pd.concat([rna_tumor, rna_normal])
+
             # save df in self._data
             self.save_df(df_type, rna_combined)
-
+            
     def load_somatic_mutation(self):
         df_type = 'somatic_mutation'
         if df_type not in self._data:
@@ -218,6 +215,7 @@ class WashuLscc(Source):
             file_path = self.locate_files(df_type)
 
             df = read_gtf(file_path)
+            df = df.as_df()
             df = df[["gene_name","gene_id"]]
             df = df.drop_duplicates()
             df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
@@ -255,7 +253,7 @@ class WashuLscc(Source):
             df.index.name = 'Patient_ID'
 
             # get clinical df (used to slice out cancer specific patient_IDs in tumor_purity file)
-            mssmclin = Mssm(filter_type='lscc', version=self.version, no_internet=self.no_internet) #_get_version - pancandataset
+            mssmclin = Mssm(filter_type='lscc', no_internet=self.no_internet)
             clinical_df = mssmclin.get_df('clinical')       
             patient_ids = clinical_df.index.to_list()
             df = df.loc[df.index.isin(patient_ids)]
@@ -263,6 +261,28 @@ class WashuLscc(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
+    def load_hla_typing(self):
+        df_type = 'hla_typing'
+
+        if df_type not in self._data:
+            # perform initial checks and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            # which cancer_type goes with which cancer in the mssm table
+            tumor_codes = {'brca':'BR', 'ccrcc':'CCRCC',
+                           'ucec':'UCEC', 'gbm':'GBM', 'hnscc':'HNSCC',
+                           'lscc':'LSCC', 'luad':'LUAD', 'pdac':'PDA',
+                           'hcc':'HCC', 'coad':'CO', 'ov':'OV'}
+
+            df = pd.read_csv(file_path, sep='\t')
+            df = df.loc[df['Cancer'] == tumor_codes[self.cancer_type]]
+            df = df.set_index("Sample")
+            df.index.name = 'Patient_ID'
+            df = df.sort_values(by=["Patient_ID"])
+
+            self.save_df(df_type, df)
+
+        return self._data[df_type]
     # def load_readme(self):
     #     df_type = 'readme'
     #     if not self._readme_files:

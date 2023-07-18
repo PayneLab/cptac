@@ -47,21 +47,14 @@ from cptac.exceptions import FailedReindexWarning, PublicationEmbargoWarning, Re
 ### For example, the endometrial dataset's class is called Endometrial; the BRCA dataset's class is called Brca; and the ccRCC dataset's class is called Ccrcc.
 class NameOrAcronym(Source):
 
-    def __init__(self, version="latest", no_internet=False):
+    def __init__(self, no_internet=False):
         """Define load functions for all of the datatypes this source provides. in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:
-        version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
-
-        # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        self.valid_versions = ["""FILL: Insert valid data versions here."""]
-
-        if version == "latest":
-            version = sorted(self.valid_versions)[-1]
 
         ###FILL: Insert actual data files below
         self.data_files = {
@@ -87,7 +80,7 @@ class NameOrAcronym(Source):
         }
 
         # Call the parent class __init__ function
-        super().__init__(cancer_type="""FILL: Insert cancer acronym here, in all lowercase""", source="""FILL: Insert source here, in all lowercase""", version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
+        super().__init__(cancer_type="""FILL: Insert cancer acronym here, in all lowercase""", source="""FILL: Insert source here, in all lowercase""", valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
         ###FILL: Insert load functions to parse all data files. Example:
         ###START EXAMPLE CODE###############################################

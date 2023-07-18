@@ -10,41 +10,32 @@
 #   limitations under the License.
 
 import pandas as pd
-import os
-from gtfparse import read_gtf
+from pyranges import read_gtf
 
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
-from cptac.utils import get_boxnote_text
+import cptac.tools.dataframe_tools as df_tools
 from cptac.cancers.mssm.mssm import Mssm
 
-
 class WashuGbm(Source):
-
-    def __init__(self, version="latest", no_internet=False):
+    def __init__(self, no_internet=False):
         """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
         Parameters:
-        version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
-        # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        self.valid_versions = ["1.0"]
-
         self.data_files = {
-            "1.0": {
-                "cibersort"         : "CIBERSORT.Output_Abs_GBM.txt",
-                "CNV"               : "GBM.gene_level.from_seg.filtered.tsv",
-                "mapping"           : "gencode.v22.annotation.gtf.gz",
-                "miRNA"             : ["GBM_mature_miRNA_combined.tsv", "GBM_precursor_miRNA_combined.tsv", "GBM_total_miRNA_combined.tsv"],
-                "readme"            : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"], 
-                "somatic_mutation"  : "GBM_discovery.dnp.annotated.exonic.maf.gz",
-                "transcriptomics"   : "GBM_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
-                "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
-                "xcell"             : "GBM_xCell.txt",
-            }
+            "cibersort"         : "CIBERSORT.Output_Abs_GBM.txt.gz",
+            "CNV"               : "GBM.gene_level.from_seg.filtered.tsv.gz",
+            "mapping"           : "gencode.v22.annotation.gtf.gz",
+            "miRNA"             : ["GBM_mature_miRNA_combined.tsv.gz", "GBM_precursor_miRNA_combined.tsv.gz", "GBM_total_miRNA_combined.tsv.gz"],
+            # "readme"            : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"], 
+            "somatic_mutation"  : "GBM_discovery.dnp.annotated.exonic.maf.gz",
+            "transcriptomics"   : "GBM_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
+            "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
+            "xcell"             : "GBM_xCell.txt.gz",
+            "hla_typing": "hla.sample.ct.10152021.sort.tsv.gz"
         }
 
         #self._readme_files = {}
@@ -58,13 +49,11 @@ class WashuGbm(Source):
             'CNV'               : self.load_CNV,
             'tumor_purity'      : self.load_tumor_purity,
             #'readme'            : self.load_readme,
+            "hla_typing": self.load_hla_typing
         }
 
-        if version == "latest":
-            version = sorted(self.valid_versions)[-1]
-
         # Call the parent class __init__ function
-        super().__init__(cancer_type="gbm", source='washu', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
+        super().__init__(cancer_type="gbm", source='washu', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
@@ -113,7 +102,7 @@ class WashuGbm(Source):
 
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
             df = df.transpose()
-            df = average_replicates(df, common = '\.\d$') # average duplicate for C3N-02788
+            df = df_tools.average_replicates(df, common = '\.\d$') # average duplicate for C3N-02788
             df.index = df.index.str.replace('\.T$','', regex = True)
             df.index = df.index.str.replace('\.A$','.N', regex = True)
             df.index.name = 'Patient_ID'                
@@ -197,6 +186,7 @@ class WashuGbm(Source):
             file_path = self.locate_files(df_type)
 
             df = read_gtf(file_path)
+            df = df.as_df()
             df = df[["gene_name","gene_id"]]
             df = df.drop_duplicates()
             df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
@@ -234,7 +224,7 @@ class WashuGbm(Source):
             df.index.name = 'Patient_ID'
 
             # get clinical df (used to slice out cancer specific patient_IDs in tumor_purity file)
-            mssmclin = Mssm(filter_type='gbm', version=self.version, no_internet=self.no_internet) #_get_version - pancandataset
+            mssmclin = Mssm(filter_type='gbm', no_internet=self.no_internet)
             self._clinical_df = mssmclin.get_df('clinical')
             patient_ids = self._clinical_df.index.to_list()
             df = df.loc[df.index.isin(patient_ids)]
@@ -242,6 +232,28 @@ class WashuGbm(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
+    def load_hla_typing(self):
+        df_type = 'hla_typing'
+
+        if df_type not in self._data:
+            # perform initial checks and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            # which cancer_type goes with which cancer in the mssm table
+            tumor_codes = {'brca':'BR', 'ccrcc':'CCRCC',
+                           'ucec':'UCEC', 'gbm':'GBM', 'hnscc':'HNSCC',
+                           'lscc':'LSCC', 'luad':'LUAD', 'pdac':'PDA',
+                           'hcc':'HCC', 'coad':'CO', 'ov':'OV'}
+
+            df = pd.read_csv(file_path, sep='\t')
+            df = df.loc[df['Cancer'] == tumor_codes[self.cancer_type]]
+            df = df.set_index("Sample")
+            df.index.name = 'Patient_ID'
+            df = df.sort_values(by=["Patient_ID"])
+
+            self.save_df(df_type, df)
+
+        return self._data[df_type]
     # def load_readme(self):
     #     df_type = 'readme'
     #     if not self._readme_files:

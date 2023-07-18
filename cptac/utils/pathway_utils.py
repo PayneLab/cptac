@@ -12,8 +12,6 @@
 import os
 import pandas as pd
 import numpy as np
-import sys
-import urllib3
 import json
 import requests
 import webbrowser
@@ -22,70 +20,85 @@ import warnings
 from cptac.exceptions import HttpResponseError, InvalidParameterError, ParameterWarning
 
 def get_interacting_proteins_string(protein, num_results=25):
-    """
-    @Param protein:
-        The name of the protein that you want to generate a list of interacting proteins for.
+    '''
+    Retrieves a list of proteins known to interact with the specified protein from the STRING database.
 
-    @Param num_results (default=25):
-        The number of interacting proteins that you want to get.
+    Parameters
+    ----------
+    protein: str
+        The name of the protein to generate a list of interacting proteins for.
+    num_results: int, optional
+        The number of interacting proteins to retrieve. Defaults to 25.
 
-    @Return:
-        A pandas.Series of proteins known by the String api to be interacting partners with the specified protein.
-        This list will always also contain the protein you were looking for interactors for.
+    Returns
+    -------
+    pandas.Series
+        A series of proteins known by the STRING API to interact with the specified protein. 
+        This series always also contains the queried protein.
 
-    This method takes as a parameter the name of a protein. It then accesses the STRING database, through
-    a call to their public API, and generates a list of proteins known to be interacting partners with the specified
-    protein. Optional second parameter is num_results (which by default is 25), which specifies in the API call how many
-    interacting partners to retrieve from the database. The list of interacting proteins is returned to the caller
-    as a pandas.Series.
-    """
+    Raises
+    ------
+    requests.exceptions.HTTPError
+        If the STRING API request fails.
+    '''
 
     # Send query to the STRING API
     query_url = "https://string-db.org/api/json/network"
-
     params = {
         "identifiers": protein,
-        "species": "9606", # Homo sapiens
+        "species": "9606",  # Homo sapiens
         "limit": num_results,
     }
 
-    query_resp = requests.get(query_url, params=params)
-
+    response = requests.get(query_url, params=params)
+    
     # Check that the response came back good
-    if query_resp.status_code != requests.codes.ok:
-        raise HttpResponseError(f"Submitting your query to the STRING API returned an HTTP status {query_resp.status_code}. The content returned from the request may be helpful:\n{query_resp.content.decode('utf-8')}")    
+    response.raise_for_status()
 
     # Put the response data in a dataframe
-    resp_df = pd.DataFrame(query_resp.json())
+    response_df = pd.DataFrame(response.json())
 
-    # Get the unique values of columns we want, as a list
-    interactors = resp_df["preferredName_A"].\
-        append(resp_df["preferredName_B"]).\
-        unique()
+    # Get the unique values of interacting proteins
+    interactors_A = response_df["preferredName_A"].unique()
+    interactors_B = response_df["preferredName_B"].unique()
+
+    # Combine and sort interactors
+    all_interactors = np.sort(np.append(interactors_A, interactors_B))
 
     # Make sure the protein they searched is in the output list
-    if protein not in interactors:
-        interactors = np.insert(interactors, 0, protein)
+    if protein not in all_interactors:
+        all_interactors = np.insert(all_interactors, 0, protein)
 
-    # Sort and convert to series
-    interactors = np.sort(interactors)
-    interactors = pd.Series(interactors)
+    # Convert to series
+    interactors_series = pd.Series(all_interactors)
 
-    return interactors
+    return interactors_series
+
 
 def get_interacting_proteins_biogrid(protein):
-    """Queries the BioGRID API to get interacting proteins for a given protein, based on curated literature references.
+    """
+    Queries the BioGRID API to get interacting proteins for a given protein.
 
-    Parameters:
-    protein: The name of the protein that you want to generate a list of interacting proteins for.
+    Parameters
+    ----------
+    protein : str
+        The name of the protein to generate a list of interacting proteins for.
 
-    Returns:
-    pandas.DataFrame: The interacting proteins, ranked by the number of literature references supporting them.
+    Returns
+    -------
+    pandas.DataFrame
+        A dataframe of interacting proteins, ranked by the number of literature references supporting them.
+
+    Raises
+    ------
+    requests.exceptions.HTTPError
+        If the BioGRID API request fails.
+    ValueError
+        If no interactors are found for the specified protein.
     """
 
     # Post query to the BioGRID API
     query_url = "https://webservice.thebiogrid.org/interactions/"
-    
     params = {
         "searchNames": "true",
         "geneList": protein,
@@ -98,78 +111,87 @@ def get_interacting_proteins_biogrid(protein):
         "accesskey": "0ff59dcf3511928e78aad499688381c9"
     }
 
-    query_resp = requests.get(query_url, params=params)
-
+    response = requests.get(query_url, params=params)
+    
     # Check that the response came back good
-    if query_resp.status_code != requests.codes.ok:
-        raise HttpResponseError(f"Submitting your query to the STRING API returned an HTTP status {query_resp.status_code}. The content returned from the request may be helpful:\n{query_resp.content.decode('utf-8')}")    
+    response.raise_for_status()
 
-    elif len(query_resp.json()) == 0:
-        raise InvalidParameterError(f"No interactors found for '{protein}'. Are you sure you entered the identifier correctly?")
+    # Raise error if no interactors found
+    if len(response.json()) == 0:
+        raise ValueError(f"No interactors found for '{protein}'. Are you sure you entered the identifier correctly?")
 
     # Put the response data in a dataframe
-    resp_df = pd.DataFrame(query_resp.json()).transpose()
+    response_df = pd.DataFrame(response.json()).transpose()
 
-    # Get a list of all the interactors, and rank them by how many references each has
-    interactors = resp_df["OFFICIAL_SYMBOL_A"].\
-    where(resp_df["OFFICIAL_SYMBOL_A"] != protein, other=resp_df["OFFICIAL_SYMBOL_B"]).\
-    value_counts().\
-    to_frame("num_references")
+    # Create a series to store interactors and their counts
+    interactor_counts = pd.Series(dtype=int)
 
+    # Check each interactor, if it is not the protein, add to the count
+    for interactor in response_df[["OFFICIAL_SYMBOL_A", "OFFICIAL_SYMBOL_B"]].values:
+        interactor_counts[interactor[interactor != protein]] = interactor_counts.get(interactor[interactor != protein], 0) + 1
+
+    # Convert the series to a dataframe and set column name
+    interactors = interactor_counts.to_frame("num_references")
+
+    # Set index name
     interactors.index.name = "protein"
 
     return interactors
 
 def get_interacting_proteins_bioplex(protein, secondary_interactions=False):
     """
-    @Param protein:
-        The name of the protein that you want to generate a list of interacting proteins for.
+    Retrieves a list of interacting proteins for a given protein from the BioPlex data table.
 
-    @Return:
-        A list of proteins which are interacting partners with the specified protein, according to the bioplex data table.
-        Returns None if specified protein isn't found, or no interacting partners are found.
+    Parameters
+    ----------
+    protein : str
+        The name of the protein to generate a list of interacting proteins for.
+    secondary_interactions : bool, optional
+        A flag to include secondary interactions. Default is False.
 
-    This method takes as a parameter the name of a protein. It then accesses the bioplex data table and returns a list of any protein found to be an interacting partner to the given protein.
+    Returns
+    -------
+    list or None
+        A list of proteins which are interacting partners with the specified protein, 
+        according to the BioPlex data table. Returns None if specified protein isn't 
+        found, or no interacting partners are found.
 
-    The Bioplex data table is the "BioPlex 3.0 Interactions (293T Cells)" file for the HEK293T cell line, downloaded from <https://bioplex.hms.harvard.edu/interactions.php>. The direct download link is <https://bioplex.hms.harvard.edu/data/BioPlex_293T_Network_10K_Dec_2019.tsv>. IMPORTANT: After downloading the file, you need to compress it using gzip.
+    Raises
+    ------
+    FileNotFoundError
+        If the BioPlex data file is not found.
     """
 
-    path_here = os.path.abspath(os.path.dirname(__file__))
-    file_name = os.path.join("data", "BioPlex_293T_Network_10K_Dec_2019.tsv.gz")
-    file_path = os.path.join(path_here, file_name)
+    file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "data", "BioPlex_293T_Network_10K_Dec_2019.tsv.gz")
 
-    # Read in the file, then sort to prioritize the interactions with the
-    # highest pInt (probability of interacting) and lowest pNI (probability of
-    # no interaction). Then, reset the index so that index number will
-    # correspond to rank under this sorting scheme.
-    bioplex_interactions = pd.read_csv(file_path, sep='\t').\
-        sort_values(by=["pInt", "pNI"], ascending=[False, True]).\
-        reset_index()
+    # Raise error if file not found
+    if not os.path.isfile(file_path):
+        raise FileNotFoundError(f"BioPlex data file not found at {file_path}")
 
-    # Get all interactions with the protein of interest
-    A_df = bioplex_interactions.loc[bioplex_interactions['SymbolA'] == protein]
-    B_df = bioplex_interactions.loc[bioplex_interactions['SymbolB'] == protein]
+    # Load the BioPlex data
+    bioplex_interactions = pd.read_csv(file_path, sep='\t')
+    bioplex_interactions.sort_values(by=["pInt", "pNI"], ascending=[False, True], inplace=True)
 
-    A_interactions = list(A_df['SymbolB'])
-    B_interactions = list(B_df['SymbolA'])
+    # Retrieve interacting proteins
+    interactors = set(bioplex_interactions.loc[bioplex_interactions['SymbolA'] == protein, 'SymbolB'])
+    interactors.update(bioplex_interactions.loc[bioplex_interactions['SymbolB'] == protein, 'SymbolA'])
 
-    all_interactions = list(set(A_interactions + B_interactions))
-
+    # Check for secondary interactions
     if secondary_interactions:
-        secondary_interactions_list = []
-        for interaction in all_interactions:
-            secondary = get_interacting_proteins_bioplex(interaction, False)
-            for si in secondary:
-                secondary_interactions_list.append(si)
+        secondary_interactors = set()
+        for interactor in interactors:
+            secondary = get_interacting_proteins_bioplex(interactor, False)
+            if secondary is not None:
+                secondary_interactors.update(secondary)
 
-        for asi in secondary_interactions_list:
-            if asi not in all_interactions:
-                all_interactions.append(asi)
+        interactors.update(secondary_interactors)
 
-    if len(all_interactions) > 0:
-        return all_interactions
-    else:
+    # Check if there are any interactors
+    if not interactors:
         return None
+
+    return list(interactors)
+
     
 def get_interacting_proteins_wikipathways(protein):
     """
@@ -192,17 +214,17 @@ def get_interacting_proteins_wikipathways(protein):
     df = pd.read_csv(file_path, sep="\t", index_col=0)
 
     if (proteinName in df.index):
-    	row = df.loc[proteinName]
-    	filtered_df = df.loc[:, row.values.tolist()]
+        row = df.loc[proteinName]
+        filtered_df = df.loc[:, row.values.tolist()]
 
-    	def has_true(values):
-    		for val in values:
-    			if val == True:
-    				return True
-    		return False
+        def has_true(values):
+            for val in values:
+                if val == True:
+                    return True
+            return False
 
-    	filtered_df_final = filtered_df.loc[filtered_df.apply(lambda row: has_true(row.values.tolist()), axis=1), :]
-    	return filtered_df_final.index.tolist()
+        filtered_df_final = filtered_df.loc[filtered_df.apply(lambda row: has_true(row.values.tolist()), axis=1), :]
+        return filtered_df_final.index.tolist()
 
     return list()  # The protein was not found.
 
@@ -222,35 +244,59 @@ def list_pathways_wikipathways():
     return list(df.columns)
 
 def get_pathways_with_proteins(proteins, database, reactome_resource="UniProt", quiet=False):
-    """Query either the Reactome REST API or the WikiPathways downloaded dataframe to find pathways containing a particular gene or protein.
+    """
+    Retrieves pathways containing a particular gene or protein from Reactome or WikiPathways.
 
-    Parameters:
-    proteins (str or list of str): The protein(s) to look for matches to.
-    database (str): The database to use; either 'reactome' or 'wikipathways'.
-    reactome_resource (str, optional): If using Reactome, this is the resource the identifier(s) come from. Default is UniProt. Other options include HGNC, Ensembl, and GO. For more options, consult <https://reactome.org/content/schema/objects/ReferenceDatabase>. This parameter is meaningless if using WikiPathways.
-    quiet (bool, optional): Whether to suppress warnings issued when identifiers are not found. Default False.
+    Parameters
+    ----------
+    proteins : str or list of str
+        The protein(s) to look for matches to.
+    database : str
+        The database to use; either 'reactome' or 'wikipathways'.
+    reactome_resource : str, optional
+        If using Reactome, this is the resource the identifier(s) come from.
+        Default is UniProt. Other options include HGNC, Ensembl, and GO.
+    quiet : bool, optional
+        Whether to suppress warnings issued when identifiers are not found. Default False.
 
-    Returns:
-    pandas.DataFrame: A table of pathways containing the given genes or proteins, with pathway names and, if using Reactome, their Reactome identifiers (which are needed for the pathway_overlay function).
+    Returns
+    -------
+    pandas.DataFrame
+        A table of pathways containing the given genes or proteins, with pathway names and
+        their Reactome identifiers (if using Reactome).
+
+    Raises
+    ------
+    ValueError
+        If the database parameter is not 'reactome' or 'wikipathways'.
     """
 
-    # Process string input
     if isinstance(proteins, str):
         proteins = [proteins]
 
     if database.lower() == "reactome":
+        all_pathway_df = get_pathways_from_reactome(proteins, reactome_resource, quiet)
 
-        # Set headers and params
-        headers = {"accept": "application/json"}
-        params = {"species": "Homo sapiens"}
+    elif database.lower() == "wikipathways":
+        all_pathway_df = get_pathways_from_wikipathways(proteins, quiet)
 
-        # Loop over proteins and get the interacting pathways
-        all_pathway_df = pd.DataFrame()
-        for id in proteins:
-            url = f"https://reactome.org/ContentService/data/mapping/{reactome_resource}/{id}/pathways"
-            resp = requests.get(url, headers=headers, params=params)
+    else:
+        raise ValueError("Invalid database. Please choose 'reactome' or 'wikipathways'.")
 
-            # Check that the response came back good
+    return all_pathway_df.reset_index(drop=True)
+
+
+def get_pathways_from_reactome(proteins, reactome_resource, quiet):
+    headers = {"accept": "application/json"}
+    params = {"species": "Homo sapiens"}
+    all_pathway_df = pd.DataFrame()
+
+    for id in proteins:
+        url = f"https://reactome.org/ContentService/data/mapping/{reactome_resource}/{id}/pathways"
+        resp = requests.get(url, headers=headers, params=params)
+
+        # Error handling
+        if resp.status_code != requests.codes.ok:
             if resp.status_code == 404:
                 try:
                     msg = resp.json()["messages"]
@@ -260,123 +306,113 @@ def get_pathways_with_proteins(proteins, database, reactome_resource="UniProt", 
                     if not quiet:
                         warnings.warn(f"The query for '{id}' returned HTTP 404 (not found). You may have mistyped the gene/protein ID or the reactome_resource name. The server gave the following message: {msg}", ParameterWarning, stacklevel=2)
                     continue
-            elif resp.status_code != requests.codes.ok:
+            else:
                 raise HttpResponseError(f"Your query returned an HTTP status {resp.status_code}. The content returned from the request may be helpful:\n{resp.content.decode('utf-8')}")
 
-            # Parse out pathway IDs and names
-            pathway_dict = resp.json()
-            names = []
-            pathway_ids = []
-            for pathway in pathway_dict:
-                names.append(pathway["displayName"])
-                pathway_ids.append(pathway["stId"])
+        pathway_dict = resp.json()
+        pathways = [{"id": id, "pathway": pathway["displayName"], "pathway_id": pathway["stId"]} for pathway in pathway_dict]
 
-            pathway_df = pd.DataFrame({"id": id, "pathway": names, "pathway_id": pathway_ids})
-            pathway_df = pathway_df.sort_values(by="pathway_id")
-            all_pathway_df = all_pathway_df.append(pathway_df)
+        all_pathway_df = all_pathway_df.append(pathways)
 
-    elif database.lower() == "wikipathways":
+    return all_pathway_df.sort_values(by="pathway_id")
 
-        path_here = os.path.abspath(os.path.dirname(__file__))
-        data_dir_name = "data"
-        file_name = "WikiPathwaysDataframe.tsv.gz"
-        file_path = os.path.join(path_here, data_dir_name, file_name)
-        df = pd.read_csv(file_path, sep="\t", index_col=0)
-        all_pathway_df = pd.DataFrame()
 
-        for protein in proteins:
+def get_pathways_from_wikipathways(proteins, quiet):
+    file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "data", "WikiPathwaysDataframe.tsv.gz")
+    df = pd.read_csv(file_path, sep="\t", index_col=0)
+    all_pathway_df = pd.DataFrame()
 
-            if protein in df.index:
-                # Column headers are pathways; select pathways where the row for the protein has a
-                # True for that pathway's column, indicating membership
-                pathways = df.columns[df.loc[protein, :]].values
+    for protein in proteins:
+        if protein in df.index:
+            pathways = df.columns[df.loc[protein, :]].values
+            prot_df = [{"id": protein, "pathway": pathway} for pathway in pathways]
+            all_pathway_df = all_pathway_df.append(prot_df)
+        elif not quiet:
+            warnings.warn(f"The protein '{protein}' was not found in the WikiPathways data.", ParameterWarning, stacklevel=2)
 
-                prot_df = pd.DataFrame({"id": protein, "pathway": pathways})
-                all_pathway_df = all_pathway_df.append(prot_df)
-
-            else:
-                if not quiet:
-                    warnings.warn(f"The protein '{protein}' was not found in the WikiPathways data.", ParameterWarning, stacklevel=2)
-    else:
-        raise InvalidParameterError(f"Database '{database}' not recognized. Valid options: 'reactome', 'wikipathways'")
-
-    all_pathway_df = all_pathway_df.reset_index(drop=True)
     return all_pathway_df
 
 def get_proteins_in_pathways(pathways, database, quiet=False):
-    """Query either the Reactome REST API or the downloaded WikiPathways dataframe to get a list of proteins contained in a particular pathway.
+    """
+    Retrieves a list of proteins contained in a particular pathway from Reactome or WikiPathways.
 
-    Parameters:
-    pathways (str or list of str): The pathway(s) to get the contained proteins for. If using Reactome, these must be pathway IDs (e.g. "R-HSA-140877").
-    database (str): The database to use; either 'reactome' or 'wikipathways'.
-    quiet (bool, optional): Whether to suppress warnings issued when identifiers are not found. Default False.
+    Parameters
+    ----------
+    pathways : str or list of str
+        The pathway(s) to get the contained proteins for.
+        If using Reactome, these must be pathway IDs (e.g. "R-HSA-140877").
+    database : str
+        The database to use; either 'reactome' or 'wikipathways'.
+    quiet : bool, optional
+        Whether to suppress warnings issued when identifiers are not found. Default False.
 
-    Returns:
-    pandas.DataFrame: The proteins contained in the pathways.
+    Returns
+    -------
+    pandas.DataFrame
+        The proteins contained in the pathways.
+
+    Raises
+    ------
+    ValueError
+        If the database parameter is not 'reactome' or 'wikipathways'.
     """
 
-    # Process string input
     if isinstance(pathways, str):
         pathways = [pathways]
 
     if database.lower() == "reactome":
-        # Set headers and url
-        headers = {"accept": "application/json"}
-
-        # Loop over ids and get the interacting pathways
-        all_protein_df = pd.DataFrame()
-        for pathway_id in pathways:
-
-            # Send the request
-            url = f"https://reactome.org/ContentService/data/participants/{pathway_id}"
-            resp = requests.get(url, headers=headers)
-
-            if resp.status_code == 404 or (resp.status_code == requests.codes.ok and (len(resp.content.decode("utf-8")) == 0 or len(resp.json()) == 0)):
-                if not quiet:
-                    warnings.warn(f"The query for '{pathway_id}' found no results. You may have mistyped the pathway ID.", ParameterWarning, stacklevel=2)
-                continue
-            elif resp.status_code != requests.codes.ok:
-                raise HttpResponseError(f"Your query returned an HTTP status {resp.status_code}. The content returned from the request may be helpful:\n{resp.content.decode('utf-8')}")
-
-            # Parse all the proteins/genes out of the response
-            members_df = pd.json_normalize(resp.json(), record_path=["refEntities"])
-            prot_df = members_df[members_df["displayName"].str.startswith("UniProt:")]
-            
-            prot_names = prot_df["displayName"].str.rsplit(" ", n=1, expand=True)[1].\
-                drop_duplicates(keep="first").\
-                sort_values().\
-                reset_index(drop=True)
-            
-            pathway_df = pd.DataFrame({"pathway": pathway_id, "member": prot_names})
-            all_protein_df = all_protein_df.append(pathway_df)
-
-        all_protein_df = all_protein_df.drop_duplicates(keep="first")
+        all_protein_df = get_proteins_from_reactome(pathways, quiet)
 
     elif database.lower() == "wikipathways":
-
-        path_here = os.path.abspath(os.path.dirname(__file__))
-        data_dir_name = "data"
-        file_name = "WikiPathwaysDataframe.tsv.gz"
-        file_path = os.path.join(path_here, data_dir_name, file_name)
-        df = pd.read_csv(file_path, sep="\t", index_col=0)
-        all_protein_df = pd.DataFrame()
-
-        for pathway in pathways:
-
-            if pathway in df.columns:
-                prot_names = df.index[df[pathway]].values
-                pathway_df = pd.DataFrame({"pathway": pathway, "member": prot_names})
-                all_protein_df = all_protein_df.append(pathway_df)
-                
-            else:
-                if not quiet:
-                    warnings.warn(f"The pathway '{pathway}' was not found in the WikiPathways data.", ParameterWarning, stacklevel=2)
+        all_protein_df = get_proteins_from_wikipathways(pathways, quiet)
 
     else:
-        raise InvalidParameterError(f"Database '{database}' not recognized. Valid options: 'reactome', 'wikipathways'")
+        raise ValueError("Invalid database. Please choose 'reactome' or 'wikipathways'.")
 
-    all_protein_df = all_protein_df.reset_index(drop=True)
+    return all_protein_df.reset_index(drop=True)
+
+
+def get_proteins_from_reactome(pathways, quiet):
+    headers = {"accept": "application/json"}
+    all_protein_df = pd.DataFrame()
+
+    for pathway_id in pathways:
+        url = f"https://reactome.org/ContentService/data/participants/{pathway_id}"
+        resp = requests.get(url, headers=headers)
+
+        # Error handling
+        if resp.status_code != requests.codes.ok or (len(resp.content.decode("utf-8")) == 0 or len(resp.json()) == 0):
+            if not quiet:
+                warnings.warn(f"The query for '{pathway_id}' found no results. You may have mistyped the pathway ID.", ParameterWarning, stacklevel=2)
+            continue
+
+        members_df = pd.json_normalize(resp.json(), record_path=["refEntities"])
+        prot_df = members_df[members_df["displayName"].str.startswith("UniProt:")]
+
+        prot_names = prot_df["displayName"].str.rsplit(" ", n=1, expand=True)[1]
+        proteins = [{"pathway": pathway_id, "member": name} for name in prot_names.unique()]
+
+        all_protein_df = all_protein_df.append(proteins)
+
+    return all_protein_df.drop_duplicates()
+
+
+def get_proteins_from_wikipathways(pathways, quiet):
+    file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "data", "WikiPathwaysDataframe.tsv.gz")
+    df = pd.read_csv(file_path, sep="\t", index_col=0)
+    all_protein_df = pd.DataFrame()
+
+    for pathway in pathways:
+        if pathway in df.columns:
+            prot_names = df.index[df[pathway]].values
+            proteins = [{"pathway": pathway, "member": name} for name in prot_names]
+
+            all_protein_df = all_protein_df.append(proteins)
+        elif not quiet:
+            warnings.warn(f"The pathway '{pathway}' was not found in the WikiPathways data.", ParameterWarning, stacklevel=2)
+
     return all_protein_df
+
 
 def reactome_pathway_overlay(pathway, df=None, analysis_token=None, open_browser=True, export_path=None, image_format="png", display_col_idx=0, diagram_colors="Modern", overlay_colors="Standard", quality=7):
     """Visualize numerical data (e.g. protein expression) on a Reactome pathway diagram, with each node's color corresponding to the expression value provided for that molecule.

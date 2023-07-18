@@ -11,18 +11,16 @@
 
 import os.path as path
 import sys
-import threading
 import warnings
-import webbrowser
 import pandas as pd
 
 # cptac base path
 CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
 
 # Function imports
-from cptac.tools.download_tools.download import download
-from cptac.tools.download_tools.box_download import download_text as _download_text
-from cptac.exceptions import CptacError, CptacWarning, InvalidParameterError, NoInternetError, OldPackageVersionWarning
+from cptac.tools.download_tools import download, init_files
+from cptac.exceptions import CptacError, CptacWarning, NoInternetError
+from cptac.utils.other_utils import df_to_tree
 
 # Dataset imports
 from cptac.cancers.brca import Brca
@@ -36,87 +34,102 @@ from cptac.cancers.ov import Ov
 from cptac.cancers.pdac import Pdac
 from cptac.cancers.ucec import Ucec
 
-# auth import
-from cptac.tools.auth_tools.box_auth import BoxAuth
-box_auth = BoxAuth()
 
-#### This code generates the __OPTIONS__ dataframe which shows all possible cancer, source, datatype combinations
+#### Create custom exception and warning hooks to simplify error messages for new users
+def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): 
+    """Catch cptac-generated exceptions, and make them prettier."""
+    if issubclass(type(exception), CptacError):
+        print(f"cptac error: {str(exception)} ({traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno})", file=sys.stderr)
+    else:
+        default_hook(exception_type, exception, traceback)
+
+def _warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning):
+    """Catch cptac-generated warnings and make them prettier."""
+    if issubclass(category, CptacWarning):
+        print(f"cptac warning: {str(message)} ({filename}, line {lineno})", file=sys.stderr)
+    else:
+        default_displayer(message, category, filename, lineno, file, line)
+
+sys.excepthook = _exception_handler
+warnings.showwarning = _warning_displayer
+warnings.simplefilter("always", category=CptacWarning)
+
+#### Create the index for the data files (file lookup table)
+try:
+    init_files()
+except NoInternetError:
+    if path.exists(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv')):
+        pass
+    else:
+        raise NoInternetError("Unable to initialize cptac without index file. Please run the package at least once with an internet connection.")
+INDEX = pd.read_csv(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv'), sep='\t')
+
+#### Generates the OPTIONS dataframe which shows all possible cancer, source, datatype combinations
 def _load_options():
     """Load the tsv file with all the possible cancer, source, datatype combinations"""
-    options_file = path.join(CPTAC_BASE_DIR, "options.tsv")
-    df = pd.read_csv(options_file, sep="\t")
-    return df
+    options_df = pd.DataFrame(INDEX['description'].str.split('-').tolist())
+    options_df.columns = ['Source', 'Cancer', 'Datatype']
+    options_df = options_df[['Cancer', 'Source', 'Datatype']]
+    # options_df.loc[options_df.iloc[:2].str.contains('miRNA')] = 'miRNA' # condense all forms of micro RNA
+    # options_df = options_df.unique().reset_index(drop=True)
+    return options_df
 
-__OPTIONS__ = _load_options()
+OPTIONS = _load_options()
 
-def get_options():
-    return __OPTIONS__.copy()
+def list_datasets(*, condense_on = None, column_order = None, print_tree=False):
+    """
+    List all available datasets.
+    
+    :param condense_on (list): A list of column names. Values in selected columns will be aggregated into a list.
+    :param print_tree (bool): If True, returns the database split in a pretty tree.
+    """
+    df = OPTIONS.copy()
+    df = df[df['Datatype'] != 'mapping'].reset_index(drop=True)
+    if column_order is None:
+        column_order = df.columns
+    if type(condense_on) == list:
+        group_on_cols = [col for col in column_order if col not in condense_on]
+        df = df.groupby(group_on_cols).agg({col: lambda x: list(set(x)) for col in condense_on})
+    else:
+        df = df[column_order]
+
+    return df if not print_tree else df_to_tree(df)
 
 def get_cancer_options():
-    df = __OPTIONS__.copy()
-    return list(df["Cancers"].unique())
+    return list_datasets(condense_on=['Datatype'])
 
+def get_cancer_info():
+    cancer_abbreviations = {
+        "brca": "Breast invasive carcinoma",
+        "ccrcc": "Clear cell renal cell carcinoma",
+        "coad": "Colon adenocarcinoma",
+        "gbm": "Glioblastoma multiforme",
+        "hnscc": "Head and Neck squamous cell carcinoma",
+        "lscc": "Lung squamous cell carcinoma",
+        "luad": "Lung adenocarcinoma",
+        "ov": "Ovarian serous cystadenocarcinoma",
+        "pda": "Pancreatic ductal adenocarcinoma",
+        "pdac": "Pancreatic ductal adenocarcinoma",
+        "ucec": "Uterine Corpus Endometrial Carcinoma",
+        # Add more if needed
+    }
+    return cancer_abbreviations
+    
 def get_source_options():
-    df = __OPTIONS__.copy()
-    return list(df["Sources"].unique())
+    return list_datasets(condense_on=['Cancer'], column_order=['Source', 'Datatype', 'Cancer'])
 
-def list_datasets(print_tree=False):
-    """List all available datasets."""
-    df = __OPTIONS__.\
-    copy().\
-    drop("Loadable datatypes", axis=1)
-    if not print_tree:
-        return df
-
-    df = df.\
-    assign(Datatypes=df["Datatypes"].str.split("\ *,\ *", expand=False, regex=True)).\
-    explode("Datatypes").\
-    reset_index(drop=True)
-    # Print our dataframe as a pretty tree structure
-    info = {}
-    for row in df.set_index(["Cancers", "Sources", "Datatypes"]).index.values:
-        if row[0] not in info.keys():
-            info[row[0]] = {}
-        if row[1] not in info[row[0]].keys():
-            info[row[0]][row[1]] = []
-        info[row[0]][row[1]].append(row[2])
-
-    df_tree = _tree(info)
-    print(df_tree)
-
-def _tree(nest, prepend=""):
-    """Recursively build a formatted string to represent a dictionary"""
-    tree_str = ""
-    if isinstance(nest, dict):
-        for i, (k, v) in enumerate(nest.items()):
-            if i == len(nest.keys()) - 1:
-                branch = "└"
-                newprepend = prepend + "    "
-            else:
-                branch = "├"
-                newprepend = prepend + "│   "
-            tree_str += f"{prepend}{branch}── {k}\n"
-            tree_str += _tree(nest=v, prepend=newprepend)
-    elif isinstance(nest, list):
-        for i, v in enumerate(nest):
-            if i == len(nest) - 1:
-                branch = "└"
-            else:
-                branch = "├"
-            tree_str += f"{prepend}{branch}── {v}\n"
-    else:
-        raise ValueError(f"Unexpected type '{type(nest)}'")
-
-    return tree_str
+def get_datatype_options():
+    return list_datasets(condense_on=['Cancer'], column_order=['Datatype', 'Source', 'Cancer'])
 
 #### End __OPTIONS__ code
 
-def embargo():
-    """Open CPTAC embargo details in web browser."""
-    message = "Opening embargo details in web browser..."
-    print(message, end = '\r')
-    webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
-    print(" " * len(message), end='\r') # Erase the message
+# This website no longer works
+# def embargo():
+#     """Open CPTAC embargo details in web browser."""
+#     message = "Opening embargo details in web browser..."
+#     print(message, end = '\r')
+#     webbrowser.open("https://proteomics.cancer.gov/data-portal/about/data-use-agreement")
+#     print(" " * len(message), end='\r') # Erase the message
 
 def version():
     """Return version number of cptac package."""
@@ -131,40 +144,3 @@ def how_to_cite():
     print("If you use the API to generate results, please cite our manuscript describing the API - Lindgren et al. 2021, PMID:33560848, https://pubs.acs.org/doi/10.1021/acs.jproteome.0c00919")
     print('\n')
     print("For instructions on how to cite a specific dataset, please call its how_to_cite method, e.g. cptac.Endometrial().how_to_cite()")
-
-#### Helper functions for handling exceptions and warnings
-
-# Because Python binds default arguments when the function is defined,
-# default_hook's default will always refer to the original sys.excepthook
-def _exception_handler(exception_type, exception, traceback, default_hook=sys.excepthook): 
-    """Catch cptac-generated exceptions, and make them prettier."""
-    if issubclass(type(exception), CptacError):
-        print(f"cptac error: {str(exception)} ({traceback.tb_frame.f_code.co_filename}, line {traceback.tb_lineno})", file=sys.stderr) # We still send to stderr
-    else:
-        default_hook(exception_type, exception, traceback) # This way, exceptions from other packages will still be treated the same way
-
-def _warning_displayer(message, category, filename, lineno, file=None, line=None, default_displayer=warnings.showwarning): # Python binds default arguments when the function is defined, so default_displayer's default will always refer to the original warnings.showwarning
-    """Catch cptac-generated warnings and make them prettier."""
-    if issubclass(category, CptacWarning):
-        print(f"cptac warning: {str(message)} ({filename}, line {lineno})", file=sys.stderr) # We still send to stderr
-    else:
-        default_displayer(message, category, filename, lineno, file, line) # This way, warnings from other packages will still be displayed the same way
-
-sys.excepthook = _exception_handler # Set our custom exception hook
-warnings.showwarning = _warning_displayer # And our custom warning displayer
-warnings.simplefilter("always", category=CptacWarning) # Edit the warnings filter to show multiple occurences of cptac-generated warnings
-
-def check_version():
-    """Check in background whether the package is up-to-date"""
-    version_url = "https://byu.box.com/shared/static/kbwivmqnrdnn5im2gu6khoybk5a3rfl0.txt"
-    try:
-        remote_version = _download_text(version_url)
-    except NoInternetError:
-        pass
-    else:
-        local_version = version()
-        if remote_version != local_version:
-            warnings.warn(f"Your version of cptac ({local_version}) is out-of-date. Latest is {remote_version}. Please run 'pip install --upgrade cptac' to update it.", OldPackageVersionWarning, stacklevel=2)
-
-version_check_thread = threading.Thread(target=check_version)
-version_check_thread.start() # We don't join because we want this to just finish in the background and not block the main thread

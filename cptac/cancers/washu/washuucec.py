@@ -9,43 +9,35 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+# Import necessary libraries
 import pandas as pd
 import os
-from gtfparse import read_gtf
+from pyranges import read_gtf
 
 from cptac.cancers.source import Source
-from cptac.tools.dataframe_tools import *
-from cptac.utils import get_boxnote_text
+import cptac.tools.dataframe_tools as df_tools
 from cptac.cancers.mssm.mssm import Mssm
 
-
 class WashuUcec(Source):
-
-    def __init__(self, version="latest", no_internet=False):
+    def __init__(self, no_internet=False):
         """Load all of the WashuUcec dataframes as values in the self._data dict variable, with names as keys, and format them properly.
 
         Parameters:
-        version (str, optional): The version number to load, or the string "latest" to just load the latest building. Default is "latest".
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
 
-        # Set some needed variables, and pass them to the parent Dataset class __init__ function
-
-        # This keeps a record of all versions that the code is equipped to handle. That way, if there's a new data release but they didn't update their package, it won't try to parse the new data version it isn't equipped to handle.
-        self.valid_versions = ["1.0"]
-
+        # Define the file names and load functions to be used
         self.data_files = {
-            "1.0": {
-                "cibersort"         : "CIBERSORT.Output_Abs_EC.txt",
-                "CNV"               : "UCEC.gene_level.from_seg.filtered.tsv",
-                "mapping"           : "gencode.v22.annotation.gtf.gz",
-                "miRNA"             : ["EC_precursor_miRNA_combined.tsv","EC_mature_miRNA_combined.tsv","EC_total_miRNA_combined.tsv"],
-                "readme"            : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"],
-                "somatic_mutation"  : "EC_discovery.dnp.annotated.exonic.maf.gz",
-                "transcriptomics"   : ["EC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz","EC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
-                "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
-                "xcell"             : "EC_xCell.txt",
-            }
+            "cibersort"         : "CIBERSORT.Output_Abs_EC.txt.gz",
+            "CNV"               : "UCEC.gene_level.from_seg.filtered.tsv.gz",
+            "mapping"           : "gencode.v22.annotation.gtf.gz",
+            "miRNA"             : ["EC_precursor_miRNA_combined.tsv.gz","EC_mature_miRNA_combined.tsv.gz","EC_total_miRNA_combined.tsv.gz"],
+            # "readme"          : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"],
+            "somatic_mutation"  : "EC_discovery.dnp.annotated.exonic.maf.gz",
+            "transcriptomics"   : ["EC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz","EC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
+            "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
+            "xcell"             : "EC_xCell.txt.gz",
+            "hla_typing"        : "hla.sample.ct.10152021.sort.tsv.gz"
         }
 
         #self._readme_files = {}
@@ -58,15 +50,15 @@ class WashuUcec(Source):
             'cibersort'         : self.load_cibersort,
             'CNV'               : self.load_CNV,
             'tumor_purity'      : self.load_tumor_purity,
-            #'readme'            : self.load_readme,
+            #'readme'           : self.load_readme,
+            "hla_typing"        : self.load_hla_typing
         }
 
-        if version == "latest":
-            version = sorted(self.valid_versions)[-1]
-
         # Call the parent class __init__ function
-        super().__init__(cancer_type="ucec", source='washu', version=version, valid_versions=self.valid_versions, data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
+        super().__init__(cancer_type="ucec", source='washu', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
+    # Follows are loading methods for each dataframe
+    # Load Transcriptomics dataframe
     def load_transcriptomics(self):
         df_type = 'transcriptomics'
         if df_type not in self._data:
@@ -74,7 +66,7 @@ class WashuUcec(Source):
             # loop over list of file paths
             for file_path in file_path_list:
                 path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-                file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
+                file_name = os.path.basename(file_path)
 
                 if file_name == "EC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
                     df = pd.read_csv(file_path, sep="\t")
@@ -99,10 +91,19 @@ class WashuUcec(Source):
             # Combine the two transcriptomics dataframes
             rna_tumor = self._helper_tables.get("transcriptomics_tumor")
             rna_normal = self._helper_tables.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
+            if rna_tumor is None or rna_normal is None:
+                print("rna_tumor or rna_normal is None")
+                return
+            if not isinstance(rna_tumor, pd.DataFrame) or not isinstance(rna_normal, pd.DataFrame):
+                print("rna_tumor or rna_normal is not a DataFrame")
+                return
+       
             rna_combined = pd.concat([rna_tumor, rna_normal])
+
             # save df in self._data
             self.save_df(df_type, rna_combined)
 
+    # Load Somatic Mutation dataframe
     def load_somatic_mutation(self):
         df_type = 'somatic_mutation'
         if df_type not in self._data:
@@ -122,6 +123,7 @@ class WashuUcec(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
+    # Load miRNA dataframe
     def load_miRNA(self):
         self.load_precursor_miRNA()
         self.load_mature_miRNA()
@@ -134,7 +136,7 @@ class WashuUcec(Source):
 
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
             df = df.transpose()
-            df = average_replicates(df, common = '\.\d$') # average replicates for C3N-00326
+            df = df_tools.average_replicates(df, common = '\.\d$') # average replicates for C3N-00326
             df.index = df.index.str.replace('\.T$','', regex = True)
             df.index = df.index.str.replace('\.A$','.N', regex = True)
             df.index.name = 'Patient_ID'                
@@ -148,7 +150,7 @@ class WashuUcec(Source):
 
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias', 'Derives_from'])
             df = df.transpose()
-            df = average_replicates(df, common = '\.\d$') # average replicates for C3N-00326
+            df = df_tools.average_replicates(df, common = '\.\d$') # average replicates for C3N-00326
             df.index = df.index.str.replace('\.T$','', regex = True)
             df.index = df.index.str.replace('\.A$','.N', regex = True)
             df.index.name = 'Patient_ID'                
@@ -162,13 +164,14 @@ class WashuUcec(Source):
 
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
             df = df.transpose()
-            df = average_replicates(df, common = '\.\d$') # average replicates for C3N-00326
+            df = df_tools.average_replicates(df, common = '\.\d$') # average replicates for C3N-00326
             df.index = df.index.str.replace('\.T$','', regex = True)
             df.index = df.index.str.replace('\.A$','.N', regex = True)
             df.index.name = 'Patient_ID'                
             # save df in self._data
             self.save_df(df_type, df)
 
+    # Load xCell dataframe
     def load_xcell(self):
         df_type = 'xcell'
         if df_type not in self._data:
@@ -183,6 +186,7 @@ class WashuUcec(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
+    # Load CIBERSORT dataframe
     def load_cibersort(self):
         df_type = 'cibersort'
         if df_type not in self._data:
@@ -196,18 +200,21 @@ class WashuUcec(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
+    # Load Mapping dataframe
     def load_mapping(self):
         df_type = 'mapping'
         if "CNV_gene_ids" not in self._helper_tables:
             file_path = self.locate_files(df_type)
 
             df = read_gtf(file_path)
+            df = df.as_df()
             df = df[["gene_name","gene_id"]]
             df = df.drop_duplicates()
             df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
             df = df.set_index("Name")
             self._helper_tables["CNV_gene_ids"] = df
 
+    # Load CNV dataframe
     def load_CNV(self):
         df_type = 'CNV'
         if df_type not in self._data:
@@ -228,6 +235,7 @@ class WashuUcec(Source):
             # save df in self._data
             self.save_df(df_type, df)
 
+    # Load Tumor Purity dataframe
     def load_tumor_purity(self):
         df_type = 'tumor_purity'
         if df_type not in self._data:
@@ -239,13 +247,37 @@ class WashuUcec(Source):
             df.index.name = 'Patient_ID'
 
             # get clinical df (used to slice out cancer specific patient_IDs in tumor_purity file)
-            mssmclin = Mssm(filter_type='ucec', version=self.version, no_internet=self.no_internet) #_get_version - pancandataset
+            mssmclin = Mssm(filter_type='ucec', no_internet=self.no_internet)
             clinical_df = mssmclin.get_df('clinical')               
             patient_ids = clinical_df.index.to_list()
             df = df.loc[df.index.isin(patient_ids)]
 
             # save df in self._data
             self.save_df(df_type, df)
+
+    # Load HLA Typing dataframe
+    def load_hla_typing(self):
+        df_type = 'hla_typing'
+
+        if df_type not in self._data:
+            # perform initial checks and get file path (defined in source.py, the parent class)
+            file_path = self.locate_files(df_type)
+
+            # which cancer_type goes with which cancer in the mssm table
+            tumor_codes = {'brca':'BR', 'ccrcc':'CCRCC',
+                           'ucec':'UCEC', 'gbm':'GBM', 'hnscc':'HNSCC',
+                           'lscc':'LSCC', 'luad':'LUAD', 'pdac':'PDA',
+                           'hcc':'HCC', 'coad':'CO', 'ov':'OV'}
+
+            df = pd.read_csv(file_path, sep='\t')
+            df = df.loc[df['Cancer'] == tumor_codes[self.cancer_type]]
+            df = df.set_index("Sample")
+            df.index.name = 'Patient_ID'
+            df = df.sort_values(by=["Patient_ID"])
+
+            self.save_df(df_type, df)
+
+        return self._data[df_type]
 
     # def load_readme(self):
     #     df_type = 'readme'

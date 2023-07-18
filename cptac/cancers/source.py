@@ -9,18 +9,48 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from os import path
-
+import os
 import cptac
 import pandas as pd
+from hashlib import md5
+from warnings import warn
 
 from cptac import CPTAC_BASE_DIR
-from cptac.exceptions import DataTypeNotInSourceError, InvalidDataVersionError, MissingFileError
+from cptac.exceptions import DataTypeNotInSourceError, MissingFileError, FailedChecksumWarning
 from cptac.tools.dataframe_tools import standardize_axes_names
 
 class Source:
+    """
+    The Source class is a base class that provides methods to manage and interact with different data sources.
+    
+    Attributes:
+        no_internet (bool): If set to True, the data source objects are initialized
+                            without downloading data. Default is False.
+        source (str): The name of the data source.
+        cancer_type (str): The type of cancer that the data pertains to.
+        _data (dict): Dictionary to hold the loaded dataframes.
+        _helper_tables (dict): Dictionary to hold helper tables that support
+                                certain functions.
+        data_files (dict): Dictionary that holds the data file names for each
+                            data type.
+        load_functions (dict): Dictionary that holds the load function for each
+                                data type.
+    """
 
-    def __init__(self, cancer_type, source, version, valid_versions, data_files, load_functions, no_internet):
+    def __init__(self, cancer_type, source, data_files, load_functions, no_internet):
+        """
+        The constructor for the Source class.
+
+        Parameters:
+            cancer_type (str): The type of cancer that the data pertains to.
+            source (str): The name of the data source.
+            data_files (dict): Dictionary that holds cthe data file names for each
+                                data type.
+            load_functions (dict): Dictionary that holds the load function for each
+                                    data type.
+            no_internet (bool): If set to True, the data source objects are
+                                initialized without downloading data. Default is False.
+        """
         self.no_internet = no_internet
         self.source = source
         self.cancer_type = cancer_type
@@ -28,8 +58,6 @@ class Source:
         self._helper_tables = {}
         self.data_files = data_files
         self.load_functions = load_functions
-        self.set_version(version)
-        self.valid_versions = valid_versions
 
     def get_df(self, df_type):
         """Get the dataframe of the specified data type
@@ -40,26 +68,13 @@ class Source:
         Returns:
         pandas.DataFrame: The dataframe of the desired datatype.
         """
-
         # if that df hasn't been loaded yet, load it
         if df_type not in self._data:
-
             # check to see if the df type requested is availabe from this source
             if df_type not in self.load_functions:
                 raise DataTypeNotInSourceError(f"The {self.source} source does not have {df_type} data for {self.cancer_type} cancer.")
-            else:
-                # print loading message
-                loading_msg = f"Loading {df_type} dataframe for {self.source} {self.cancer_type} (v{self.get_version()})"
-                #print(loading_msg, end='\r')
-
-                # call the load function for that df type
-                self.load_functions[df_type]()
-
-                # Erase the loading message
-                print(' ' * len(loading_msg), end='\r')
-
+            self.load_functions[df_type]()
         return self._data[df_type]
-
 
     def save_df(self, df_type, df):
         """Perform final formatting so all cptac data is consistent, and save the dataframe in the self._data dictionary with df_type as the key"""
@@ -78,50 +93,8 @@ class Source:
         self._data[df_type] = df
 
 
-    def set_version(self, version):
-        # check if version is valid
-        if version == "latest":
-            version = sorted(self.valid_versions)[-1]
-        if version not in self.valid_versions:
-            raise InvalidDataVersionError(f"{version} is not a valid version. These are the valid versions: {self.valid_versions}")
-        else:
-            self.version = version
-
-
-    def get_version(self):
-        return self.version
-
-
-    def get_file_path(self, data_file):
-        """Return the path to a specific data file
-
-        Parameters:
-        data_file (str): The file name to get a filepath for
-
-        Returns:
-        string: The path to the given data file for the currently set version of the source.
-        """
-        # Get our dataset path and index
-        if self.source in ["harmonized", "mssm"]:
-            dataset = self.source
-        else:
-            dataset = self.source + "_" + self.cancer_type
-
-        file_path = path.join(CPTAC_BASE_DIR, f"data/data_{dataset}/{dataset}_v{self.version}/{data_file}")
-
-        if path.isfile(file_path):
-            return file_path
-
-        elif not path.isdir(file_path) and not self.no_internet:
-            return "not downloaded"
-
-        # Raise error if file is not installed and they don't have an internet connection
-        if not path.isdir(file_path) and self.no_internet:
-            raise MissingFileError(f"The {self.source} {data_file} file for the {self.cancer_type} is not downloaded and you are running cptac in no_internet mode.")
-
-
     def locate_files(self, datatype):
-        """Checks if the datatype is valid for the source's set version. 
+        """Checks if the datatype is valid
         If the datatype is valid, it finds the file path, downloading the files if necessary
 
         Parameters:
@@ -130,31 +103,33 @@ class Source:
         Returns:
             A single file path or a list of file paths to all files of the given datatype
         """
-        # check if datatype is valid for the set version
-        if self.version not in self.data_files:
-            raise InvalidDataVersionError(f"{datatype} is not available in the data freeze for version v_{self.version} of {self.source} {self.cancer_type} data.")
-
         # pull the file name or list of file names from the self.data_files dict
-        f = self.data_files[self.version][datatype]
+        data_files = self.data_files[datatype]
+        # self.data_files can either contain a single string or a list of strings. Let's work with all as a list for now.
+        if type(data_files) != list:
+            data_files = [data_files]
+        file_paths = []
+        # Locate and download each data_file
+        for data_file in data_files:
+            # dataset = self.source if self.source in ['harmonized', 'mssm'] else f"{self.source}_{self.cancer_type}"
+            # This should eventually be handled within the respective sources, but this will do for now
+            cancer_type = "all_cancers" if self.source in ['mssm', 'harmonized'] or self.source in['washu'] and datatype in ['tumor_purity', 'hla_typing'] else self.cancer_type
+            dataset = f"{self.source}-{cancer_type}"
+            file_path = os.path.join(CPTAC_BASE_DIR, f"data/{dataset}/{data_file}")
+            prefixed_file = f"{self.source}-{cancer_type}-{datatype}-{data_file}"
+            # Ensure data is not corrupted, download files if needed
+            if os.path.isfile(file_path) and not self.no_internet: # It's pointless to check the checksum if we can't redownload it
+                with open(file_path, 'rb') as in_file:
+                    local_hash = f"md5:{md5(in_file.read()).hexdigest()}"
+                if local_hash != cptac.INDEX.loc[cptac.INDEX['filename']==prefixed_file, 'checksum'].item():
+                    warn(FailedChecksumWarning("Local file and online file have different checksums; redownloading data"))
+                    os.remove(file_path)
+                
+            if not os.path.isfile(file_path) and not self.no_internet:
+                cptac.download(self.cancer_type, self.source, datatype, data_file)
+            elif not os.path.isfile(file_path) and self.no_internet:
+                raise MissingFileError(f"The {self.source} {data_file} file for the {self.cancer_type} is not downloaded and you are running cptac in no_internet mode.")
 
-        # get the file path(s)
-        if type(f) == list:
-            file_paths = list()
-            for file_name in f:
-                path = self.get_file_path(file_name)
-                 # if the file hasn't been downloaded and they have internet, download it
-                if path == "not downloaded":
-                    cptac.download(sources={self.source : [datatype]}, cancers=self.cancer_type, version=self.version)
-                    path = self.get_file_path(file_name)
-                # append path to file paths
-                file_paths.append(path)
-
-            return file_paths
-
-        else:
-            file_path = self.get_file_path(f)
-            if file_path == "not downloaded":
-                cptac.download(sources={self.source : [datatype]}, cancers=self.cancer_type, version=self.version)
-                file_path = self.get_file_path(f)
-
-            return file_path
+            file_paths.append(file_path)
+        
+        return file_paths if len(file_paths) >= 2 else file_paths[0]

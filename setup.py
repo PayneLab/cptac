@@ -32,18 +32,13 @@ setup(name='cptac',
     ),
 	install_requires=[
 		'numpy>=1.16.3',
-		'pandas>=1.2.0',
+		'pandas>=2.0.0',
 		'requests>=2.21.0',
-		'beautifulsoup4>=4.7.1',
-		'scipy>=1.2.1',
-		'urllib3>=1.24.2',
+		'scipy==1.7.3',
 		'openpyxl>=2.6.0',
-		'packaging>=19.2',
-		'xlrd>=2.0.1',
 		'statsmodels>=0.10.0',
-		'flask>=1.1.0',
-		'gtfparse>=1.2.1',
-		'mygene>=3.2.2'
+		'pyranges>=0.0.111',
+        'tqdm>=4.65.0',
 	],
 	classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -58,4 +53,4 @@ setup(name='cptac',
 	project_urls={
 	   'Documentation': 'https://paynelab.github.io/cptac/'
 	},
-	)
+)
