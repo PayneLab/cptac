@@ -51,8 +51,10 @@ def init_files() -> None:
         with open(index_path, 'w') as index_file:
             index_file.write('\n'.join(index_data))
         # Download some other necessart files
-        get_data(f"{BUCKET}/{'cptac_genes.csv'}", acetyl_mapping_path)
-        get_data(f"{BUCKET}/{'brca_mapping.csv'}", brca_mapping_path)
+        if not os.path.isfile(acetyl_mapping_path):
+            get_data(f"{BUCKET}/{'cptac_genes.csv'}", acetyl_mapping_path)
+        if not os.path.isfile(brca_mapping_path):
+            get_data(f"{BUCKET}/{'brca_mapping.csv'}", brca_mapping_path)
     except requests.ConnectionError:
         raise NoInternetError("Cannot initialize data files: No internet connection.")
     except requests.RequestException as e:
