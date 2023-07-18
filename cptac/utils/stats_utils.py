@@ -104,8 +104,8 @@ def wrap_ttest(df, label_column, comparison_columns=None, alpha=.05, equal_var=T
             continue
         else:
 
-            group1 = partition1[column].dropna(axis=0)
-            group2 = partition2[column].dropna(axis=0)
+            group1 = partition1[column].dropna(axis=0).astype(float)
+            group2 = partition2[column].dropna(axis=0).astype(float)
 
             if (np.std(group1) == 0 or np.std(group2) == 0) and not quiet:
                 warnings.warn(f"At least one group for column {column} had a standard deviation of zero.", StDevWarning)
