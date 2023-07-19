@@ -1,3 +1,6 @@
+#CPTAC v.1.5 Release Candidate is now available
+Please report any bugs or improvements. Enjoy!
+
 # Easy access to CPTAC data
 This software provides easy access to cancer data from the National Cancer Institute's CPTAC program, which characterizes and studies the proteogenomic landscape of tumors. We implement the software as a Python package called `cptac`, but you can seamlessly use it in an R environment with the help of the `reticulate` package (demonstrated in [Tutorial 6](https://paynelab.github.io/cptac/tutorial06_cptac_in_R.html)). Our package is installed in one step with `pip`:
 ```
