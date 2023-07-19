@@ -1,4 +1,4 @@
-#CPTAC v.1.5 Release Candidate is now available
+# CPTAC v.1.5 Release Candidate is now available
 Please report any bugs or improvements. Enjoy!
 
 # Easy access to CPTAC data
