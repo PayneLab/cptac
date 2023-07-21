@@ -9,15 +9,18 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+# Importing necessary libraries
 import pandas as pd
 from cptac.cancers.source import Source
 
 class BcmCcrcc(Source):
     def __init__(self, no_internet=False):
-        """Define which bcmccrcc dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """
+        Define which bcmccrcc dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        no_internet (bool, optional): If set to True, skips the index update step which requires an internet connection.
+        Default is False.
         """
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
