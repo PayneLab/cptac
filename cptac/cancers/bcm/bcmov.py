@@ -13,15 +13,15 @@ import pandas as pd
 from cptac.cancers.source import Source
 
 class BcmOv(Source):
+    """Subclass representing the bcmov dataset"""
     def __init__(self, no_internet=False):
-        """Define which bcmov dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """Constructor for the BcmOv class.
 
         Parameters:
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
 
-        # Set some needed variables, and pass them to the parent Dataset class __init__ function
-
+        # Define the data files and their corresponding loading functions
         self.data_files = {
             "transcriptomics" : "OV-gene_RSEM_tumor_normal_UQ_log2(x+1)_BCM.txt.gz", 
             "mapping" : "gencode.v34.basic.annotation-mapping.txt.gz"
@@ -35,13 +35,12 @@ class BcmOv(Source):
         super().__init__(cancer_type="ov", source='bcm', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_mapping(self):
+        """Helper function to load the mapping dataframe."""
         df_type = 'mapping'
-        # self._helper_tables is a dictionary of helpful dataframes that the user does not need to access
-        # dataframes here are used to load the other data types, but don't show up when the user lists available data
-        # this way mapping only needs to be loaded once and all other types can use it when they are loaded
+        
+        # Load the mapping dataframe only if it's not already loaded
         if not self._helper_tables:
             file_path = self.locate_files(df_type)
-            
             df = pd.read_csv(file_path, sep="\t")
             df = df[["gene","gene_name"]] #only need gene (database gene id) and gene_name (common gene name)
             df = df.set_index("gene")
@@ -49,10 +48,11 @@ class BcmOv(Source):
             self._helper_tables["gene_key"] = df
 
     def load_transcriptomics(self):
+        """Function to load the transcriptomics dataframe."""
         df_type = 'transcriptomics'
 
+        # Load the transcriptomics dataframe only if it's not already loaded
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep="\t")
@@ -70,5 +70,5 @@ class BcmOv(Source):
             transcript.index.name = "Patient_ID"
             df = transcript
 
-            # save df in self._data
+            # Save the dataframe in self._data
             self.save_df(df_type, df)
