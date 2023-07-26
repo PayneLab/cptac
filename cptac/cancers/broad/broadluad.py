@@ -1,53 +1,49 @@
-#   Copyright 2018 Samuel Payne sam_payne@byu.edu
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#       http://www.apache.org/licenses/LICENSE-2.0
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
+# Copyright 2018 Samuel Payne sam_payne@byu.edu
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#     http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import pandas as pd
-import os
 from pyranges import read_gtf
 from cptac.cancers.source import Source
 
 class BroadLuad(Source):
     def __init__(self, no_internet=False):
-        """Define which broadluad dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """Defines the available dataframes in the self.load_functions dictionary variable with names as keys.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        no_internet (bool, optional): If True, the index update step which requires an internet connection is skipped. Default is False.
         """
         
-        # Set some needed variables, and pass them to the parent Dataset class __init__ function
-
+        # Initialize necessary variables and pass them to the parent Dataset class __init__ function
         self.data_files = {
             "transcriptomics" : "LUAD.rsem_transcripts_tpm.txt.gz",
             "mapping" : ["sample_descriptions.tsv.gz", "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz", "aliquot_to_patient_ID.tsv.gz"]
         }
-        
+
         self.load_functions = {
             'transcriptomics' : self.load_transcriptomics,
         }
-        
-        # Call the parent class __init__ function
+
         super().__init__(cancer_type="luad", source='broad', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_mapping(self):
+        """Loads and preprocesses the mapping files. Generates helper tables for later use."""
         df_type = 'mapping'
         
-        # Since this is the only location where things are added to _helper_tables, just check if they are empty
-        # If they are empty, populate them
+        # If _helper_tables is empty, populate them
         if not self._helper_tables:
             file_path_list = self.locate_files(df_type)
             for file_path in file_path_list:
-                path_elements = file_path.split('/') # Get a list of the levels of the path
-                file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
+                file_name = file_path.split('/')[-1] # The last element will be the name of the file
                 
-                #Converts the broad IDs to GDC_id aka the aliquot id 
+                # Sample descriptions mapping
                 if file_name == "sample_descriptions.tsv.gz":
                     broad_key = pd.read_csv(file_path, sep="\t")
                     broad_key = broad_key.loc[broad_key['cohort'] == "LUAD"] #get only LUAD keys
@@ -64,7 +60,7 @@ class BroadLuad(Source):
                     broad_dict = broad_key.to_dict()["Patient_ID"]
                     self._helper_tables["broad_key"] = broad_dict
                     
-                #has gene names for each database ID      
+                # Gene name mapping   
                 elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz":
                     broad_gene_names = read_gtf(file_path)
                     broad_gene_names = broad_gene_names.as_df()
@@ -74,16 +70,17 @@ class BroadLuad(Source):
                     broad_gene_names = broad_gene_names.drop_duplicates()
                     self._helper_tables["broad_gene_names"] = broad_gene_names
                     
-                # converts aliquot id to patient id     
+                # Aliquot to patient ID mapping    
                 elif file_name == "aliquot_to_patient_ID.tsv.gz":
                     df = pd.read_csv(file_path, sep = "\t", index_col = 0)
                     self._helper_tables["map_ids"] = df
 
     def load_transcriptomics(self):
+        """Loads and preprocesses the transcriptomics data."""
         df_type = 'transcriptomics'
 
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
+            # Perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep="\t")

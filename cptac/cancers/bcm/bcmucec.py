@@ -13,34 +13,40 @@ import pandas as pd
 from cptac.cancers.source import Source
 
 class BcmUcec(Source):
+    """Define the BcmUcec class, inherited from the Source class. This class will manage the loading of the UCEC data from the BCM source."""
+
     def __init__(self, no_internet=False):
-        """Define which bcmucec dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """
+        Initialize the BcmUcec object with the specified parameters.
+        This object represents the UCEC data from the BCM source.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        no_internet (bool, optional): If True, skip the index update step. Useful when internet connection is spotty or not available. Default is False.
         """
 
-        # Set some needed variables, and pass them to the parent Dataset class __init__ function
-
+        # Define the data files associated with this dataset
         self.data_files = {
             "mapping" : "gencode.v34.basic.annotation-mapping.txt.gz",
             "circular_RNA" : "UCEC-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
             "transcriptomics" : "UCEC-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt.gz"
         }
         
+        # Define the load functions for each data type
         self.load_functions = {
             'circular_RNA' : self.load_circular_RNA,
             'transcriptomics' : self.load_transcriptomics,
         }
         
-        # Call the parent class __init__ function
+        # Initialize the Source parent class
         super().__init__(cancer_type="ucec", source='bcm', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_circular_RNA(self):
+        """Load the circular RNA dasta from the defined file."""
+
         df_type = 'circular_RNA'
         
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
+            # If the data is not already loaded, load it
             file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep="\t")
@@ -67,11 +73,12 @@ class BcmUcec(Source):
             self.save_df(df_type, df)
 
     def load_mapping(self):
+        """Load the mapping data from the defined file."""
+
         df_type = 'mapping'
-        # self._helper_tables is a dictionary of helpful dataframes that the user does not need to access
-        # dataframes here are used to load the other data types, but don't show up when the user lists available data
-        # this way mapping only needs to be loaded once and all other types can use it when they are loaded
+
         if not self._helper_tables:
+            # If the mapping data is not already loaded, load it
             file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep="\t")
@@ -81,10 +88,12 @@ class BcmUcec(Source):
             self._helper_tables["gene_key"] = df
 
     def load_transcriptomics(self):
+        """Load the transcriptomics data from the defined file."""
+
         df_type = 'transcriptomics'
 
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
+            # If the data is not already loaded, load it
             file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep="\t")

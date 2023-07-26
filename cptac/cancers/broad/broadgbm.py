@@ -16,14 +16,13 @@ from cptac.cancers.source import Source
 
 class BroadGbm(Source):
     def __init__(self, no_internet=False):
-        """Define which broadgbm dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """Initializes the BroadGbm class with specified dataframes and load functions.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        no_internet (bool, optional): If true, skips the index update step because it requires and internet connection.
         """
         
-        # Set some needed variables, and pass them to the parent Dataset class __init__ function
-
+        # Define necessary files and loading functions
         self.data_files = {
             "transcriptomics" : "GBM.rsem_transcripts_tpm.txt.gz",
             "mapping" : ["sample_descriptions.tsv.gz", "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz"]
@@ -33,21 +32,19 @@ class BroadGbm(Source):
             'transcriptomics' : self.load_transcriptomics,
         }
         
-        # Call the parent class __init__ function
+        # Call the parent class constructor
         super().__init__(cancer_type="gbm", source='broad', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_mapping(self):
-        df_type = 'mapping'
-        
-        # Since this is the only location where things are added to _helper_tables, just check if they are empty
-        # If they are empty, populate them
+        """Loads mapping data from specified files if _helper_tables is empty."""
+
         if not self._helper_tables:
-            file_path_list = self.locate_files(df_type)
+            file_path_list = self.locate_files('mapping')
             for file_path in file_path_list:
-                path_elements = file_path.split('/') # Get a list of the levels of the path
-                file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
+                file_name = file_path.split('/')[-1] # Get the filename
                 
                 if file_name == "sample_descriptions.tsv.gz":
+                    # Load, filter and transform the sample transcription data
                     broad_key = pd.read_csv(file_path, sep="\t")
                     broad_key = broad_key.loc[broad_key['cohort'] == "GBM"] #get only GBM keys
                     broad_key = broad_key[["sample_id","GDC_id","tissue_type"]]
@@ -62,6 +59,7 @@ class BroadGbm(Source):
                     self._helper_tables["broad_key"] = broad_dict
                     
                 elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz":
+                    # Load and transform the gene names data
                     broad_gene_names = read_gtf(file_path)
                     broad_gene_names = broad_gene_names.as_df()
                     broad_gene_names = broad_gene_names[["gene_name","gene_id"]]
@@ -71,11 +69,11 @@ class BroadGbm(Source):
                     self._helper_tables["broad_gene_names"] = broad_gene_names
 
     def load_transcriptomics(self):
-        df_type = 'transcriptomics'
+        """Loads transcriptomic data, adds gene names and saves it in self._data."""
 
-        if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
-            file_path = self.locate_files(df_type)
+        if 'transcriptomics' not in self._data:
+            # Load initial transcriptomic data
+            file_path = self.locate_files('transcriptomics')
             
             df = pd.read_csv(file_path, sep="\t")
             df = df.set_index(["transcript_id","gene_id"])
@@ -92,5 +90,5 @@ class BroadGbm(Source):
             df = df.sort_index() 
             df = df.T
             df.index.name = "Patient_ID"
-            # save df in self._data
-            self.save_df(df_type, df)
+            # Save transcriptomic data in self._data
+            self.save_df('transcriptomics', df)

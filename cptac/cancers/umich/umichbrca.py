@@ -199,7 +199,6 @@ class UmichBrca(Source):
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
-
             df = pd.read_csv(file_path, sep="\t")
 
             df_mapping = pd.read_csv(f"{CPTAC_BASE_DIR}/data/brca_mapping.csv")
@@ -246,5 +245,3 @@ class UmichBrca(Source):
 
 #             elif file_name == "README.boxnote":
 #                 self._readme_files["readme_phosphoproteomics"] = get_boxnote_text(file_path)
-
- 

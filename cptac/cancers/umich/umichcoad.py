@@ -17,21 +17,14 @@ class UmichCoad(Source):
     def __init__(self, no_internet=False):
         """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
 
-        Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        Args:
+            no_internet (bool, optional): If true, skips the index update step because it requires an internet connection.
         """
-
-        # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
         self.data_files = {
             "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz",
             "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz",
             "mapping" : "CRC_Prospective sample info.xlsx",
-            # "README_v3.boxnote" is proteomics
-            # "README.boxnote" is phosphoproteomics 
-            # "readme" : ["README_v3.boxnote", "README.boxnote"],
-            #"not_used": "S039_BCprospective_observed_0920.tsv.gz",
-            #"not_used": "S039_BCprospective_imputed_0920.tsv.gz"
         }
         
         self.load_functions = {
@@ -39,22 +32,29 @@ class UmichCoad(Source):
             'proteomics' : self.load_proteomics,
         }
         
-        # Call the parent class __init__ function
         super().__init__(cancer_type="coad", source="umich", data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_mapping(self):
+        """Loads mapping from 'Label' to 'Sample Code' into _helper_tables['map_ids'].
+
+        Reads the 'CRC_Prospective sample info.xlsx' file and creates a dictionary mapping
+        'Label' to 'Sample Code'. This is used in subsequent load methods to map aliquots to patient IDs.
+        """
         df_type = 'mapping'
 
         if not self._helper_tables:
             file_path = self.locate_files(df_type)
             
-            # Mapping file to convert aliquots to patient_IDs for Colon
-            # This file can be found on Box under CPTAC/cptac/pancan/helper_files
             df = pd.read_excel(file_path, index_col = 'Label', usecols = ['Label', 'Sample Code'])
-            map_dict = df.to_dict()['Sample Code'] # create dictionary with aliquots as keys and patient IDs as values
+            map_dict = df.to_dict()['Sample Code'] # Create dictionary with aliquots as keys and patient IDs as values
             self._helper_tables["map_ids"] = map_dict
 
     def load_phosphoproteomics(self):
+        """Loads phosphoproteomics data into _data['phosphoprotemoics']
+        
+        Reads the 'Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz' file, processes it,
+        and stores the result in _data['phosphoproteomics'].
+        """
         df_type = 'phosphoproteomics'
         
         if df_type not in self._data:
@@ -115,6 +115,11 @@ class UmichCoad(Source):
             self.save_df(df_type, df)
 
     def load_proteomics(self):
+        """Loads proteomics data into _data['proteomics']
+        
+        Reads the 'Report_abundance_groupby=protein_protNorm=MD_gu.tsv.gz' file, processes it,
+        and stores the result in _data['proteomics'].
+        """
         df_type = 'proteomics'
 
         if df_type not in self._data:
@@ -158,6 +163,11 @@ class UmichCoad(Source):
             self.save_df(df_type, df)
 
     def load_acetylproteomics(self):
+        """Loads acetylproteomics data into _data['acetylproteomics'].
+        
+        Reads the corresponding file, processes it,
+        and stores the result in _data['acetylproteomics'].
+        """
         df_type = 'acetylproteomics'
 
         if df_type not in self._data:

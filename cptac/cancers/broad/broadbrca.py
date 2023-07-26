@@ -16,86 +16,77 @@ from cptac.cancers.source import Source
 
 class BroadBrca(Source):
     def __init__(self, no_internet=False):
-        """Define which broadbrca dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """Initialization of BroadBrca class.
 
-        Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        Args:
+            no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. Default is False.
         """
-        
-        # Set some needed variables, and pass them to the parent Dataset class __init__ function
-
         self.data_files = {
             "transcriptomics" : "BRCA.rsem_transcripts_tpm.txt.gz",
             "mapping" : ["sample_descriptions.tsv.gz", "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz"]
         }
-        
-        # If we end up needing to declare all this stuff, this is how and where we would do it
-        # I think it's taken care of in the parent class though when we call super, so it shouldn't be needed here
-        # self._data = {}
-        # self._helper_files = {}
-        
+
         self.load_functions = {
             'transcriptomics' : self.load_transcriptomics,
         }
-        
+
         # Call the parent class __init__ function
         super().__init__(cancer_type="brca", source='broad', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_mapping(self):
+        """Load mapping file."""
+
         df_type = 'mapping'
-        
-        # Since this is the only location where things are added to _helper_tables, just check if they are empty
-        # If they are empty, populate them
+
+        # Check if helper tables are empty, if so, populate them
         if not self._helper_tables:
             file_path_list = self.locate_files(df_type)
             for file_path in file_path_list:
-                path_elements = file_path.split('/') # Get a list of the levels of the path
-                file_name = path_elements[-1] # The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
+                path_elements = file_path.split('/') # Split path into components
+                file_name = path_elements[-1] # Last element will be the file name
+
+                # Parse files based on file name
                 if file_name == "sample_descriptions.tsv.gz":
-                    broad_key = pd.read_csv(file_path, sep="\t")
-                    broad_key = broad_key.loc[broad_key['cohort'] == "BRCA"] # get only BRCA keys
-                    broad_key = broad_key[["sample_id","GDC_id","tissue_type"]]
-                    broad_key = broad_key.set_index("sample_id") # set broad id as index
-                    # add tumor type identification to end
-                    broad_key["Patient_ID"] = broad_key["GDC_id"] + broad_key["tissue_type"] 
-                    # change so tumor samples have nothing on end of id and .N for normal samples
-                    broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Tumor", "", regex=True)
-                    broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
-                    # convert df to dictionary
-                    broad_dict = broad_key.to_dict()["Patient_ID"]
-                    self._helper_tables["broad_key"] = broad_dict
+                    # Processing for the sample descriptions file
+                    self._process_sample_descriptions(file_path)
                     
                 elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz":
-                    broad_gene_names = read_gtf(file_path)
-                    broad_gene_names = broad_gene_names.as_df()
-                    broad_gene_names = broad_gene_names[["gene_name","gene_id"]]
-                    broad_gene_names = broad_gene_names.rename(columns = {"gene_name":"Name"}) #change name to merge 
-                    broad_gene_names = broad_gene_names.set_index("gene_id")
-                    broad_gene_names = broad_gene_names.drop_duplicates()                
-                    self._helper_tables["broad_gene_names"] = broad_gene_names
+                    # Processing for the gtf file
+                    self._process_gtf(file_path)
+
+    def _process_sample_descriptions(self, file_path):
+        """Process the sample descriptions file."""
+        broad_key = pd.read_csv(file_path, sep="\t")
+        broad_key = broad_key.loc[broad_key['cohort'] == "BRCA"]
+        broad_key = broad_key[["sample_id","GDC_id","tissue_type"]].set_index("sample_id")
+        broad_key["Patient_ID"] = broad_key["GDC_id"] + broad_key["tissue_type"] 
+        broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Tumor", "", regex=True)
+        broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
+        broad_dict = broad_key.to_dict()["Patient_ID"]
+        self._helper_tables["broad_key"] = broad_dict
+
+    def _process_gtf(self, file_path):
+        """Process the gtf file."""
+        broad_gene_names = read_gtf(file_path)
+        broad_gene_names = broad_gene_names.as_df()
+        broad_gene_names = broad_gene_names[["gene_name","gene_id"]].rename(columns = {"gene_name":"Name"}).set_index("gene_id")
+        broad_gene_names = broad_gene_names.drop_duplicates()                
+        self._helper_tables["broad_gene_names"] = broad_gene_names
 
     def load_transcriptomics(self):
+        """Load transcriptomics data."""
         df_type = 'transcriptomics'
 
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
-            
-            df = pd.read_csv(file_path, sep="\t")
-            df = df.set_index(["transcript_id","gene_id"])
-            
-            # Add gene names to transcriptomic data
+            df = pd.read_csv(file_path, sep="\t").set_index(["transcript_id","gene_id"])
+
             self.load_mapping()
             broad_gene_names = self._helper_tables["broad_gene_names"]
             broad_dict = self._helper_tables["broad_key"]        
-            df = broad_gene_names.join(df, how = "left") #merge in gene names keep transcripts that have a gene name
-            df = df.reset_index()
-            df = df.rename(columns= {"transcript_id": "Transcript_ID","gene_id":"Database_ID"})
-            df = df.set_index(["Name","Transcript_ID","Database_ID"])
-            df = df.rename(columns = broad_dict)# rename columns with CPTAC IDs
-            df = df.sort_index() 
+            df = broad_gene_names.join(df, how = "left")
+            df = df.reset_index().rename(columns= {"transcript_id": "Transcript_ID","gene_id":"Database_ID"}).set_index(["Name","Transcript_ID","Database_ID"])
+            df = df.rename(columns = broad_dict).sort_index() 
             df = df.T
             df.index.name = "Patient_ID"
-            # save df in self._data
             self.save_df(df_type, df)
-            

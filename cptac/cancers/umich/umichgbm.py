@@ -16,55 +16,54 @@ from cptac import CPTAC_BASE_DIR
 
 class UmichGbm(Source):
     def __init__(self, no_internet=False):
-        """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """Initialize the class.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        no_internet (bool, optional): If True, the index update step will be skipped.
+        This can be used if there is no internet connection or if the internet connection is spotty.
+        Default is False.
         """
 
-        # Set some needed variables, and pass them to the parent Dataset class __init__ function
-
+        # Define the file names for each type of data.
         self.data_files = {
             "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz",
             "mapping" : "aliquot_to_patient_ID.tsv.gz",
             "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz",
             "acetylproteomics" : "abundance_multi-site_MD.tsv.gz",
-            # "README_v3.boxnote" is proteomics
-            # "README.boxnote" is phosphoproteomics 
-            # "readme" : ["README_v3.boxnote", "README.boxnote"],                  
-            #"not_used": "S039_BCprospective_observed_0920.tsv.gz",
-            #"not_used": "S039_BCprospective_imputed_0920.tsv.gz"
         }
         
+        # Define the function to load each type of data.
         self.load_functions = {
             'phosphoproteomics' : self.load_phosphoproteomics,
             'proteomics' : self.load_proteomics,
             'acetylproteomics' : self.load_acetylproteomics,
         }
         
-        # Call the parent class __init__ function
+        # Initialize the parent class
         super().__init__(cancer_type="gbm", source="umich", data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_mapping(self):
+        """Load the mapping from aliquot IDs to patient IDs."""
+
         df_type = 'mapping'
 
         if not self._helper_tables:
             file_path = self.locate_files(df_type)
-
-            # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
-            # so there is no need to slice out cancer specific aliquots
             df = pd.read_csv(file_path, sep = "\t", index_col = 'aliquot_ID', usecols = ['aliquot_ID', 'patient_ID'])
-            mapping_dict = df.to_dict()['patient_ID'] # create dictionary with aliquots as keys and patient IDs as values
+            mapping_dict = df.to_dict()['patient_ID'] # Create a dictionary mapping aliquots to patient IDs.
             self._helper_tables["map_ids"] = mapping_dict
 
     def load_phosphoproteomics(self):
+        """Load the phosphoproteomics data."""
+
         df_type = 'phosphoproteomics'
 
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
+            # Get the file path to the data.
             file_path = self.locate_files(df_type)
-            
-            df = pd.read_csv(file_path, sep='\t')                 
+            # Load the data
+            df = pd.read_csv(file_path, sep='\t') 
+
             # Parse a few columns out of the "Index" column that we'll need for our multiindex
             df[['Database_ID','Transcript_ID',"Gene_ID","Havana_gene",
                 "Havana_transcript","Transcript","Name","Site"]] = df.Index.str.split("\\|",expand=True)
@@ -106,16 +105,19 @@ class UmichGbm(Source):
             df['Patient_ID'] = df['Patient_ID'].apply(lambda x: x+'.N' if 'PT-' in x else x) # GTEX normals start with 'PT-' 
             df = df.set_index('Patient_ID')
 
-            # save df in self._data
+            # Save the processed data.
             self.save_df(df_type, df)
 
     def load_proteomics(self):
+        """Load the proteomics data."""
+
         df_type = 'proteomics'
 
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
+            # Get the file path to the data.
             file_path = self.locate_files(df_type)
 
+            # Load the data.
             df = pd.read_csv(file_path, sep = "\t")
             df['Database_ID'] = df.Index.apply(lambda x: x.split('|')[0]) # get protein identifier 
             df['Name'] = df.Index.apply(lambda x: x.split('|')[6]) # get protein name 
@@ -141,16 +143,19 @@ class UmichGbm(Source):
             df['Patient_ID'] = df['Patient_ID'].apply(lambda x: x+'.N' if 'PT-' in x else x) # GTEX normals start with 'PT-'
             df = df.set_index('Patient_ID')
             
-            # save df in self._data
+            # Save the processed data.
             self.save_df(df_type, df)
 
     def load_acetylproteomics(self):
+        """Load the acetylproteomics data."""
+
         df_type = 'acetylproteomics'
 
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
+            # Get the file path to the data.
             file_path = self.locate_files(df_type)
 
+            # Load the data
             df = pd.read_csv(file_path, sep = "\t")
             # Parse a few columns out of the "Index" column that we'll need for our multiindex
             df[['Database_ID','Site1',"Site2","Int1","Int2", "Site"]] = df.Index.str.split("_",expand=True)
@@ -190,7 +195,7 @@ class UmichGbm(Source):
             if 'C3N-01825.1' in df.index:
                 df = df.drop('C3N-01825.1', axis = 'index') # drop the duplicate that didn't correlate well with flagship
 
-            # save df in self._data
+            # Save the processed data
             self.save_df(df_type, df)
 #############################################
 

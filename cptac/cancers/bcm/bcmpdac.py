@@ -13,11 +13,18 @@ import pandas as pd
 from cptac.cancers.source import Source
 
 class BcmPdac(Source):
+    """
+    The BcmPdac class inherits from the Source class and is used to handle and load PDAC data from BCM
+    """
+
     def __init__(self, no_internet=False):
-        """Define which bcmpdac dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """
+        Initializes BcmPdac class. Defines the available bcmpdac dataframes, sets some required variables and
+        calls the parent Dataset class __init__ function.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        no_internet (bool, optional): Whether to skip the index update step because it requires an internet 
+        connection. Default is False.
         """
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
@@ -26,7 +33,6 @@ class BcmPdac(Source):
             "transcriptomics" : "PDAC-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
             "mapping" : "gencode.v34.basic.annotation-mapping.txt.gz",
             "circular_RNA" : "PDAC-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
-            # "not_used" : "CPTAC_GBM_discovery_CNV_gene_level_log2ratio.tsv.gz"
         }
         
         self.load_functions = {
@@ -34,14 +40,13 @@ class BcmPdac(Source):
             'transcriptomics' : self.load_transcriptomics,
         }
         
-        # Call the parent class __init__ function
         super().__init__(cancer_type="pdac", source='bcm', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_circular_RNA(self):
+        """Loads the circular RNA data."""
+
         df_type = 'circular_RNA'
-        
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep="\t")
@@ -50,59 +55,53 @@ class BcmPdac(Source):
             df["circ_chromosome"] = df["circ"] +"_" + df["chrom"]
             df = df.set_index('gene')
             
-            # Add gene names to circular RNA data
             self.load_mapping()
             gene_key = self._helper_tables["gene_key"]
             df = gene_key.join(df, how = "inner")
             df = df.reset_index()
-            df = df.rename(columns= {"gene_name": "Name","gene":"Database_ID"}) # change names to match cptac package
-            df = df.set_index(["Name","circ_chromosome", "start","end","Database_ID"]) #create multi-index
+            df = df.rename(columns= {"gene_name": "Name","gene":"Database_ID"}) 
+            df = df.set_index(["Name","circ_chromosome", "start","end","Database_ID"]) 
             df.drop(['INDEX', 'circ', 'chrom'], axis=1, inplace=True) 
             df = df.sort_index()
             df = df.T
             df.index = df.index.str.replace(r"_T", "", regex=True) # remove Tumor label. All samples are tumor samples
             df.index.name = "Patient_ID"
 
-            # save df in self._data
             self.save_df(df_type, df)
         
     def load_mapping(self):
+        """Loads the mapping data."""
+
         df_type = 'mapping'
-        # self._helper_tables is a dictionary of helpful dataframes that the user does not need to access
-        # dataframes here are used to load the other data types, but don't show up when the user lists available data
-        # this way mapping only needs to be loaded once and all other types can use it when they are loaded
         if not self._helper_tables:
             file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep="\t")
-            df = df[["gene","gene_name"]] #only need gene (database gene id) and gene_name (common gene name)
+            df = df[["gene","gene_name"]]
             df = df.set_index("gene")
             df = df.drop_duplicates()
             self._helper_tables["gene_key"] = df
             
     def load_transcriptomics(self):
+        """Loads the transcriptomics data."""
+        
         df_type = 'transcriptomics'
-
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep="\t")
             df.index.name = 'gene'
-            
-            # Add gene names to transcriptomic data
+
             self.load_mapping()
             gene_key = self._helper_tables["gene_key"]
-            transcript = gene_key.join(df, how = "inner") #keep only gene_ids with gene names
+            transcript = gene_key.join(df, how = "inner")
             transcript = transcript.reset_index()
             transcript = transcript.rename(columns={"gene_name":"Name","gene":"Database_ID"})
             transcript = transcript.set_index(["Name", "Database_ID"])
-            transcript = transcript.sort_index() #alphabetize
+            transcript = transcript.sort_index() 
             transcript = transcript.T
             transcript.index = transcript.index.str.replace(r"_T", "", regex=True)  
-            transcript.index = transcript.index.str.replace(r"_A", ".N", regex=True)# label normal adjacent tumor samples as normal .N
+            transcript.index = transcript.index.str.replace(r"_A", ".N", regex=True)
             transcript.index.name = "Patient_ID"
 
-            df = transcript
-            # save df in self._data
-            self.save_df(df_type, df)
+            self.save_df(df_type, transcript)

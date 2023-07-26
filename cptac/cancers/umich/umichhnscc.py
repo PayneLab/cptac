@@ -16,7 +16,8 @@ from cptac import CPTAC_BASE_DIR
 
 class UmichHnscc(Source):
     def __init__(self, no_internet=False):
-        """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """
+        This class loads the dataset for the University of Michigan's Head and Neck Squamous Cell Carcinoma (HNSCC) study.
 
         Parameters:
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
@@ -224,4 +225,3 @@ class UmichHnscc(Source):
                 df = df.sort_values(by=["Patient_ID"])
                 self._data["proteomics_imputed"] = df
             '''
-                
