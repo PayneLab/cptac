@@ -27,12 +27,14 @@ class BcmBrca(Source):
         self.data_files = {
             "transcriptomics" : "BRCA-gene_RSEM_tumor_normal_UQ_log2(x+1)_BCM.txt.gz", 
             "mapping" : "gencode.v34.basic.annotation-mapping.txt.gz",
-            "proteomics" : "BRCA_proteomics_gene_abundance_log2_reference_intensity_normalized_Tumor.txt.gz"
+            "proteomics" : "BRCA_proteomics_gene_abundance_log2_reference_intensity_normalized_Tumor.txt.gz",
+            "phosphoproteomics" : "BRCA_phospho_site_abundance_log2_reference_intensity_normalized_Tumor.txt"
         }
         
         self.load_functions = {
             'transcriptomics' : self.load_transcriptomics,
-            'proteomics' : self.load_proteomics
+            'proteomics' : self.load_proteomics,
+            'phosphoproteomics' : self.load_phosphoproteomics
         }
         
         # Call the parent class __init__ function
@@ -122,6 +124,41 @@ class BcmBrca(Source):
             proteomics.index.name = "Patient_ID"
 
             df = proteomics
+
+            # Save df in data
+            self.save_df(df_type, df)
+
+    def load_phosphoproteomics(self):
+        """
+        Load and parse all files for bcm brca phosphoproteomics data
+        """
+        df_type = 'phosphoproteomics'
+
+        # Check if data is already loaded
+        if df_type not in self._data:
+            # Get file path to the correct data
+            file_path = self.locate_files(df_type)
+
+            # Load and process the file
+            df = pd.read_csv(file_path, sep='\t')
+            df.index.name = 'gene'
+
+            df.set_index('idx', inplace=True)
+            # Load mapping information
+            self.load_mapping()
+            gene_key = self._helper_tables["gene_key"]
+
+            # Join gene_key to df, reset index, rename columns, set new index and sort
+            phosphoproteomics = gene_key.join(df, how='inner')
+            phosphoproteomics = gene_key.join(df, how='inner')
+            phosphoproteomics = phosphoproteomics.reset_index()
+            phosphoproteomics = phosphoproteomics.rename(columns={"index": "Database_ID", "gene_name": "Name"})
+            phosphoproteomics = phosphoproteomics.set_index(["Name", "Database_ID"])
+            phosphoproteomics = phosphoproteomics.sort_index()  # alphabetize
+            phosphoproteomics = phosphoproteomics.T
+            phosphoproteomics.index.name = "Patient_ID"
+
+            df = phosphoproteomics
 
             # Save df in data
             self.save_df(df_type, df)
