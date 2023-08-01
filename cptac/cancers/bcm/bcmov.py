@@ -25,12 +25,14 @@ class BcmOv(Source):
         self.data_files = {
             "transcriptomics" : "OV-gene_RSEM_tumor_normal_UQ_log2(x+1)_BCM.txt.gz", 
             "mapping" : "gencode.v34.basic.annotation-mapping.txt.gz",
-            "proteomics" : "OV_proteomics_gene_abundance_log2_reference_intensity_normalized_Tumor.txt.gz"
+            "proteomics" : "OV_proteomics_gene_abundance_log2_reference_intensity_normalized_Tumor.txt.gz",
+            "phosphoproteomics" : "OV_phospho_site_abundance_log2_reference_intensity_normalized_Tumor.txt"
         }
         
         self.load_functions = {
             'transcriptomics' : self.load_transcriptomics,
-            'proteomics' : self.load_proteomics
+            'proteomics' : self.load_proteomics,
+            'phosphoproteomics' : self.load_phosphoproteomics
         }
         
         # Call the parent class __init__ function
@@ -106,6 +108,49 @@ class BcmOv(Source):
             proteomics.index.name = "Patient_ID"
 
             df = proteomics
+
+            # Save df in data
+            self.save_df(df_type, df)
+
+
+    def load_phosphoproteomics(self):
+        """
+        Load and parse all files for bcm brca phosphoproteomics data
+        """
+        df_type = 'phosphoproteomics'
+
+        # Check if data is already loaded
+        if df_type not in self._data:
+            # Get file path to the correct data
+            file_path = self.locate_files(df_type)
+
+            # Load and process the file
+            df = pd.read_csv(file_path, sep='\t')
+            df.index.name = 'gene'
+
+            # Extract Database_ID, gene name, site, and peptide from 'idx' column
+            df[['Database_ID', 'Gene_Key', 'Site', 'Peptide']] = df['idx'].str.split('|', expand=True).iloc[:,
+                                                                 [0, 1, 2, 3]]
+
+            # Load mapping information
+            self.load_mapping()
+            gene_key_df = self._helper_tables["gene_key"]
+            mapping = gene_key_df['gene_name'].to_dict()
+
+            # Map gene_key to get gene name
+            df['Name'] = df['Gene_Key'].map(mapping)
+
+            # Drop the 'idx' and 'Gene_Key' columns
+            df.drop(columns=['idx', 'Gene_Key'], inplace=True)
+
+            # Set the 'Name', 'Site', 'Peptide', and 'Database_ID' columns as index in this order
+            df.set_index(['Name', 'Site', 'Peptide', 'Database_ID'], inplace=True)
+
+            # Transpose the dataframe so that the patient IDs are the index
+            df = df.transpose()
+
+            # Rename the index to 'Patient_ID'
+            df.index.name = 'Patient_ID'
 
             # Save df in data
             self.save_df(df_type, df)

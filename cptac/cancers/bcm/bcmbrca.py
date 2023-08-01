@@ -127,6 +127,7 @@ class BcmBrca(Source):
 
             # Save df in data
             self.save_df(df_type, df)
+            
 
     def load_phosphoproteomics(self):
         """
@@ -143,22 +144,29 @@ class BcmBrca(Source):
             df = pd.read_csv(file_path, sep='\t')
             df.index.name = 'gene'
 
-            df.set_index('idx', inplace=True)
+            # Extract Database_ID, gene name, site, and peptide from 'idx' column
+            df[['Database_ID', 'Gene_Key', 'Site', 'Peptide']] = df['idx'].str.split('|', expand=True).iloc[:,
+                                                                 [0, 1, 2, 3]]
+
             # Load mapping information
             self.load_mapping()
-            gene_key = self._helper_tables["gene_key"]
+            gene_key_df = self._helper_tables["gene_key"]
+            mapping = gene_key_df['gene_name'].to_dict()
 
-            # Join gene_key to df, reset index, rename columns, set new index and sort
-            phosphoproteomics = gene_key.join(df, how='inner')
-            phosphoproteomics = gene_key.join(df, how='inner')
-            phosphoproteomics = phosphoproteomics.reset_index()
-            phosphoproteomics = phosphoproteomics.rename(columns={"index": "Database_ID", "gene_name": "Name"})
-            phosphoproteomics = phosphoproteomics.set_index(["Name", "Database_ID"])
-            phosphoproteomics = phosphoproteomics.sort_index()  # alphabetize
-            phosphoproteomics = phosphoproteomics.T
-            phosphoproteomics.index.name = "Patient_ID"
+            # Map gene_key to get gene name
+            df['Name'] = df['Gene_Key'].map(mapping)
 
-            df = phosphoproteomics
+            # Drop the 'idx' and 'Gene_Key' columns
+            df.drop(columns=['idx', 'Gene_Key'], inplace=True)
+
+            # Set the 'Name', 'Site', 'Peptide', and 'Database_ID' columns as index in this order
+            df.set_index(['Name', 'Site', 'Peptide', 'Database_ID'], inplace=True)
+
+            # Transpose the dataframe so that the patient IDs are the index
+            df = df.transpose()
+
+            # Rename the index to 'Patient_ID'
+            df.index.name = 'Patient_ID'
 
             # Save df in data
             self.save_df(df_type, df)
