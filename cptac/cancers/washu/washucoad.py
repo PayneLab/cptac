@@ -17,10 +17,10 @@ from cptac.cancers.mssm.mssm import Mssm
 
 class WashuCoad(Source):
     def __init__(self, no_internet=False):
-        """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """Initializes the WashuCoad class, which is used to load and manage data related to the Washington University colon adenocarcinoma study.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        no_internet (bool, optional): Flag for whether to skip the index update step due to no internet connection. Defaults to False.
         """
         
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
@@ -57,6 +57,7 @@ class WashuCoad(Source):
         super().__init__(cancer_type="coad", source='washu', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_transcriptomics(self):
+        """Loads the transcriptomics data. The transcriptomics data gives the gene expression levels in the tumor samples."""
         df_type = 'transcriptomics'
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
@@ -74,6 +75,7 @@ class WashuCoad(Source):
             self.save_df(df_type, df)
     
     def load_somatic_mutation(self):
+        """Loads the somatic mutation data. The somastic mutation gives information about the gene mutations in the tumor samples."""
         df_type = 'somatic_mutation'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -95,6 +97,7 @@ class WashuCoad(Source):
             self.save_df(df_type, df)
     
     def load_xcell(self):
+        """Loads the xCell data. The xCell data gives the cell type enrichment scores in the tumor samples."""
         df_type = 'xcell'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -109,6 +112,7 @@ class WashuCoad(Source):
             self.save_df(df_type, df)
     
     def load_cibersort(self):
+        """Loads the CIBERSORT data. The CIBERSORT data gives the immue cell type fractions in the tumor samples."""
         df_type = 'cibersort'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -122,6 +126,7 @@ class WashuCoad(Source):
             self.save_df(df_type, df)
 
     def load_mapping(self):
+        """Loads the gene ID mapping data from a GTF file. This function is used as a helper function to match gene names to their database IDs."""
         df_type = 'mapping'
         if "CNV_gene_ids" not in self._helper_tables:
             file_path = self.locate_files(df_type)
@@ -135,6 +140,7 @@ class WashuCoad(Source):
             self._helper_tables["CNV_gene_ids"] = df
 
     def load_CNV(self):
+        """Loads the copy number variation (CNV) data. The CNV data gives the copy number of each gene in the tumor samples."""
         df_type = 'CNV'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -155,6 +161,7 @@ class WashuCoad(Source):
             self.save_df(df_type, df)
 
     def load_tumor_purity(self):
+        """Loads the tumor purity data. The tumor purity data gives the fraction of cancerous cells in the tumor samples."""
         df_type = 'tumor_purity'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -174,6 +181,7 @@ class WashuCoad(Source):
             self.save_df(df_type, df)
 
     def load_hla_typing(self):
+        """Loads the human leukocyte antigen (HLA) typing data. The HLA typing data gives the types of HLAs present in the tumor samples."""
         df_type = 'hla_typing'
 
         if df_type not in self._data:
@@ -195,38 +203,3 @@ class WashuCoad(Source):
             self.save_df(df_type, df)
 
         return self._data[df_type]
-    # def load_readme(self):
-    #     df_type = 'readme'
-    #     if not self._readme_files: # if self._readme_files is empty
-    #         file_path_list = self.locate_files(df_type)
-    #         # loop over list of file paths
-    #         for file_path in file_path_list:
-    #             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-    #             file_name = path_elements[-1]# The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
-
-    #             if file_name == "README_miRNA":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_miRNA"] = reader.read()
-                        
-    #             elif file_name == "README_CIBERSORT":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_cibersort"] = reader.read()
-                        
-    #             elif file_name == "README_xCell":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_xcell"] = reader.read()
-                
-    #             elif file_name == "README_somatic_mutation_WXS":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_somatic_mutation"] = reader.read()
-                        
-    #             elif file_name == "README_gene_expression":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_transcriptomics"] = reader.read()
-                    
-    #             elif file_name == "README.boxnote":
-    #                 self._readme_files["readme_cnv"] = get_boxnote_text(file_path)
-
-    #             elif file_name == "README_ESTIMATE_WashU":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_tumor_purity"] = reader.read()

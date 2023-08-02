@@ -14,13 +14,18 @@ from cptac.cancers.source import Source
 import cptac.tools.dataframe_tools as df_tools
 from cptac import CPTAC_BASE_DIR
 
-
+# The following class is a subclass of Source class to handle and load
+# University of Michigan UCEC (UmichUcec) cancer specific data files.
 class UmichUcec(Source):
     def __init__(self, no_internet=False):
-        """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """
+        The constructor of UmichUcec, it sets some intial variables
+        like data_files and load_functions and then calls the parent
+        class constructor.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        no_internet (bool, optional): This is to handle cases where internet is not available.
+        Default is False.
         """
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
@@ -45,6 +50,10 @@ class UmichUcec(Source):
         super().__init__(cancer_type="ucec", source="umich", data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_mapping(self):
+        """
+        This function loads the mapping data from the 'aliquot_to_patient_ID.tsv.gz' file
+        and creates a dictionary of aliquot_ID to patient_ID mapping.
+        """
         df_type = 'mapping'
 
         if not self._helper_tables:
@@ -57,6 +66,10 @@ class UmichUcec(Source):
             self._helper_tables["map_ids"] = map_dict
 
     def load_phosphoproteomics(self):
+        """
+        This function loads the phosphoproteomics data from the 'Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz.' file, 
+        processes it and adds it to the self._data dictionary.
+        """
         df_type = 'phosphoproteomics'
 
         if df_type not in self._data:
@@ -117,6 +130,10 @@ class UmichUcec(Source):
             self.save_df(df_type, df)
 
     def load_proteomics(self):
+        """
+        This function loads the proteomics data from the 'Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz' file,
+        processes it and adds it to the self._data dictionary.
+        """
         df_type = 'proteomics'
 
         if df_type not in self._data:
@@ -165,6 +182,10 @@ class UmichUcec(Source):
             self.save_df(df_type, df)
         
     def load_acetylproteomics(self):
+        """
+        This function loads the acetylproteomics data from the 'abundance_multi-site_MD.tsv.gz' file,
+        processes it and adds it to the self._data dictionary.
+        """
         df_type = 'acetylproteomics'
 
         if df_type not in self._data:

@@ -58,49 +58,75 @@ class WashuHnscc(Source):
         super().__init__(cancer_type="hnscc", source='washu', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_transcriptomics(self):
-        df_type = 'transcriptomics'
-        if df_type not in self._data:
-            file_path_list = self.locate_files(df_type)
-            # loop over list of file paths
-            for file_path in file_path_list:
-                path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-                file_name = os.path.basename(file_path)
+        """
+        Load transcriptomics data.
 
+        This function scans all file paths, loads the required transcriptomics files, performs the necessary transformations, and saves them in self._data. The files loaded include 'HNSCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz' and 'HNSCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz'. 
+
+        Raises:
+            ValueError: If the data loaded is not in the pandas DataFrame format.
+        """
+
+        df_type = 'transcriptomics'
+
+        # If the df_type does not exist in self._data
+        if df_type not in self._data:
+            file_path_list = self.locate_files(df_type) # Locate the files
+
+            # Loop over the list of file paths
+            for file_path in file_path_list:
+                file_name = os.path.basename(file_path) # Extract file name
+
+                # Load tumor data
                 if file_name == "HNSCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
                     df = pd.read_csv(file_path, sep='\t')
-                    #change names to universal package names
+
+                    # Change column names to match package-wide naming convention
                     df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
-                    df = df.set_index(["Name", "Database_ID"])
-                    df = df.sort_index()
-                    df = df.T #transpose 
+
+                    # Set multi-index and sort
+                    df = df.set_index(["Name", "Database_ID"]).sort_index()
+
+                    # Transpose dataframe for easier comparison and remove label for tumor samples
+                    df = df.T
                     df.index.name = "Patient_ID"
-                    df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
+                    df.index = df.index.str.replace(r"-T", "", regex=True)
+
+                    # Save the transformed data frame to the helper tables
                     self._helper_tables["transcriptomics_tumor"] = df
 
+                # Load normal tissue data
                 if file_name == "HNSCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
                     df_norm = pd.read_csv(file_path, sep='\t')
-                    #change names to universal package names
-                    df_norm = df_norm.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})  
-                    df_norm = df_norm.set_index(["Name", "Database_ID"])
-                    df_norm = df_norm.sort_index()
-                    df_norm = df_norm.T #transpose
+
+                    # Change column names to match package-wide naming convention
+                    df_norm = df_norm.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
+
+                    # Set multi-index and sort
+                    df_norm = df_norm.set_index(["Name", "Database_ID"]).sort_index()
+
+                    # Transpose dataframe for easier comparison and adjust naming for normal samples
+                    df_norm = df_norm.T
                     df_norm.index.name = "Patient_ID"
-                    df_norm.index = df_norm.index.str.replace(r"-A", ".N", regex=True) #remove label for tumor samples
+                    df_norm.index = df_norm.index.str.replace(r"-A", ".N", regex=True)
+
+                    # Save the transformed data frame to the helper tables
                     self._helper_tables["transcriptomics_normal"] = df_norm
 
             # Combine the two transcriptomics dataframes
             rna_tumor = self._helper_tables.get("transcriptomics_tumor")
-            rna_normal = self._helper_tables.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
+            rna_normal = self._helper_tables.get("transcriptomics_normal") 
+
+            # Check for None values or invalid types
             if rna_tumor is None or rna_normal is None:
-                print("rna_tumor or rna_normal is None")
-                return
+                raise ValueError("rna_tumor or rna_normal is None")
             if not isinstance(rna_tumor, pd.DataFrame) or not isinstance(rna_normal, pd.DataFrame):
-                print("rna_tumor or rna_normal is not a DataFrame")
-                return
-       
+                raise ValueError("rna_tumor or rna_normal is not a DataFrame")
+
+            # Combine the tumor and normal data
             rna_combined = pd.concat([rna_tumor, rna_normal])
 
-            # save df in self._data
+            # Save the combined data frame in self._data
             self.save_df(df_type, rna_combined)
     
     def load_somatic_mutation(self):

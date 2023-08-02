@@ -15,10 +15,15 @@ from cptac import CPTAC_BASE_DIR
 
 class UmichOv(Source):
     def __init__(self, no_internet=False):
-        """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """
+        Initialize the class by defining dataframes that are available in the 
+        self.load_functions dictionary variables, with names as keys.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        no_internet (bool, optional): Whether to skip the index update step because 
+        it requires an internet connection. This will be skipped automatically if there 
+        is no internet at all, but you may want to manually skip it if you have a spotty 
+        internet connection. Default is False.
         """
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
@@ -41,6 +46,11 @@ class UmichOv(Source):
         super().__init__(cancer_type="ov", source="umich", data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_mapping(self):
+        """
+        Loads the mapping files that maps Ov aliquots to patient IDs (case ID with tissue type).
+        It creates a dictionary with aliquots as keys and patient IDs as values and stores it in
+        self._helper_tables["map_ids].
+        """
         df_type = 'mapping'
 
         if not self._helper_tables:
@@ -54,6 +64,10 @@ class UmichOv(Source):
             self._helper_tables["map_ids"] = map_dict
 
     def load_phosphoproteomics(self):
+        """
+        Loads the phosphoproteomics data. Performs initial checks, loads the data file and
+        manipulates it according to the requirements. The cleaned up dataframe is stored in self._data.
+        """
         df_type = 'phosphoproteomics'
 
         if df_type not in self._data:
@@ -99,6 +113,10 @@ class UmichOv(Source):
             self.save_df(df_type, df)
 
     def load_proteomics(self):
+        """
+        Loads the proteomics data. Performs initial checks, loads the data file and
+        manipulates it according to the requirements. The cleaned up dataframe is stored in self._data.
+        """
         df_type = 'proteomics'
 
         if df_type not in self._data:
@@ -129,6 +147,10 @@ class UmichOv(Source):
             self.save_df(df_type, df)
         
     def load_acetylproteomics(self):
+        """
+        Loads the acetylproteomics data. Performs intial checks, loads the data file and 
+        manipulates it according to the requirements. The cleaned up dataframe is stored in self._data.
+        """
         df_type = 'acetylproteomics'
 
         if df_type not in self._data:

@@ -17,8 +17,15 @@ import cptac.tools.dataframe_tools as df_tools
 from cptac.cancers.mssm.mssm import Mssm
 
 class WashuGbm(Source):
+    """
+    Class WashuBM is a derived class from Source, and it provides functionality
+    for loading different data types related to the GBM (Glibioblastoma) cancer type.
+    The class provides methods to load different types of data such as transcriptomics,
+    somatic mutations, miRNA, xcell, cibersoty, CNV, tumor purity and HLA typing.
+    """
     def __init__(self, no_internet=False):
-        """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """
+        Initialize WashuGbm object by defining available dataframes and loading functions.
 
         Parameters:
         no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
@@ -30,15 +37,12 @@ class WashuGbm(Source):
             "CNV"               : "GBM.gene_level.from_seg.filtered.tsv.gz",
             "mapping"           : "gencode.v22.annotation.gtf.gz",
             "miRNA"             : ["GBM_mature_miRNA_combined.tsv.gz", "GBM_precursor_miRNA_combined.tsv.gz", "GBM_total_miRNA_combined.tsv.gz"],
-            # "readme"            : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"], 
             "somatic_mutation"  : "GBM_discovery.dnp.annotated.exonic.maf.gz",
             "transcriptomics"   : "GBM_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
             "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
             "xcell"             : "GBM_xCell.txt.gz",
-            "hla_typing": "hla.sample.ct.10152021.sort.tsv.gz"
+            "hla_typing"        : "hla.sample.ct.10152021.sort.tsv.gz"
         }
-
-        #self._readme_files = {}
 
         self.load_functions = {
             'transcriptomics'   : self.load_transcriptomics,
@@ -48,18 +52,20 @@ class WashuGbm(Source):
             'cibersort'         : self.load_cibersort,
             'CNV'               : self.load_CNV,
             'tumor_purity'      : self.load_tumor_purity,
-            #'readme'            : self.load_readme,
-            "hla_typing": self.load_hla_typing
+            "hla_typing"        : self.load_hla_typing
         }
 
-        # Call the parent class __init__ function
         super().__init__(cancer_type="gbm", source='washu', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_transcriptomics(self):
+        """
+        Load transcriptomics data.
+        """
         df_type = 'transcriptomics'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
 
+            # load, format and save dataframe in self._data
             df = pd.read_csv(file_path, sep="\t")
             df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
             df = df.set_index(["Name", "Database_ID"])

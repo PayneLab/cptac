@@ -16,10 +16,14 @@ from cptac import CPTAC_BASE_DIR
 
 class UmichLscc(Source):
     def __init__(self, no_internet=False):
-        """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """
+        Initializes the UmichLscc object, setting up various data files
+        and the load functions for those files.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        no_internet (bool, optional): Specifies whether to skip the index update step
+        due to lack of internet connection. If the internet connection is spotty,
+        you may want to manually set this to True. Default is False.
         """
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
@@ -46,6 +50,10 @@ class UmichLscc(Source):
         super().__init__(cancer_type="lscc", source="umich", data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_mapping(self):
+        """
+        Loads the patient mapping files which maps aliquot IDs to patient IDs.
+        The created mapping dictionary is stored in the _helper_tables dictionary.
+        """
         df_type = 'mapping'
 
         if not self._helper_tables:
@@ -58,6 +66,12 @@ class UmichLscc(Source):
             self._helper_tables["map_ids"] = map_dict
 
     def load_phosphoproteomics(self):
+        """
+        Loads the phosphoproteomics data file. This involves pre-processing steps such
+        as parsing the "Index" column into multiple useful columns, handling unlocalized
+        sites, subtracting reference intensities, and mapping aliquot IDs to patient IDs.
+        The processed dataframe is saved to the _data dictionary.
+        """
         df_type = 'phosphoproteomics'
 
         if df_type not in self._data:
@@ -115,6 +129,12 @@ class UmichLscc(Source):
             self.save_df(df_type, df)
 
     def load_proteomics(self):
+        """
+        Loads the proteomics data file. This involves pre-processing steps such as 
+        parsing the "Index" column into multiple useful columns, subtracting reference
+        intensities, and mapping aliquot IDs to patient IDs. The processed dataframe is
+        saved to the _data dictionary.
+        """
         df_type = 'proteomics'
 
         if df_type not in self._data:
@@ -158,6 +178,12 @@ class UmichLscc(Source):
             self.save_df(df_type, df)
 
     def load_acetylproteomics(self):
+        """
+        Loads the acetylproteomics data file. This invovles pre-processing steps such as
+        parsing the "Index" column into multiple useful columns, merging with gene names
+        based on 'Database_ID', and creating a multiindex from these columns.
+        The processed dataframe is saved to the _data dictionary.
+        """
         df_type = 'acetylproteomics'
 
         if df_type not in self._data:
