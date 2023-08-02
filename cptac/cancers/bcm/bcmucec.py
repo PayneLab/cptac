@@ -13,12 +13,11 @@ import pandas as pd
 from cptac.cancers.source import Source
 
 class BcmUcec(Source):
-    """Define the BcmUcec class, inherited from the Source class. This class will manage the loading of the UCEC data from the BCM source."""
+    """The BcmUcec class is inherited from the Source class. It manages the loading of the UCEC data from the BCM source."""
 
     def __init__(self, no_internet=False):
         """
-        Initialize the BcmUcec object with the specified parameters.
-        This object represents the UCEC data from the BCM source.
+        Initialized the BcmUcec object.
 
         Parameters:
         no_internet (bool, optional): If True, skip the index update step. Useful when internet connection is spotty or not available. Default is False.
@@ -43,7 +42,9 @@ class BcmUcec(Source):
         super().__init__(cancer_type="ucec", source='bcm', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_circular_RNA(self):
-        """Load the circular RNA dasta from the defined file."""
+        """Loads the circular RNA data from the defined file.
+        The data is then stored within the object for later use.
+        """
 
         df_type = 'circular_RNA'
         
@@ -75,7 +76,10 @@ class BcmUcec(Source):
             self.save_df(df_type, df)
 
     def load_mapping(self):
-        """Load the mapping data from the defined file."""
+        """
+        Loads the gene to gene_name mapping data from the defined file.
+        The mapping is then stored within the object for later use.
+        """
 
         df_type = 'mapping'
 
@@ -90,7 +94,10 @@ class BcmUcec(Source):
             self._helper_tables["gene_key"] = df
 
     def load_transcriptomics(self):
-        """Load the transcriptomics data from the defined file."""
+        """
+        Loads the transcriptomics data from the defined file.
+        The data is then stored within the object for later use.
+        """
 
         df_type = 'transcriptomics'
 
@@ -121,7 +128,8 @@ class BcmUcec(Source):
 
     def load_proteomics(self):
         """
-        Load and parse all files for bcm brca proteomics data
+        Loads and parses all files for bcm ucec proteomics data.
+        The data is then stored within the object for later use.
         """
         df_type = 'proteomics'
 
@@ -157,7 +165,8 @@ class BcmUcec(Source):
 
     def load_phosphoproteomics(self):
         """
-        Load and parse all files for bcm brca phosphoproteomics data
+        Loads and parses all files for bcm ucec phosphoproteomics data.
+        The data is then stored within the object for later use.
         """
         df_type = 'phosphoproteomics'
 

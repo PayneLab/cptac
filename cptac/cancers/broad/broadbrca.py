@@ -16,10 +16,13 @@ from cptac.cancers.source import Source
 
 class BroadBrca(Source):
     def __init__(self, no_internet=False):
-        """Initialization of BroadBrca class.
+        """
+        Initialization of BroadBrca class.
 
         Args:
-            no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. Default is False.
+            no_internet (bool, optional): 
+                Whether to skip the index update step because it requires an internet connection. 
+                Default is False.
         """
         self.data_files = {
             "transcriptomics" : "BRCA.rsem_transcripts_tpm.txt.gz",
@@ -34,7 +37,11 @@ class BroadBrca(Source):
         super().__init__(cancer_type="brca", source='broad', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_mapping(self):
-        """Load mapping file."""
+        """
+        Loads the mapping files. This file containts sample descriptions and gtf files.
+
+        This function processes these files and adds the resulting dataframes to helper tables.
+        """
 
         df_type = 'mapping'
 
@@ -55,7 +62,16 @@ class BroadBrca(Source):
                     self._process_gtf(file_path)
 
     def _process_sample_descriptions(self, file_path):
-        """Process the sample descriptions file."""
+        """
+        Private function to process the sample description files.
+
+        Args:
+            file_path (str):
+                The path to the sample description file.
+
+        Adds the processed data to heloer table as 'broad_key'.
+        """
+
         broad_key = pd.read_csv(file_path, sep="\t")
         broad_key = broad_key.loc[broad_key['cohort'] == "BRCA"]
         broad_key = broad_key[["sample_id","GDC_id","tissue_type"]].set_index("sample_id")
@@ -66,7 +82,15 @@ class BroadBrca(Source):
         self._helper_tables["broad_key"] = broad_dict
 
     def _process_gtf(self, file_path):
-        """Process the gtf file."""
+        """
+        Private function to process gtf files.
+
+        Args:
+            file_path (str):
+                The path to the gtf file.
+
+        Adds the processed data to heloer table as 'broad_gene_names'.
+        """
         broad_gene_names = read_gtf(file_path)
         broad_gene_names = broad_gene_names.as_df()
         broad_gene_names = broad_gene_names[["gene_name","gene_id"]].rename(columns = {"gene_name":"Name"}).set_index("gene_id")
@@ -74,7 +98,14 @@ class BroadBrca(Source):
         self._helper_tables["broad_gene_names"] = broad_gene_names
 
     def load_transcriptomics(self):
-        """Load transcriptomics data."""
+        """
+        Load transcriptomics data.
+
+        This function loads and processes the transcriptomics data. It creates a dataframe
+        with Name, Transcript_ID, and Database_ID as indices and patient IDs as columns.
+
+        The resulting dataframe is saved into the class data dictionary.
+        """
         df_type = 'transcriptomics'
 
         if df_type not in self._data:
