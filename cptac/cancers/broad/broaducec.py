@@ -47,6 +47,20 @@ class BroadUcec(Source):
             self._load_broad_keys()
             self._load_broad_gene_names()
             self._load_map_ids()
+            
+    # Additional methods to split the loading process
+    def _load_broad_keys(self):
+        """
+        Helper method to load the broad keys dataframe.
+        """
+        file_path = self.locate_files("sample_descriptions.tsv.gz")
+        broad_key = pd.read_csv(file_path, sep="\t")
+        broad_key = broad_key.loc[broad_key['cohort'] == "UCEC"][["sample_id","GDC_id","tissue_type"]].set_index("sample_id")
+        broad_key['GDC_id'] = broad_key['GDC_id'].str[:9]
+        broad_key["Patient_ID"] = broad_key["GDC_id"] + broad_key["tissue_type"]
+        broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Tumor", "", regex=True)
+        broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
+        self._helper_tables["broad_key"] = broad_key.to_dict()["Patient_ID"]
 
     def load_transcriptomics(self):
         """
@@ -64,19 +78,6 @@ class BroadUcec(Source):
             df = self._rename_with_identifiers(df)
             self.save_df(df_type, df)
 
-    # Additional methods to split the loading process
-    def _load_broad_keys(self):
-        """
-        Helper method to load the broad keys dataframe.
-        """
-        file_path = self.locate_files("sample_descriptions.tsv.gz")
-        broad_key = pd.read_csv(file_path, sep="\t")
-        broad_key = broad_key.loc[broad_key['cohort'] == "UCEC"][["sample_id","GDC_id","tissue_type"]].set_index("sample_id")
-        broad_key['GDC_id'] = broad_key['GDC_id'].str[:9]
-        broad_key["Patient_ID"] = broad_key["GDC_id"] + broad_key["tissue_type"]
-        broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Tumor", "", regex=True)
-        broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
-        self._helper_tables["broad_key"] = broad_key.to_dict()["Patient_ID"]
 
     def _load_broad_gene_names(self):
         """
