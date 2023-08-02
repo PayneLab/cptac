@@ -60,6 +60,7 @@ class WashuUcec(Source):
     # Follows are loading methods for each dataframe
     # Load Transcriptomics dataframe
     def load_transcriptomics(self):
+        """Loads and formats the transcriptomics data."""
         df_type = 'transcriptomics'
         if df_type not in self._data:
             file_path_list = self.locate_files(df_type)

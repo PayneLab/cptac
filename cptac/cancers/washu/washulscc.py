@@ -17,29 +17,28 @@ from cptac.cancers.source import Source
 from cptac.cancers.mssm.mssm import Mssm
 
 class WashuLscc(Source):
+    """A class to load and format WashLscc dataframes. Inherits from the Source class.
+
+    This class loads all of the WashuLscc dataframes and saves them as value in the self._data dict variable.
+    The keys for this dict are the names of the dataframes. The dataframes are also formatted properly for later use.
+
+    Args:
+        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection.
+        This will be skipped automatically if there is no internet at all, but you may want to manually skip it
+        if you have a spotty internet connection. Default is False.
+    """
     def __init__(self, no_internet=False):
-        """Load all of the washulscc dataframes as values in the self._data dict variable, with names as keys, and format them properly.
-
-        Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
-        """
-        
-        # Set some needed variables, and pass them to the parent Dataset class __init__ function
-
         self.data_files = {
             "cibersort" : "CIBERSORT.Output_Abs_LSCC.txt.gz",
             "CNV" : "LSCC.gene_level.from_seg.filtered.tsv.gz",
             "mapping" : "gencode.v22.annotation.gtf.gz",
             "miRNA" : ["LSCC_mature_miRNA_combined.tsv.gz","LSCC_precursor_miRNA_combined.tsv.gz","LSCC_total_miRNA_combined.tsv.gz"],
-            # "readme" : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"],
             "somatic_mutation" : "LSCC_discovery.dnp.annotated.exonic.maf.gz",
             "transcriptomics" : ["LSCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz","LSCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
             "tumor_purity" : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
             "xcell" : "LSCC_xCell.txt.gz",
             "hla_typing": "hla.sample.ct.10152021.sort.tsv.gz"
         }
-
-        #self._readme_files = {}
 
         self.load_functions = {
             'transcriptomics'   : self.load_transcriptomics,
@@ -49,8 +48,7 @@ class WashuLscc(Source):
             'cibersort'         : self.load_cibersort,
             'CNV'               : self.load_CNV,
             'tumor_purity'      : self.load_tumor_purity,
-            #'readme'            : self.load_readme,
-            "hla_typing": self.load_hla_typing
+            'hla_typing'        : self.load_hla_typing
         }
 
         # Call the parent class __init__ function

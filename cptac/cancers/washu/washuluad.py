@@ -17,12 +17,14 @@ from cptac.cancers.source import Source
 from cptac.cancers.mssm.mssm import Mssm
 
 class WashuLuad(Source):
-    def __init__(self, no_internet=False):
-        """Load all of the washuluad dataframes as values in the self._data dict variable, with names as keys, and format them properly.
+    """A class for handling the WashuLuad source. It inherits from the Source class.
 
-        Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
-        """
+    Attributes:
+        data_files: A dictionary that maps dataset type to file names
+        load_functions: A dictionary that maps dataset type to corresponding load functions
+    """
+    def __init__(self, no_internet=False):
+        """Load all of the washuluad dataframes as values in the self._data dict variable, with names as keys, and format them properly."""
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
 
@@ -57,6 +59,7 @@ class WashuLuad(Source):
         super().__init__(cancer_type="luad", source='washu', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_transcriptomics(self):
+        """Loads the transcriptomics dataset into the _data dictionary, handling multiple file inputs and appropriately labelling tumor and normal samples."""
         df_type = 'transcriptomics'
         if df_type not in self._data:
             file_path_list = self.locate_files(df_type)
@@ -101,6 +104,7 @@ class WashuLuad(Source):
             self.save_df(df_type, rna_combined)
     
     def load_somatic_mutation(self):
+        """Loads the somatic_mutation dataset into the _data dictionary, appropriately renaming and reordering columns and labels."""
         df_type = 'somatic_mutation'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -121,11 +125,13 @@ class WashuLuad(Source):
             self.save_df(df_type, df)
 
     def load_miRNA(self):
+        """Loads the miRNA dataset into the _data dictionary by separately loading precursor, mature, and total miRNA."""
         self.load_precursor_miRNA()
         self.load_mature_miRNA()
         self.load_total_mRNA()
 
     def load_precursor_miRNA(self):
+        """Loads the precursor_miRNA dataset into the _data dictionary, appropriately handling patient ID labels and sorting."""
         df_type = 'precursor_miRNA'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -145,6 +151,7 @@ class WashuLuad(Source):
             self.save_df(df_type, all_df)
 
     def load_mature_miRNA(self):
+        """Loads the mature_miRNA dataset into the _data dictionary, appropriately handling patient ID labels and sorting."""
         df_type = 'mature_miRNA'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -164,6 +171,7 @@ class WashuLuad(Source):
             self.save_df(df_type, all_df)
 
     def load_total_mRNA(self):
+        """Loads the total_miRNA dataset into the _data dictionary, appropriately handling patient ID labels and sorting."""
         df_type = 'total_miRNA'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -183,6 +191,7 @@ class WashuLuad(Source):
             self.save_df(df_type, all_df)
 
     def load_xcell(self):
+        """Loads the xcell dataset into the _data dictionary, appropriately handling patient ID labels."""
         df_type = 'xcell'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -197,6 +206,7 @@ class WashuLuad(Source):
             self.save_df(df_type, df)
 
     def load_cibersort(self):
+        """Loads the cibersoty dataset into the _data dictionary, appropriately handling patient ID labels."""
         df_type = 'cibersort'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -210,6 +220,7 @@ class WashuLuad(Source):
             self.save_df(df_type, df)
 
     def load_mapping(self):
+        """Loads the gene mapping dataset into the _helper_tables dictionary, eliminating duplicates and appropriately renaming columns."""
         df_type = 'mapping'
         if "CNV_gene_ids" not in self._helper_tables:
             file_path = self.locate_files(df_type)
@@ -223,6 +234,7 @@ class WashuLuad(Source):
             self._helper_tables["CNV_gene_ids"] = df 
 
     def load_CNV(self):
+        """Loads the CNV dataset into the _data dictionary, joining with gene IDs from the mapping dataset and appropriately handling patient ID labels."""
         df_type = 'CNV'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -243,6 +255,7 @@ class WashuLuad(Source):
             self.save_df(df_type, df)
 
     def load_tumor_purity(self):
+        """Loads the tumor_purity dataset into the _data dictionary."""
         df_type = 'tumor_purity'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)

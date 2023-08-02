@@ -316,38 +316,3 @@ class WashuHnscc(Source):
             self.save_df(df_type, df)
 
         return self._data[df_type]
-    # def load_readme(self):
-    #     df_type = 'readme'
-    #     if not self._readme_files:
-    #         file_path_list = self.locate_files(df_type)
-    #         # loop over list of file paths
-    #         for file_path in file_path_list:
-    #             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-    #             file_name = path_elements[-1]# The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
-
-    #             if file_name == "README_miRNA":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_miRNA"] = reader.read()
-                        
-    #             elif file_name == "README_CIBERSORT":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_cibersort"] = reader.read()
-                        
-    #             elif file_name == "README_xCell":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_xcell"] = reader.read()
-                
-    #             elif file_name == "README_somatic_mutation_WXS":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_somatic_mutation"] = reader.read()
-                        
-    #             elif file_name == "README_gene_expression":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_transcriptomics"] = reader.read()
-                
-    #             elif file_name == "README.boxnote":
-    #                 self._readme_files["readme_cnv"] = get_boxnote_text(file_path)
-                
-    #             elif file_name == "README_ESTIMATE_WashU":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_tumor_purity"] = reader.read()
