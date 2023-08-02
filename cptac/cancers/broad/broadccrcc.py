@@ -17,12 +17,12 @@ from cptac.cancers.source import Source
 class BroadCcrcc(Source):
     def __init__(self, no_internet=False):
         """
-        Initialize the BroadCcrcc object.
+        Initialize the BroadCcrcc class by setting up required parameters and
+        calling the parent's __init__ function.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. 
-        This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. 
-        Default is False.
+        no_internet (bool, optional): If set to True, skips the index update step which requires an internet connection.
+        This is useful in situations with spotty internet connections.
         """
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
         self.data_files = {
@@ -39,7 +39,11 @@ class BroadCcrcc(Source):
 
     def load_mapping(self):
         """
-        Load mapping from the provided files.
+        Load the mapping files and process them accordingly.
+
+        This method locates the mapping files in the specified directory, reads the files,
+        and processes the data to create a dictionary for broad keys and broad gene names.
+        These dictionaries are then stored in the _helper_tables attribute for later use.
         """
         df_type = 'mapping'
         
@@ -78,7 +82,12 @@ class BroadCcrcc(Source):
         
     def load_transcriptomics(self):
         """
-        Load transcriptomics data from the provided file.
+        Load transcriptomics data, process it and store it in the _data attribute.
+
+        This method first checks if the transcriptomics data is already loaded.
+        If not, it locates the transcriptomcis file, reads the data, and processes it.
+        It joins the data with gene names and renames the columns with CPTAC IDs.
+        The processed dataframe is then saved into the _data attributes.
         """
         df_type = 'transcriptomics'
 
