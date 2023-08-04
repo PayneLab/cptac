@@ -600,12 +600,12 @@ class Cancer:
             # no additional message will be printed if we have not passed in parameters
             pass
 
-    def list_data_sources(self, source_filter: Union[str, List[str]] = "all") -> pd.DataFrame:
+    def list_data_sources(self, source_filter = "all"):
         """
         Prints which sources provide each data type and returns a DataFrame with this information.
 
         Parameters:
-        - source_filter (str or list[str], optional): Filter to select which sources are shown in the table.
+        - source_filter (optional): Filter to select which sources are shown in the table.
             - "all" (default) returns all sources and data types.
             - If a list of sources is specified, only data types with data from these sources will be shown.
             - If a single source is specified, only data types from this source will be shown.
@@ -643,6 +643,7 @@ class Cancer:
         data_sources_df.reset_index(inplace=True)
 
         return data_sources_df
+
     
 
     def get_dataframe(
