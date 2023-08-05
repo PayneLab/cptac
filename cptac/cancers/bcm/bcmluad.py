@@ -32,14 +32,16 @@ class BcmLuad(Source):
             "mapping" : "gencode.v34.basic.annotation-mapping.txt.gz",
             "transcriptomics" : "LUAD-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
             "proteomics" : "LUAD_proteomics_gene_abundance_log2_reference_intensity_normalized_Tumor.txt.gz",
-            "phosphoproteomics" : "LUAD_phospho_site_abundance_log2_reference_intensity_normalized_Tumor.txt"
+            "phosphoproteomics" : "LUAD_phospho_site_abundance_log2_reference_intensity_normalized_Tumor.txt",
+            "CNV" : "LUAD_WES_CNV_gene_ratio_log2.txt.gz"
         }
         
         self.load_functions = {
             'circular_RNA' : self.load_circular_RNA,
             'transcriptomics' : self.load_transcriptomics,
             'proteomics' : self.load_proteomics,
-            'phosphoproteomics' : self.load_phosphoproteomics
+            'phosphoproteomics' : self.load_phosphoproteomics,
+            'CNV' : self.load_CNV
         }
 
         super().__init__(cancer_type="luad", source='bcm', data_files=self.data_files, 
@@ -220,6 +222,35 @@ class BcmLuad(Source):
 
             # Rename the index to 'Patient_ID'
             df.index.name = 'Patient_ID'
+
+            # Save df in data
+            self.save_df(df_type, df)
+
+    def load_CNV(self):
+        """Load and process the CNV data file, and save it in the _data dictionary."""
+        df_type = 'CNV'
+        # Check if data is already loaded
+        if df_type not in self._data:
+            # Get file path to the correct data
+            file_path = self.locate_files(df_type)
+
+            # Load and process the file
+            df = pd.read_csv(file_path, sep='\t')
+            df.index.name = 'gene'
+
+            df.set_index('idx', inplace=True)
+            # Load mapping information
+            self.load_mapping()
+            gene_key = self._helper_tables["gene_key"]
+
+            # Join gene_key to df, reset index, rename columns, set new index and sort
+            df = gene_key.join(df, how='inner')
+            df = df.reset_index()
+            df = df.rename(columns={"index": "Database_ID", "gene_name": "Name"})
+            df = df.set_index(["Name", "Database_ID"])
+            df = df.sort_index()  # alphabetize
+            df = df.T
+            df.index.name = "Patient_ID"
 
             # Save df in data
             self.save_df(df_type, df)
