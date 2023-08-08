@@ -62,7 +62,7 @@ class BroadLscc(Source):
                     broad_key = broad_key.set_index("sample_id") # Set broad id as index
                     # Add tissue type to patient ID
                     broad_key["Patient_ID"] = broad_key["GDC_id"] + broad_key["tissue_type"] 
-                    # Standardize patient ID format
+                    # Standardize patient ID format by removing "Tumor" and replacing "Normal" with ".N"
                     broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Tumor", "", regex=True)
                     broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
                     # Convert dataframe to dictionary

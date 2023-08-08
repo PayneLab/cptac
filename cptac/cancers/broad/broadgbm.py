@@ -79,12 +79,16 @@ class BroadGbm(Source):
 
     def load_transcriptomics(self):
         """
-        Load transcriptomics data, process it and store it in the _data attribute.
+        Load and process transcriptomics data and store it in the _data attribute.
 
-        This method first checks if transcriptomics data is already loaded.
-        If not, it locates the transcriptomics file, reads the data, and processes it.
+        This method checks if the transcriptomics data is already loaded. If not,
+        it locates the transcriptomics file, reads the data, and processes it.
         It joins the data with gene names and renames the columns with CPTAC IDs.
         The processed dataframe is then saved into the _data attribute.
+
+        Raises:
+            FileNotFoundError: If the transcriptomics file is not found.
+            KeyError: If the expected keys are not present in the data.
         """
 
         if 'transcriptomics' not in self._data:

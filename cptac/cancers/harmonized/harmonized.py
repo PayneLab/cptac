@@ -13,12 +13,12 @@ import pandas as pd
 from cptac.cancers.source import Source
 
 class Harmonized(Source):
-    """
-    Harmonized is a child class of Source.
-
-    This class is used to handle data loading for different dataframes of harmonized source. 
-    It overrides the load_somatic_mutation and load_ancestry_prediction methods from Source class.
-    """
+    TUMOR_CODES = {
+        'brca': 'BRCA', 'ccrcc': 'CCRCC', 'ucec': 'UCEC',
+        'gbm': 'GBM', 'hnscc': 'HNSCC', 'lscc': 'LSCC',
+        'luad': 'LUAD', 'pdac': 'PDA', 'hcc': 'HCC',
+        'coad': 'CO', 'ov': 'OV'
+    }
 
     def __init__(self, filter_type, no_internet=False):
         """
@@ -64,7 +64,7 @@ class Harmonized(Source):
 
             # Load the data, filtering for the specific tumor type
             df = pd.read_csv(file_path, sep='\t', low_memory = False)
-            df = df.loc[df['COHORT'] == tumor_codes[self.cancer_type]]
+            df = df.loc[df['COHORT'] == self.TUMOR_CODES[self.cancer_type]]
 
             # Add patient ID from the sample barcode
             df['Patient_ID'] = df.loc[:, 'Tumor_Sample_Barcode']
@@ -77,7 +77,8 @@ class Harmonized(Source):
 
             # Set patient ID as index and order columns
             df = df.set_index("Patient_ID")
-            df = df[ ['Gene'] + ["Mutation"] + ["Location"] + [ col for col in df.columns if col not in ["Gene","Mutation","Location"] ] ]
+            cols_order = ['Gene', 'Mutation', 'Location'] + [col for col in df.columns if col not in {'Gene', 'Mutation', 'Location'}]
+            df = df[cols_order]
             
             # Remove trailing "_T" from patient IDs
             df.index = df.index.str.replace(r"_T", "", regex=True)

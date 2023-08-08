@@ -63,6 +63,7 @@ class BroadCcrcc(Source):
                     
                     # Add tumor type identification to end and standardize patient id format
                     broad_key["Patient_ID"] = broad_key["GDC_id"] + broad_key["tissue_type"]
+                    # Replace "Tumor" with an empty string and "Normal" with ".N" in the Patient_ID column
                     broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Tumor", "", regex=True)
                     broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
                     

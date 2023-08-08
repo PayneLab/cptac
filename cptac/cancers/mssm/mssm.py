@@ -13,6 +13,12 @@ import pandas as pd
 from cptac.cancers.source import Source
 
 class Mssm(Source):
+    TUMOR_CODES = {
+        'brca':'BR', 'ccrcc':'CCRCC', 'ucec':'UCEC',
+        'gbm':'GBM', 'hnscc':'HNSCC', 'lscc':'LSCC',
+        'luad':'LUAD', 'pdac':'PDA', 'hcc':'HCC',
+        'coad':'CO', 'ov':'OV'
+    }
     def __init__(self, filter_type, no_internet=False):
         """Initialize Mssm object and load the available dataframes.
 
@@ -31,6 +37,19 @@ class Mssm(Source):
         }
 
         super().__init__(cancer_type=filter_type, source='mssm', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
+
+    def _load_filtered_data(self, filter_keyword):
+        """Load and filter the data based on a specific keyword.
+
+        Args:
+        filter_keyword (str): Keyword to filter the columns.
+
+        Returns:
+        DataFrame: The filtered data.
+        """
+        clinical_df = self.load_clinical()
+        filtered_df = clinical_df[[col for col in clinical_df.columns if filter_keyword in col]]
+        return filtered_df
 
     def load_clinical(self):
         """Load the clinical data and filters it based on filter_type.
@@ -65,8 +84,7 @@ class Mssm(Source):
         """
         df_type = 'medical_history'
         if df_type not in self._data:
-            clinical_df = self.load_clinical()
-            medical_history_df = clinical_df[[col for col in clinical_df.columns if 'medical_history' in col]]
+            medical_history_df = self._load_filtered_data('medical_history')
             self.save_df(df_type, medical_history_df)
 
         return self._data[df_type]
@@ -79,8 +97,7 @@ class Mssm(Source):
         """
         df_type = 'follow-up'
         if df_type not in self._data:
-            clinical_df = self.load_clinical()
-            followup_df = clinical_df[[col for col in clinical_df.columns if 'follow-up' in col]]
+            followup_df = self._load_filtered_data('follow-up')
             self.save_df(df_type, followup_df)
 
         return self._data[df_type]

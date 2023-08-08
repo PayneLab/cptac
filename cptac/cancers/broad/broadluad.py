@@ -20,19 +20,20 @@ class BroadLuad(Source):
 
         Parameters:
         no_internet (bool, optional): If True, skips the index update step which requires an internet connection. 
-        This is useful in situations with spotty internet connections. Default is False.
-        """
+                                      Useful in situations with spotty internet connections. Default is False.
         
+        Data Files:
+        - "transcriptomics": Transcriptomics data file for LUAD.
+        - "mapping": Various mapping files used for processing data, including gene names and patient IDs.
+        """
         # Initialize necessary variables and pass them to the parent Dataset class __init__ function
         self.data_files = {
             "transcriptomics" : "LUAD.rsem_transcripts_tpm.txt.gz",
             "mapping" : ["sample_descriptions.tsv.gz", "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz", "aliquot_to_patient_ID.tsv.gz"]
         }
-
         self.load_functions = {
             'transcriptomics' : self.load_transcriptomics,
         }
-
         super().__init__(cancer_type="luad", source='broad', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_mapping(self):

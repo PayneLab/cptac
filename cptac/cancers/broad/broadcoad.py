@@ -16,16 +16,12 @@ from cptac.cancers.source import Source
 
 class BroadCoad(Source):
     def __init__(self, no_internet=False):
-        """
-        Initialize the BroadCoad class by setting up required parameters and
-        calling the parent's __init__ function.
+        """Initialize the BroadCoad class by setting up required parameters and calling the parent's __init__ function.
 
         Parameters:
-        no_internet (bool, optional): If set to True, skips the index update step because it requires an internet connection.
-        This is useful in situations with spotty internet connections.
+        no_internet (bool, optional): If True, skips the index update step, useful in situations with spotty internet connections.
         """
-        
-        # Define necessary files and loading functions
+        # Define data files and loading functions
         self.data_files = {
             "transcriptomics" : "Colon.rsem_transcripts_tpm.txt.gz",
             "mapping" : ["sample_descriptions.tsv.gz", "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz"]

@@ -17,7 +17,7 @@ class BcmUcec(Source):
 
     def __init__(self, no_internet=False):
         """
-        Initialized the BcmUcec object.
+        Initializes the BcmUcec object.
 
         Parameters:
         no_internet (bool, optional): If True, skip the index update step. Useful when internet connection is spotty or not available. Default is False.
@@ -44,9 +44,7 @@ class BcmUcec(Source):
         super().__init__(cancer_type="ucec", source='bcm', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_circular_RNA(self):
-        """Loads the circular RNA data from the defined file.
-        The data is then stored within the object for later use.
-        """
+        """Loads the circular RNA data, processes it by adding gene names and formatting, and stores it within the object."""
 
         df_type = 'circular_RNA'
         
@@ -78,10 +76,7 @@ class BcmUcec(Source):
             self.save_df(df_type, df)
 
     def load_mapping(self):
-        """
-        Loads the gene to gene_name mapping data from the defined file.
-        The mapping is then stored within the object for later use.
-        """
+        """Loads the gene to gene_name mapping data and stores it within the object for later use."""
 
         df_type = 'mapping'
 
@@ -96,10 +91,7 @@ class BcmUcec(Source):
             self._helper_tables["gene_key"] = df
 
     def load_transcriptomics(self):
-        """
-        Loads the transcriptomics data from the defined file.
-        The data is then stored within the object for later use.
-        """
+        """Loads the transcriptomics data, adds gene names, formats the data, and stores it within the object."""
 
         df_type = 'transcriptomics'
 
@@ -129,10 +121,7 @@ class BcmUcec(Source):
 
 
     def load_proteomics(self):
-        """
-        Loads and parses all files for bcm ucec proteomics data.
-        The data is then stored within the object for later use.
-        """
+        """Loads and processes all files for bcm ucec proteomcis data, and stores it within the object."""
         df_type = 'proteomics'
 
         # Check if data is already loaded
@@ -151,7 +140,6 @@ class BcmUcec(Source):
 
             # Join gene_key to df, reset index, rename columns, set new index and sort
             proteomics = gene_key.join(df, how='inner')
-            proteomics = gene_key.join(df, how='inner')
             proteomics = proteomics.reset_index()
             proteomics = proteomics.rename(columns={"index": "Database_ID", "gene_name": "Name"})
             proteomics = proteomics.set_index(["Name", "Database_ID"])
@@ -166,10 +154,7 @@ class BcmUcec(Source):
 
 
     def load_phosphoproteomics(self):
-        """
-        Loads and parses all files for bcm ucec phosphoproteomics data.
-        The data is then stored within the object for later use.
-        """
+        """Loads and processes all files for bcm ucec phosphoproteomics data, and stores it within the object."""
         df_type = 'phosphoproteomics'
 
         # Check if data is already loaded
@@ -209,7 +194,7 @@ class BcmUcec(Source):
             self.save_df(df_type, df)
 
     def load_CNV(self):
-        """Load and process the CNV data file, and save it in the _data dictionary."""
+        """Loads and processes the CNV data file, and stores it within the object."""
         df_type = 'CNV'
         # Check if data is already loaded
         if df_type not in self._data:

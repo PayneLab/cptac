@@ -15,6 +15,14 @@ from pyranges import read_gtf
 from cptac.cancers.source import Source
 
 class BroadBrca(Source):
+    """
+    BroadBrca class is responsible for loading and processing BRCA data from the Broad source.
+
+    Attributes:
+        data_files (dict): A dictionary containing file names for different types of data.
+        load_functions (dict): A dictionary mapping data types to corresponding load functions.
+    """
+
     def __init__(self, no_internet=False):
         """
         Initialization of BroadBrca class.
@@ -38,9 +46,8 @@ class BroadBrca(Source):
 
     def load_mapping(self):
         """
-        Loads the mapping files. This file containts sample descriptions and gtf files.
-
-        This function processes these files and adds the resulting dataframes to helper tables.
+        Loads the mapping files including sample descriptions and gtf files. 
+        Processes these files and adds the resulting dataframes to helper tables.
         """
 
         df_type = 'mapping'
