@@ -637,7 +637,9 @@ class Cancer:
                     data_sources.setdefault(df_name, []).append(source)
 
         # Transform the dictionary into a DataFrame
-        data_sources_df = pd.DataFrame.from_dict(data_sources, orient='index', columns=['Available sources'])
+        data_sources_df = pd.DataFrame.from_dict(data_sources, orient='index')
+        data_sources_df['Available sources'] = data_sources_df.apply(lambda row: [src for src in row.dropna().values], axis=1)
+        data_sources_df = data_sources_df[['Available sources']]  # keep only the column with the list
         data_sources_df.index.name = 'Data type'
         data_sources_df.reset_index(inplace=True)
 
