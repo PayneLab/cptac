@@ -33,7 +33,8 @@ class BcmLuad(Source):
             "transcriptomics" : "LUAD-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
             "proteomics" : "LUAD_proteomics_gene_abundance_log2_reference_intensity_normalized_Tumor.txt.gz",
             "phosphoproteomics" : "LUAD_phospho_site_abundance_log2_reference_intensity_normalized_Tumor.txt",
-            "CNV" : "LUAD_WES_CNV_gene_ratio_log2.txt.gz"
+            "CNV" : "LUAD_WES_CNV_gene_ratio_log2.txt.gz",
+            "miRNA" : "LUAD_miRNAseq_mature_miRNA_RPM_log2_Tumor.txt.gz"
         }
         
         self.load_functions = {
@@ -41,7 +42,8 @@ class BcmLuad(Source):
             'transcriptomics' : self.load_transcriptomics,
             'proteomics' : self.load_proteomics,
             'phosphoproteomics' : self.load_phosphoproteomics,
-            'CNV' : self.load_CNV
+            'CNV' : self.load_CNV,
+            'miRNA' : self.load_miRNA
         }
 
         super().__init__(cancer_type="luad", source='bcm', data_files=self.data_files, 
@@ -250,6 +252,29 @@ class BcmLuad(Source):
             df = df.set_index(["Name", "Database_ID"])
             df = df.sort_index()  # alphabetize
             df = df.T
+            df.index.name = "Patient_ID"
+
+            # Save df in data
+            self.save_df(df_type, df)
+
+    def load_miRNA(self):
+        """
+        Load and parse all files for miRNA data
+        """
+        df_type = 'miRNA'
+
+        # Check if data is already loaded
+        if df_type not in self._data:
+            # Get file path to the correct data
+            file_path = self.locate_files(df_type)
+
+            # Load and process the file
+            df = pd.read_csv(file_path, sep='\t')
+
+            # Here the idx will be the miRNA names and columns will be the patient IDs.
+            df.set_index('idx', inplace=True)
+            df.index.name = 'Name'  # Rename idx to Name
+            df = df.transpose()  # Transpose the data frame to have miRNA as columns and patients as rows
             df.index.name = "Patient_ID"
 
             # Save df in data

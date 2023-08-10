@@ -27,7 +27,7 @@ class BcmOv(Source):
             "mapping" : "gencode.v34.basic.annotation-mapping.txt.gz",
             "proteomics" : "OV_proteomics_gene_abundance_log2_reference_intensity_normalized_Tumor.txt.gz",
             "phosphoproteomics" : "OV_phospho_site_abundance_log2_reference_intensity_normalized_Tumor.txt",
-            "CNV" : "HGSC_WES_CNV_gene_ratio_log2.txt.gz"
+            "CNV" : "HGSC_WES_CNV_gene_ratio_log2.txt.gz",
         }
         
         self.load_functions = {
