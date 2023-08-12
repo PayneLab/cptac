@@ -93,7 +93,6 @@ class Cancer:
         else:
             warnings.warn(f"{df_type} not found for deletion. Perhaps you misspelled the df_type ({df_type}) or meant to delete a different dataframe?")
 
-
     # Clinical table getters
     def get_clinical(self, source: str= None, tissue_type: str="both", imputed: bool=False) -> pd.DataFrame:
         """Get the clinical dataframe from the specified data source."""

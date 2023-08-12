@@ -13,12 +13,13 @@ import os.path as path
 import sys
 import warnings
 import pandas as pd
+import cptac
 
 # cptac base path
 CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
 
 # Function imports
-from cptac.tools.download_tools import download, init_files
+from cptac.tools.download_tools import download, init_files, DATA_DIR
 from cptac.exceptions import CptacError, CptacWarning, NoInternetError
 from cptac.utils.other_utils import df_to_tree
 
@@ -144,3 +145,53 @@ def how_to_cite():
     print("If you use the API to generate results, please cite our manuscript describing the API - Lindgren et al. 2021, PMID:33560848, https://pubs.acs.org/doi/10.1021/acs.jproteome.0c00919")
     print('\n')
     print("For instructions on how to cite a specific dataset, please call its how_to_cite method, e.g. cptac.Endometrial().how_to_cite()")
+
+
+def _get_cancer_class(cancer_str):
+    """
+    Converts a string to a corresponding cancer class.
+
+    Args:
+    cancer_str (str): A string identifying the cancer type. This should match one of the following: 
+        'brca', 'ccrcc', 'coad', 'gbm', 'hnscc', 'lscc', 'luad', 'ov', 'pdac', 'ucec', 'all_cancers'.
+    
+    Returns:
+    A cancer class from the cptac module.
+
+    Raises:
+    ValueError: If the provided string does not correspond to a known cancer class.
+    """
+    # This dictionary should be updated as necessary
+    mapping = {
+        "brca": cptac.Brca,
+        "ccrcc": cptac.Ccrcc,
+        "coad": cptac.Coad,
+        "gbm": cptac.Gbm,
+        "hnscc": cptac.Hnscc,
+        "lscc": cptac.Lscc,
+        "luad": cptac.Luad,
+        "ov": cptac.Ov,
+        "pdac": cptac.Pdac,
+        "ucec": cptac.Ucec,
+        "all_cancers" : cptac.Ucec
+    }
+
+    try:
+        return mapping[cancer_str.lower()]
+    except KeyError:
+        raise ValueError(f"'{cancer_str}' is not a known cancer class. Valid options are: {list(mapping.keys())}")
+
+def download_cancer(cancer):
+    """Downloads all datasets for a given cancer"""
+    datasets = list_datasets()
+    for _, row in datasets.iterrows():
+        if row['Cancer'] == cancer:
+            cancer_class = _get_cancer_class(row['Cancer'])
+            cancer_instance = cancer_class()
+
+            data = cancer_instance.get_dataframe(row['Datatype'], row['Source'])
+
+    return 
+
+
+
