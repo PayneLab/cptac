@@ -138,7 +138,12 @@ class PvalWarning(StatsWarning):
     """Some warning related to p values."""
     pass
 
+class OldPackageVersionWarning(CptacWarning):
+    """They're using an old version of the package."""
+    pass
+
 # Developer-directed exceptions
 class CptacDevError(Exception):
     """For exceptions that are probably the developer's fault."""
     pass
+

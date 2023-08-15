@@ -11,16 +11,21 @@
 
 import os.path as path
 import sys
+import threading
 import warnings
 import pandas as pd
+import requests
 import cptac
 
 # cptac base path
 CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
+# Some websites don't like requests from sources without a user agent. Let's preempt that issue.
+USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0)'
+HEADERS = {'User-Agent': USER_AGENT}
 
 # Function imports
 from cptac.tools.download_tools import download, init_files, DATA_DIR
-from cptac.exceptions import CptacError, CptacWarning, NoInternetError
+from cptac.exceptions import CptacError, CptacWarning, NoInternetError, OldPackageVersionWarning
 from cptac.utils.other_utils import df_to_tree
 
 # Dataset imports
@@ -193,5 +198,37 @@ def download_cancer(cancer):
 
     return 
 
+def download_text(url):
+    """Download text from a direct download url for a text file.
+
+    Parameters:
+    url (str): The direct download url for the text.
+
+    Returns:
+    str: The downloaded text.
+    """
+    
+    try:
+        response = requests.get(url, headers=HEADERS, allow_redirects=True)
+        response.raise_for_status() # Raises a requests HTTPError if the response code was unsuccessful
+    except requests.RequestException: # Parent class for all exceptions in the requests module
+        raise NoInternetError("Insufficient internet. Check your internet connection.") from None 
+
+    text = response.text.strip()
+    return text
 
 
+def check_version():
+    """Check in background whether the package is up-to-date"""
+    version_url = "https://byu.box.com/shared/static/kbwivmqnrdnn5im2gu6khoybk5a3rfl0.txt"
+    try:
+        remote_version = download_text(version_url)
+    except NoInternetError:
+        pass
+    else:
+        local_version = version()
+        if remote_version != local_version:
+            warnings.warn(f"Your version of cptac ({local_version}) is out-of-date. Latest is {remote_version}. Please run 'pip install --upgrade cptac' to update it.", OldPackageVersionWarning, stacklevel=2)
+
+version_check_thread = threading.Thread(target=check_version)
+version_check_thread.start() # We don't join because we want this to just finish in the background and not block the main thread
