@@ -125,7 +125,7 @@ class WashuCcrcc(Source):
         self.load_total_mRNA()
 
     def load_precursor_miRNA(self):
-        df_type = 'precursor_miRNA'
+        df_type = 'miRNA'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
 
@@ -144,7 +144,7 @@ class WashuCcrcc(Source):
             self.save_df(df_type, all_df)
 
     def load_mature_miRNA(self):
-        df_type = 'mature_miRNA'
+        df_type = 'miRNA'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
             
@@ -163,7 +163,7 @@ class WashuCcrcc(Source):
             self.save_df(df_type, all_df)
 
     def load_total_mRNA(self):
-        df_type = 'total_miRNA'
+        df_type = 'miRNA'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
             
