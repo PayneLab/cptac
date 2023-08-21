@@ -36,6 +36,9 @@ class WashuGbm(Source):
             "cibersort"         : "CIBERSORT.Output_Abs_GBM.txt.gz",
             "CNV"               : "GBM.gene_level.from_seg.filtered.tsv.gz",
             "mapping"           : "gencode.v22.annotation.gtf.gz",
+            "mature_miRNA"      : "GBM_mature_miRNA_combined.tsv.gz",
+            "precursor_miRNA"   : "GBM_precursor_miRNA_combined.tsv.gz",
+            "total_miRNA"       : "GBM_total_miRNA_combined.tsv.gz",
             "miRNA"             : ["GBM_mature_miRNA_combined.tsv.gz", "GBM_precursor_miRNA_combined.tsv.gz", "GBM_total_miRNA_combined.tsv.gz"],
             "somatic_mutation"  : "GBM_discovery.dnp.annotated.exonic.maf.gz",
             "transcriptomics"   : "GBM_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz",
@@ -100,7 +103,7 @@ class WashuGbm(Source):
         self.load_precursor_miRNA()
         self.load_mature_miRNA()
         self.load_total_mRNA()
-    
+
     def load_precursor_miRNA(self):
         df_type = 'precursor_miRNA'
         if df_type not in self._data:
@@ -108,7 +111,6 @@ class WashuGbm(Source):
 
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
             df = df.transpose()
-            df = df_tools.average_replicates(df, common = '\.\d$') # average duplicate for C3N-02788
             df.index = df.index.str.replace('\.T$','', regex = True)
             df.index = df.index.str.replace('\.A$','.N', regex = True)
             df.index.name = 'Patient_ID'                
@@ -119,7 +121,7 @@ class WashuGbm(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_mature_miRNA(self):
         df_type = 'mature_miRNA'
@@ -138,7 +140,7 @@ class WashuGbm(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_total_mRNA(self):
         df_type = 'total_miRNA'
@@ -157,7 +159,7 @@ class WashuGbm(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_xcell(self):
         df_type = 'xcell'

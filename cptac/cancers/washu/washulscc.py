@@ -32,6 +32,9 @@ class WashuLscc(Source):
             "cibersort" : "CIBERSORT.Output_Abs_LSCC.txt.gz",
             "CNV" : "LSCC.gene_level.from_seg.filtered.tsv.gz",
             "mapping" : "gencode.v22.annotation.gtf.gz",
+            "mature_miRNA"      : "LSCC_mature_miRNA_combined.tsv.gz",
+            "precursor_miRNA"   : "LSCC_precursor_miRNA_combined.tsv.gz",
+            "total_miRNA"       : "LSCC_total_miRNA_combined.tsv.gz",
             "miRNA" : ["LSCC_mature_miRNA_combined.tsv.gz","LSCC_precursor_miRNA_combined.tsv.gz","LSCC_total_miRNA_combined.tsv.gz"],
             "somatic_mutation" : "LSCC_discovery.dnp.annotated.exonic.maf.gz",
             "transcriptomics" : ["LSCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz","LSCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
@@ -140,13 +143,13 @@ class WashuLscc(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_mature_miRNA(self):
         df_type = 'mature_miRNA'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
-     
+            
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias', 'Derives_from'])
             df = df.transpose()
             df.index = df.index.str.replace('\.T$','', regex = True)
@@ -159,7 +162,7 @@ class WashuLscc(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_total_mRNA(self):
         df_type = 'total_miRNA'
@@ -178,7 +181,7 @@ class WashuLscc(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_xcell(self):
         df_type = 'xcell'

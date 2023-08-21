@@ -144,7 +144,7 @@ class WashuCcrcc(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_mature_miRNA(self):
         df_type = 'mature_miRNA'
@@ -163,7 +163,7 @@ class WashuCcrcc(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_total_mRNA(self):
         df_type = 'total_miRNA'
@@ -182,7 +182,7 @@ class WashuCcrcc(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_xcell(self):
         df_type = 'xcell'

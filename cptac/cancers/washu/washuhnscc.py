@@ -31,6 +31,9 @@ class WashuHnscc(Source):
             "cibersort"         : "CIBERSORT.Output_Abs_HNSCC.txt.gz",
             "CNV"               : "HNSCC.gene_level.from_seg.filtered.tsv.gz",
             "mapping"           : "gencode.v22.annotation.gtf.gz",
+            "mature_miRNA"      : "HNSCC_mature_miRNA_combined.tsv.gz",
+            "precursor_miRNA"   : "HNSCC_precursor_miRNA_combined.tsv.gz",
+            "total_miRNA"       : "HNSCC_total_miRNA_combined.tsv.gz",
             "miRNA"             : ["HNSCC_mature_miRNA_combined.tsv.gz","HNSCC_precursor_miRNA_combined.tsv.gz","HNSCC_total_miRNA_combined.tsv.gz"],
             # "readme"            : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"],
             "somatic_mutation"  : "HNSCC_discovery.dnp.annotated.exonic.maf.gz",
@@ -162,7 +165,6 @@ class WashuHnscc(Source):
 
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
             df = df.transpose()
-            df = df_tools.average_replicates(df, common = '\.\d$') # average duplicates for C3L-02617 and C3N-02727
             df.index = df.index.str.replace('\.T$','', regex = True)
             df.index = df.index.str.replace('\.A$','.N', regex = True)
             df.index.name = 'Patient_ID'                
@@ -173,16 +175,15 @@ class WashuHnscc(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_mature_miRNA(self):
         df_type = 'mature_miRNA'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
-
+            
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias', 'Derives_from'])
             df = df.transpose()
-            df = df_tools.average_replicates(df, common = '\.\d$') # average duplicates for C3L-02617 and C3N-02727
             df.index = df.index.str.replace('\.T$','', regex = True)
             df.index = df.index.str.replace('\.A$','.N', regex = True)
             df.index.name = 'Patient_ID'                
@@ -193,16 +194,15 @@ class WashuHnscc(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_total_mRNA(self):
         df_type = 'total_miRNA'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
-             
+            
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
             df = df.transpose()
-            df = df_tools.average_replicates(df, common = '\.\d$') # average duplicates for C3L-02617 and C3N-02727
             df.index = df.index.str.replace('\.T$','', regex = True)
             df.index = df.index.str.replace('\.A$','.N', regex = True)
             df.index.name = 'Patient_ID'                
@@ -213,7 +213,7 @@ class WashuHnscc(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_xcell(self):
         df_type = 'xcell'

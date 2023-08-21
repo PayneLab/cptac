@@ -32,6 +32,9 @@ class WashuLuad(Source):
             "cibersort"         : "CIBERSORT.Output_Abs_LUAD.txt.gz",
             "CNV"               : "LUAD.gene_level.from_seg.filtered.tsv.gz",
             "mapping"           : "gencode.v22.annotation.gtf.gz",
+            "mature_miRNA"      : "LUAD_mature_miRNA_combined.tsv.gz",
+            "precursor_miRNA"   : "LUAD_precursor_miRNA_combined.tsv.gz",
+            "total_miRNA"       : "LUAD_total_miRNA_combined.tsv.gz",
             "miRNA"             : ["LUAD_mature_miRNA_combined.tsv.gz","LUAD_precursor_miRNA_combined.tsv.gz","LUAD_total_miRNA_combined.tsv.gz"],
             # "readme"            : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"],
             "somatic_mutation"  : "LUAD_discovery.dnp.annotated.exonic.maf.gz",
@@ -125,13 +128,11 @@ class WashuLuad(Source):
             self.save_df(df_type, df)
 
     def load_miRNA(self):
-        """Loads the miRNA dataset into the _data dictionary by separately loading precursor, mature, and total miRNA."""
         self.load_precursor_miRNA()
         self.load_mature_miRNA()
         self.load_total_mRNA()
 
     def load_precursor_miRNA(self):
-        """Loads the precursor_miRNA dataset into the _data dictionary, appropriately handling patient ID labels and sorting."""
         df_type = 'precursor_miRNA'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -148,10 +149,9 @@ class WashuLuad(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_mature_miRNA(self):
-        """Loads the mature_miRNA dataset into the _data dictionary, appropriately handling patient ID labels and sorting."""
         df_type = 'mature_miRNA'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -168,10 +168,9 @@ class WashuLuad(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_total_mRNA(self):
-        """Loads the total_miRNA dataset into the _data dictionary, appropriately handling patient ID labels and sorting."""
         df_type = 'total_miRNA'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -188,7 +187,7 @@ class WashuLuad(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_xcell(self):
         """Loads the xcell dataset into the _data dictionary, appropriately handling patient ID labels."""
