@@ -11,6 +11,7 @@
 
 from cptac.cancers.cancer import Cancer
 
+# Import various BRCA data sources
 from cptac.cancers.bcm.bcmbrca import BcmBrca
 from cptac.cancers.broad.broadbrca import BroadBrca
 from cptac.cancers.umich.umichbrca import UmichBrca
@@ -19,22 +20,35 @@ from cptac.cancers.mssm.mssm import Mssm
 from cptac.cancers.harmonized.harmonized import Harmonized
 
 class Brca(Cancer):
-    """Class to manage BRCA data from various sources.
+    """Manages BRCA (Breast Cancer) data from various sources.
     
-    Extends the Cancer class and initializes the BRCA data from different sources.
+    This class extends the base Cancer class and initializes the BRCA data from 
+    a variety of sources including BCM, Broad Institute, MSSM, University of Michigan, 
+    Washington University, and a Harmonized dataset. 
+
+    Attributes:
+        _sources (dict): A dictionary holding data from different sources.
     """
 
     def __init__(self, no_internet=False):
         """Initializes the Brca object.
         
         Args:
-            no_internet (bool): If True, the object will not attempt to download data from the internet. Default is False.
+            no_internet (bool): If True, the object will not attempt to download data from the internet. 
+                                Default is False.
+
+        Raises:
+            ValueError: If the 'no_internet' argument is not of boolean type.
         """
+        if not isinstance(no_internet, bool):
+            raise ValueError("The 'no_internet' argument must be of boolean type.")
+
         super().__init__(cancer_type="brca")
 
         classes = {'bcm': BcmBrca, 'broad': BroadBrca, 'mssm': Mssm, 
                    'umich': UmichBrca, 'washu': WashuBrca, 'harmonized': Harmonized}
         
+        # Populate the _sources attribute with data from different sources
         self._sources = {key: value(no_internet=no_internet) if key not in ['mssm', 'harmonized'] 
                          else value(filter_type='brca', no_internet=no_internet) 
                          for key, value in classes.items()}

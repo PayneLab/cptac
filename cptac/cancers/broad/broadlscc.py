@@ -16,10 +16,13 @@ from cptac.cancers.source import Source
 
 class BroadLscc(Source):
     def __init__(self, no_internet=False):
-        """Define which broadlscc dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """
+        Initialize the BroadLscc class by setting up required parameters and
+        calling the parent's __init__ function.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        no_internet (bool, optional): If set to True, skips the index update step which requires an internet connection.
+        This is useful in situations with spotty internet connections.
         """
         
         # Define data files and their corresponding loading functions
@@ -36,7 +39,13 @@ class BroadLscc(Source):
         super().__init__(cancer_type="lscc", source='broad', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_mapping(self):
-        """Load the mapping data, if it has not been loaded yet"""
+        """
+        Load the mapping files and process them accordingly.
+
+        This method locates the mapping files in the specified directory, reads the files,
+        and processes the data to create a dictionary for broad keys and broad gene names.
+        These dictionaries are then stored in the _helper_tables attribute for later use.
+        """
         df_type = 'mapping'
         
         if not self._helper_tables:
@@ -53,7 +62,7 @@ class BroadLscc(Source):
                     broad_key = broad_key.set_index("sample_id") # Set broad id as index
                     # Add tissue type to patient ID
                     broad_key["Patient_ID"] = broad_key["GDC_id"] + broad_key["tissue_type"] 
-                    # Standardize patient ID format
+                    # Standardize patient ID format by removing "Tumor" and replacing "Normal" with ".N"
                     broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Tumor", "", regex=True)
                     broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
                     # Convert dataframe to dictionary
@@ -71,7 +80,14 @@ class BroadLscc(Source):
                     self._helper_tables["broad_gene_names"] = broad_gene_names
 
     def load_transcriptomics(self):
-        """Load transcriptomics data, if it has not been loaded yet"""
+        """
+        Load transcriptomics data, process it and store it in the _data attribute.
+
+        This method first checks if the transcriptomics data is already loaded.
+        If not, it locates the transcriptomics file, reads the data, and processes it.
+        It joins the data with gene names and renames the colmns with CPTAC IDs.
+        The processed dataframe is then saved into the _data attribute.
+        """
         df_type = 'transcriptomics'
 
         if df_type not in self._data:

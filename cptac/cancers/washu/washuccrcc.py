@@ -17,30 +17,35 @@ from cptac.cancers.source import Source
 from cptac.cancers.mssm.mssm import Mssm
 
 class WashuCcrcc(Source):
+    """
+    This class handles the loading of WashU ccRCC dataset.
+    """
     def __init__(self, no_internet=False):
-        """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """
+        Initialize the class by defining the available dataframes and other class level variables.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. 
+        Default is False.
         """
 
-        # Set some needed variables, and pass them to the parent Dataset class __init__ function
-
+        # Define the data files
         self.data_files = {
             "cibersort"         : "CIBERSORT.Output_Abs_ccRCC.txt.gz",
             "CNV"               : "ccRCC.gene_level.from_seg.filtered.tsv.gz",
             "mapping"           : "gencode.v22.annotation.gtf.gz",
+            "mature_miRNA"      : "ccRCC_mature_miRNA_combined.tsv.gz",
+            "precursor_miRNA"   : "ccRCC_precursor_miRNA_combined.tsv.gz",
+            "total_miRNA"       : "ccRCC_total_miRNA_combined.tsv.gz",
             "miRNA"             : ["ccRCC_precursor_miRNA_combined.tsv.gz", "ccRCC_mature_miRNA_combined.tsv.gz", "ccRCC_total_miRNA_combined.tsv.gz"],
-            # "readme"            : ["README_miRNA", "README_CIBERSORT", "README_xCell", "README_somatic_mutation_WXS", "README_gene_expression", "README.boxnote", "README_ESTIMATE_WashU"],
             "somatic_mutation"  : "ccRCC_discovery.dnp.annotated.exonic.maf.gz",
             "transcriptomics"   : ["ccRCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz", "ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
             "tumor_purity"      : "CPTAC_pancan_RNA_tumor_purity_ESTIMATE_WashU.tsv.gz",
             "xcell"             : "ccRCC_xCell.txt.gz",
-            "hla_typing": "hla.sample.ct.10152021.sort.tsv.gz"
+            "hla_typing"        : "hla.sample.ct.10152021.sort.tsv.gz"
         }
 
-        # self._readme_files = {}
-
+        # Define the load functions for different data types
         self.load_functions = {
             'transcriptomics'   : self.load_transcriptomics,
             'somatic_mutation'  : self.load_somatic_mutation,
@@ -49,22 +54,26 @@ class WashuCcrcc(Source):
             'cibersort'         : self.load_cibersort,
             'CNV'               : self.load_CNV,
             'tumor_purity'      : self.load_tumor_purity,
-            #'readme'            : self.load_readme,
-            "hla_typing": self.load_hla_typing
+            "hla_typing"        : self.load_hla_typing
         }
 
         # Call the parent class __init__ function
         super().__init__(cancer_type="ccrcc", source="washu", data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_transcriptomics(self):
+        """
+        Load the transcriptomics data.
+
+        It handles both tumor and normal samples and combines them into a single dataframe.
+        """
         df_type = 'transcriptomics'
         if df_type not in self._data:
             file_path_list = self.locate_files(df_type)
-            # loop over list of file paths
+            # Loop over list of file paths to load each type of transcriptomics data (tumor/normal)
             for file_path in file_path_list:
-                path_elements = file_path.split(os.sep) # Get a list of the levels of the path
                 file_name = os.path.basename(file_path)
 
+                # Load tumor transcriptomics data
                 if file_name == "ccRCC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
                     df = pd.read_csv(file_path, sep="\t")
                     df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
@@ -72,9 +81,10 @@ class WashuCcrcc(Source):
                     df = df.sort_index()
                     df = df.T
                     df.index.name = "Patient_ID"
-                    df.index = df.index.str.replace(r"-T", "", regex=True) #remove label for tumor samples
+                    df.index = df.index.str.replace(r"-T", "", regex=True) # Remove label for tumor samples
                     self._helper_tables["transcriptomics_tumor"] = df
                     
+                # Load normal transcriptomics data
                 if file_name == "ccRCC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz":
                     df = pd.read_csv(file_path, sep="\t")
                     df = df.rename(columns={"gene_name": "Name","gene_id": "Database_ID"})
@@ -82,22 +92,15 @@ class WashuCcrcc(Source):
                     df = df.sort_index()
                     df = df.T
                     df.index.name = "Patient_ID"
-                    df.index = df.index.str.replace(r"-A", ".N", regex=True) #remove label for tumor samples
+                    df.index = df.index.str.replace(r"-A", ".N", regex=True) # Modify label for normal samples
                     self._helper_tables["transcriptomics_normal"] = df
 
             # Combine the two transcriptomics dataframes
             rna_tumor = self._helper_tables.get("transcriptomics_tumor")
-            rna_normal = self._helper_tables.get("transcriptomics_normal") # Normal entries are already marked with 'N' on the end of the ID
-            if rna_tumor is None or rna_normal is None:
-                print("rna_tumor or rna_normal is None")
-                return
-            if not isinstance(rna_tumor, pd.DataFrame) or not isinstance(rna_normal, pd.DataFrame):
-                print("rna_tumor or rna_normal is not a DataFrame")
-                return
-       
+            rna_normal = self._helper_tables.get("transcriptomics_normal") 
             rna_combined = pd.concat([rna_tumor, rna_normal])
 
-            # save df in self._data
+            # Save dataframe in self._data
             self.save_df(df_type, rna_combined)
 
     def load_somatic_mutation(self):
@@ -141,7 +144,7 @@ class WashuCcrcc(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_mature_miRNA(self):
         df_type = 'mature_miRNA'
@@ -160,7 +163,7 @@ class WashuCcrcc(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_total_mRNA(self):
         df_type = 'total_miRNA'
@@ -179,7 +182,7 @@ class WashuCcrcc(Source):
             tumor = tumor.sort_values(by=["Patient_ID"])
             all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, all_df)
+            self.save_df('miRNA', all_df)
 
     def load_xcell(self):
         df_type = 'xcell'

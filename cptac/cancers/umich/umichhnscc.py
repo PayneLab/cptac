@@ -16,11 +16,10 @@ from cptac import CPTAC_BASE_DIR
 
 class UmichHnscc(Source):
     def __init__(self, no_internet=False):
-        """
-        This class loads the dataset for the University of Michigan's Head and Neck Squamous Cell Carcinoma (HNSCC) study.
+        """Initializes an instance of the UmichHnscc class.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        no_internet (bool, optional): A flag indicating if there is an internet connection. Defaults to False.
         """
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
@@ -44,6 +43,13 @@ class UmichHnscc(Source):
         super().__init__(cancer_type="hnscc", source="umich", data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_phosphoproteomics(self):
+        """Loads phosphoproteomics data.
+
+        This method retrieves phosphoproteomics data from the appropriate files, performs a
+        series of transformations and cleaning operations, and then stores the cleaned data
+        inthe '_data' attribute. This method is specifically designed to handle the structure
+        and idiosyncrasies of the HNSCC phosphoproteomics data.
+        """
         df_type = 'phosphoproteomics'
 
         if df_type not in self._data:
@@ -105,6 +111,13 @@ class UmichHnscc(Source):
             self.save_df(df_type, df)
 
     def load_proteomics(self):
+        """Loads proteomics data.
+
+        This method retrieves proteomics data from the appropriate files, performs a 
+        series of transformations and cleaning operations, and then stores the cleaned data
+        in the '_data' attribute. This method is specifically designed to handel the structure
+        and idiosyncrasies of the HNSCC proteomics data.
+        """
         df_type = 'proteomics'
 
         if df_type not in self._data:
@@ -152,6 +165,13 @@ class UmichHnscc(Source):
             self.save_df(df_type, df)
 
     def load_acetylproteomics(self):
+        """Loads acetylproteomics data.
+
+        This method retrieves acetylproteomics data from the appropriate files, performs a 
+        series of transformations and cleaning operations, and then stores the cleaned data
+        int the '_data' attribute. This method is specifically designed to handle the structure
+        and idiosyncrasies of the HNSCC acetylproteomics data.
+        """
         df_type = 'acetylproteomics'
 
         if df_type not in self._data:

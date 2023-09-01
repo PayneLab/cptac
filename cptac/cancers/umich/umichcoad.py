@@ -38,7 +38,8 @@ class UmichCoad(Source):
         """Loads mapping from 'Label' to 'Sample Code' into _helper_tables['map_ids'].
 
         Reads the 'CRC_Prospective sample info.xlsx' file and creates a dictionary mapping
-        'Label' to 'Sample Code'. This is used in subsequent load methods to map aliquots to patient IDs.
+        'Label' to 'Sample Code'. 'Label' refers to the unique identifiers assigned to the samples,
+        while 'Sample Code' represents the patient IDs. This is used in subsequent load methods to map aliquots to patient IDs.
         """
         df_type = 'mapping'
 
@@ -61,21 +62,18 @@ class UmichCoad(Source):
             # perform initial checks and get file path (defined in source.py, the parent class)
             file_path = self.locate_files(df_type)
             
+            # Load the dataset
             df = pd.read_csv(file_path, sep='\t') 
-            # Parse a few columns out of the "Index" column that we'll need for our multiindex
+
+            # Splitting and processing the 'Index' column to get relevant information
             df[['Database_ID','Transcript_ID',"Gene_ID","Havana_gene","Havana_transcript","Transcript","Name","Site"]] = df.Index.str.split("\\|",expand=True)
             df[['num1','start',"end","detected_phos","localized_phos","Site"]] = df.Site.str.split("_",expand=True) 
 
-            # Some rows have at least one localized phosphorylation site, but also have other 
-            # phosphorylations that aren't localized. We'll drop those rows, if their localized sites 
-            # are duplicated in another row, to avoid creating duplicates, because we only preserve information 
-            # about the localized sites in a given row. However, if the localized sites aren't duplicated in 
-            # another row, we'll keep the row.
+            # Filtering out rows with unlocalized phosphorylation sites
             unlocalized_to_drop = df.index[~df["detected_phos"].eq(df["localized_phos"]) & \
                                            df.duplicated(["Name", "Site", "Peptide", "Database_ID"], keep=False)]
-            # dectected_phos of the split "Index" column is number of phosphorylations detected, and 
-            # localized_phos is number of phosphorylations localized, so if the two values aren't equal, 
-            #the row has at least one unlocalized site
+
+            # Further filtering and processing
             df = df.drop(index=unlocalized_to_drop)
 
             df = df[df['Site'].notna()] # only keep columns with phospho site 
@@ -148,8 +146,6 @@ class UmichCoad(Source):
                    'RefInt_ColonRef21', 'RefInt_ColonRef22-1']
             df = df.drop(drop_cols, axis='index')
 
-            # if self.version == "1.1":
-            # FIXME: The following code was inside the if block. It should work fine without it.
             self.load_mapping()
             mapping_dict = self._helper_tables["map_ids"]
 

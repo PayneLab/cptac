@@ -6,6 +6,7 @@ from hashlib import md5
 from tqdm import tqdm
 import cptac
 from cptac.exceptions import *
+import pandas as pd
 
 # Set directory constants
 DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data")

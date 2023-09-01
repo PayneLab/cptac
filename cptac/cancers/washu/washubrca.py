@@ -16,11 +16,19 @@ from cptac.cancers.source import Source
 from cptac.cancers.mssm.mssm import Mssm
 
 class WashuBrca(Source):
-    def __init__(self, no_internet=False):
-        """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+    """The WashuBrca class is a subclass of the Source class in the CPTAC data package. It is responsible for loading and processing specific cancer data from the WashU source.
 
-        Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+    Attributes:
+        data_files (dict): A dictionary where the keys are names of data files, and the values are the corresponding file names.
+        load_functions (dict): A dictionary where the keys are types of data, and the values are the corresponding data loading functions.
+    
+    """
+
+    def __init__(self, no_internet=False):
+        """Initialize the WashBrca class by setting up the data_files and load_functions dictionaries, and calling the parent class's __init__ function.
+
+        Args:
+            no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
         """
 
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
@@ -55,6 +63,7 @@ class WashuBrca(Source):
         super().__init__(cancer_type="brca", source="washu", data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_transcriptomics(self):
+        """Load and process the transcriptomics data file, and save it in the _data dictionary."""
         df_type = 'transcriptomics'
         if df_type not in self._data:
             # perform initial checks and get file path (defined in source.py, the parent class)
@@ -73,6 +82,7 @@ class WashuBrca(Source):
             self.save_df(df_type, df)
 
     def load_somatic_mutation(self):
+        """Load and process the somatic mutation data file, and save it in the _data dictionary."""
         df_type = 'somatic_mutation'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -92,6 +102,7 @@ class WashuBrca(Source):
             self.save_df(df_type, df)
 
     def load_xcell(self):
+        """Load and process the xcell data file, and save it int the _data dictionary."""
         df_type = 'xcell'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -106,6 +117,7 @@ class WashuBrca(Source):
             self.save_df(df_type, df)
 
     def load_cibersort(self):
+        """Load and process the cibersoty data file, and save it in the _data dictionary."""
         df_type = 'cibersort'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -132,6 +144,7 @@ class WashuBrca(Source):
             self._helper_tables["CNV_gene_ids"] = df
 
     def load_CNV(self):
+        """Load and process the CNV data file, and save it in the _data dictionary."""
         df_type = 'CNV'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -152,6 +165,7 @@ class WashuBrca(Source):
             self.save_df(df_type, df)
 
     def load_tumor_purity(self):
+        """Load and process the tumor purity data file, and save it in the _data dictionary."""
         df_type = 'tumor_purity'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -171,6 +185,7 @@ class WashuBrca(Source):
             self.save_df(df_type, df)
 
     def load_hla_typing(self):
+        """Load and process the HLA typing data file, and save it in the _data dictionary."""
         df_type = 'hla_typing'
 
         if df_type not in self._data:

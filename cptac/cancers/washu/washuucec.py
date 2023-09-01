@@ -31,7 +31,10 @@ class WashuUcec(Source):
             "cibersort"         : "CIBERSORT.Output_Abs_EC.txt.gz",
             "CNV"               : "UCEC.gene_level.from_seg.filtered.tsv.gz",
             "mapping"           : "gencode.v22.annotation.gtf.gz",
-            "miRNA"             : ["EC_precursor_miRNA_combined.tsv.gz","EC_mature_miRNA_combined.tsv.gz","EC_total_miRNA_combined.tsv.gz"],
+            "mature_miRNA"      : "UCEC_mature_miRNA_combined.tsv.gz",
+            "precursor_miRNA"   : "UCEC_precursor_miRNA_combined.tsv.gz",
+            "total_miRNA"       : "UCEC_total_miRNA_combined.tsv.gz",
+            "miRNA"             : ["UCEC_precursor_miRNA_combined.tsv.gz","UCEC_mature_miRNA_combined.tsv.gz","UCEC_total_miRNA_combined.tsv.gz"],
             # "readme"          : ["README_miRNA","README_CIBERSORT","README_xCell","README_somatic_mutation_WXS","README_gene_expression","README.boxnote","README_ESTIMATE_WashU"],
             "somatic_mutation"  : "EC_discovery.dnp.annotated.exonic.maf.gz",
             "transcriptomics"   : ["EC_tumor_RNA-Seq_Expr_WashU_FPKM.tsv.gz","EC_NAT_RNA-Seq_Expr_WashU_FPKM.tsv.gz"],
@@ -60,6 +63,7 @@ class WashuUcec(Source):
     # Follows are loading methods for each dataframe
     # Load Transcriptomics dataframe
     def load_transcriptomics(self):
+        """Loads and formats the transcriptomics data."""
         df_type = 'transcriptomics'
         if df_type not in self._data:
             file_path_list = self.locate_files(df_type)
@@ -136,40 +140,55 @@ class WashuUcec(Source):
 
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
             df = df.transpose()
-            df = df_tools.average_replicates(df, common = '\.\d$') # average replicates for C3N-00326
             df.index = df.index.str.replace('\.T$','', regex = True)
             df.index = df.index.str.replace('\.A$','.N', regex = True)
             df.index.name = 'Patient_ID'                
+            # Sort
+            normal = df.loc[df.index.str.contains('\.N$', regex =True)]
+            normal = normal.sort_values(by=["Patient_ID"])
+            tumor = df.loc[~ df.index.str.contains('\.N$', regex =True)]
+            tumor = tumor.sort_values(by=["Patient_ID"])
+            all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, df)
+            self.save_df('miRNA', all_df)
 
     def load_mature_miRNA(self):
         df_type = 'mature_miRNA'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
-
+            
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias', 'Derives_from'])
             df = df.transpose()
-            df = df_tools.average_replicates(df, common = '\.\d$') # average replicates for C3N-00326
             df.index = df.index.str.replace('\.T$','', regex = True)
             df.index = df.index.str.replace('\.A$','.N', regex = True)
             df.index.name = 'Patient_ID'                
+            # Sort
+            normal = df.loc[df.index.str.contains('\.N$', regex =True)]
+            normal = normal.sort_values(by=["Patient_ID"])
+            tumor = df.loc[~ df.index.str.contains('\.N$', regex =True)]
+            tumor = tumor.sort_values(by=["Patient_ID"])
+            all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, df)
+            self.save_df('miRNA', all_df)
 
     def load_total_mRNA(self):
         df_type = 'total_miRNA'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
-
+            
             df = pd.read_csv(file_path, delimiter = '\t', index_col = ['Name', 'ID','Alias'])
             df = df.transpose()
-            df = df_tools.average_replicates(df, common = '\.\d$') # average replicates for C3N-00326
             df.index = df.index.str.replace('\.T$','', regex = True)
             df.index = df.index.str.replace('\.A$','.N', regex = True)
             df.index.name = 'Patient_ID'                
+            # Sort
+            normal = df.loc[df.index.str.contains('\.N$', regex =True)]
+            normal = normal.sort_values(by=["Patient_ID"])
+            tumor = df.loc[~ df.index.str.contains('\.N$', regex =True)]
+            tumor = tumor.sort_values(by=["Patient_ID"])
+            all_df = pd.concat([tumor, normal])
             # save df in self._data
-            self.save_df(df_type, df)
+            self.save_df('miRNA', all_df)
 
     # Load xCell dataframe
     def load_xcell(self):

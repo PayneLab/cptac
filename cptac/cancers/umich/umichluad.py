@@ -15,25 +15,27 @@ import cptac.tools.dataframe_tools as df_tools
 from cptac import CPTAC_BASE_DIR
 
 class UmichLuad(Source):
+    """
+    This class handles data loading for the Lung Adenocarcinoma (LUAD) dataset from University of Michigan.
+    """
     def __init__(self, no_internet=False):
-        """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """
+        Initialize the UmichLuad object. It initializes data_files and load_functions which contains the name of the
+        dataframes and their corresponding load functions. This information will be passed to the parent Source class.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        no_internet (bool, optional): Determines whether to skips the index update step, useful when there's no internet connection.
         """
 
-        # Set some needed variables, and pass them to the parent Dataset class __init__ function
-
+        # Define the available data files
         self.data_files = {
             "proteomics" : "Report_abundance_groupby=protein_protNorm=MD_gu=2.tsv.gz",                    
             "phosphoproteomics" : "Report_abundance_groupby=multi-site_protNorm=MD_gu=2.tsv.gz",
             "acetylproteomics" : "abundance_multi-site_MD.tsv.gz",
-            "mapping" : "aliquot_to_patient_ID.tsv.gz",
-            # "README_v3.boxnote" is proteomics
-            # "README.boxnote" is phosphoproteomics 
-            # "readme" : ["README_v3.boxnote", "README.boxnote"],            
+            "mapping" : "aliquot_to_patient_ID.tsv.gz",          
         }
 
+        # Define the load functions for the different data types
         self.load_functions = {
             'phosphoproteomics' : self.load_phosphoproteomics,
             'proteomics' : self.load_proteomics,
@@ -44,22 +46,28 @@ class UmichLuad(Source):
         super().__init__(cancer_type="luad", source="umich", data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_mapping(self):
+        """
+        Loads the mapping file which maps aliquot_ID to patient_ID. This file is needed for correct
+        identification and correlation of data between different types of dataframes (e.g., proteomics,
+        phosphoproteomics, etc.)
+        """
         df_type = 'mapping'
 
         if not self._helper_tables:
             file_path = self.locate_files(df_type)
-            
-            # aliquot_to_patient_ID.tsv contains only unique aliquots (no duplicates), 
-            # so no need to slice out cancer specific aliquots
             df = pd.read_csv(file_path, sep = "\t", index_col = 'aliquot_ID', usecols = ['aliquot_ID', 'patient_ID'])
             map_dict = df.to_dict()['patient_ID'] # create dictionary with aliquot_ID as keys and patient_ID as values
             self._helper_tables["map_ids"] = map_dict
 
     def load_phosphoproteomics(self):
+        """
+        Loads the phosphoproteomics data. It processes the data to a clean, usable format and stores it in 
+        the _data attribute
+        """
         df_type = 'phosphoproteomics'
 
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
+            # perform initial checks and get file path 
             file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep = "\t") 
@@ -123,10 +131,14 @@ class UmichLuad(Source):
             self.save_df(df_type, df)
 
     def load_proteomics(self):
+        """
+        Loads the proteomics data. It processes the data to a clean, usable format and stores it in
+        the _data attribute.
+        """
         df_type = 'proteomics'
 
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
+            # perform initial checks and get file path 
             file_path = self.locate_files(df_type)
             
             df = pd.read_csv(file_path, sep = "\t")
@@ -175,10 +187,14 @@ class UmichLuad(Source):
             self.save_df(df_type, df)
 
     def load_acetylproteomics(self):
+        """
+        Loads the acetylproteomics data. It processes the data to a clean, usable format and stores it in
+        the _data attribute.
+        """
         df_type = 'acetylproteomics'
 
         if df_type not in self._data:
-            # perform initial checks and get file path (defined in source.py, the parent class)
+            # perform initial checks and get file path
             file_path = self.locate_files(df_type)
 
             df = pd.read_csv(file_path, sep = "\t")

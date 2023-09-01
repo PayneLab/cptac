@@ -13,12 +13,12 @@ import pandas as pd
 from cptac.cancers.source import Source
 
 class Harmonized(Source):
-    """
-    Harmonized is a child class of Source.
-
-    This class is used to handle data loading for different dataframes of harmonized source. 
-    It overrides the load_somatic_mutation and load_ancestry_prediction methods from Source class.
-    """
+    TUMOR_CODES = {
+        'brca': 'BRCA', 'ccrcc': 'CCRCC', 'ucec': 'UCEC',
+        'gbm': 'GBM', 'hnscc': 'HNSCC', 'lscc': 'LSCC',
+        'luad': 'LUAD', 'pdac': 'PDA', 'hcc': 'HCC',
+        'coad': 'CO', 'ov': 'OV'
+    }
 
     def __init__(self, filter_type, no_internet=False):
         """
@@ -47,10 +47,14 @@ class Harmonized(Source):
     def load_somatic_mutation(self):
         """
         Load the somatic mutation data for the specific cancer type.
+
+        Returns:
+        None. The data is stored internally in the _data dictionary.
         """
         df_type = 'somatic_mutation'
 
         if df_type not in self._data:
+            # Locate the appropriate file
             file_path = self.locate_files(df_type)
 
             tumor_codes = {'brca':'BRCA', 'ccrcc':'CCRCC',
@@ -58,18 +62,28 @@ class Harmonized(Source):
                            'lscc':'LSCC', 'luad':'LUAD', 'pdac':'PDA',
                            'hcc':'HCC', 'coad':'CO', 'ov':'OV'}
 
+            # Load the data, filtering for the specific tumor type
             df = pd.read_csv(file_path, sep='\t', low_memory = False)
-            df = df.loc[df['COHORT'] == tumor_codes[self.cancer_type]]
+            df = df.loc[df['COHORT'] == self.TUMOR_CODES[self.cancer_type]]
+
+            # Add patient ID from the sample barcode
             df['Patient_ID'] = df.loc[:, 'Tumor_Sample_Barcode']
+
+            # Rename certain columns for clarity
             df = df.rename(columns={
                      "Hugo_Symbol":"Gene",
                      "Variant_Classification":"Mutation",
                      "Protein_Change":"Location"})
 
+            # Set patient ID as index and order columns
             df = df.set_index("Patient_ID")
-            df = df[ ['Gene'] + ["Mutation"] + ["Location"] + [ col for col in df.columns if col not in ["Gene","Mutation","Location"] ] ]
+            cols_order = ['Gene', 'Mutation', 'Location'] + [col for col in df.columns if col not in {'Gene', 'Mutation', 'Location'}]
+            df = df[cols_order]
+            
+            # Remove trailing "_T" from patient IDs
             df.index = df.index.str.replace(r"_T", "", regex=True)
 
+            # Save the dataframe internally
             self.save_df(df_type, df)
 
     def load_ancestry_prediction(self):

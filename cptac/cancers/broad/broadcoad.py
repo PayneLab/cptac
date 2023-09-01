@@ -16,13 +16,12 @@ from cptac.cancers.source import Source
 
 class BroadCoad(Source):
     def __init__(self, no_internet=False):
-        """Initializes the BroadCoad class with specified dataframes and load functions.
+        """Initialize the BroadCoad class by setting up required parameters and calling the parent's __init__ function.
 
         Parameters:
-        no_internet (bool, optional): If true, skips the index update step because it requires an internet connection.
+        no_internet (bool, optional): If True, skips the index update step, useful in situations with spotty internet connections.
         """
-        
-        # Define necessary files and loading functions
+        # Define data files and loading functions
         self.data_files = {
             "transcriptomics" : "Colon.rsem_transcripts_tpm.txt.gz",
             "mapping" : ["sample_descriptions.tsv.gz", "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz"]
@@ -36,7 +35,13 @@ class BroadCoad(Source):
         super().__init__(cancer_type="coad", source='broad', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_mapping(self):
-        """Loads mapping data from specified files if _helper_tables is empty."""
+        """
+        Load the mapping files and process them accordingly.
+
+        This method locates the mapping files in the specified directory, reads the files,
+        and processes the data to create a dictionary for broad keys and broad gene names.
+        These dictionaries are then stored in the _helper_tables attribute for later use.
+        """
         
         if not self._helper_tables:
             file_path_list = self.locate_files('mapping')
@@ -69,7 +74,14 @@ class BroadCoad(Source):
                     self._helper_tables["broad_gene_names"] = broad_gene_names
 
     def load_transcriptomics(self):
-        """Loads transcriptomics data, adds gene names and saves it in self._data."""
+        """
+        Loads transcriptomcis data, process it and store it in the _data attribute.
+
+        This method first checks if the transcriptomics data is already loaded.
+        If not, it locates the transcriptomics file, reads the data, and processes it.
+        It joins the data with gene names and renames the columns with CPTAC IDs.
+        The processed dataframe is then saved into the _data attribute.
+        """
 
         if 'transcriptomics' not in self._data:
             # Load initial transcriptomic data

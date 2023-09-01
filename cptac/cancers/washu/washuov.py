@@ -17,10 +17,10 @@ from cptac.cancers.mssm.mssm import Mssm
 
 class WashuOv(Source):
     def __init__(self, no_internet=False):
-        """Define which dataframes as are available in the self.load_functions dictionary variable, with names as keys.
+        """Initialize WashuOv object.
 
         Parameters:
-        no_internet (bool, optional): Whether to skip the index update step because it requires an internet connection. This will be skipped automatically if there is no internet at all, but you may want to manually skip it if you have a spotty internet connection. Default is False.
+        no_internet (bool, optional): If True, skip the index update step. Default is False.
         """
         
         # Set some needed variables, and pass them to the parent Dataset class __init__ function
@@ -56,6 +56,11 @@ class WashuOv(Source):
         super().__init__(cancer_type="ov", source='washu', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_transcriptomics(self):
+        """Load the transcriptomics dataframe.
+
+        This method first checks if the dataframe is already loaded. If not,
+        it loads the dataframe, processes it, and saves it in the _data attribute.
+        """
         df_type = 'transcriptomics'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -72,6 +77,11 @@ class WashuOv(Source):
             self.save_df(df_type, df)
 
     def load_somatic_mutation(self):
+        """Load the somatic mutation dataframe.
+
+        This method first checks if the dataframe is already loaded. If not,
+        it loads the dataframe, processes it, and saves it in the _data attribute.
+        """
         df_type = 'somatic_mutation'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -94,6 +104,11 @@ class WashuOv(Source):
 
     
     def load_xcell(self):
+        """Load the xcell dataframe.
+
+        This method first checks if the dataframe is already loaded. If not,
+        it loads the dataframe, processes it, and saves it in the _data attribute.
+        """
         df_type = 'xcell'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -108,6 +123,11 @@ class WashuOv(Source):
             self.save_df(df_type, df)
 
     def load_cibersort(self):
+        """Load the cibersort dataframe.
+
+        This method first checks if the dataframe is already loaded. If not,
+        it loads the dataframe, processes it, and saves it in the _data attribute.
+        """
         df_type = 'cibersort'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -121,6 +141,11 @@ class WashuOv(Source):
             self.save_df(df_type, df)
 
     def load_mapping(self):
+        """Load the mapping dataframe.
+
+        This method first checks if the dataframe is already loaded. If not,
+        it loads the datframe, processes it, and saves it in the _helper_tables attribute.
+        """
         df_type = 'mapping'
         if "CNV_gene_ids" not in self._helper_tables:
             file_path = self.locate_files(df_type)
@@ -134,6 +159,11 @@ class WashuOv(Source):
             self._helper_tables["CNV_gene_ids"] = df  
 
     def load_CNV(self):
+        """Load the CNV dataframe.
+
+        This method first checks if the dataframe is already loaded. If not,
+        it loads the dataframe, processes it, and saves it in the _data attribute.
+        """
         df_type = 'CNV'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -154,6 +184,11 @@ class WashuOv(Source):
             self.save_df(df_type, df)
 
     def load_tumor_purity(self):
+        """Load the tumor purity dataframe
+
+        This method first checks if the dataframe is already loaded. If not,
+        it loads the dataframe, processes it, and saves it in the _data attribute.
+        """
         df_type = 'tumor_purity'
         if df_type not in self._data:
             file_path = self.locate_files(df_type)
@@ -173,6 +208,11 @@ class WashuOv(Source):
             self.save_df(df_type, df)
 
     def load_miRNA(self):
+        """Load the miRNA dataframe.
+
+        This method first checks if the dataframe is already loaded. If not, 
+        it loads the dataframe, processes it, and saves it in the _data attribute.
+        """
         df_type = 'miRNA'
         if df_type not in self._data:
             file_paths = self.locate_files(df_type)
@@ -187,6 +227,11 @@ class WashuOv(Source):
             self.save_df(df_type, df)
 
     def load_hla_typing(self):
+        """Load the hla_typing dataframe.
+
+        This method first checks if the dataframe is already loaded. If not,
+        it loads the dataframe, processes it, and saves it in the _data attribute.
+        """
         df_type = 'hla_typing'
 
         if df_type not in self._data:
@@ -208,38 +253,3 @@ class WashuOv(Source):
             self.save_df(df_type, df)
 
         return self._data[df_type]
-    # def load_readme(self):
-    #     df_type = 'readme'
-    #     if not self._readme_files:
-    #         file_path_list = self.locate_files(df_type)
-    #         # loop over list of file paths
-    #         for file_path in file_path_list:
-    #             path_elements = file_path.split(os.sep) # Get a list of the levels of the path
-    #             file_name = path_elements[-1]# The last element will be the name of the file. We'll use this to identify files for parsing in the if/elif statements below
-                
-    #             if file_name == "README_miRNA":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_miRNA"] = reader.read()
-                    
-    #             elif file_name == "README_CIBERSORT":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_cibersort"] = reader.read()
-                        
-    #             elif file_name == "README_xCell":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_xcell"] = reader.read()
-                
-    #             elif file_name == "README_somatic_mutation_WXS":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_somatic_mutation"] = reader.read()
-                        
-    #             elif file_name == "README_gene_expression":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_transcriptomics"] = reader.read()
-                    
-    #             elif file_name == "README.boxnote":
-    #                 self._readme_files["readme_cnv"] = get_boxnote_text(file_path)
-                
-    #             elif file_name == "README_ESTIMATE_WashU":
-    #                 with open(file_path, 'r') as reader:
-    #                     self._readme_files["readme_tumor_purity"] = reader.read()

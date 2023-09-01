@@ -88,6 +88,17 @@ class UmichBrca(Source):
             self._helper_tables["not_tumor"] = not_tumor
 
     def load_phosphoproteomics(self):
+        """Load the phosphoproteomics data for the UMICH BRCA dataset.
+
+        This method performs several preprocessing steps, including:
+        - Parsing necessary columns from the "Index" column
+        - Dropping rows with unlocalized phosphorylation sites
+        - Subtracting reference intensities to calculate ratios
+        - Averaging replicates
+        - Renaming and reformatting the Patient_IDs
+
+        The processed DataFrame is then saved into the class's internal data structure.
+        """
         df_type = 'phosphoproteomics'
 
         if df_type not in self._data:

@@ -15,26 +15,35 @@ from cptac.cancers.source import Source
 
 class BroadLuad(Source):
     def __init__(self, no_internet=False):
-        """Defines the available dataframes in the self.load_functions dictionary variable with names as keys.
+        """
+        Initializes the BroadLuad class by defining data files and load functions.
 
         Parameters:
-        no_internet (bool, optional): If True, the index update step which requires an internet connection is skipped. Default is False.
-        """
+        no_internet (bool, optional): If True, skips the index update step which requires an internet connection. 
+                                      Useful in situations with spotty internet connections. Default is False.
         
+        Data Files:
+        - "transcriptomics": Transcriptomics data file for LUAD.
+        - "mapping": Various mapping files used for processing data, including gene names and patient IDs.
+        """
         # Initialize necessary variables and pass them to the parent Dataset class __init__ function
         self.data_files = {
             "transcriptomics" : "LUAD.rsem_transcripts_tpm.txt.gz",
             "mapping" : ["sample_descriptions.tsv.gz", "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz", "aliquot_to_patient_ID.tsv.gz"]
         }
-
         self.load_functions = {
             'transcriptomics' : self.load_transcriptomics,
         }
-
         super().__init__(cancer_type="luad", source='broad', data_files=self.data_files, load_functions=self.load_functions, no_internet=no_internet)
 
     def load_mapping(self):
-        """Loads and preprocesses the mapping files. Generates helper tables for later use."""
+        """
+        Loads and processes the mapping files.
+
+        This method locates the mapping files in the specified directory, reads the files,
+        and processes the data to create a dictionary for broad keys, broad gene names, and aliquot mapping.
+        These dictionaries are then stored in the _helper_tables attribute for later use.
+        """
         df_type = 'mapping'
         
         # If _helper_tables is empty, populate them
@@ -76,7 +85,15 @@ class BroadLuad(Source):
                     self._helper_tables["map_ids"] = df
 
     def load_transcriptomics(self):
-        """Loads and preprocesses the transcriptomics data."""
+        """
+        Load transcriptomics data, process it and store it in the _data attribute.
+
+        This method first checks if the transcriptomics data is already loaded.
+        If not, it locates the transcriptomics file, reads the data, and processes it.
+        It joins the data with gene names and renames the columns with CPTAC IDs and aliquot IDs.
+        It also handles duplications by averaging them.
+        The processed dataframe is then saved into the _data attribute.
+        """
         df_type = 'transcriptomics'
 
         if df_type not in self._data:
