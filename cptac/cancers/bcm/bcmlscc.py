@@ -11,6 +11,7 @@
 
 # Import necessary modules
 import pandas as pd
+import os
 from cptac.cancers.source import Source
 
 class BcmLscc(Source):
@@ -26,7 +27,7 @@ class BcmLscc(Source):
             "circular_RNA" : "LSCC-circRNA_rsem_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
             "mapping" : "gencode.v34.basic.annotation-mapping.txt.gz",
             "transcriptomics" : "LSCC-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
-            "proteomics" : "LSCC_proteomics_gene_abundance_log2_reference_intensity_normalized_Tumor.txt.gz",
+            "proteomics" : ["LSCC_proteomics_gene_abundance_log2_reference_intensity_normalized_Tumor.txt.gz","LSCC_proteomics_gene_abundance_log2_reference_intensity_normalized_Normal.txt.gz"],
             "phosphoproteomics" : "LSCC_phospho_site_abundance_log2_reference_intensity_normalized_Tumor.txt",
             "CNV" : "LSCC_WES_CNV_gene_ratio_log2.txt.gz",
             "miRNA" : "LSCC_miRNAseq_mature_miRNA_RPM_log2_Tumor.txt.gz"
@@ -133,31 +134,68 @@ class BcmLscc(Source):
         # Check if data is already loaded
         if df_type not in self._data:
             # Get file path to the correct data
-            file_path = self.locate_files(df_type)
+            file_path_list = self.locate_files(df_type)
+            # Loop over list of file paths to load each type of proteomics data (tumor/normal)
+            for file_path in file_path_list:
+                file_name = os.path.basename(file_path)
 
-            # Load and process the file
-            df = pd.read_csv(file_path, sep='\t')
-            df.index.name = 'gene'
+                # Load and process the files
+                if file_name == "LSCC_proteomics_gene_abundance_log2_reference_intensity_normalized_Tumor.txt.gz":
+                    df = pd.read_csv(file_path, sep='\t')
+                    df.index.name = 'gene'
 
-            df.set_index('idx', inplace=True)
-            # Load mapping information
-            self.load_mapping()
-            gene_key = self._helper_tables["gene_key"]
+                    df.set_index('idx', inplace=True)
 
-            # Join gene_key to df, reset index, rename columns, set new index and sort
-            proteomics = gene_key.join(df, how='inner')
-            proteomics = gene_key.join(df, how='inner')
-            proteomics = proteomics.reset_index()
-            proteomics = proteomics.rename(columns={"index": "Database_ID", "gene_name": "Name"})
-            proteomics = proteomics.set_index(["Name", "Database_ID"])
-            proteomics = proteomics.sort_index()  # alphabetize
-            proteomics = proteomics.T
-            proteomics.index.name = "Patient_ID"
+                    # Load mapping information
+                    self.load_mapping()
+                    gene_key = self._helper_tables["gene_key"]
+                    # Join gene_key to df, reset index, rename columns, set new index and sort
+                    tumor_proteomics = gene_key.join(df, how='inner')
+                    tumor_proteomics = gene_key.join(df, how='inner')
+                    tumor_proteomics = tumor_proteomics.reset_index()
+                    tumor_proteomics = tumor_proteomics.rename(columns={"index": "Database_ID", "gene_name": "Name"})
+                    tumor_proteomics = tumor_proteomics.set_index(["Name", "Database_ID"])
+                    tumor_proteomics = tumor_proteomics.sort_index()  # alphabetize
+                    tumor_proteomics = tumor_proteomics.T
+                    tumor_proteomics.index.name = "Patient_ID"
 
-            df = proteomics
+                    df = tumor_proteomics
+
+                    self._helper_tables["proteomics_tumor"] = df
+
+
+                if file_name == "LSCC_proteomics_gene_abundance_log2_reference_intensity_normalized_Normal.txt.gz":
+                    df = pd.read_csv(file_path, sep='\t')
+                    df.index.name = 'gene'
+
+                    df.set_index('idx', inplace=True)
+                    # Load mapping information
+                    self.load_mapping()
+                    gene_key = self._helper_tables["gene_key"]
+
+                    # Join gene_key to df, reset index, rename columns, set new index and sort
+                    normal_proteomics = gene_key.join(df, how='inner')
+                    normal_proteomics = gene_key.join(df, how='inner')
+                    normal_proteomics = normal_proteomics.reset_index()
+                    normal_proteomics = normal_proteomics.rename(columns={"index": "Database_ID", "gene_name": "Name"})
+                    normal_proteomics = normal_proteomics.set_index(["Name", "Database_ID"])
+                    normal_proteomics = normal_proteomics.sort_index()  # alphabetize
+                    normal_proteomics = normal_proteomics.T
+                    normal_proteomics.index.name = "Patient_ID"
+                    modified_index = [label + '.N' for label in normal_proteomics.index]
+                    normal_proteomics.index = modified_index
+
+                    df = normal_proteomics
+
+                    self._helper_tables["proteomics_normal"] = df
+
+            # Combine the two proteomics dataframes
+            prot_tumor = self._helper_tables.get("proteomics_tumor")
+            prot_normal = self._helper_tables.get("proteomics_normal") 
+            prot_combined = pd.concat([prot_tumor, prot_normal])
 
             # Save df in data
-            self.save_df(df_type, df)
+            self.save_df(df_type, prot_combined)
 
     def load_phosphoproteomics(self):
         """
