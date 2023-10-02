@@ -33,9 +33,9 @@ class BcmLuad(Source):
             "mapping" : "gencode.v34.basic.annotation-mapping.txt.gz",
             "transcriptomics" : "LUAD-gene_rsem_removed_circRNA_tumor_normal_UQ_log2(x+1)_BCM.txt.gz",
             "proteomics" : ["LUAD_proteomics_gene_abundance_log2_reference_intensity_normalized_Tumor.txt.gz","LUAD_proteomics_gene_abundance_log2_reference_intensity_normalized_Normal.txt.gz"],
-            "phosphoproteomics" : "LUAD_phospho_site_abundance_log2_reference_intensity_normalized_Tumor.txt",
+            "phosphoproteomics" : ["LUAD_phospho_site_abundance_log2_reference_intensity_normalized_Tumor.txt","LUAD_phospho_site_abundance_log2_reference_intensity_normalized_Normal.txt.gz"],
             "CNV" : "LUAD_WES_CNV_gene_ratio_log2.txt.gz",
-            "miRNA" : "LUAD_miRNAseq_mature_miRNA_RPM_log2_Tumor.txt.gz"
+            "miRNA" : ["LUAD_miRNAseq_mature_miRNA_RPM_log2_Tumor.txt.gz","LUAD_miRNAseq_mature_miRNA_RPM_log2_Normal.txt.gz"]
         }
         
         self.load_functions = {
@@ -233,38 +233,84 @@ class BcmLuad(Source):
         # Check if data is already loaded
         if df_type not in self._data:
             # Get file path to the correct data
-            file_path = self.locate_files(df_type)
+            file_path_list = self.locate_files(df_type)
 
-            # Load and process the file
-            df = pd.read_csv(file_path, sep='\t')
-            df.index.name = 'gene'
+            for file_path in file_path_list:
 
-            # Extract Database_ID, gene name, site, and peptide from 'idx' column
-            df[['Database_ID', 'Gene_Key', 'Site', 'Peptide']] = df['idx'].str.split('|', expand=True).iloc[:,
+                file_name = os.path.basename(file_path)
+
+                if file_name == "LUAD_phospho_site_abundance_log2_reference_intensity_normalized_Tumor.txt":
+                    # Load and process the file
+                    df = pd.read_csv(file_path, sep='\t')
+                    df.index.name = 'gene'
+
+                    # Extract Database_ID, gene name, site, and peptide from 'idx' column
+                    df[['Database_ID', 'Gene_Key', 'Site', 'Peptide']] = df['idx'].str.split('|', expand=True).iloc[:,
                                                                  [0, 1, 2, 3]]
 
-            # Load mapping information
-            self.load_mapping()
-            gene_key_df = self._helper_tables["gene_key"]
-            mapping = gene_key_df['gene_name'].to_dict()
+                    # Load mapping information
+                    self.load_mapping()
+                    gene_key_df = self._helper_tables["gene_key"]
+                    mapping = gene_key_df['gene_name'].to_dict()
 
-            # Map gene_key to get gene name
-            df['Name'] = df['Gene_Key'].map(mapping)
+                    # Map gene_key to get gene name
+                    df['Name'] = df['Gene_Key'].map(mapping)
 
-            # Drop the 'idx' and 'Gene_Key' columns
-            df.drop(columns=['idx', 'Gene_Key'], inplace=True)
+                    # Drop the 'idx' and 'Gene_Key' columns
+                    df.drop(columns=['idx', 'Gene_Key'], inplace=True)
 
-            # Set the 'Name', 'Site', 'Peptide', and 'Database_ID' columns as index in this order
-            df.set_index(['Name', 'Site', 'Peptide', 'Database_ID'], inplace=True)
+                    # Set the 'Name', 'Site', 'Peptide', and 'Database_ID' columns as index in this order
+                    df.set_index(['Name', 'Site', 'Peptide', 'Database_ID'], inplace=True)
 
-            # Transpose the dataframe so that the patient IDs are the index
-            df = df.transpose()
+                    # Transpose the dataframe so that the patient IDs are the index
+                    df = df.transpose()
 
-            # Rename the index to 'Patient_ID'
-            df.index.name = 'Patient_ID'
+                    # Rename the index to 'Patient_ID'
+                    df.index.name = 'Patient_ID'
+
+                    self._helper_tables["phosphoproteomics_tumor"] = df
+
+                if file_name == "LUAD_phospho_site_abundance_log2_reference_intensity_normalized_Normal.txt.gz":
+                    # Load and process the file
+                    df = pd.read_csv(file_path, sep='\t')
+                    df.index.name = 'gene'
+
+                    # Extract Database_ID, gene name, site, and peptide from 'idx' column
+                    df[['Database_ID', 'Gene_Key', 'Site', 'Peptide']] = df['idx'].str.split('|', expand=True).iloc[:,
+                                                                 [0, 1, 2, 3]]
+
+                    # Load mapping information
+                    self.load_mapping()
+                    gene_key_df = self._helper_tables["gene_key"]
+                    mapping = gene_key_df['gene_name'].to_dict()
+
+                    # Map gene_key to get gene name
+                    df['Name'] = df['Gene_Key'].map(mapping)
+
+                    # Drop the 'idx' and 'Gene_Key' columns
+                    df.drop(columns=['idx', 'Gene_Key'], inplace=True)
+
+                    # Set the 'Name', 'Site', 'Peptide', and 'Database_ID' columns as index in this order
+                    df.set_index(['Name', 'Site', 'Peptide', 'Database_ID'], inplace=True)
+
+                    # Transpose the dataframe so that the patient IDs are the index
+                    df = df.transpose()
+
+                    # Rename the index to 'Patient_ID'
+                    df.index.name = 'Patient_ID'
+                    modified_index = [label + '.N' for label in df.index]
+                    df.index = modified_index
+                    self._helper_tables["phosphoproteomics_normal"] = df
+
+            # Combine the two proteomics dataframes
+            phospho_tumor = self._helper_tables.get("phosphoproteomics_tumor")
+            phospho_normal = self._helper_tables.get("phosphoproteomics_normal")
+
+            # Concatenate the two DataFrames
+            phospho_combined = pd.concat([phospho_tumor, phospho_normal], axis=1)
 
             # Save df in data
-            self.save_df(df_type, df)
+            self.save_df(df_type, phospho_combined)
 
     def load_CNV(self):
         """Load and process the CNV data file, and save it in the _data dictionary."""
@@ -304,16 +350,40 @@ class BcmLuad(Source):
         # Check if data is already loaded
         if df_type not in self._data:
             # Get file path to the correct data
-            file_path = self.locate_files(df_type)
+            file_path_list = self.locate_files(df_type)
 
-            # Load and process the file
-            df = pd.read_csv(file_path, sep='\t')
+            for file_path in file_path_list:
+                file_name = os.path.basename(file_path)
 
-            # Here the idx will be the miRNA names and columns will be the patient IDs.
-            df.set_index('idx', inplace=True)
-            df.index.name = 'Name'  # Rename idx to Name
-            df = df.transpose()  # Transpose the data frame to have miRNA as columns and patients as rows
-            df.index.name = "Patient_ID"
+                # Load and process the files
+                if file_name == "LUAD_miRNAseq_mature_miRNA_RPM_log2_Tumor.txt.gz":
+                    df = pd.read_csv(file_path, sep='\t')
+
+                    # Here the idx will be the miRNA names and columns will be the patient IDs.
+                    df.set_index('idx', inplace=True)
+                    df.index.name = 'Name'  # Rename idx to Name
+                    df = df.transpose()  # Transpose the data frame to have miRNA as columns and patients as rows
+                    df.index.name = "Patient_ID"
+
+                    self._helper_tables["miRNA_tumor"] = df
+
+                if file_name == "LUAD_miRNAseq_mature_miRNA_RPM_log2_Normal.txt.gz":
+                    df = pd.read_csv(file_path, sep='\t')
+
+                    # Here the idx will be the miRNA names and columns will be the patient IDs.
+                    df.set_index('idx', inplace=True)
+                    df.index.name = 'Name'  # Rename idx to Name
+                    df = df.transpose()  # Transpose the data frame to have miRNA as columns and patients as rows
+                    df.index.name = "Patient_ID"
+                    modified_index = [label + '.N' for label in df.index]
+                    df.index = modified_index
+
+                    self._helper_tables["miRNA_normal"] = df
+            
+            # Combine the two miRNA dataframes
+            miRNA_tumor = self._helper_tables.get("miRNA_tumor")
+            miRNA_normal = self._helper_tables.get("miRNA_normal") 
+            miRNA_combined = pd.concat([miRNA_tumor, miRNA_normal])
 
             # Save df in data
-            self.save_df(df_type, df)
+            self.save_df(df_type, miRNA_combined)
