@@ -204,18 +204,10 @@ class UmichUcec(Source):
 
             # Move 'Name' into the multiindex
             df = df.set_index(['Name', 'Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns
+
+            df.drop(["Gene", "Int1", "Int2", "MaxPepProb", "ProteinID", "ReferenceIntensity", "Site1", "Site2", "Index"], axis=1, inplace=True)
             df = df.T # transpose
-            ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios
-            df = df.iloc[1:,:] # drop ReferenceIntensity row
-
-            # There was 1 duplicate ID (C3N-01825) in the proteomic and phosphoproteomic data.
-            # I used the Payne lab mapping file "aliquot_to_patient_ID.tsv" to determine the tissue type
-            # for these duplicates, and they were both tumor samples. Next, I ran a pearson correlation
-            # to check how well the values from each duplicate correlated to its tumor flagship sample.
-            # The first occurrence in the file had a higher correlation with the flagship sample
-            # than the second occurrence. I also created scatterplots comparing each duplicate to its flagship sample.
-            # We dropped the second occurrence of the duplicate because it didn't correlate very well to its flagship sample.
-
+            
             # Get dictionary with aliquots as keys and patient IDs as values
             
             self.load_mapping()
@@ -227,7 +219,7 @@ class UmichUcec(Source):
             df['Patient_ID'] = df['Patient_ID'].apply(lambda x: x+'.N' if 'NX' in x else x) # 'NX' are enriched normals
             df = df.set_index('Patient_ID')
             df = df_tools.rename_duplicate_labels(df, 'index') # add ".1" to the second ocurrence of the ID with a duplicate
-            df = df.drop('C3N-01825.1', axis = 'index') # drop the duplicate that didn't correlate well with flagship
+            #df = df.drop(columns = 'C3N-01825.1', axis = 'index') # drop the duplicate that didn't correlate well with flagship
 
             # save df in self._data
             self.save_df(df_type, df)

@@ -169,11 +169,12 @@ class UmichGbm(Source):
             # Move 'Name' into the multiindex
             df = df.set_index(['Name', 'Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns
             
+            df.drop(["Gene", "Int1", "Int2", "MaxPepProb", "ProteinID", "ReferenceIntensity", "Site1", "Site2", "Index"], axis=1, inplace=True)
             df = df.T # transpose
-            df = df.drop('ProteinID', axis = 'index')
-            df = df.drop('ReferenceIntensity', axis = 'index')
-            df = df.drop('Site1', axis = 'index')
-            df = df.drop('Site2', axis = 'index')
+            #df = df.drop('ProteinID', axis = 'index')
+            #df = df.drop('ReferenceIntensity', axis = 'index')
+            #df = df.drop('Site1', axis = 'index')
+            #df = df.drop('Site2', axis = 'index')
 
             # There was 1 duplicate ID (C3N-01825) in the proteomic and phosphoproteomic data.
             # I used the Payne lab mapping file "aliquot_to_patient_ID.tsv" to determine the tissue type

@@ -11,6 +11,7 @@
 
 import pandas as pd
 from cptac.cancers.source import Source
+import cptac.tools.dataframe_tools as df_tools
 from cptac import CPTAC_BASE_DIR
 
 class UmichOv(Source):
@@ -169,6 +170,7 @@ class UmichOv(Source):
 
             # Move 'Name' into the multiindex
             df = df.set_index(['Name', 'Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns
+            df.drop(["Gene", "Int1", "Int2", "MaxPepProb", "ProteinID", "ReferenceIntensity", "Site1", "Site2", "Index"], axis=1, inplace=True)
             df = df.T # transpose
             ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios
             df = df.iloc[1:,:] # drop ReferenceIntensity row

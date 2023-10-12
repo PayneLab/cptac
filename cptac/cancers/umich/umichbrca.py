@@ -227,9 +227,8 @@ class UmichBrca(Source):
             # Move 'Name' into the multiindex
             df = df.set_index(
                 ['Name', 'Site', 'Peptide', 'Database_ID'])  # This will create a multiindex from these columns
+            df.drop(["Gene", "Int1", "Int2", "MaxPepProb", "ProteinID", "ReferenceIntensity", "Site1", "Site2", "Index"], axis=1, inplace=True)
             df = df.T  # transpose
-            ref_intensities = df.loc["ReferenceIntensity"]  # Get reference intensities to use to calculate ratios
-            df = df.iloc[1:, :]  # drop ReferenceIntensity row
 
             # Get dictionary with aliquots as keys and patient IDs as values
             self.load_mapping()

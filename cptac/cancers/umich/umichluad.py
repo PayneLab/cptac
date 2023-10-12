@@ -209,9 +209,10 @@ class UmichLuad(Source):
 
             # Move 'Name' into the multiindex
             df = df.set_index(['Name', 'Site', 'Peptide', 'Database_ID']) # This will create a multiindex from these columns
+            df.drop(["Gene", "Int1", "Int2", "MaxPepProb", "ProteinID", "ReferenceIntensity", "Site1", "Site2", "Index"], axis=1, inplace=True)
             df = df.T # transpose
-            ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios
-            df = df.iloc[1:,:] # drop ReferenceIntensity row
+            #ref_intensities = df.loc["ReferenceIntensity"]# Get reference intensities to use to calculate ratios
+            #df = df.iloc[1:,:] # drop ReferenceIntensity row
 
             # There was 1 duplicate ID (C3N-01825) in the proteomic and phosphoproteomic data.
             # I used the Payne lab mapping file "aliquot_to_patient_ID.tsv" to determine the tissue type
