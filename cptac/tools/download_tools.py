@@ -19,7 +19,7 @@ BUCKET=None
 
 def fetch_repo_data() -> dict:
     """Fetches the repo data from Zenodo, including metadata and file links."""
-    repo_link = f"https://zenodo.org/api/records/{RECORD_ID}"
+    repo_link = "https://zenodo.org/api/records/8394329"   #TODO This should be updated to use the RECORD_ID like before
     response = requests.get(repo_link, headers=AUTH_HEADER)
     response.raise_for_status()
     return response.json()
@@ -40,20 +40,22 @@ def init_files() -> None:
     try:
         repo_data = fetch_repo_data()
         global BUCKET
-        BUCKET = repo_data['links']['bucket']
+        BUCKET = repo_data['files']
         index_data = []
         index_data.append(f"description\tfilename\tchecksum")
         for data_file in repo_data['files']:
-            if data_file['key'].startswith('.'):
+            if data_file['filename'].startswith('.'):
                 continue # ignore hidden files
-            filename_list = data_file['key'].split('-')
+            filename_list = data_file['filename'].split('-')
             description = '-'.join(filename_list[:3])
             index_data.append(f"{description}\t{'-'.join(filename_list)}\t{data_file['checksum']}")
         with open(index_path, 'w') as index_file:
             index_file.write('\n'.join(index_data))
         # Download some other necessart files
         if not os.path.isfile(acetyl_mapping_path):
-            get_data(f"{BUCKET}/{'cptac_genes.csv'}", acetyl_mapping_path)
+            for num in repo_data['files']:
+                if repo_data['files'][num]['filename'] == 'cptac_genes.csv':
+                    get_data(f"{BUCKET}/{num}/{'cptac_genes.csv'}", acetyl_mapping_path)
         if not os.path.isfile(brca_mapping_path):
             get_data(f"{BUCKET}/{'brca_mapping.csv'}", brca_mapping_path)
     except requests.ConnectionError:
@@ -94,13 +96,17 @@ def download(cancer: str, source: str, dtype: str, data_file: str) -> bool:
     output_file = os.path.join(output_dir, data_file)
     # Error handling for different exceptions
     try:
-        get_data(f"{get_bucket()}/{file_name}", output_file)
+        repo_data = fetch_repo_data()
+        for num in range(0, len(repo_data['files']) - 1):
+            if repo_data['files'][num]['filename'] == data_file:
+                get_data(f"{get_bucket()}/{num}/{file_name}", output_file)
+                break
         # Verify checksum
         with open(os.path.join(DATA_DIR, output_file), 'rb') as data_file:
             local_hash = md5(data_file.read()).hexdigest()
         if "md5:"+local_hash != cptac.INDEX.query("filename == @file_name")['checksum'].item():
             os.remove(os.path.join(DATA_DIR, output_file))
-            raise DownloadFailedError("Download failed: local an remote files do not match. Please try again.")
+            raise DownloadFailedError("Download failed: local and remote files do not match. Please try again.")
         return True
     except NoInternetError as e:
         raise NoInternetError("Download failed -- No internet connection.")
