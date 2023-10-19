@@ -39,6 +39,8 @@ def init_files() -> None:
     # Error handling for different exceptions
     try:
         repo_data = fetch_repo_data()
+        #print("REPO DATA")
+        #print(repo_data)
         global BUCKET
         BUCKET = repo_data['files']
         index_data = []
@@ -53,11 +55,11 @@ def init_files() -> None:
             index_file.write('\n'.join(index_data))
         # Download some other necessart files
         if not os.path.isfile(acetyl_mapping_path):
-            for num in repo_data['files']:
-                if repo_data['files'][num]['filename'] == 'cptac_genes.csv':
-                    get_data(f"{BUCKET}/{num}/{'cptac_genes.csv'}", acetyl_mapping_path)
+            for num in range(0, len(repo_data['files']) - 1):
+                if BUCKET[num]['filename'] == 'cptac_genes.csv':
+                    get_data("https://zenodo.org/api/records/8394329/files/cptac_genes.csv/content", acetyl_mapping_path)
         if not os.path.isfile(brca_mapping_path):
-            get_data(f"{BUCKET}/{'brca_mapping.csv'}", brca_mapping_path)
+            get_data("https://zenodo.org/api/records/8394329/files/brca_mapping.csv/content", brca_mapping_path)
     except requests.ConnectionError:
         raise NoInternetError("Cannot initialize data files: No internet connection.")
     except requests.RequestException as e:
@@ -97,14 +99,11 @@ def download(cancer: str, source: str, dtype: str, data_file: str) -> bool:
     # Error handling for different exceptions
     try:
         repo_data = fetch_repo_data()
-        for num in range(0, len(repo_data['files']) - 1):
-            if repo_data['files'][num]['filename'] == data_file:
-                get_data(f"{get_bucket()}/{num}/{file_name}", output_file)
-                break
+        get_data(f"https://zenodo.org/api/records/8394329/files/{file_name}/content", output_file)
         # Verify checksum
         with open(os.path.join(DATA_DIR, output_file), 'rb') as data_file:
             local_hash = md5(data_file.read()).hexdigest()
-        if "md5:"+local_hash != cptac.INDEX.query("filename == @file_name")['checksum'].item():
+        if local_hash != cptac.INDEX.query("filename == @file_name")['checksum'].item():
             os.remove(os.path.join(DATA_DIR, output_file))
             raise DownloadFailedError("Download failed: local and remote files do not match. Please try again.")
         return True
@@ -160,10 +159,14 @@ def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
     :param num_threads: The number of threads to use for downloading the file (default is 4).
     :return: The path of the downloaded file.
     """
-    response = requests.head(url, headers=AUTH_HEADER)
-    response.raise_for_status()
+    repo_data = fetch_repo_data()
 
-    file_size = int(response.headers['content-length'])
+    file_name = url.split('/')[-2]
+    for num in range(0, len(repo_data['files'])):
+        if repo_data['files'][num]['filename'] == file_name:
+            file_size = repo_data['files'][num]['filesize']
+            break
+
     chunk_size = file_size // num_threads
 
     # Create an empty file with the same size as the file to be downloaded

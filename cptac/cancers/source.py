@@ -120,11 +120,11 @@ class Source:
             # Ensure data is not corrupted, download files if needed
             if os.path.isfile(file_path) and not self.no_internet: # It's pointless to check the checksum if we can't redownload it
                 with open(file_path, 'rb') as in_file:
-                    local_hash = f"md5:{md5(in_file.read()).hexdigest()}"
+                    local_hash = md5(in_file.read()).hexdigest()
                 if local_hash != cptac.INDEX.loc[cptac.INDEX['filename']==prefixed_file, 'checksum'].item():
                     warn(FailedChecksumWarning("Local file and online file have different checksums; redownloading data"))
                     os.remove(file_path)
-                
+
             if not os.path.isfile(file_path) and not self.no_internet:
                 cptac.download(self.cancer_type, self.source, datatype, data_file)
             elif not os.path.isfile(file_path) and self.no_internet:
