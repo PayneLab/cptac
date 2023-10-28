@@ -46,9 +46,9 @@ def init_files() -> None:
         index_data = []
         index_data.append(f"description\tfilename\tchecksum")
         for data_file in repo_data['files']:
-            if data_file['filename'].startswith('.'):
+            if data_file['key'].startswith('.'):
                 continue # ignore hidden files
-            filename_list = data_file['filename'].split('-')
+            filename_list = data_file['key'].split('-')
             description = '-'.join(filename_list[:3])
             index_data.append(f"{description}\t{'-'.join(filename_list)}\t{data_file['checksum']}")
         with open(index_path, 'w') as index_file:
@@ -56,7 +56,7 @@ def init_files() -> None:
         # Download some other necessart files
         if not os.path.isfile(acetyl_mapping_path):
             for num in range(0, len(repo_data['files']) - 1):
-                if BUCKET[num]['filename'] == 'cptac_genes.csv':
+                if BUCKET[num]['key'] == 'cptac_genes.csv':
                     get_data("https://zenodo.org/api/records/8394329/files/cptac_genes.csv/content", acetyl_mapping_path)
         if not os.path.isfile(brca_mapping_path):
             get_data("https://zenodo.org/api/records/8394329/files/brca_mapping.csv/content", brca_mapping_path)
@@ -163,7 +163,7 @@ def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
 
     file_name = url.split('/')[-2]
     for num in range(0, len(repo_data['files'])):
-        if repo_data['files'][num]['filename'] == file_name:
+        if repo_data['files'][num]['key'] == file_name:
             file_size = repo_data['files'][num]['filesize']
             break
 
