@@ -50,7 +50,7 @@ def init_files() -> None:
                 continue # ignore hidden files
             filename_list = data_file['key'].split('-')
             description = '-'.join(filename_list[:3])
-            index_data.append(f"{description}\t{'-'.join(filename_list)}\t{data_file['checksum']}")
+            index_data.append(f"{description}\t{'-'.join(filename_list)}\t{data_file['checksum'].split(':')[1]}")
         with open(index_path, 'w') as index_file:
             index_file.write('\n'.join(index_data))
         # Download some other necessart files
@@ -164,7 +164,7 @@ def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
     file_name = url.split('/')[-2]
     for num in range(0, len(repo_data['files'])):
         if repo_data['files'][num]['key'] == file_name:
-            file_size = repo_data['files'][num]['filesize']
+            file_size = repo_data['files'][num]['size']
             break
 
     chunk_size = file_size // num_threads
