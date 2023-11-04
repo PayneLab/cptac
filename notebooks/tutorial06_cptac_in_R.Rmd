@@ -1,6 +1,8 @@
 ---
 title: "Using `reticulate` to access CPTAC data in R"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 urlcolor: blue
 ---
 `reticulate` (https://rstudio.github.io/reticulate/) is an R package that allows you to use R create Python objects and convert them into R objects. You can then work with them like any other object in your R environment. Thus, even though `cptac` is a Python package, with the help of `reticulate` you can use it to load and work with the CPTAC datasets in R. All `cptac` features are available through `reticulate` just like they would be in a Python environment, including the `cptac.utils` module and the join functions.
@@ -40,7 +42,7 @@ When `reticulate` converts a `pandas.DataFrame` into R, it converts it to the R 
 
 ```{r}
 # Load the table
-transcript_py <- cc$get_transcriptomics() 
+transcript_py <- cc$get_transcriptomics("washu") 
 
 # Convert into R
 transcript <- py_to_r(transcript_py) 
@@ -53,7 +55,7 @@ If you're loading a dataframe that has a column multiindex, you need to flatten 
 
 ```{r}
 # Load the table
-prot_py_multiindex <- cc$get_proteomics()
+prot_py_multiindex <- cc$get_proteomics("umich")
 
 # Load cptac.utils so we can access a helper function to convert the multiindex 
 # to a single level index.
@@ -70,31 +72,17 @@ prot <- py_to_r(prot_py_single_index)
 
 print(prot[1:10, 1:3])
 ```
-## Use another `cptac.utils` function
-As you saw in the previous example, we can access functions from `cptac.utils` through `reticulate`. In fact, all functions provided in `cptac.utils` are available through `reticulate`. Here we demonstrate a call to the `get_frequently_mutated` function.
 
-```{r}
-# Note that we already imported the utils module above when we were using
-# the reduce_multiindex function. If we hadn't already done that, we'd
-# need to run the command on the following line:
-# utils <- import("cptac.utils", convert = FALSE)
-
-# Call the function
-freq_mut_py <- utils$get_frequently_mutated(cc)
-
-# Convert to R
-freq_mut <- py_to_r(freq_mut_py)
-
-print(freq_mut)
-```
 ## Use a join function
 Using `reticulate`, you can also access all the table joining functions provided by `cptac`.
 
 ```{r}
 # Call the join function
 transcript_and_mut_py <- cc$join_omics_to_mutations(
-  omics_df_name = "transcriptomics",
+  omics_name = "transcriptomics",
+  omics_source = "washu",
   mutations_genes = "VHL",
+  mutations_source = "harmonized",
   omics_genes = "PBRM1",
   quiet = TRUE
 )
@@ -125,8 +113,10 @@ Here is a Python code chunk that performs the same join function as the previous
 import cptac
 cc = cptac.Ccrcc()
 transcript_and_mut = cc.join_omics_to_mutations(
-  omics_df_name="transcriptomics",
+  omics_name="transcriptomics",
+  omics_source = "washu",
   mutations_genes="VHL",
+  mutations_source = "harmonized",
   omics_genes="PBRM1",
   mutations_filter=[],
   quiet=True
