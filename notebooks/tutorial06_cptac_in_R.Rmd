@@ -18,9 +18,9 @@ if (!require(reticulate)) install.packages("reticulate")
 library(reticulate)
 
 # Specify to use the environment where the cptac package is installed. Replace 
-# "dev" with the name of your environment. If you use an environment manager 
+# "base" with the name of your environment. If you use an environment manager 
 # besides conda, you'll want this command: use_virtualenv("myenv")
-use_condaenv("dev", required = TRUE)
+use_condaenv("base", required = TRUE)
 ```
 
 ## Import `cptac` and load data
