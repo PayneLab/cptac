@@ -9,7 +9,7 @@ The cptac package is available on two different distribution services, PyPI and 
     4. Dependency requirements in setup.py.
 2. Make sure that if you have updated any datasets, the package can still load the old versions.
 3. Use `grep -rn set_trace .` to make sure there are no files with breakpoints in them
-4. Make sure that any finished edits on the dev branch have been merged into the master branch--see [03_HOW_TO_ADD_CODE.md](03_HOW_TO_ADD_CODE.md) for details. (But if there are edits on dev that aren't ready to be released, then make sure to not merge them in.)
+4. Make sure that any finished edits on the dev branch have been merged into the master branch--see [03_HOW_TO_ADD_CODE.md](03_HOW_TO_ADD_CODE.md) for details. (But if there are edits on develop that aren't ready to be released, then make sure to not merge them in.)
 5. After committing the last commit for the new version, tag it with the version number: 
     1. Use `git log` to list the commits, and copy the checksum of the commit you want (e.g. 964f16d36dfccde844893cac5b347e7b3d44abbc)
     2. Run this: `git tag -a [tag] [checksum]`, as in 
