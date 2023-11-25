@@ -162,6 +162,7 @@ def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
     repo_data = fetch_repo_data()
 
     file_name = url.split('/')[-2]
+    file_size = None # Initialize file_size
     for num in range(0, len(repo_data['files'])):
         if repo_data['files'][num]['key'] == file_name:
             file_size = repo_data['files'][num]['size']
