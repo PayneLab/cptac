@@ -19,7 +19,7 @@ BUCKET=None
 
 def fetch_repo_data() -> dict:
     """Fetches the repo data from Zenodo, including metadata and file links."""
-    repo_link = "https://zenodo.org/api/records/8394329"   #TODO This should be updated to use the RECORD_ID like before
+    repo_link = f"https://zenodo.org/api/records/{RECORD_ID}"
     response = requests.get(repo_link, headers=AUTH_HEADER)
     response.raise_for_status()
     return response.json()
@@ -39,13 +39,11 @@ def init_files() -> None:
     # Error handling for different exceptions
     try:
         repo_data = fetch_repo_data()
-        #print("REPO DATA")
-        #print(repo_data)
         global BUCKET
         BUCKET = repo_data['files']
         index_data = []
         index_data.append(f"description\tfilename\tchecksum")
-        for data_file in repo_data['files']:
+        for data_file in BUCKET:
             if data_file['key'].startswith('.'):
                 continue # ignore hidden files
             filename_list = data_file['key'].split('-')
@@ -55,11 +53,13 @@ def init_files() -> None:
             index_file.write('\n'.join(index_data))
         # Download some other necessart files
         if not os.path.isfile(acetyl_mapping_path):
-            for num in range(0, len(repo_data['files']) - 1):
+            for num in range(0, len(BUCKET) - 1):
                 if BUCKET[num]['key'] == 'cptac_genes.csv':
-                    get_data("https://zenodo.org/api/records/8394329/files/cptac_genes.csv/content", acetyl_mapping_path)
+                    get_data(BUCKET[num]['links']['self'], acetyl_mapping_path)
         if not os.path.isfile(brca_mapping_path):
-            get_data("https://zenodo.org/api/records/8394329/files/brca_mapping.csv/content", brca_mapping_path)
+            for num in range(0, len(BUCKET) - 1):
+                if BUCKET[num]['key'] == 'brca_mapping.csv':
+                    get_data(BUCKET[num]['links']['self'], brca_mapping_path)
     except requests.ConnectionError:
         raise NoInternetError("Cannot initialize data files: No internet connection.")
     except requests.RequestException as e:
@@ -99,7 +99,9 @@ def download(cancer: str, source: str, dtype: str, data_file: str) -> bool:
     # Error handling for different exceptions
     try:
         repo_data = fetch_repo_data()
-        get_data(f"https://zenodo.org/api/records/8394329/files/{file_name}/content", output_file)
+        for num in range(0, len(repo_data['files']) - 1):
+                if repo_data['files'][num]['key'] == file_name:
+                    get_data(repo_data['files'][num]['links']['self'], output_file)
         # Verify checksum
         with open(os.path.join(DATA_DIR, output_file), 'rb') as data_file:
             local_hash = md5(data_file.read()).hexdigest()
