@@ -40,13 +40,34 @@ class BroadUcec(Source):
 
     def load_mapping(self):
         """
-        This method populates the _helper_tables dictionary with dataframes necessary for mapping and identifying data.
-        It loads three types of mapping data - broad_keys, broad_gene_names, and map_ids.
+        Load the mapping files and process them accordingly.
+
+        This method locates the mapping files in the specified directory, reads the files,
+        and processes the data to create a dictionary for broad keys and broad gene names.
+        These dictionaries are then stored in the _helper_tables attribute for later use.
         """
+
         if not self._helper_tables:
-            self._load_broad_keys()
-            self._load_broad_gene_names()
-            self._load_map_ids()
+            file_path_list = self.locate_files('mapping')
+            for file_path in file_path_list:
+                file_name = file_path.split('/')[-1] # Get the filename
+                
+                if file_name == "sample_descriptions.tsv.gz":
+                    broad_key = pd.read_csv(file_path, sep="\t")
+                    broad_key = broad_key.loc[broad_key['cohort'] == "UCEC"][["sample_id","GDC_id","tissue_type"]].set_index("sample_id")
+                    broad_key['GDC_id'] = broad_key['GDC_id'].str[:9]
+                    broad_key["Patient_ID"] = broad_key["GDC_id"] + broad_key["tissue_type"]
+                    broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Tumor", "", regex=True)
+                    broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
+                    self._helper_tables["broad_key"] = broad_key.to_dict()["Patient_ID"]
+                    
+                elif file_name == "gencode.v34.GRCh38.genes.collapsed_only.gtf.gz":
+                    broad_gene_names = read_gtf(file_path).as_df()
+                    broad_gene_names = broad_gene_names[["gene_name","gene_id"]].rename(columns= {"gene_name":"Name"}).set_index("gene_id").drop_duplicates()
+                    self._helper_tables["broad_gene_names"] = broad_gene_names
+
+                elif file_name == "aliquot_to_patient_ID.tsv.gz":
+                    self._helper_tables["map_ids"] = pd.read_csv(file_path, sep = "\t", index_col = 0)
 
     def load_transcriptomics(self):
         """
@@ -65,34 +86,7 @@ class BroadUcec(Source):
             self.save_df(df_type, df)
 
     # Additional methods to split the loading process
-    def _load_broad_keys(self):
-        """
-        Helper method to load the broad keys dataframe.
-        """
-        file_path = self.locate_files("sample_descriptions.tsv.gz")
-        broad_key = pd.read_csv(file_path, sep="\t")
-        broad_key = broad_key.loc[broad_key['cohort'] == "UCEC"][["sample_id","GDC_id","tissue_type"]].set_index("sample_id")
-        broad_key['GDC_id'] = broad_key['GDC_id'].str[:9]
-        broad_key["Patient_ID"] = broad_key["GDC_id"] + broad_key["tissue_type"]
-        broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Tumor", "", regex=True)
-        broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
-        self._helper_tables["broad_key"] = broad_key.to_dict()["Patient_ID"]
 
-    def _load_broad_gene_names(self):
-        """
-        Helper method to load the broad gene names dataframe.
-        """
-        file_path = self.locate_files("gencode.v34.GRCh38.genes.collapsed_only.gtf.gz")
-        broad_gene_names = read_gtf(file_path).as_df()
-        broad_gene_names = broad_gene_names[["gene_name","gene_id"]].rename(columns= {"gene_name":"Name"}).set_index("gene_id").drop_duplicates()
-        self._helper_tables["broad_gene_names"] = broad_gene_names
-
-    def _load_map_ids(self):
-        """
-        Helper method to load the map ids dataframe.
-        """
-        file_path = self.locate_files("aliquot_to_patient_ID.tsv.gz")
-        self._helper_tables["map_ids"] = pd.read_csv(file_path, sep = "\t", index_col = 0)
 
     def _add_gene_names(self, df):
         """
@@ -112,3 +106,32 @@ class BroadUcec(Source):
         df = df.T.groupby("index", level = 0).mean()  # Average duplicates 
         df.index.name = "Patient_ID"
         return df
+    
+
+"""def _load_broad_keys(self):
+        #Helper method to load the broad keys dataframe.
+        
+        file_path = self.locate_files("sample_descriptions.tsv.gz")
+        broad_key = pd.read_csv(file_path, sep="\t")
+        broad_key = broad_key.loc[broad_key['cohort'] == "UCEC"][["sample_id","GDC_id","tissue_type"]].set_index("sample_id")
+        broad_key['GDC_id'] = broad_key['GDC_id'].str[:9]
+        broad_key["Patient_ID"] = broad_key["GDC_id"] + broad_key["tissue_type"]
+        broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Tumor", "", regex=True)
+        broad_key.Patient_ID = broad_key.Patient_ID.str.replace(r"Normal", ".N", regex=True)
+        self._helper_tables["broad_key"] = broad_key.to_dict()["Patient_ID"]
+
+    def _load_broad_gene_names(self):
+        
+        #Helper method to load the broad gene names dataframe.
+        
+        file_path = self.locate_files("gencode.v34.GRCh38.genes.collapsed_only.gtf.gz")
+        broad_gene_names = read_gtf(file_path).as_df()
+        broad_gene_names = broad_gene_names[["gene_name","gene_id"]].rename(columns= {"gene_name":"Name"}).set_index("gene_id").drop_duplicates()
+        self._helper_tables["broad_gene_names"] = broad_gene_names
+
+    def _load_map_ids(self):
+        
+        #Helper method to load the map ids dataframe.
+        
+        file_path = self.locate_files("aliquot_to_patient_ID.tsv.gz")
+        self._helper_tables["map_ids"] = pd.read_csv(file_path, sep = "\t", index_col = 0)"""
