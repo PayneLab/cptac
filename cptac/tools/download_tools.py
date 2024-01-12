@@ -7,6 +7,7 @@ from tqdm import tqdm
 import cptac
 from cptac.exceptions import *
 import pandas as pd
+import os.path as path
 
 # Set directory constants
 DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data")
@@ -15,7 +16,8 @@ RECORD_ID = STATIC_DOI.split('.')[-1]
 ZENO_TOKEN = 'GijLB8joEFbeVEBQsjtJ8rH1uXMK8p5REgkNTfgHCMSR5LDyisZiZx1BRPQT'
 AUTH_HEADER = {'Authorization': 'Bearer ' + ZENO_TOKEN}
 BUCKET=None
-
+#CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
+INDEX = pd.read_csv(path.join(DATA_DIR, 'index.tsv'), sep='\t')
 
 def fetch_repo_data() -> dict:
     """Fetches the repo data from Zenodo, including metadata and file links."""
