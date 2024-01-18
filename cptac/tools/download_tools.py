@@ -16,7 +16,6 @@ RECORD_ID = STATIC_DOI.split('.')[-1]
 ZENO_TOKEN = 'GijLB8joEFbeVEBQsjtJ8rH1uXMK8p5REgkNTfgHCMSR5LDyisZiZx1BRPQT'
 AUTH_HEADER = {'Authorization': 'Bearer ' + ZENO_TOKEN}
 BUCKET=None
-#CPTAC_BASE_DIR = path.abspath(path.dirname(__file__))
 INDEX = pd.read_csv(path.join(DATA_DIR, 'index.tsv'), sep='\t')
 
 def fetch_repo_data() -> dict:
