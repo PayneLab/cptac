@@ -18,6 +18,9 @@ from warnings import warn
 from cptac import CPTAC_BASE_DIR
 from cptac.exceptions import DataTypeNotInSourceError, MissingFileError, FailedChecksumWarning
 from cptac.tools.dataframe_tools import standardize_axes_names
+from cptac.tools.download_tools import DATA_DIR
+
+INDEX = pd.read_csv(os.path.join(DATA_DIR, 'index.tsv'), sep='\t')
 
 class Source:
     """
