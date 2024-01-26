@@ -11,11 +11,13 @@ import os.path as path
 
 # Set directory constants
 DATA_DIR = os.path.join(cptac.CPTAC_BASE_DIR, "data")
-STATIC_DOI = '10.5281/zenodo.7897498'
+STATIC_DOI = '10.5281/zenodo.8394329'
 RECORD_ID = STATIC_DOI.split('.')[-1]
 ZENO_TOKEN = 'GijLB8joEFbeVEBQsjtJ8rH1uXMK8p5REgkNTfgHCMSR5LDyisZiZx1BRPQT'
 AUTH_HEADER = {'Authorization': 'Bearer ' + ZENO_TOKEN}
 BUCKET=None
+INDEX_BUCKET = None
+INDEX_DOI = '10.5281/zenodo.7897498'
 
 def fetch_repo_data() -> dict:
     """Fetches the repo data from Zenodo, including metadata and file links."""
@@ -23,6 +25,14 @@ def fetch_repo_data() -> dict:
     response = requests.get(repo_link, headers=AUTH_HEADER)
     response.raise_for_status()
     return response.json()
+
+def fetch_index_repo_data() -> dict:
+    """Fetches the repo data from Zenodo, including metadata and file links."""
+    repo_link = "https://zenodo.org/api/records/7897498"
+    response = requests.get(repo_link, headers=AUTH_HEADER)
+    response.raise_for_status()
+    return response.json()
+
 
 
 def init_files() -> None:
@@ -39,8 +49,11 @@ def init_files() -> None:
     # Error handling for different exceptions
     try:
         repo_data = fetch_repo_data()
+        index_repo_data = fetch_index_repo_data()
         global BUCKET
+        global INDEX_BUCKET
         BUCKET = repo_data['files']
+        INDEX_BUCKET = index_repo_data['files']
         index_data = []
         index_data.append(f"description\tfilename\tchecksum")
         for data_file in BUCKET:
@@ -49,9 +62,9 @@ def init_files() -> None:
             filename_list = data_file['key'].split('-')
             description = '-'.join(filename_list[:3])
             index_data.append(f"{description}\t{'-'.join(filename_list)}\t{data_file['checksum'].split(':')[1]}")
-        with open(index_path, 'w') as index_file:
-            index_file.write('\n'.join(index_data))
-        # Download some other necessart files
+        #with open(index_path, 'w') as index_file:
+        #   index_file.write('\n'.join(index_data))
+        #Download some other necessary files
         if not os.path.isfile(acetyl_mapping_path):
             for num in range(0, len(BUCKET) - 1):
                 if BUCKET[num]['key'] == 'cptac_genes.csv':
@@ -60,6 +73,8 @@ def init_files() -> None:
             for num in range(0, len(BUCKET) - 1):
                 if BUCKET[num]['key'] == 'brca_mapping.csv':
                     get_data(BUCKET[num]['links']['self'], brca_mapping_path)
+        if not os.path.isfile(index_path):
+            get_data("https://zenodo.org/api/records/10573663/files/index.tsv/content", index_path)
     except requests.ConnectionError:
         raise NoInternetError("Cannot initialize data files: No internet connection.")
     except requests.RequestException as e:
@@ -169,8 +184,12 @@ def get_data(url: str, subfolder: str = '', num_threads: int = 4) -> str:
         if repo_data['files'][num]['key'] == file_name:
             file_size = repo_data['files'][num]['size']
             break
-
-    chunk_size = file_size // num_threads
+    
+    if file_name == "index.tsv":
+        file_size = 30203
+        chunk_size = file_size // num_threads
+    else:
+        chunk_size = file_size // num_threads
 
     # Create an empty file with the same size as the file to be downloaded
     with open(os.path.join(DATA_DIR, subfolder), 'wb') as data_file:
