@@ -1,3 +1,6 @@
+#NOTE With current release
+We are having difficulty with the API on Zenodo and are working to find a better host for our data. Please be patient while we fix these issues.
+
 # Easy access to CPTAC data
 This software provides easy access to cancer data from the National Cancer Institute's CPTAC program, which characterizes and studies the proteogenomic landscape of tumors. We implement the software as a Python package called `cptac`, but you can seamlessly use it in an R environment with the help of the `reticulate` package (demonstrated in [Tutorial 6](https://paynelab.github.io/cptac/tutorial06_cptac_in_R.html)). Our package is installed in one step with `pip`:
 ```
