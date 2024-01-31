@@ -1,4 +1,4 @@
-#NOTE With current release
+# NOTE With current release
 We are having difficulty with the API on Zenodo and are working to find a better host for our data. Please be patient while we fix these issues.
 
 # Easy access to CPTAC data
