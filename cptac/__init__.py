@@ -83,7 +83,7 @@ else:
 #### Generates the OPTIONS dataframe which shows all possible cancer, source, datatype combinations
 def _load_options():
     """Load the tsv file with all the possible cancer, source, datatype combinations"""
-    options_df = pd.DataFrame(INDEX['description'].str.split('-').tolist())
+    options_df = pd.DataFrame(INDEX['description'].str.split('-').tolist(), dtype=str)
     options_df.columns = ['Source', 'Cancer', 'Datatype']
     options_df = options_df[['Cancer', 'Source', 'Datatype']]
     # options_df.loc[options_df.iloc[:2].str.contains('miRNA')] = 'miRNA' # condense all forms of micro RNA
