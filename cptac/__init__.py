@@ -68,7 +68,17 @@ except NoInternetError:
         pass
     else:
         raise NoInternetError("Unable to initialize cptac without index file. Please run the package at least once with an internet connection.")
-INDEX = pd.read_csv(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv'), sep='\t')
+
+try:
+    import google.colab #add to setup.py if it works
+    IN_COLAB = True
+except ImportError:
+    IN_COLAB = False
+
+if IN_COLAB:
+    INDEX = "/content/downloads"
+else:
+    INDEX = pd.read_csv(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv'), sep='\t')
 
 #### Generates the OPTIONS dataframe which shows all possible cancer, source, datatype combinations
 def _load_options():
