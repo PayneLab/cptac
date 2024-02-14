@@ -69,7 +69,7 @@ except NoInternetError:
     else:
         raise NoInternetError("Unable to initialize cptac without index file. Please run the package at least once with an internet connection.")
 
-try:
+'''try:
     import google.colab #add to setup.py if it works
     IN_COLAB = True
 except ImportError:
@@ -78,12 +78,13 @@ except ImportError:
 if IN_COLAB:
     INDEX = "/content/downloads"
 else:
-    INDEX = pd.read_csv(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv'), sep='\t')
+    INDEX = pd.read_csv(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv'), sep='\t')'''
 
+INDEX = pd.read_csv(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv'), sep='\t')
 #### Generates the OPTIONS dataframe which shows all possible cancer, source, datatype combinations
 def _load_options():
     """Load the tsv file with all the possible cancer, source, datatype combinations"""
-    options_df = pd.DataFrame(INDEX['description'].str.split('-').tolist(), dtype=str)
+    options_df = pd.DataFrame(INDEX['description'].str.split('-').tolist())
     options_df.columns = ['Source', 'Cancer', 'Datatype']
     options_df = options_df[['Cancer', 'Source', 'Datatype']]
     # options_df.loc[options_df.iloc[:2].str.contains('miRNA')] = 'miRNA' # condense all forms of micro RNA
