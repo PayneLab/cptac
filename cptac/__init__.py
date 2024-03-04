@@ -68,8 +68,8 @@ except NoInternetError:
         pass
     else:
         raise NoInternetError("Unable to initialize cptac without index file. Please run the package at least once with an internet connection.")
-INDEX = pd.read_csv(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv'), sep='\t')
 
+INDEX = pd.read_csv(path.join(CPTAC_BASE_DIR, 'data', 'index.tsv'), sep='\t')
 #### Generates the OPTIONS dataframe which shows all possible cancer, source, datatype combinations
 def _load_options():
     """Load the tsv file with all the possible cancer, source, datatype combinations"""

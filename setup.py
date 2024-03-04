@@ -32,13 +32,13 @@ setup(name='cptac',
     ),
 	install_requires=[
 		'numpy>=1.16.3',
-		'pandas>=2.0.0',
+		'pandas>=1.5.3',
 		'requests>=2.21.0',
 		'scipy>=1.10.0',
 		'openpyxl>=2.6.0',
 		'statsmodels>=0.10.0',
 		'pyranges>=0.0.111',
-        'tqdm>=4.65.0',
+        'tqdm>=4.65.0'
 	],
 	classifiers=[
         'Development Status :: 5 - Production/Stable',
